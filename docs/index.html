@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="en" style="height: 100%;">
+  <head>
+    <meta charset="utf-8" />
+    <title>CheerpX Getting Started</title>
+    <script src="https://cdn.jsdelivr.net/npm/xterm@5.3.0/lib/xterm.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/xterm@5.3.0/css/xterm.min.css" rel="stylesheet">
+    <script type="module">
+      import * as CheerpX from "https://cxrtnc.leaningtech.com/1.2.2/cx.esm.js";
+      self.CheerpX = CheerpX;
+    </script>
+    <script type="module">
+      // The read-only disk image
+//      const blockDevice = await CheerpX.HttpBytesDevice.create("/disk-images/debian.ext2");
+ const blockDevice = await CheerpX.CloudDevice.create(
+        "wss://disks.webvm.io/debian_large_20230522_5044875331.ext2"
+      );
+
+      // Read-write local storage for disk blocks, it is used both as a cache and as persisteny writable storage
+      const idbDevice = await CheerpX.IDBDevice.create("block1");
+      await idbDevice.reset();
+
+
+
+      // Convenient access to JavaScript binary data and strings
+      const dataDevice = await CheerpX.DataDevice.create();
+      self.dataDevice=dataDevice
+
+      // A device to overlay the local changes to the disk with the remote read-only image
+      const overlayDevice = await CheerpX.OverlayDevice.create(
+        blockDevice,
+        idbDevice
+      );
+
+
+  //    const filesDevice = await CheerpX.IDBDevice.create("files");
+
+
+      const cx = await CheerpX.Linux.create({
+        mounts: [
+          { type: "ext2", path: "/", dev: overlayDevice },
+          { type: "dir", path: "/data", dev: dataDevice },
+          { type: "devs", path: "/dev" },
+        ],
+      });
+      self.cx = cx;
+
+
+      // xterm.js setup
+      const term = new Terminal({ convertEol: true });
+      term.open(document.getElementById("console"));
+
+      const term_cols=60;
+      const term_rows=40;
+
+      const send = cx.setCustomConsole(
+        (buf) => {
+          term.write(new Uint8Array(buf));
+        },
+        term_cols,
+        term_rows
+      );
+      term.onData((str) => {
+        for (let i = 0; i < str.length; i++) {
+          send(str.charCodeAt(i));
+        }
+      });
+
+
+
+//      cx.setConsole(document.getElementById("console"));
+
+      // start bash
+      await cx.run("/bin/bash", ["--login"], {
+        env: [
+          "HOME=/home/user",
+          "USER=user",
+          "SHELL=/bin/bash",
+          "EDITOR=vim",
+          "LANG=en_US.UTF-8",
+          "LC_ALL=C",
+        ],
+        cwd: "/home/user",
+        uid: 0,
+        gid: 0,
+      });
+      
+
+    </script>
+  </head>
+  <body style="height: 100%; background: grey; overflow:hidden">
+
+<form action="">
+  <input id="file" name="file" type="file" multiple>
+  <button type="submit">Upload</button>
+</form>
+
+
+    <pre id="console" style="height: 100%;"></pre>
+
+<script>
+const form = document.querySelector('form');
+form.addEventListener('submit', handleSubmit);
+
+function getBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = () => {
+      let encoded = reader.result.toString().replace(/^data:(.*,)?/, '');
+      if ((encoded.length % 4) > 0) {
+        encoded += '='.repeat(4 - (encoded.length % 4));
+      }
+      resolve(encoded);
+
+    };
+    reader.onerror = error => reject(error);
+  });
+}
+
+
+function handleSubmit(event) {
+  event.preventDefault();
+  console.log("ok")
+  var file = document.getElementById("file").files[0]
+  var filename = file.name;
+  getBase64(file).then(
+function(encoded) {dataDevice.writeFile("/.input.b64", encoded).then(
+function(args) {cx.run("/bin/bash", ["-c", "cat /data/.input.b64 | base64 -d > /home/user/"+filename], {
+        env: [
+          "HOME=/home/user",
+          "USER=user",
+          "SHELL=/bin/bash",
+          "EDITOR=vim",
+          "LANG=en_US.UTF-8",
+          "LC_ALL=C",
+        ],
+        cwd: "/home/user",
+        uid: 0,
+        gid: 0,
+      })}
+)
+
+;});
+
+}
+
+</script>
+  </body>
+</html>
