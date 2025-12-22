@@ -1,0 +1,1381 @@
+4/ldbl-96/s_frexpl.c
+ sysdeps/ieee754/ldbl-96/s_modfl.c
+ sysdeps/ieee754/ldbl-96/s_nexttoward.c
+ sysdeps/ieee754/ldbl-96/s_nexttowardf.c
+ sysdeps/ieee754/ldbl-96/s_scalblnl.c
+ sysdeps/ieee754/ldbl-96/s_sinl.c
+ sysdeps/ieee754/ldbl-96/s_tanhl.c
+ sysdeps/ieee754/ldbl-96/s_tanl.c
+ sysdeps/ieee754/ldbl-opt/s_nexttowardfd.c
+ sysdeps/ieee754/s_lib_version.c
+ sysdeps/ieee754/s_matherr.c
+ sysdeps/m68k/m680x0/fpu/s_logbl.c
+ sysdeps/m68k/m680x0/fpu/s_nextafterl.c
+ sysdeps/x86/fpu/s_isnanl.c
+Copyright: 1993 by Sun Microsystems, Inc.
+License: SunPro
+Comment: Files from Sun fdlibm
+
+Files:
+ sysdeps/ieee754/dbl-64/s_floor.c
+ sysdeps/ieee754/k_standardl.c
+ sysdeps/ieee754/ldbl-128/e_acosl.c
+ sysdeps/ieee754/ldbl-128/e_asinl.c
+ sysdeps/ieee754/ldbl-128/e_coshl.c
+ sysdeps/ieee754/ldbl-128/e_jnl.c
+ sysdeps/ieee754/ldbl-128/e_powl.c
+ sysdeps/ieee754/ldbl-128/e_sinhl.c
+ sysdeps/ieee754/ldbl-128/k_tanl.c
+ sysdeps/ieee754/ldbl-128/s_erfl.c
+ sysdeps/ieee754/ldbl-128ibm/e_acosl.c
+ sysdeps/ieee754/ldbl-128ibm/e_asinl.c
+ sysdeps/ieee754/ldbl-128ibm/e_jnl.c
+ sysdeps/ieee754/ldbl-128ibm/e_powl.c
+ sysdeps/ieee754/ldbl-128ibm/k_tanl.c
+ sysdeps/ieee754/ldbl-128ibm/s_erfl.c
+ sysdeps/ieee754/ldbl-96/e_asinl.c
+ sysdeps/ieee754/ldbl-96/e_j0l.c
+ sysdeps/ieee754/ldbl-96/e_j1l.c
+ sysdeps/ieee754/ldbl-96/e_jnl.c
+ sysdeps/ieee754/ldbl-96/e_lgammal_r.c
+ sysdeps/ieee754/ldbl-96/k_tanl.c
+ sysdeps/ieee754/ldbl-96/s_erfl.c
+Copyright:
+ 1993 by Sun Microsystems, Inc.
+ 1984, 1991, 2001 by Stephen L. Moshier
+ 2011-2025 Free Software Foundation, Inc.
+ 2012-2025 Free Software Foundation, Inc.
+License: LGPL-2.1+ and SunPro
+
+Files:
+ sysdeps/ieee754/flt-32/e_acosf.c
+ sysdeps/ieee754/flt-32/e_acoshf.c
+ sysdeps/ieee754/flt-32/e_asinf.c
+ sysdeps/ieee754/flt-32/e_atan2f.c
+ sysdeps/ieee754/flt-32/e_atanhf.c
+ sysdeps/ieee754/flt-32/e_coshf.c
+ sysdeps/ieee754/flt-32/e_gammaf_r.c
+ sysdeps/ieee754/flt-32/e_lgammaf_r.c
+ sysdeps/ieee754/flt-32/e_log10f.c
+ sysdeps/ieee754/flt-32/e_sinhf.c
+ sysdeps/ieee754/flt-32/s_asinhf.c
+ sysdeps/ieee754/flt-32/s_atanf.c
+ sysdeps/ieee754/flt-32/s_cbrtf.c
+ sysdeps/ieee754/flt-32/s_erfcf.c
+ sysdeps/ieee754/flt-32/s_erff.c
+ sysdeps/ieee754/flt-32/s_exp10m1f.c
+ sysdeps/ieee754/flt-32/s_exp2m1f.c
+ sysdeps/ieee754/flt-32/s_expm1f.c
+ sysdeps/ieee754/flt-32/s_log10p1f.c
+ sysdeps/ieee754/flt-32/s_log1pf.c
+ sysdeps/ieee754/flt-32/s_log2p1f.c
+ sysdeps/ieee754/flt-32/s_tanf.c
+ sysdeps/ieee754/flt-32/s_tanhf.c
+Copyright: 2022-2024 Alexei Sibidanov and Paul Zimmermann
+License: CORE-MATH
+
+Files:
+ gmon/gmon.c
+ gmon/mcount.c
+ gmon/prof-freq.c
+ gmon/sys/gmon.h
+ inet/arpa/ftp.h
+ inet/arpa/telnet.h
+ inet/arpa/tftp.h
+ inet/inet_lnaof.c
+ inet/inet_mkadr.c
+ inet/inet_netof.c
+ inet/protocols/routed.h
+ inet/protocols/rwhod.h
+ inet/protocols/talkd.h
+ inet/protocols/timed.h
+ inet/rexec.c
+ inet/ruserpass.c
+ login/login_tty.c
+ misc/daemon.c
+ misc/fstab.h
+ misc/getttyent.c
+ misc/getusershell.c
+ misc/sys/queue.h
+ misc/sys/syslog.h
+ misc/sysexits.h
+ misc/syslog.c
+ misc/ttyent.h
+ misc/ttyslot.c
+ resolv/arpa/nameser_compat.h
+ sysdeps/generic/netinet/tcp.h
+ sysdeps/generic/paths.h
+ sysdeps/generic/sys/ttydefaults.h
+ sysdeps/gnu/netinet/tcp.h
+ sysdeps/unix/sysv/linux/paths.h
+ sysdeps/unix/sysv/linux/sys/ttydefaults.h
+ termios/sys/ttychars.h
+Copyright: 1980-2011 Regents of the University of California
+License: BSD-3-clause-Berkeley
+Comment: Code incorporated from 4.4 BSD
+
+Files: inet/rcmd.c
+Copyright:
+ 1998 WIDE Project
+ 1983, 1993, 1994 The Regents of the University of California
+License: BSD-3-clause-Berkeley and BSD-3-clause-WIDE
+
+Files:
+ inet/inet_net.c
+ inet/netinet/igmp.h
+ io/fts.c
+ io/fts.h
+ libio/filedoalloc.c
+ libio/wfiledoalloc.c
+ stdlib/div.c
+ stdlib/random.c
+ stdlib/random_r.c
+ sysdeps/gnu/netinet/udp.h
+ sysdeps/mach/hurd/bits/param.h
+ sysdeps/unix/sysv/linux/netinet/if_ether.h
+ sysdeps/unix/sysv/linux/sys/quota.h
+Copyright:
+ 1982-1994 Regents of the University of California
+ 1991-2025 Free Software Foundation, Inc.
+ 1988 Stephen Deering
+License: BSD-3-clause-Berkeley and LGPL-2.1+
+Comment: Code incorporated from 4.4 BSD
+
+Files: support/bundled/linux/include/uapi/linux/fuse.h
+Copyright: 2001-2007 Miklos Szeredi
+License: BSD-2-clause or GPL-2
+
+Files:
+ inet/bindresvport.c
+ inet/rpc/netdb.h
+ nis/rpcsvc/nis.h
+ nis/rpcsvc/nis_callback.h
+ nis/rpcsvc/nis_tags.h
+ nis/rpcsvc/yp.h
+ nis/rpcsvc/ypupd.h
+ nis/yp_xdr.c
+ nis/ypupdate_xdr.c
+ sunrpc/auth_des.c
+ sunrpc/auth_none.c
+ sunrpc/auth_unix.c
+ sunrpc/authdes_prot.c
+ sunrpc/authuxprot.c
+ sunrpc/clnt_gen.c
+ sunrpc/clnt_perr.c
+ sunrpc/clnt_raw.c
+ sunrpc/clnt_simp.c
+ sunrpc/clnt_tcp.c
+ sunrpc/clnt_udp.c
+ sunrpc/clnt_unix.c
+ sunrpc/des_crypt.c
+ sunrpc/des_soft.c
+ sunrpc/get_myaddr.c
+ sunrpc/getrpcport.c
+ sunrpc/key_call.c
+ sunrpc/key_prot.c
+ sunrpc/openchild.c
+ sunrpc/pm_getmaps.c
+ sunrpc/pm_getport.c
+ sunrpc/pmap_clnt.c
+ sunrpc/pmap_prot.c
+ sunrpc/pmap_prot2.c
+ sunrpc/pmap_rmt.c
+ sunrpc/rpc/auth.h
+ sunrpc/rpc/auth_unix.h
+ sunrpc/rpc/clnt.h
+ sunrpc/rpc/des_crypt.h
+ sunrpc/rpc/key_prot.h
+ sunrpc/rpc/pmap_clnt.h
+ sunrpc/rpc/pmap_prot.h
+ sunrpc/rpc/pmap_rmt.h
+ sunrpc/rpc/rpc.h
+ sunrpc/rpc/rpc_des.h
+ sunrpc/rpc/rpc_msg.h
+ sunrpc/rpc/svc.h
+ sunrpc/rpc/svc_auth.h
+ sunrpc/rpc/types.h
+ sunrpc/rpc/xdr.h
+ sunrpc/rpc_cmsg.c
+ sunrpc/rpc_common.c
+ sunrpc/rpc_dtable.c
+ sunrpc/rpc_prot.c
+ sunrpc/rtime.c
+ sunrpc/svc.c
+ sunrpc/svc_auth.c
+ sunrpc/svc_authux.c
+ sunrpc/svc_raw.c
+ sunrpc/svc_run.c
+ sunrpc/svc_simple.c
+ sunrpc/svc_tcp.c
+ sunrpc/svc_udp.c
+ sunrpc/svc_unix.c
+ sunrpc/svcauth_des.c
+ sunrpc/xcrypt.c
+ sunrpc/xdr.c
+ sunrpc/xdr_array.c
+ sunrpc/xdr_float.c
+ sunrpc/xdr_mem.c
+ sunrpc/xdr_rec.c
+ sunrpc/xdr_ref.c
+ sunrpc/xdr_sizeof.c
+ sunrpc/xdr_stdio.c
+Copyright: 2010, Oracle America, Inc.
+License: BSD-3-clause-Oracle
+Comment: Sun RPC support (from rpcsrc-4.0)
+
+Files:
+ resolv/compat-gethnamaddr.c
+ resolv/mapv4v6addr.h
+Copyright:
+ 1985, 1988, 1993 The Regents of the University of California
+ 1993 by Digital Equipment Corporation
+License: BSD-3-clause-Berkeley and DEC
+Comment: DNS resolver code, taken from BIND 4.9.5
+
+Files: resolv/res_debug.c
+Copyright:
+ 1985 The Regents of the University of California
+ 1993 by Digital Equipment Corporation
+ 1995 IBM Corporation
+ 1996-1999 by Internet Software Consortium
+License: BSD-3-clause-Berkeley and DEC and IBM and ISC
+Comment: DNS resolver code, taken from BIND 4.9.5
+
+Files: resolv/res_query.c
+Copyright:
+ 1988, 1993 The Regents of the University of California
+ 1993 by Digital Equipment Corporation
+ 1996-1999 by Internet Software Consortium
+License: BSD-3-clause-Berkeley and DEC and ISC
+Comment: DNS resolver code, taken from BIND 4.9.5
+
+Files:
+ resolv/dn_comp.c
+ resolv/dn_expand.c
+ resolv/dn_skipname.c
+ resolv/inet_addr.c
+ resolv/res-close.c
+ resolv/res-name-checking.c
+ resolv/res-putget.c
+ resolv/res_context_hostalias.c
+ resolv/res_init.c
+ resolv/res_isourserver.c
+ resolv/res_mkquery.c
+ resolv/res_nameinquery.c
+ resolv/res_queriesmatch.c
+ resolv/res_randomid.c
+ resolv/res_send.c
+Copyright:
+ 1983, 1985, 1988, 1989, 1990, 1993 The Regents of the University of California
+ 1993 by Digital Equipment Corporation.
+ 1995-2025 Free Software Foundation, Inc.
+ 1996-1999 by Internet Software Consortium.
+License: BSD-3-clause-Berkeley and DEC and ISC and LGPL-2.1+
+Comment: DNS resolver code, taken from BIND 4.9.5
+
+Files: resolv/nss_dns/dns-host.c
+Copyright:
+ 1996-2025 Free Software Foundation, Inc.
+ 1985, 1988, 1993 The Regents of the University of California
+ 1993 by Digital Equipment Corporation
+License: BSD-3-clause-Berkeley and DEC and LGPL-2.1+
+Comment: DNS resolver code, taken from BIND 4.9.5
+
+Files:
+ resolv/arpa/nameser.h
+ resolv/herror.c
+ resolv/resolv.h
+Copyright:
+ 1983, 1987, 1989, 1993 The Regents of the University of California
+ 1996-1999 by Internet Software Consortium.
+ 2004 by Internet Systems Consortium, Inc. ("ISC")
+License: BSD-3-clause-Berkeley and ISC
+Comment: DNS resolver code, taken from BIND 4.9.5
+
+Files: resolv/nss_dns/dns-network.c
+Copyright:
+ 1993 Carlos Leandro and Rui Salgueiro Dep. Matematica Universidade de Coimbra, Portugal, Europe
+ 1983, 1993 The Regents of the University of California
+ 1996-2025 Free Software Foundation, Inc.
+License: BSD-3-clause-Berkeley and LGPL-2.1+ and Univ-Coimbra
+Comment: DNS resolver code, taken from BIND 4.9.5
+
+Files: resolv/base64.c
+Copyright:
+ 1995 IBM Corporation
+ 1996-1999 by Internet Software Consortium
+License: IBM and ISC
+Comment: DNS resolver code, taken from BIND 4.9.5
+
+Files:
+ resolv/inet_net_ntop.c
+ resolv/inet_net_pton.c
+ resolv/inet_neta.c
+ resolv/inet_ntop.c
+ resolv/ns_date.c
+ resolv/ns_makecanon.c
+ resolv/ns_name.c
+ resolv/ns_name_compress.c
+ resolv/ns_name_ntop.c
+ resolv/ns_name_pack.c
+ resolv/ns_name_pton.c
+ resolv/ns_name_skip.c
+ resolv/ns_name_uncompress.c
+ resolv/ns_name_unpack.c
+ resolv/ns_netint.c
+ resolv/ns_parse.c
+ resolv/ns_print.c
+ resolv/ns_samedomain.c
+ resolv/ns_samename.c
+ resolv/ns_ttl.c
+ resolv/nsap_addr.c
+Copyright:
+ 1995-1999 by Internet Software Consortium.
+ 2004 by Internet Systems Consortium, Inc. ("ISC")
+License: ISC
+Comment: DNS resolver code, taken from BIND 4.9.5
+
+Files:
+ hesiod/hesiod.c
+ hesiod/hesiod.h
+ hesiod/hesiod_p.h
+ resolv/compat-hooks.c
+ resolv/inet_pton.c
+ resolv/res_data.c
+ resolv/res_libc.c
+Copyright:
+ 1996-2025 Free Software Foundation, Inc.
+ 1995-1999 by Internet Software Consortium
+License: ISC and LGPL-2.1+
+Comment: DNS resolver code, taken from BIND 4.9.5
+
+Files:
+ localedata/locales/eo
+ localedata/locales/kk_KZ
+ localedata/locales/syr
+ localedata/locales/tok
+Copyright: None
+License: public-domain
+ These files are in Public Domain.
+
+Files:
+ timezone/africa
+ timezone/antarctica
+ timezone/asia
+ timezone/australasia
+ timezone/backward
+ timezone/etcetera
+ timezone/europe
+ timezone/factory
+ timezone/iso3166.tab
+ timezone/leapseconds
+ timezone/northamerica
+ timezone/pacificnew
+ timezone/private.h
+ timezone/simplebackw
+ timezone/solar87
+ timezone/solar88
+ timezone/solar89
+ timezone/southamerica
+ timezone/systemv
+ timezone/tzfile.h
+ timezone/tzselect.ksh
+ timezone/yearistype
+ timezone/zdump.c
+ timezone/zic.c
+ timezone/zone.tab
+Copyright: The Internet Assigned Numbers Authority (IANA)
+Comment: tzcode and tzdata packages by Arthur David Olson et.al.
+License: public-domain
+ This database is in the public domain.
+
+Files: debian/*
+Copyright:
+ 2000-2004 Ben Collins <bcollins@debian.org>
+ 2002-2004 Jeff Bailey <jbailey@debian.org>
+ 2002-2005 Philip Blundell <pb@debian.org>
+ 2002-2006 Daniel Jacobowitz <dan@debian.org>
+ 2002-2006 GOTO Masanori <gotom@debian.org>
+ 2006 Denis Barbier <barbier@debian.org>
+ 2006-2025 Aurelien Jarno <aurel32@debian.org>
+ 2007-2008 Pierre Habouzit <madcoder@debian.org>
+ 2010-2013 Clint Adams <clint@debian.org>
+ 2012-2019 Adam Conrad <adconrad@0c3.net>
+ 2016-2025 Samuel Thibault <sthibault@debian.org>
+License: GPL-2+
+
+License: BSD-2-clause
+ Redistribution and use in source and binary forms, with or without
+ modification, are permitted provided that the following conditions
+ are met:
+ 1. Redistributions of source code must retain the above copyright
+    notice, this list of conditions and the following disclaimer.
+ 2. Redistributions in binary form must reproduce the above copyright
+    notice, this list of conditions and the following disclaimer in the
+    documentation and/or other materials provided with the distribution.
+ .
+ THIS SOFTWARE IS PROVIDED BY AUTHOR AND CONTRIBUTORS ``AS IS'' AND
+ ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ ARE DISCLAIMED.  IN NO EVENT SHALL AUTHOR OR CONTRIBUTORS BE LIABLE
+ FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+ OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+ OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+ SUCH DAMAGE.
+
+License: BSD-3-clause-Berkeley
+ Redistribution and use in source and binary forms, with or without
+ modification, are permitted provided that the following conditions
+ are met:
+ .
+ 1. Redistributions of source code must retain the above copyright
+    notice, this list of conditions and the following disclaimer.
+ 2. Redistributions in binary form must reproduce the above copyright
+    notice, this list of conditions and the following disclaimer in the
+    documentation and/or other materials provided with the distribution.
+ 3. [This condition was removed.]
+ 4. Neither the name of the University nor the names of its contributors
+    may be used to endorse or promote products derived from this software
+    without specific prior written permission.
+ .
+ THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
+ ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
+ FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+ OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+ OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+ SUCH DAMAGE.
+
+License: BSD-3-clause-Carnegie
+ Redistribution and use in source and binary forms, with or without
+ modification, are permitted provided that the following conditions
+ are met:
+ 1. Redistributions of source code must retain the above copyright
+    notice, this list of conditions and the following disclaimer.
+ 2. Redistributions in binary form must reproduce the above copyright
+    notice, this list of conditions and the following disclaimer in the
+    documentation and/or other materials provided with the distribution.
+ 3. Neither the name of the University nor the names of its contributors
+    may be used to endorse or promote products derived from this software
+    without specific prior written permission.
+ .
+ THIS SOFTWARE IS PROVIDED BY CARNEGIE MELLON UNIVERSITY AND
+ CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES,
+ INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+ MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
+ IN NO EVENT SHALL THE UNIVERSITY OR CONTRIBUTORS BE LIABLE FOR ANY
+ DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
+ GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER
+ IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+ OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN
+ IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+License: BSD-3-clause-Oracle
+ Redistribution and use in source and binary forms, with or without
+ modification, are permitted provided that the following conditions are
+ met:
+ .
+     * Redistributions of source code must retain the above copyright
+       notice, this list of conditions and the following disclaimer.
+     * Redistributions in binary form must reproduce the above
+       copyright notice, this list of conditions and the following
+       disclaimer in the documentation and/or other materials
+       provided with the distribution.
+     * Neither the name of the "Oracle America, Inc." nor the names of its
+       contributors may be used to endorse or promote products derived
+       from this software without specific prior written permission.
+ .
+   THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+   "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+   LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+   FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+   COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+   INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+   DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
+   GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+   INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+   WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+   NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+   OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+License: BSD-3-clause-WIDE
+ Redistribution and use in source and binary forms, with or without
+ modification, are permitted provided that the following conditions
+ are met:
+ 1. Redistributions of source code must retain the above copyright
+    notice, this list of conditions and the following disclaimer.
+ 2. Redistributions in binary form must reproduce the above copyright
+    notice, this list of conditions and the following disclaimer in the
+    documentation and/or other materials provided with the distribution.
+ 3. Neither the name of the project nor the names of its contributors
+    may be used to endorse or promote products derived from this software
+    without specific prior written permission.
+ .
+ THIS SOFTWARE IS PROVIDED BY THE PROJECT AND CONTRIBUTORS ``AS IS'' AND
+ ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ ARE DISCLAIMED.  IN NO EVENT SHALL THE PROJECT OR CONTRIBUTORS BE LIABLE
+ FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+ OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+ OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+ SUCH DAMAGE.
+
+License: BSL-1.0
+ Boost Software License - Version 1.0 - August 17th, 2003
+ .
+ Permission is hereby granted, free of charge, to any person or organization
+ obtaining a copy of the software and accompanying documentation covered by
+ this license (the "Software") to use, reproduce, display, distribute,
+ execute, and transmit the Software, and to prepare derivative works of the
+ Software, and to permit third-parties to whom the Software is furnished to
+ do so, all subject to the following:
+ .
+ The copyright notices in the Software and this entire statement, including
+ the above license grant, this restriction and the following disclaimer,
+ must be included in all copies of the Software, in whole or in part, and
+ all derivative works of the Software, unless such copies or derivative
+ works are solely in the form of machine-executable object code generated by
+ a source language processor.
+ .
+ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ FITNESS FOR A PARTICULAR PURPOSE, TITLE AND NON-INFRINGEMENT. IN NO EVENT
+ SHALL THE COPYRIGHT HOLDERS OR ANYONE DISTRIBUTING THE SOFTWARE BE LIABLE
+ FOR ANY DAMAGES OR OTHER LIABILITY, WHETHER IN CONTRACT, TORT OR OTHERWISE,
+ ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+ DEALINGS IN THE SOFTWARE.
+
+License: Carnegie
+ Permission to use, copy, modify and distribute this software and its
+ documentation is hereby granted, provided that both the copyright
+ notice and this permission notice appear in all copies of the
+ software, derivative works or modified versions, and any portions
+ thereof, and that both notices appear in supporting documentation.
+ .
+ CARNEGIE MELLON ALLOWS FREE USE OF THIS SOFTWARE IN ITS "AS IS"
+ CONDITION.  CARNEGIE MELLON DISCLAIMS ANY LIABILITY OF ANY KIND FOR
+ ANY DAMAGES WHATSOEVER RESULTING FROM THE USE OF THIS SOFTWARE.
+ .
+ Carnegie Mellon requests users of this software to return to
+ .
+  Software Distribution Coordinator  or  Software.Distribution@CS.CMU.EDU
+  School of Computer Science
+  Carnegie Mellon University
+  Pittsburgh PA 15213-3890
+ .
+ any improvements or extensions that they make and grant Carnegie Mellon
+ the rights to redistribute these changes.
+
+License: Univ-Coimbra
+ Permission to use, copy, modify, and distribute this software for any
+ purpose with or without fee is hereby granted, provided that the above
+ copyright notice and this permission notice appear in all copies.
+
+License: CORE-MATH
+ This file is part of the CORE-MATH project
+ .
+ Permission is hereby granted, free of charge, to any person obtaining a copy
+ of this software and associated documentation files (the "Software"), to deal
+ in the Software without restriction, including without limitation the rights
+ to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ copies of the Software, and to permit persons to whom the Software is
+ furnished to do so, subject to the following conditions:
+ .
+ The above copyright notice and this permission notice shall be included in all
+ copies or substantial portions of the Software.
+ .
+ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ SOFTWARE.
+
+License: DEC
+ Permission to use, copy, modify, and distribute this software for any
+ purpose with or without fee is hereby granted, provided that the above
+ copyright notice and this permission notice appear in all copies, and
+ that the name of Digital Equipment Corporation not be used in
+ advertising or publicity pertaining to distribution of the document or
+ software without specific, written prior permission.
+ .
+ THE SOFTWARE IS PROVIDED ``AS IS'' AND DIGITAL EQUIPMENT CORP.
+ DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE, INCLUDING ALL
+ IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS.  IN NO EVENT SHALL
+ DIGITAL EQUIPMENT CORPORATION BE LIABLE FOR ANY SPECIAL, DIRECT,
+ INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING
+ FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT,
+ NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
+ WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+
+License: FSFAP
+ Copying and distribution of this file, with or without modification,
+ are permitted in any medium without royalty provided the copyright
+ notice and this notice are preserved. This file is offered as-is,
+ without any warranty.
+
+License: GPL-2
+ This file is free software; you can redistribute it and/or modify it
+ under the terms of the GNU General Public License version 2 as published
+ by the Free Software Foundation.
+ .
+ This file is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+ .
+ You should have received a copy of the GNU Lesser General Public
+ License along with the GNU C Library; if not, see
+ <https://www.gnu.org/licenses/>.
+ .
+ On Debian systems, the complete text of the GNU General Public License
+ version 2 can be found in `/usr/share/common-licenses/GPL-2'.
+
+License: GPL-2+
+ This file is part of the GNU C Library.
+ .
+ This file is free software; you can redistribute it and/or modify it
+ under the terms of the GNU General Public License as published by the
+ Free Software Foundation; either version 2, or (at your option) any
+ later version.
+ .
+ The GNU C Library is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ Lesser General Public License for more details.
+ .
+ You should have received a copy of the GNU Lesser General Public
+ License along with the GNU C Library; if not, see
+ <https://www.gnu.org/licenses/>.
+ .
+ On Debian systems, the complete text of the GNU General Public License
+ version 2 can be found in `/usr/share/common-licenses/GPL-2'.
+
+License: GPL-2+-with-link-exception
+ This file is free software; you can redistribute it and/or modify it
+ under the terms of the GNU General Public License as published by the
+ Free Software Foundation; either version 2, or (at your option) any
+ later version.
+ .
+ In addition to the permissions in the GNU General Public License, the
+ Free Software Foundation gives you unlimited permission to link the
+ compiled version of this file into combinations with other programs,
+ and to distribute those combinations without any restriction coming
+ from the use of this file.  (The General Public License restrictions
+ do apply in other respects; for example, they cover modification of
+ the file, and distribution when not linked into a combine
+ executable.)
+ .
+ This file is distributed in the hope that it will be useful, but
+ WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ General Public License for more details.
+ .
+ You should have received a copy of the GNU General Public License
+ along with this program.  If not, see
+ <https://www.gnu.org/licenses/>.
+ .
+ On Debian systems, the complete text of the GNU General Public License
+ version 2 can be found in `/usr/share/common-licenses/GPL-2'.
+
+License: GPL-3+
+ This program is free software: you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation, either version 3 of the License, or
+ (at your option) any later version.
+ .
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+ .
+ You should have received a copy of the GNU General Public License
+ along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ .
+ On Debian systems, the complete text of the GNU General Public License
+ version 2 can be found in `/usr/share/common-licenses/GPL-3'.
+
+License: IBM
+ Permission is hereby granted, free of charge, to any person obtaining
+ a copy of this software and associated documentation files (the
+ 'Software'), to deal in the Software without restriction, including
+ without limitation the rights to use, copy, modify, merge, publish,
+ distribute, sublicense, and/or sell copies of the Software, and to
+ permit persons to whom the Software is furnished to do so, subject to
+ the following conditions:
+ .
+ The above copyright notice and this permission notice shall be
+ included in all copies or substantial portions of the Software.
+ .
+ THE SOFTWARE IS PROVIDED 'AS IS', WITHOUT WARRANTY OF ANY KIND,
+ EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+ IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+ CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+ TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+License: Inner-Net
+ The Inner Net License, Version 2.00
+ .
+   The author(s) grant permission for redistribution and use in source and
+ binary forms, with or without modification, of the software and documentation
+ provided that the following conditions are met:
+ .
+ 0. If you receive a version of the software that is specifically labelled
+    as not being for redistribution (check the version message and/or README),
+    you are not permitted to redistribute that version of the software in any
+    way or form.
+ 1. All terms of the all other applicable copyrights and licenses must be
+    followed.
+ 2. Redistributions of source code must retain the authors' copyright
+    notice(s), this list of conditions, and the following disclaimer.
+ 3. Redistributions in binary form must reproduce the authors' copyright
+    notice(s), this list of conditions, and the following disclaimer in the
+    documentation and/or other materials provided with the distribution.
+ 4. [The copyright holder has authorized the removal of this clause.]
+ 5. Neither the name(s) of the author(s) nor the names of its contributors
+    may be used to endorse or promote products derived from this software
+    without specific prior written permission.
+ .
+ THIS SOFTWARE IS PROVIDED BY ITS AUTHORS AND CONTRIBUTORS ``AS IS'' AND ANY
+ EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR ANY
+ DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ .
+   If these license terms cause you a real problem, contact the author.
+
+License: ISC
+ Permission to use, copy, modify, and distribute this software for any
+ purpose with or without fee is hereby granted, provided that the above
+ copyright notice and this permission notice appear in all copies.
+ .
+ THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM DISCLAIMS
+ ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES
+ OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL INTERNET SOFTWARE
+ CONSORTIUM BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL
+ DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR
+ PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS
+ ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
+ SOFTWARE.
+
+License: LGPL-2+
+ This file is part of the GNU C Library.
+ .
+ The GNU C Library is free software; you can redistribute it and/or
+ modify it under the terms of the GNU Library General Public License as
+ published by the Free Software Foundation; either version 2 of the
+ License, or (at your option) any later version.
+ .
+ The GNU C Library is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ Library General Public License for more details.
+ .
+ You should have received a copy of the GNU Library General Public
+ License along with the GNU C Library.  If not, see
+ <https://www.gnu.org/licenses/>.
+ .
+ On Debian systems, the complete text of the GNU Library General Public
+ License version 2 can be found in `/usr/share/common-licenses/LGPL-2'.
+
+License: LGPL-2.1+
+ This file is part of the GNU C Library.
+ .
+ The GNU C Library is free software; you can redistribute it and/or
+ modify it under the terms of the GNU Lesser General Public
+ License as published by the Free Software Foundation; either
+ version 2.1 of the License, or (at your option) any later version.
+ .
+ The GNU C Library is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ Lesser General Public License for more details.
+ .
+ You should have received a copy of the GNU Lesser General Public
+ License along with the GNU C Library; if not, see
+ <https://www.gnu.org/licenses/>.
+ .
+ On Debian systems, the complete text of the GNU Library General Public
+ License version 2.1 can be found in `/usr/share/common-licenses/LGPL-2.1'.
+
+License: LGPL-2.1+-with-link-exception
+ This file is part of the GNU C Library.
+ .
+ The GNU C Library is free software; you can redistribute it and/or
+ modify it under the terms of the GNU Lesser General Public
+ License as published by the Free Software Foundation; either
+ version 2.1 of the License, or (at your option) any later version.
+ .
+ In addition to the permissions in the GNU Lesser General Public
+ License, the Free Software Foundation gives you unlimited
+ permission to link the compiled version of this file into
+ combinations with other programs, and to distribute those
+ combinations without any restriction coming from the use of this
+ file.  (The Lesser General Public License restrictions do apply in
+ other respects; for example, they cover modification of the file,
+ and distribution when not linked into a combine executable.)
+ .
+ The GNU C Library is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ Lesser General Public License for more details.
+ .
+ You should have received a copy of the GNU Lesser General Public
+ License along with the GNU C Library; if not, see
+ <https://www.gnu.org/licenses/>.
+ .
+ On Debian systems, the complete text of the GNU Library General Public
+ License version 2.1 can be found in `/usr/share/common-licenses/LGPL-2.1'.
+
+License: LGPL-3+
+ This file is part of the GNU Hurd.
+ .
+ The GNU Hurd is free software; you can redistribute it and/or
+ modify it under the terms of the GNU Lesser General Public License
+ as published by the Free Software Foundation; either version 3 of
+ the License, or (at your option) any later version.
+ .
+ The GNU Hurd is distributed in the hope that it will be useful, but
+ WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ Lesser General Public License for more details.
+ .
+ You should have received a copy of the GNU Lesser General Public
+ License along with this program.  If not, see
+ <https://www.gnu.org/licenses/>.
+ .
+ On Debian systems, the complete text of the GNU Library General Public
+ License version 3 can be found in `/usr/share/common-licenses/LGPL-3'.
+
+License: PCRE
+ PCRE LICENCE
+ ------------
+ .
+ PCRE is a library of functions to support regular expressions whose syntax
+ and semantics are as close as possible to those of the Perl 5 language.
+ .
+ Written by: Philip Hazel <ph10@cam.ac.uk>
+ .
+ University of Cambridge Computing Service,
+ Cambridge, England. Phone: +44 1223 334714.
+ .
+ Copyright (c) 1997-2003 University of Cambridge
+ .
+ Permission is granted to anyone to use this software for any purpose on any
+ computer system, and to redistribute it freely, subject to the following
+ restrictions:
+ .
+ 1. This software is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ .
+ 2. The origin of this software must not be misrepresented, either by
+    explicit claim or by omission. In practice, this means that if you use
+    PCRE in software that you distribute to others, commercially or
+    otherwise, you must put a sentence like this
+ .
+      Regular expression support is provided by the PCRE library package,
+      which is open source software, written by Philip Hazel, and copyright
+      by the University of Cambridge, England.
+ .
+    somewhere reasonably visible in your documentation and in any relevant
+    files or online help data or similar. A reference to the ftp site for
+    the source, that is, to
+ .
+      ftp://ftp.csx.cam.ac.uk/pub/software/programming/pcre/
+ .
+    should also be given in the documentation. However, this condition is not
+    intended to apply to whole chains of software. If package A includes PCRE,
+    it must acknowledge it, but if package B is software that includes package
+    A, the condition is not imposed on package B (unless it uses PCRE
+    independently).
+ .
+ 3. Altered versions must be plainly marked as such, and must not be
+    misrepresented as being the original software.
+ .
+ 4. If PCRE is embedded in any software that is released under the GNU
+   General Purpose Licence (GPL), or Lesser General Purpose Licence (LGPL),
+   then the terms of that licence shall supersede any condition above with
+   which it is incompatible.
+ .
+ The documentation for PCRE, supplied in the "doc" directory, is distributed
+ under the same terms as the software itself.
+ .
+ End
+
+License: SunPro
+ Developed at SunPro, a Sun Microsystems, Inc. business.
+ Permission to use, copy, modify, and distribute this
+ software is freely granted, provided that this notice
+ is preserved.
+
+License: Unicode-D
+T                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              FS-2016
+ UNICODE LICENSE V3
+ .
+ COPYRIGHT AND PERMISSION NOTICE
+ .
+ Copyright ¬© 1991-2024 Unicoe, Inc.
+ .
+ NOTICE TO USER: Carefully read the following legal agreement. BY
+ DOWNLOADING, INSTALLING, COPYING OR OTHERWISE USING DATA FILES, AND/OR
+ SOFTWARE, YOU UNEQUIVOCALLY ACCEPT, AND AGREE TO BE BOUND BY, ALL OF THE
+ TERMS AND CONDITIONS OF THIS AGREEMENT. IF YOU DO NOT AGREE, DO NOT
+ DOWNLOAD, INSTALL, COPY, DISTRIBUTE OR USE THE DATA FILES OR SOFTWARE.
+ .
+ Permission is hereby granted, free of charge, to any person obtaining a
+ copy of data files and any associated documentation (the "Data Files") or
+ software and any associated documentation (the "Software") to deal in the
+ Data Files or Software without restriction, including without limitation
+ the rights to use, copy, modify, merge, publish, distribute, and/or sell
+ copies of the Data Files or Software, and to permit persons to whom the
+ Data Files or Software are furnished to do so, provided that either (a)
+ this copyright and permission notice appear with all copies of the Data
+ Files or Software, or (b) this copyright and permission notice appear in
+ associated Documentation.
+ .
+ THE DATA FILES AND SOFTWARE ARE PROVIDED "AS IS", WITHOUT WARRANTY OF ANY
+ KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF
+ THIRD PARTY RIGHTS.
+ .
+ IN NO EVENT SHALL THE COPYRIGHT HOLDER OR HOLDERS INCLUDED IN THIS NOTICE
+ BE LIABLE FOR ANY CLAIM, OR ANY SPECIAL INDIRECT OR CONSEQUENTIAL DAMAGES,
+ OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS,
+ WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION,
+ ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THE DATA
+ FILES OR SOFTWARE.
+ .
+ Except as contained in this notice, the name of a copyright holder shall
+ not be used in advertising or otherwise to promote the sale, use or other
+ dealings in these Data Files or Software without prior written
+ authorization of the copyright holder.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   .   f   ..     changelog.Debian.gz     changelog.Debian.i386.gz   changelog.gz  ò	copyright                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       ã     ≠X€r€F}˜WtU¥ÎnI8I≈≤$€)_Tíù<lm)C†I``êôÅe~Pæ$?∂›3 j•(V∂J*â‡\˙r˙únTÂ*≠◊l‡Åøg^ÚOËmƒ™¬g–©6Ÿˆ˚Û≤´ü<x
+ÁÂ® ∆î¢Å°ö≤ŸhX+YÉËål?mj„”ZœÉW¸˛Y®Œ}x.46]!¯Åøˆ˛±]Øçﬂ» ~¡¸¢9ºìü!
+¢¢0Mé”Ÿæ¬ xÚ§∫mi¸ê•œÛ∫VÖ¢∂ ”]IAË}[yÒ%÷Ú3B~4ﬁ„Â¯ŸœK•°ëP…fÉ
+ƒÛØwÔ™k»Ω ﬁg∆π,”Ë8çr/∫”ΩËœ›˚º¬™ÓºT≤h˛=&Á¸√…˘‹î¶ ª€≠)d´Æ¨rhï\ó˙¢íu
+ﬂÑ¡|±òÕÁN∏ÄÁ›∆π∆iî§QtØ;·CŸzá7ªl)¨êÆt©π&+»\˙ ‡Q¶÷
+uùFÔ3*] ∆”-fÂ∫Ã<ÁoÏe≤YóøÂ≠~øëÒ`8∏Ó†!aMqªp°¢‹‰æ;£SÑ·àS%[2é°“_Âm*πïá_2l€Rà&ØPy∫l2ÙJ£	H≠¬LgŒ°=ÄæÆ:”hàÛˆcõÉpeË
+æ|d3Óé›≤!(?è∂‹¬9<oUè«yGÈÏæ&·ÒÈC·]õ’ZÔAÔ8éóã©œ¡Uïõ¬¿ÖÇµTPo5VÎG˙Ã·W=ùƒií§≥‡:I˛@OÂMSIëÉñù –˘ˇ≤4Ø∫’ù∂(UYß6∆Öâh˛@1∏Õ>87dìã9EŸ¡n’@OoÆhv!∂L‡Ãgsò0dgzXÓLÿ›Øª∂ï Ë°V"w¿ZFÈ;xwˆÀ’Å=VHŸCP]√aÈñJÄr;^s§) ˝9µÃªä–\r—QHà$+IC∞ﬂ+ä—§\f]Më≥K@e€R–,Áô)$Ÿ'±¡G–¥0D”1úb∆∞âô◊ÇÖ£Èª`?¨B[ œ∞ÓëÍLÕ:N£ ç√{Õ¢j≈/-™“F©∫€¥∑¨xú.ÕÊuZÌ sôÃ„(æõë~û2“±›…H˚»˙~áÄáªúè»O„o2[ˆ–›mŒè˛_
+¸V6”#∂å§—‚ﬁ>é¶$≥py∑Ü≠hÌP˜SÅ
+‚âÜ’¥†§Î=ÓS¥ìèÈ⁄ƒ´‰∆C•§Íµå¯Da∞téπTbÔô◊◊Ö<≥jE9ın
+∫F{Ñµù\§mU:tPtrJ»µ®W%-ÙÁS.¢k¢¯k°j¨Æ5n÷¢´ÃuçµF≥guüı ºÆE”Râ^Á®3UZÂt+¡˚°ˇﬁ„öOFΩg÷k«íd◊∂ïg?∞˝l-πuŸs⁄≠Ã*Wgg¸Õ’˚Ëx»û√mVs»U%‘¶∏g√¡vì∂ôa˙Ê P©˘£2πD¥ÙÁV¨+±—n…§Õ|Ω≠W≤±—ó[ˇtöæ>∆;≈™¬Gr‰$V}ΩΩË…”ˆ0Ω+S'8‘’Ó¯ÒØîw8ò<j«-K˘¢ÊqLˇÿÁΩıƒ‰©éıâ—ˆºW4`o Õ±˘ÍÕÀã7^‰áﬂˆ®ÿQ◊bæ\$ì”]aπ∆˚táÇØ•ëEg‚ßÆaâòF¢(ç„;ßπø|x¢öFvå)ãË†Åá¨w\ÙGè˙â§*rM4œÊ»<ı+·¬C%ÅüNr∏B:éD±v}g~‘H„ïNI3©n\?K›7¨PñyTÎ™ìù˙µºÃõÉÑêè´Æ1ùWeMD±ﬁ≤˘ë≤Zn[hªíü÷De[°µ°W˝∏Ø¥íQJM»òá0d•éí{Ûˇ:Øç∂Ùãj „aèπ"öëU∫œhBe—Af:Öé.õÓëÎv¢À„piè±∏$j›∫∞^(Ë^˝æ8aù¬;NÊ√1']›2™¨(g|Û0.Ñ±?äçmoK®K'D'J√3„ùR3ìˆ≈≈ç$>bcˆœ5Jî‰ÓÜdÑßk2o›úwÑÇ2cÃ’›>Ïz˙ö¯ÒÚµE!kl{¢‚Ö∂a‚Cìs∆¯%(…ËÌ8¶ıÌ!\2ΩKj/J≈ˇHi¸}ÚNõÍ–¥˝p"|»”Ê.ŒΩ4[: •´…Å-˜ ,%ì∏r˙0VÍ∞˙Üâ.›ıŒò°÷¨Et!;‰ƒÎ÷lbª÷¡‚`í˝dtìÏﬁE’üˆ^=πÚ∂Õ™ı⁄ﬂ8Êµ0ÉMÌ—√∫ûZÇ==ªb∂ëÚ,(Ï≈ï;«ä÷PÚÉ¥rr9˝@Å√Çxp¿9⁄O4÷ïa0p≥4¨#
+7ƒ√ÄAH^8eûVµ±sWªWhvU£ ·êH+O∫çwJ∏1;¥üÆ∫U]RÍ/G|YCÿ∞›#ÔD…õaºQT∞‹Qir Ω•9⁄æ*{â⁄¶Èﬂ”ÏQ˛Ÿê◊ÜÛP¢ë=21∑çÜÀ»W≥„π*âÉâJ-“ ∏Ô˝≥c‰?8‡ø£vq¬èùl¸}ZºU¯∑l¡&ü9Ò™+œADC6&j∂å¢Ÿ˛~≤R£B&~kÁÑgrÍdwºw;»π6¬Bvâ«ÚÿÌK‚„Ëˆ˚/Í”*cåmêØ]à∑¢ê≤Ô:¬I∏Ñ∑bÀ1 L“˝Ãˇ$∆·ﬂà±%$ÁH4Œ≥	–„„E2sû\ïÑÑQ¯Æñ™-~tùè/’fhb¬yˇ6í|Ì,4[Ç$l˙7æ¢Ùå-5çgzä«–,ÿ	√‘>∏¡èü∂}ê¿ÿµS∏ÂÓ>∆ñE≠ô<⁄5¬ø˙O˛g™Pè                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           ã     EçÀN√0E˜˘äªlim“<¨®•Uà5b√˘Eb…±+'VÒﬂcÃ¢#Õ,Ó=:cçê¸J‹àMM⁄ìn'[,Fù√®ùLgÎo{„xHƒ;õŒI/U<‡r·º#37nÕ´‚’zÆÌL;∞SÓ±¯§Üú∏ıBã‚Cãh¨¬Õ¨ﬁ”:yáñZ¸IÛB¿g≈:<.Ö~ÂzŒ‡Êg`$
+IÍfãß"R_'˜ÊÂ?ßJ√ıa|>µ⁄£ax”M›Ù˘õÓÿ3ÏÍ<’/Ü¿)I                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                ã     ïX€r€∫}œW`ÊÃÙÿGé„89ßoé≠§jbY#Ÿ'9Oà)‘¿†Âü˙˝±ÆΩäî¢Lß/âL‚≤Øk≠ÕW£ﬂFW/^äπZ€çÕ6¨¨Umó≤Í[Æö†Ò`%MQ+'º6π:¸ÍE°ßrTÅÌwÚIâ∞R¢∫÷A+/jmûÑ¨§6>à∂¯gŸÍ:‡˘“Iá˝≠≠iΩ*ƒZÊŒ
+mD.õó¶≠^ºxÛﬁ`·Ñö*ÀaI•2]úâºV“âŸ<[å≤O„ÒÏÊz∂∫NÖ÷m*!çPŒYáè˛&dQàóç∞—≠“:¨n¨ºZ¯FÂ∫‘∞•q6Wﬁãì;Èe Ô˛îkÏ)é∫6∆8. ÷‰|V∂‹V<Kg¢æ≠É“u.bÛ≠≥M
+Ûk·€Ü.è~^‚Ì˝M4“…µ
+ Òa—Ì∂)p·¶ÀœRõÛÇ•BV*«∂<–π§<lì£∞!◊ö†◊äˆ¨…°‹öÄÏ(ßøKˆBIØë„û÷Íî£éT Zèπçô€äÁï2ú^ƒ…#:óuΩ•¿ ∏Uû˜që!8Ωl‚B°.⁄úoã>øÊV6MΩ=£»=+±¨’≥h*á•mŸ]·U8tƒ3˝‰úÌ\ç5)© PŸı›˚…x˙ ¥»ñê©kâCœDa˘	UcA>»H&◊K≠L†#÷»&ä≤ñ>d8^‰+ï?Es/‚T•?r4*r∏SzA¶|æ^<êMqÛŒ¥îH◊Ú9%Ω )¶≠?±n\jÅrXŸ‚H¨∏}∫CÜ+Çr•pî-˘gp“x…	9rBlñÿ&Á°VeU°tΩﬁ®z;:û :7	ÉÛ∫-®ÚÒl/U8dkrÒ¨√ä_>)gTù™<÷Ïyk‚n⁄ÿ∑˛sk%˙Iˇ´U—lTr¡e]hYÎaöŸäYiù≤Bv≤æ9v«Ω‚ÍÏ7PßÇ¿cÛÇµ5óCZπAø∫™Îe≤„∞KÈÙΩ>N;ª-Ù~êƒaA.˚„Rî∫F`}PÎ˝≈0È›Ë‚Çaï2‰0%î:È©oıÄö.£ÇùçÁÓÓßg¸«˚Ÿá3Ò˛yÛ˜ÒÕßŸ˝d˙êÕ«ãá˚˘ò6m¨&Ï¶Œ>/ùR˝Ÿú4q2Ä©jqcy˙?Z®Çï{&o¥å]Äç7» º]~≠M§îJßã¿+,|‰8∫+Å’≤Ír<®äFπµ ≥l”íıGRÙ©∑ëf€Ü¶ÄCùØÿT™ôΩÌÑ¸⁄§äÏ$ü”Óé¢"™J^∫•∏´Ö∂h∑VõQ”%≠á{‘˘MX9%ãLîÕì8˘áU‚ﬁkNôÆÒ(QÃ§Ñ≠¡QN∞èo$ﬁ≈÷˝´8πï˘ü 	Ó4Ü˘˜t·r∫TP∆bÈ_Ójø'%ÇªŒglhõZu®É˚Sp(ŒËﬂ„)÷Ãc\÷ÄïÎ)•cù™Iá‡ú+ô÷ü∏ûi7ëz+ŒÒ+êáµ$
+>øDÊàq;Nz«}›ë¿,π”uÙôQï-l`9Zpcù#!:1ì!öÙD}}!uµÿ°C⁄Œÿ≠bJÄ£ê÷ Ta≈Q⁄•∫ªÑXò÷P¬ì©k[¥µäÆºÎ§ôo	◊ÎZDë¬rÁeµ!Ë§2-T©M|JÖÒ≤Æµê`IìÏ!ª v[MÑuüV¢C	_>‹“Iùb–"öÙvÔƒÀ°z«JîÌ=x´˜˝ `	Aπnˆò6Ó99r>çŒ)+˜Ñ8Ï∆ÂË‚mGOlH“ú,â&Ü2ïÿ¶ÀÈ«l2ù<dã«Ÿ,˚8üıömà¨¨˙BÔÔfÛ˚ª…b…:üé?Ã!Nm°#¡/û[ 0∑–Me≈ÌDÓÖﬁ…/ø˝~uÒÍÍ4ôñtÒÙ>õéød≥˘‰èEo†˙â∏ ∫‹E%ñÚpπW7>hT¬Í‰?8ÙcBMôe…øÀæ≠téKZOe¬M∑îºiã	ó™œoÑ?T	¥≠ãÂN:∏[ÆYÒ··^O&”«qÏ8O3J§ñA]£Û0˝Ê‘#ç:Z13v,ƒ∑w!`'l£ª1æ∂ÍÅJ-+qr„çnû€¬˝ÁﬂU´æüˇ˘˛Ê c1Ooª‚∑êWT|^U•‰!Å˝ﬂ´aƒªÜ∞ "TR$÷>Å˛∏p˜*¥∞ÊW¯JU∂i>¬ü•7≈°dxÀ9È∞Â,Œúw8û‚`I y.UÓ‘>º¯sÒ˘˛„Âd‚Fg©X≠=#A)ÜÇ„Àıßqv˝˘z~M∫ÍÄP’eõ®÷q;<_∆ì∏ÅTé:ËdÅqâ˘ÁÎH|—&MΩ˜¶ﬁrÍ‡J’"òQ;ÌÛ'ôèß˝≥ÑÈx_E-'N§ÉÍ1é ¿Íf»ı]~c"xíÿõ4#1•HƒRÂ™\kœÙı˙·aûMØÔ∆O∑q˛~ç]æÂLQœ",zSbÏﬁÙà⁄yUzÀˇu*´°39H%X>Y¨ ∞Çﬂ/ &π“ŸuÏË¸‹È&H˝Ëw48πÌh˙Ìú¯ô¿*ÿÂÒ⁄ÿµSu´ãü˚÷0Û”¿JR´°˝hYñ∏ÃH√Gº˘ıéO¯¬˚√€PﬂEúà_X@l4Iû¡ÿ°›ÃE˝©≥ë1YW¯´ÍÑ≈ûÿhYÍjHso„Ÿw\l^¸ö‹ì#Ï* ÇO–W
+I≤%∞†·"ÊkË≥
+lF≤eÃîéﬂ4~º|˚ˇq˜èáúûÆﬂ§Ø7ùŒZ©ÒF[‘Ñ>ÖÅÇF»Àã¥iÃ>M√BÅÂôÅ.ﬂ:≠qø Û1‰-•2Ëﬂu]Ü™·Q≤Ë?1Ìe}sC∆†∆DEN‹±VˇÂg,íﬁ\åoÁc‚TPÎ„‰6˚0˘˙8„ä&êﬂ¬¶>.©¶à|?ÂR¸ØF√_Fë'çD … Â8W>=cü®rÍÚïµ®dtóÇ‹©èÆ±√mõ47,yGAKªœJIpN"µ∞D√yt∆1_nD
+õV∑êõ&t#CÍ}∏â¨˚'Ç„ü¿«Œ°˝—;Œ3”v≠ êÕM*v/Î«g≈Cîxvññ8hëhu¬ﬂnD#ôNò¬Î~8p„g*jÒ¥Ö‚ë$}K†/pk¬c}pHT(§^¢,VÆ‚XKesæì√≠(¥èíì*Ïÿø˜…ÌË7ãâ„†ñﬁ¯¨˚X	K[ÛdÏ≥ÈpÔp f$g+¢„ˇmTöO#Vd]TÌ˛óÉƒá÷YÜZ§oπ‘°1¢ÈãT¸Ê»ıH÷Ñæ¢åfù4œÔëKvFs'ÌNNïKµX9π¶‡øa†'˚:‰⁄}î¢ì6†€z&üö« µÃQÿá«9éˇEó‡·TPC9sj«7áïuÙ{
+ßÄ?ræ±∂9≤êÔ‚YjœËÅD?∏F±{˝.Õç—7öÈ∫)´Î∆˘7}1â¶]÷Ë3å…
+ú‚øœ^HÙ                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: libcap-ng
+Upstream-Contact: Steve Grubb <sgrubb@redhat.com>
+Source: https://github.com/stevegrubb/libcap-ng
+
+Files: *
+Copyright: 2009-2023 Red Hat Inc.
+License: LGPL-2.1+
+
+Files: m4/Makefile.am
+Copyright: 2009 Red Hat Inc., Durham, North Carolina.
+License: LGPL-2.1+
+
+Files: utils/*.c
+       utils/*.h
+       docs/Makefile.am
+Copyright: 2009-2020 Red Hat Inc.
+License: GPL-2+
+
+Files: Makefile.am
+Copyright: 2009 Red Hat Inc., Durham, North Carolina.
+License: GPL-2+
+
+Files: debian/*
+Copyright: 2009 Pierre Chifflier <pollux@debian.org>
+           2020-2024 H√•vard F. Aasen <havard.f.aasen@pfft.no>
+License: GPL-3
+ See `/usr/share/common-licenses/GPL-3'
+
+License: LGPL-2.1+
+    This library is free software; you can redistribute it and/or
+    modify it under the terms of the GNU Lesser General Public
+    License as published by the Free Software Foundation; either
+    version 2.1 of the License, or (at your option) any later version.
+ .
+    This library is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+    Lesser General Public License for more details.
+ .
+    You should have received a copy of the GNU Lesser General Public
+    License along with this library; if not, write to the Free Software
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston,
+    MA 02110-1301, USA.
+ .
+ See `/usr/share/common-licenses/LGPL-2.1'.
+
+License: GPL-2+
+ See `/usr/share/common-licenses/GPL-2'.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              .   f   ..     changelog.Debian.gz     changelog.Debian.i386.gz   changelog.gz  ò	copyright                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       ã     µZÎr€∆˛Ôßÿ&ù±ïn$E∂Èî¶$õ±uINßÌtXí[ÇXXb~ÙiÚ}ÅºXø≥Ä EJ¢ì¯á,ë{9{.ﬂ˘ŒŸç≈8RóΩq˙n´€∂˚Äâ ÉqÃˇƒäl ìp˘›ÇG¢Xºz≈ÿ7,: äò´>;,_¶íâÑ…œ<ÀDƒÔ¢Ÿ]P‰Ú.åyê`<cÁ¡ú+ñ·<òr6.D—‚,ø!∑DbeÚû”@$ÎÀ_ÛVe◊WÉ€˜lí…ˆÅ\qÃ# t…‰ÑÂ\Âl,í [ÍΩngB19TŒS≈Úgi&±€Bè∆ü2SåèÕc.í)õÒ8b2Â	/ôíÆ◊äÒœË{Ω÷	πR-ˆfKE~Ì8vØgw†Àb√Y&T.ÇÑ}Tûå˝9úœˇÒ1>k…l˙∆nÇ¸êπˆ}3◊v€¯—˜;}ª√æµ]€~ı*ﬁ0GÔ≈÷DS3ôÂL≈úß,ò‰ÅDWz YÎ~&L¡…foaä‹˙§Ëàïyí†<˝≠Vˇ,d°Xë∆2àX$"ñ»úM»§È1ÉBq“m∞∂∏R<rΩ÷ªÂôåäêG-6 gîÀ)„¯f…f-,d$&Œ%À¯$ÊaÆ∑jÈÖ÷Tﬂ9∂›=T[CÊt°˙§TΩ”˜ΩæcÔR˝Ò”™ˇ'{œ„Eë≥wôú%ú˝Kk˘<»ÊÏntyßÚH$wPNƒp∂)-n…$Ü-co∏Q€Ò∫f’AëÒX@ﬂY"Àe…∏hïL’0[ﬂ,l&>VÇô{"ì◊y;l$)z"≥z≈"±»óÏ5Œügúø^ìŒÓ¯vßΩá¶œ2q»<∫XM;.<ºÔ;ª4›˝Mì?ü›ﬂû›ÙŸ9≈T≤à#à#L@x–[Îƒm®⁄;∂è˜8ÃπL±§Ÿ*b›~€›uòŒsK∂‘ËH™'3ºì1¢¡ £qs/Úpf0/úeiêœË4¯?TMˆ¥Ñ≥.|∆w	ﬂ~N¯O	 M5N<ú˛óV*¬9ê@â)!,b<ä!◊‡jDêÒr±ˇ∆£Cf˜b{}Ô∏ÔÏ˚ø¸!u~±¿î ﬁÓI7b!ZpáâR¯m^ÔdÇ≠=Ω√ÓÆ$uÄ(~ﬂÎÌí‘ﬂ_¡≠=1R Öjås˝æCÈ≈Ÿ*Œ∑n·"UÄâ`Qz§bAûÛEöìCü›""uÜÄvçpVä¨DIàYZ”	ø/Qêéi~SòR˙“5∑x¢‡a°uÄd<Œê‰À|ˆÚ|[PÙz+Ö8Ωæá ÓÌRà˜ú}nqP	QA˘\§F":ÏB§™„Û¯ê•Úûgihr÷`2AC ∑ ò˜:^á≤ØFÓ}l;+pªa[OSáÓÆ£∏œÂÜƒoËXÕÇr6U›j∞*>ùEº~VÜØèã‡JBnò¡§H¬\H¿ %| ﬁ†◊2¶ERLñ˜¡Ú∞‘!»Ü&Yá	Ë`ë %Èè3	¬aXFEÙ:‡x£©…êq%„œD/öôK+˚`O;Mwi˜ΩNﬂŸ©cÁπÃuô√≈?˘/?«ø¸,^!ŒM´ÄG}8TyÓ:ø#¥ÊJüÍöß1¯îj=ù·/PuLÇà+(ûë|e<M†ùY¨˙≥È8mÖ2ôËx¨¶Z∑sıùLˆÃ2√ï÷Ïæ›Ó€;ÇÃ{õ`£≈&@!›8µhÀÒz∂qŒQ¬éx)¯qg;¬V¡X}ƒCF?≈¥»rHÌâõgÆêigÏ´ø~•óÇ1eñ!d‡¯ONÒSI‚2Y§ö!ØWvÔÿs¿)*V2.¶,)c(q^ìËŒªg:tzÏåèÎ»w∫ ØªÙÎ=Áïª©\»BE’*	cﬂ¿D,ÓUÎÿ`öZ˘ >∫‹«)Ü+ Ij&Êâ"‰ÛXO0!\ósıÍá®"`(˚ûs– )-!ãå…˚§ˆoëîU⁄≥-öÕ.7Ü‹cù(ìiJ
+§xZÜ·!-ÆW©NÛZ5÷Gl JØ„⁄›Ccs◊Óõø-)ª…±AêE ˙°\ ÅÔ∑∫-õΩç7∆áÛqÒË‡ip85ÈØ¬Vh\à∏∆_F©6rn‹ˇ’zo?æ¢:SZa*ΩLı+RT Õ!åùTøÍ Æ»RäâúFábzµåO˝$æ:4Î4ñ@uY†PÉjgT´Q@’NﬂÌKôÄ®+ov4'uwyÛ≥y¨d}v[≥ unÄg-)ò„
+g'ZF±Hß˚‚:dÌ∑wüÛú∏ª–⁄”∞∂‚ı'E\√µV[g 4ìüEdËEµjI$#8…&Ω*ì9EÖ¢™úgƒ‘´AcY:ûe¬käFÆDëéG°Ñaz)™b2hôï÷J"S∏èµo6züíH`0q@∏®K F}„»◊&É#ÒïR˜áhd pˇk<Ã—M]È?6YßÛ\’≥Ω˛4E'JóöGÖ t?9Ωr∫¥Ì¯ˆ¡”–Kâòê÷öä‹:µjÄlô$ÿ\”ÔÙé;˚∂?ÏN•üJAß≥+IC)œ&ÈAö∆À«µ È†L”à›éÌÆ˝Èm6rlØ„8˛æπ”Æ⁄ùƒÛ˚ÌÓ÷ö'Ò^RëO√êÃHΩÀt>≠…h}<MÛçß^≥{Åêå0‘
+≤ê:_!'Ñ#Å|¯>»tÅONÅŒ≤<”≤£ËÖpÃÊ~gÉ—«u«q;›Æw∞'Sp†]H™q	[QÒ¯;çÏ~)SXkHi¬zTëU≠∑F¶]ËÃÉ†œÉ9ß>Ò#Ä[ÿŒ¡KZ=Î”⁄ ^%j~‰9´zœ∫ì¢≥3©(>	›`ä™ì;Õ`R=¨¥©≈Æh¯ŸÂıÙ„Ë‚√’‡\ªH®‚îÁÎ„Ü◊ó77w√ÀÛ´—«S“¡òˇõ⁄ ’–í9-áƒ!◊Eb®.ZÍ1Pú»[˚≤Bek€Óª›æ◊›eÎ˝S∆Åœä∑v[Â¶H)!héêHdŸ1+üIçık∂Ú{ŒÒ38*[î¶¢&‡GdY*Â!Íº¸ÜXπDe∫·ÌÓAYË‹Àlﬁ)µj∏≠⁄h‘?ç¨›*À!oÕË™Åå‘∏lX]-æÍ†Û#¡zÙ™ã¬? ¶ıéõL\‡Ñ9ŒÚxÒÕo-°uU∂Ê∑ıJt*Ÿs’⁄UF˛óß©´Ä‹)°∞±òé⁄√çé»∑Åa≥|œå”@$T‘~Øﬂ>ﬁÓ•/†Oø™A¶Ô_@V‚¯‘öGÿ%Œãd[£gÕUm€u∫^iÆGÿOôÏﬁ¸\°†RfëôÖrSQWRèj5áù»ƒ ≠™éPF‹“—gM‚`™∂Ö¥NNﬂﬁΩå.ÓÆ//oÔÜÁ'÷Ñ6 .[∫€ÛH∫ªk]â≥q,Ô≠“W‡•÷…ﬂ/Á£·⁄$r+ÑâE±¶◊V¡gÈ≈≠ ›◊&TdWRN]£º⁄Á9¸SµVßÂl≠µVÃ«3√êÄÎˆÜN”l«[É 4"Yñ◊É4ßÍãQ$©áñ!“’á
+*çtΩ #}<≈” 	MáUm8§D‹ºÂb¡Àf¢8∏ñÎ∏†„±Åf¶6| ûΩr˙Æ¨H4k}oÅóÚJ¡òÚöˇß ò‚jÆaˆÎDn‹˘8N∑ÎÓM ºÍvÃ√•8˜∂∑Ï˝ˆóf£›%“Sû—~¬3J¡Zª™»Õ“—†Î™@⁄ˇ≤†5
+uÌÌXË˚øΩéV»k“úå⁄´»ıÈ(IÒ\Á8ÎÚa>rÊÊt‘ü˜‹~øÍ{øıÈjÃ™
+ë∫ˆØÀ‚ΩØ≈¥<ã€ß¶€ovüÔQÏ(˙}˜…ÛúRä∑s∞+ó`i‘/+CÀp”Qø)ÛÇπv©ôSÕ¿…∏üBvµ∑÷ò&ÂÕÌ⁄:_‹Ò:/≥#”ˇæe7KËÉ5¿2ì…KS†Fé°ÅÉœRDñZ*´—DôYP§…ôÕncÍM u”Ï≤ÒeIñ¨˜2¡Ó®ÓÆOG£€—‡„Ëßw√Î”ìçgèdµË	MµûIÏ
+ou¥Å˝ª;l‚?Ô°&ﬂŒàê‘&xb≤Ï¨ØÏ‘¡™ãD]!"±îsÿGò§gî·Zˆsô~˘†ÛS#°”¸≤˚J≠™ho◊©z 6µxËn˚x◊Ò∞π¨h≥…*ª˙nxyq6zw2∫&eîhªFÏLOçúÊN_$¨qı*µJwô∆[¬?knÑZ´|ƒ4∏ôÜ∂@ˆè¯D$BÉ7›êQSP?•!áçˆ≈oo•R€°Æô∑˝’Ü˜ª‡˜˙Ì∞*Îñ¶jˆD-∑æï≤ÈJ˚∏ÔoÔ3{ÓÔqÌ‘Ê1¢VØ†»=∞©c∫´cs„7Ÿ¶ÎŒ&Îµø∑?´õü6ΩH}«ˆc;ø«±∑¥ûŸõÍØ Z'Â;)õΩì≤5äWk≠x•«}î«îÀj⁄z|Ωπ'∞{m˙tY·8[µÈvøPõMÉ;Nõ.ñtß‰8g¬> p^5]j7îI$ ˆü¯Í¬Fâwy~>∏8—v˘î@EyëËÇƒÙ=™{wjÉîŒ«"…À;“bÚ¿Àm—‰ÕX’Ìv ·•CÙÅΩ_ 4G˝„£	Ê™XY’<iØRï±AåÇKï-´ÚÜm	L_ÇoÕÒwé\ ¥
+ÀÓçæYB^K ïÙó4_ﬂULEª¶íRü@…Ew5±a}◊LÌ}=°ÒÿËâûXtT]’óØ‹Pn&öÂ≤|^s¥¿L†|Py÷ïö®ﬂúú^Y‘]7ka P‹2Ú¸ñc¬˚b}˙*÷Ñ†…X~ÀCÄV„ıï–ö∑¬Å·\˝¥∫'◊£◊/≤léÎÖµ'R5∫QõN=ÕùÊ›i˝¯J€õef‚ñ¸Ò$’q;è®éŸ‰≈DØz0$sµä1Údo≤PÄÄ]*Å/OÇB≤wŸ/ˇÛÏM⁄=◊9ÿ˙zcœáã«e=ÊÙà"y=√⁄5t}Õ.„SÈ5uf‘Ö–ÃA∑C+KÎK˝˙ÌB”nÈi.µ‡p2jìƒ<Áç◊ÙTÁ« ÕïF¯±ıÍˇnbAo.                                                                                                                                                                                                                                                                      ã     Mè¡N√0DÔ˘ä9¶¥6é”ÜêRÑ*NëG‰ƒ∆Xr÷ïÚ˜XÈV⁄Àº—Ï¨w˝†.e’I~w`ïÿˆ’ì”G§hÀ…áÔzG*.,ê_Nãôä∏¡˘Ob£r4Á5È‚É“¯ÆnõcÊòBäÉ¡•»öâØØ¶OŒ_ç!ÕZÕF„ú•ôΩMé,JÎs«[…˜Un∑…á[#Wó∆≥2c î?m√l$33ëxXSıáu≥gˇŸ”ïpmzßàáhÅw£w®^íáÚÄÍæìu'ZlEû‚ÆeØ∂'                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    ã     ùêANƒ0E◊‰>A≤üÄêêX0H”ﬂ÷¬ç£ƒö€„√`ìXˆ◊˚ﬂ~÷NÇ<@UÉrùImC'ÆãRSÆÜ>hqÂ8¶ùÕ∏Æ‘≤ïÕÂ∞/!<mfÌí“`gƒUuƒ¢˚ΩëñC‰VrÀì Ö–ÀÎ’çõ˙\˚ÌNüaô3=zm<ŒŸ/}8~eãüËµØ©SeO¬”8∑x|—ïÓÙÓôyor£Yø™hû…W{ú`óQ≠ Ø˛j¬’a¬’œwÆ`ûŸSœæìó~F¸?øu Ω˝‡√7π¸œT™                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: libcap
+Upstream-Contact: Andrew G. Morgan <morgan@kernel.org>
+Source: https://www.kernel.org/pub/linux/libs/security/linux-privs/libcap2/
+
+Files: *
+Copyright: 1997-2016 Andrew G. Morgan <morgan@linux.kernel.org>
+License: BSD-3-clause or GPL-2
+
+Files: libcap/cap_text.c
+Copyright: 1997-2008 Andrew G. Morgan <morgan@linux.kernel.org>
+           1997 Andrew Main <zefram@dcs.warwick.ac.uk>
+License: BSD-3-clause or GPL-2
+
+Files: libcap/include/sys/capability.h
+Copyright: 1997-2008 Andrew G. Morgan <morgan@kernel.org>
+           1997 Aleph One
+License: BSD-3-clause or GPL-2
+
+Files: libcap/include/sys/securebits.h
+Copyright: 2010 Serge Hallyn <serue@us.ibm.com>
+License: BSD-3-clause or GPL-2
+
+Files: progs/old/sucap.c
+Copyright: 1998 Finn Arne Gangstad <finnag@guardian.no>
+License: BSD-3-clause or GPL-2
+
+Files: contrib/*
+Copyright: 2006, Matt Kern <matt.kern@undue.org>
+           2008, Andrew G. Morgan <morgan@linux.kernel.org>
+	   2008, Chris Friedhoff <chris@friedhoff.org>
+License: BSD-3-clause or GPL-2
+
+Files: debian/*
+Copyright: 2014, Daniel Baumann <mail@daniel-baumann.ch>
+           2014-2022, Christian Kastner <ckk@debian.org>
+	   2025 Simon Josefsson <simon@josefsson.org>
+License: BSD-3-clause or GPL-2+
+
+Files: debian/patches/*
+Copyright: 2011, Andrew Straw <strawman@astraw.com>
+           2011, Zhi Li <lizhi1215@gmail.com>
+           2014-2016, Christian Kastner <ckk@debian.org>
+           2015, Helmut Grohne <helmut@subdivi.de>
+License: BSD-3-clause or GPL-2+
+
+License: BSD-3-clause
+ Redistribution and use in source and binary forms of libcap, with
+ or without modification, are permitted provided that the following
+ conditions are met:
+ .
+ 1. Redistributions of source code must retain any existing copyright
+    notice, and this entire permission notice in its entirety,
+    including the disclaimer of warranties.
+ .
+ 2. Redistributions in binary form must reproduce all prior and current
+    copyright notices, this list of conditions, and the following
+    disclaimer in the documentation and/or other materials provided
+    with the distribution.
+ .
+ 3. The name of any author may not be used to endorse or promote
+    products derived from this software without their specific prior
+    written permission.
+ .
+ THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESS OR IMPLIED
+ WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+ MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
+ IN NO EVENT SHALL THE AUTHOR(S) BE LIABLE FOR ANY DIRECT, INDIRECT,
+ INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+ BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS
+ OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR
+ TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
+ USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
+ DAMAGE.
+
+License: GPL-2
+ This program is free software: you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation, version 2 of the License.
+ .
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ GNU General Public License for more details.
+ .
+ You should have received a copy of the GNU General Public License
+ along with this program. If not, see <http://www.gnu.org/licenses/>.
+ .
+ The complete text of the GNU General Public License
+ can be found in /usr/share/common-licenses/GPL-2 file.
+
+License: GPL-2+
+ This program is free software: you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation, either version 2 of the License, or
+ (at your option) any later version.
+ .
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ GNU General Public License for more details.
+ .
+ You should have received a copy of the GNU General Public License
+ along with this program. If not, see <http://www.gnu.org/licenses/>.
+ .
+ The complete text of the GNU General Public License
+ can be found in /usr/share/common-licenses/GPL-2 file.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   .   f   ..     changelog.Debian.gz    changelog.gz  ∏	copyright                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       ã     ΩZks€∆˝Ó_±3˘” º¢I&≤ßJ¨§c%ÈáNßYK’ã¡¥ÿ_ﬂ{wÒ %D‰™3ˆXÑ¿≈πØsœΩ0œ7˜I}®Ú“é=”3›»∞W§-eC7ú˝Ö¥ıéï…·ÎÇ•y[ºxA»+Ú3˚H⁄J65£©gT2~e‰Ü÷â Èó◊MùìØäÙ[ûóÌΩô7ﬂÚk÷^; ?“í8ñ„Àä˝uÏŸ‰µe[÷ã¸ò¿œÅyóﬂì&c§a≤ëmﬁ0B€FTw;ºpA>fyí!»ú•DîDäÇëº‹Sûß}B®îmQ5π(%°—6Í¥MõÛî∞rü◊¢,XŸ%ÅHí—r«RSa∏JS"€™uC∂¢&Y[ß-“¿3…À∑\H&cÚÖmÖÅÎ´∂≤ı_`í§ºyÈÆ‹ÏDñª:Ô÷wuÆ‹z’Ó–≠±Ïÿ±c+∑:SnıŒπık+.hJ1‹π ∆7¢º  }å=b{1ÑŸZœ≈ÿ]v_±:GGS˛)@ˇ eºÄ‡¸Pã¨d‰ü
+‰çÿ3'™M)ÃW˜≤ïı©+}ÌŸ´Â˙≥ÿ#zó8NÏÇ7£9ÙŒ9WﬁB:íÇ÷wyπ–⁄‰∫¿|°eÛ˙oµhX“@6Ç\íèTíí±î)ÔgåW*Su^ Ü’xy”r.ŸÅA%Ójö2R—&ªÄÀ)≈Gí„?)ZH⁄V≤mÀu∂óáB‘P#eä∑ÙéIí—∫ãséÜpNhöÊXî√	º…¡g< π£;&Mu“±/∞É˛Ω•PëŒö¸ÿrÌ_;ä]'ˆ¨πT}6:jÄÒG0ñ{aÏŒ‘çˇl`n[®Í¶-;0¿çnlœÄqœg^œç\àrx√òc™µê%-ÿiô8°8K«à ƒç}\8]&ÓS=◊”+%ÚPlódõs¶X≠£^æGÎÆ¿¥ïπî-£æƒU‚Ê4vÎs∞ˇV•{“éÊ•ä≈∏Áj<o2®-…çîÌO√`áëc-√ﬂY
+apéLÅÑqcwökùË\ŒÃÏ _∑,3#b{ƒd@hY)Jcdã4á^Ÿà˙@6,°@Aä5Äs6µ∏cÍ?º}´àË˝˚ﬂo4œ¿ô∫ı .Òl€[--#´Øipâª–~¬…2rŒÍùOª‰˚Ô◊`ë◊1!U8xˆ‘ÀÉ˙ZçﬁÏŸ˘Ó~3ı√œÒâ?k°=h WP≈@’R∑Â(Ä@¶∞rDÖ◊;⁄^*–\´'!ïÑÂ·O{/4lÛ|u`b@˛7öóÊ¿P7∆U,Åå»>úb€Å6§÷ŸÄô¨{¥…@ﬂ©H6¢uÜQﬂÁOÉˆU¶>~+€MöÔs3ex=èA∂X±›eã=iÔ3u &$ﬂ±¡ÿXÕﬁ,19¡ˇÄò0C1+¿º â(&Ë	ê!‡ˇ+ŒÓŸËK§ dπ~ÌFkw)iAÖv§•Ãü;¡¥ô˛˘F7—!ûdát˝≠(∑™Osµ‡)‰Óû’Rç
+ö +ZXªn4–ºv4®£eF«@c…åu¥?ö¯Õ◊DôËòß,œ[*ß,è‹≤J˚Î’èAuO÷´ˇºr
+Ú∑C L˚∂ÓF`î(8ß¸?o‹≈¶≠$U”»4 ÁY©ÊÙzCcÖCƒÇi@÷Û1 ÅÄ∞¶˘ﬁé>=êg˘.”ÌÍ*≠s†”7my◊5™AÑésV*í8‰îWΩ–’SbÅOÚßÿ·Íi°.SgÛÊ;÷@håY%öf^¢Ä°lBªÉIW˝z	œπƒ[U÷‘lW3)uìkÄÑ⁄DÛíj’∏^Hq€–ı»”ÊfªKd°¡Ì5π™ÍŒxò∞òcÁåwÁ£zΩ–ò∞7›	v¢ê*∫ÉI¢Åü¿;ı±*ƒi‹&€ZÍR@>ädo"jî7 [¿›‰*ïc‘≠üoè<zæÔ¨buª°“%VMQgbp‘1'æW?\Ù*æAõ/ïN‰y£#j‰Ó:}˘Ë—æÎ√hdvè˛ÄZ≤AK˘¡H•Ü/ô Ãp◊”ÙÈÿøa[¿’∫áÉ¶Î\ëˆOÄ ﬂ}	–Îïd√ @=ÚfèY£4ÃÏtã^§›Ò≠A[Ú˛Ê¬∆Ç\>§ê´?s)¥lí≤äïJõ
+•Òxì™Ho$‡˚å¶‰ﬂê!·m ˙∞t2vÿÑ ÕÌ—hfû
+:¥€ö]“ÑãÑÚK<‹,º”2Ú]€÷˛∫{¬@ùâ(
+òP¢ µô«˙¬Mj!•ø´r-OÎNﬂù≈˚èÔ—~µ√ÿÜ0≠ÒÏËôß3ÇÅIÿ_«ñ;&|∫‡$‰5H/¨
+ ·≈5S—¢ê≈µ*>‹Ç ?±∏ÈîÜÖ≤«ü]x⁄ü•î?0\ïå‹ﬂÛ§«)€!ß””ù/«⁄èV£H-˚ı¥ö◊ä”⁄4Y’˛‡ ﬂçñé¿–¬ª⁄µ∫!nÆ©˚œ∞ú)s!OU≠Ôæµtª‰D‰€h`*s15ßÛdí5ﬂΩ?0£€gK—÷	3D…Ê“À∞œ∂ÍkÃÅYü_Æ´åöK&ùNJijƒƒz»;^X›∞Ú˝ΩÊ≤îm@]OœóCá“HÌÇ•tîûIAS@.Y~Ïπs÷G≠∫õ¢ˇ#˚nƒ÷^‡ãﬂÑ8·˜í1L¬œ¡}£^—G˛Î;Rø£'!®ZU›ÍEÖKwèFlÆ[Î‹6–≤…Mr]6á∫_*ΩxÓËËè«Mænú]◊Lıª^ä¸%K¯~PÉ
+ıµûmB÷˘◊pcÅ˝πF˝.y@É\Éö7á∆[21©ØºÌCöØ]…•Øµ†ÂË≠˙Ãâ?ˆg¡]ÇrÙõZ(ZÁ;≥°µyˇü≈o¬.TÄ§¨9hŒhG"Ω¥æ¸¿*N&ı˙“d‡-cò}6à Ss—o ≥”ÄC£ ÀhıÜZI≤roÏ)àêÚHëÉ√Lå∑iMÆ‹ëÊ€-Ëtÿñ”ù|í;úÿuı[ùÈÓÒÙ!ªoÅU-‡ÄiG)/hY·4≈p«‰2ºPU=Œõcá»Y7håsM?‰,}Øië_íf‡qd¡ÙZ<z÷≈É~KÏtã+çr÷üﬁˇßj“⁄“Ì6HGaÏ±mÕ sñ!+˙ÄÍˇ[ 	£ÿg(ÉÔÆ~"©Ä»ˆ˝Ó/û;P2≈ÌaA~Q˚KÜrSΩÚ≈˘ï±Rœå@î*π|˝¨ˇk;æˆ´Ä;ê’8é@ú%w‡´eÚoåóÜˆıá˘‚ø\·_"                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              ã     ≠}ÎnIíÓˇ~ä\ØJ^íI]›”–¥lkW7àRª{gD±*I÷à¨‚TVÈ“ªÃcúúÛrÛ$_Df÷Öîª˜4‹Yïó»»à/æàL-„ÈsòΩ¨suuˆu¨:µàMûf/*ù©¬Ë¨Ûõx∫‘*\…\õÓwﬂ›,u`¥2:â‘¥ò´LØ”,7mıóBõ<N£˙ Ûπ˚=Oø˚√"œ◊Ê˝ﬁﬁ<Œ≈¥¶´Ω©6‘≈IoÈÜ±C≠¸H›¸§3C/´ÉÓAwpÚ›;ı)~¶Nu,’õŒ◊"…u∂äì ◊Q«‰YúÃ;qÁq∞å–Ôõ∂zZƒ·BÜ´5}˘N©bM}””ÍÛh§zá›gµ√Ω™ÏùÏvmO‘√*xôÍNë¯VuÙF≈â‚ëvC◊zl\„“‚†;ËÓ£ôÒCºV9…`O?ØóqÁùÈØ:KU<S4Ñuºƒ(ûHj8^·ïèY∫Vã ãH™)‚LØtí´Yö©|°’˙aﬁ	”dœ’î&N´Té¸d∑)≥c¡ k?k,7≥
+íu@kSæ}r»ÛFëk„#!Niå˘‡˘‰hrt†>_›Ô})hÄÂÀß¸Úu≤|·Ÿrâ÷ëé®´M#ŒısÆL<ß≈*h-¢´•d*¯¿∑u|‚†ÛUgYö˝Ä•ÛNJô-”', ©À/Bg∫}-hïÌjtO∫á1oàÈ»ˆ∑‘≥\°An‘,®,œçŒñÍÒêÙ∞ª_Ï`£±C€ÿ¥àó—7ﬂ›˜≠<{'üøvûv˝ˇ8:ÿh¸Ä^∏_G§ÚN'(û˜V{¡Û‰1XŒI¶—$\Ë°ª:¿Z?ˆº0Î<^ëÚ*ìÆh¥BÈö¥[ÑWñ~°ˇëVÑö§K≤É|©¡Œã6"Êı2»ÒH7tj2˛2ÏÙ’eÁù]jç;ê◊§¡©°•ß¯™cı1à›í°I≥{}iÁÃÓ
+“õêlJ¬äcÚ |`‚ı&«åÉmwVÀ"óûjCùß&Ùzù˛~ØﬂY¨ÇJ·æ≈ÔË∫á—ve8˝√£nH-˘•9⁄‹JÉ¶Ní*c'>⁄á*‹*3•æbyiÙ´8W'ßÅ÷«áÉ¡Ù 
+O¢”„˛¡¥◊?äÇ#}|:gG'ΩÉ©z¬z‰Y!	ÀG-YCå^s2
+¥ï…d$‘µM2Hd⁄(9ôr≈„•Õ˚ùq*Ma{<“ZÙª=
+Ÿe√W ¨Ç%õç¶(˙$äÛ≠Ú#€¶W∆Ò{$Ç1ÈR
+É˜|S‰O`ù=!]ã?HÜt‹a~4”Çvîì5§ÈíQ°”<^LÆW•©â0^rl™ß>«®ï≤Cw+‚}èWWE≤
+÷§›¡Ì—(≥¥HXà¨´ÿU≈öZ°Fzeô«kÚï‰;yº]ªÓxñFÿ∆Ç>aºI+ÁAT:O°Õ¶Ä∑≤É¶∑ÔíW^¿«-_⁄*°U•&Ç•Iø›ŒEúœÍAgâ^bÖRï.yÊã‡Q´À·Õ‰À˝Á≥IˇÚC©ˆá˝µÔ5‘˛74>Ö%ˆ;…`+ıX±Ëáæw0lÖ^5uS¡{”ŸI€Í+ Î2JM+ÏdÁ:œ®∑t’ôëÓN…åîÔ˛.gºy›ì–NyÆLÌ–Mm”ÏSØ^„ﬁ´[HEö‚,Z∞é’¨HBÃ8`+fõ:;'x1òÌ˜¬„˛t∞?ß”È~ûúûz˝˝£„cÚ™∫?Ã2P+¨>©ˇXiûZäÎÏc6 Û,X©'Rf¬4˝H∂<{ùX∂XÈéy4Ï‚É˙í>G¥7∫a)Â1Yä&ﬂv˘∆ÌÍ	√ù7Ç
+®;lÿ∂L¸°ºõ√Üd
+Éß»NÑº√«Zî˝Ωr‡ë¶ÈŒ…Ó§i7ÕÊ{'Éìﬁqª∏y◊’§l’Ít¢ÿÑj;Êeçn)CíŒRßE.Étv≈˙hüâWk≤”,}–IPé⁄ò¶‰‚Eÿ¿Ü≤}D,» !€A∏9•wtwﬁÖç¢Ü3+yÄA˙%±@èL(m^6kÄk∂®y[aEfe√p∑Ew%µÍêï[˙†ÔA∆cê≈xI%¡J{ª3ÿï—)BÙ≈jJØìîZ¥Oä0óá&¯ÆUıêá*ﬂ?µª{N€)Ï§Igô¶…<»¬Egπ&ÿ∏sÅﬂi˙Íbx@øÔ—ˇè„(ZKÇõ ∞/8GËú§Ÿµ&R¢HÙã‡'?ß˙Ñ‹öÉ8i"ÕzjÁz≠ì€Û1m·˝˝˝≤«ç˛æ˚≠õb_ƒ+ªÅV¡sº*V*Xëâ !«l˙íã´¶)Àœ;a≤‰©Kg>€
+¶S˛ AîP©!l~¶gKZ’\¢ﬂrüGiX¿!ã-U‡pc©‡≠ìÁÈ?q:FLﬁè?ê¿,†àR“Õ‹©#î[áÀ@0§}e2	r≤Æ”"◊ì…ŒéÏ¨›çﬁùê¶X˝n^hÀ%j–Ìı‹tJcD"àIfÿx¬>aOêàiÈhsS{¡26 <Râmê Ÿ∞¿,hE◊Å1ÎEF¨·∞0X>/:A¡ÌÎ5°Ëú7 p<:?óUà†ùò?LÏ)v3π	Zœ5ô*ewm•˜÷˚V[µæ«?Ôœ?¥⁄‘=◊˙∑≠ÊŒ›Bõ⁄€P“ΩHÛ⁄Ú«–Åµ)¸§˜WAˆÄO≠å0óßhÁpW[Q˙ÑﬂfdKLw∑!¯+¯	BÕ	«¨Yˆı4ºﬂ≈óÇ$}Õ~πÄ›cY‚'¿È*∑âı ∑ùf§¥{“K=q_â~≈#O≥à@†åv0évŸ"Ω.a/©:<—,öG4§YjULsÒ⁄√üÜ_°ÿï‰óà\õV¥∑hy…u Ú°i–øb~i~˙ı“ÆÁ=≈ÄnJÅ6+-Ÿ-?p∆~Î¿¢RP ÷©¸˝oˇœËñ˙Ô˚ˇÙÔ˚ù∞ :=Ñ≈‚üRöË|A˝Ó4“	D˙Ç˚`'ê¨¢Cıˆ-”-‰ bHú0Xá‡ë ++l c"0•wΩ ñÈ\Ñê«Q'J˜ø˝•cÅÅ˘˚ﬂ˛Ø"Ò≤óÃÉå†÷˘í¢w(ìúù=Å7t`∞é3¨@ÍºóB¿¿‡∞”êsﬁ:YëàF ◊yù]ÛæG±4Z Çá}IòfÃûXÎÌS^¡xF∫5CD‡†Uâ/Ó‡˛”"◊áHÖVCö`ÅP¥¨…1D¥ıyÂ≈ﬁ@ím¥»æ™]∆1§t&ûj“˘|)1Ô˘’Ë‚˛„ŸDz¬Æ˜xíqañzVÁm˙÷“sÒº>Yj»fÎ’Ÿ
+¢"k¡å{s¢ì 0%3Õ€0f›á<l?ùEnCÛ¸t¬0Éy)ù£ô·XLEiùŸ<
+·ï÷h)É1ﬁ!ı2ÿ!18ªPØ	ülà¿˜o—F&;Ä¢ M˚2èCÓç$6{œ∂-K∆¶GÕ»∫»2	í¨·/p∆Öæùô	@Í˝™;dr2mLW–&"t8QNÃñh
+"RR≤åÕQ#@πAb˝ÁÃ{-å‘≈”ç°OU‚Ê◊ßIƒÇù4∞63÷_h6•àyYc„¡®€‡BøY≠0π∆Sp;¥NÀ"“Ô!5˙z÷ÈÔøgÔJrƒ^M
+leœÆ™ùÒ›Ì˘’Á…’˝≈≈n˘÷…	¿ˆ2f‚àc∑\œIØhS—g	IUÌ–v∏æºﬁù∏8õåÜ„ª ˚ß‘Î}Ç∑¡ËæüÌ\ˇtv˚È‚˙Î‰√ŸßÎ€≥…◊ÛègWeáGßÔ’◊å†%„¥¥JåÉh–Áˇzv˝iry>æﬁçæT^:ºß‹0·@´@Úbs0EæqÁß·ÌˆÛ∏|ÌË‰¯Ω∫ÊI¬’TÁúîÄTvÁÍÏ3ÕÙß≥…ÌŸ›˝Ì’∏ÈÇçD·≈∫@À∞Xñ<9'lËâs´ì,ŸŸ†C7cpºv“©Ió§P≈¬÷B{ã^6øòd0"ı±"®ÇQëë0‚¬‡(^w1√ˆA`ó#qln¿ìËº»∑c[£€_nÓ&„·≈›‰¸Íß·≈˘GBE0$ÅÖ÷wZ∏I⁄à¿æX63 Qk¶◊¥_ôy"◊´5y¨‘)ﬁú™HÑ(‰l”,‚“¿Ÿ(HÆõíË˝∂$û8ä%}ïiÛåñ ’π_û›}π˛8π =˝“˙Ô	†`ËÍ!˘„EUXRG⁄R]SÕ- d“ºÒ¢ çU‡ps⁄˚uz„}∫~˚x≤9^ÅN‚;õæÕ®•ÖQÌ•ôpX„Ò{#ÿÏùñ§r\èB\ÆÀàLAùÜË6É√—¯_~i´·ÌHv"ƒü:É>«á±Dm[#DòPÒˇ[bƒ˛iëb_⁄§ü§…∞Àó⁄ƒ$:ˇ(°ïàY¸Zwî˜§…m2|Õ)4òAΩô∏#Œ+ÔkPùé8lø≠;¡:¶œRäÏqFÔœ§zwT	ˇ@s@7Æt˛a¸hó`∑˝á"!¯u?⁄†O#\‚fh6yË¸AsDm’üt†Õ±RH§}s=>ˇYÌàé\§!#Òò∆—.u{´ôû ç6∫bbØZ'Kõ(0√(≥e.⁄î>ﬂÁpò√Îa	?&Ôóœ:]Q˘ÀZwê$°Ÿˆ¶XT!iV™òøÌö∆∏lñ]ôF¸›ﬂﬂ–ﬁì-Ò7€v`6µÛ)”zóÑ_∂—+sEÎ/Ã~Ö/ı)≤¬z[z∂‰+YO≥«rƒì"⁄vö([ñw2Xc“F`é√çÇ$¬	.N–›a∑w–úÙÒkì∆Z¡œ≤;ê˛nK,]ísâ¶xÛBÈˆ‡/√∞“˛1i[n„≠zì€‰¯è e›XTÿÇ}aÜ¥≈R…~ΩõØXm§»ÃbQ·´=Ï∑1˘aØ_èë≈`D‰0‡òi®ò@g∂≠£s@ŒîScû“Â‰)•(g”¸Âl©8‹w}ZWBrjÛÄ≠KdåÄÜ‡wL-∂iÍÄÍ>N	”%5‹zﬂ*áZÜ7’?≤_≤lÖ'&Ì‡	Á=[äÇ˘	èê¡¨Ë'⁄IZµ˛-©∂Mà¿÷é¬i≤Ãà8≤4àIµ*&2e*rZ1É*nÓï˛›Ü¬‰ÿ2Ïw˚ÃÇN˜õ9Øﬁ—Œä√ˇ˛É≈√ìükæwËêCMÖ/6O8–GÛuAÕ≥EêÓsÌ)ë⁄s„Mg#‡¢ê·˙¨»†∫PK4	”FDê*¨¨)£Ø≤©§≠Ï *cÿ2ÑÕ◊™^Ó{H!∂!˜ƒL¯lFøK~ŸiXÜäÿºÔíπuDbf≤ ÿö›fuyq¶+‚}bπD=>·—ôÒJn‹Ã„ô8 	y9w˚>c¬Ëd“ CN∏$∫‹`æjÂùÖïÔlÀÿÔﬁ•3H‰Ù"#ã‰°À≥U#‡¸JåfVÇ5MF_ŒFˇ2˘t5Ô¸Q˙”ÆCõπí‡—ÎÕî÷ﬂRs˛˚iîºàıÜÖqAsV~ƒ]∑>™Lòl[ü≠¿£ÇˇÏ∫ïÿ∆u«ú'iT}U˝ö¢â¥æΩ§≤nﬁXsÉ8Z?â’ô8' ã›Aì›à1'ä…ÓË®D|&ÌˆD“¨Q0tiˆ∞M$’Y7Á\ÔH»H°œiòy˚ˆ=Ç)ßÿ^i¡L<Õ	È7◊√‚,—¢ä‘ë-ˆBﬂÄ%‡áëí§iNû&X[^µ¸G-’˘ë<vëß§T]≥h1;8+—÷,KW$†œq.A†∫%‘è]ÄÓõ¬™gö+…`b∞∏≠Ó^•U'3‘µ=P=Bkœ±¥,„≥SÓD, √h0"ª∞ˆóA®Æ«?3pX£Åˇá†c	W⁄*Ê!^ØŸkß∆PŸY.jRï7Äµ»´;^Y(bd`kÔ3#CN2ÁlŒπ¿⁄v¨/˚oj˜ü…Õë3!Önà¿õ3UFí‚Ö~¶ı©0ï1+<ŸhàmZÃ;5?ƒú∂¢x©e‡°^–SrﬁR¯Áò,qÿ©º˛∏SjHW∂$FíÃIΩ5£0=õï>,®Ukûõ@Vç6À∫*go√¨§k]IÉíÙô£Ô@q÷/ˇ∞òX…IzÕ:√*[◊‘P√D‡ﬁ¨Ç		<;ùÜa!°ÊˆÖkm∂jã'¨üıÌy®y*5w#∆pJ
+v¥z ’M:¥qYâx)y5 —ÆÂƒfG.PO≥H$N‚´°>óÌÌÿÏŒB¢yÔxˇ·≈yÙ†˛@≠ˆP¿XÎÂ‘·•`iX9$ÄÄ5ı{~î>é…X7ﬁ<˘≠¬B_QM√/Åá÷‚dÎ˘ËÏj|~ı˘=∑π≤$ûÿ=ºo5äÂHÔ7∏≤Õ%éÑHìèÔCêoê`¿}HR®"·Öâ?÷I2LàÌÁk‚  À∑»üëéÆd¬◊„;5Ää®ùqNsù¶Û]«%Äs§ì∆#^´Î='Ö|q+≤Ê´åK–JP·á≈XbÖrﬁ ôèï
+#∑ómuy~3n´ÒÕv¥´(∞òœEÅ∆Áü?‹èªúæ
+rzâº≠^F ¡ŒºüYù9¨ÊTHëX6∞ÃhŸñm≥¢|.Hv	ÿPqG•8’(ÉcE±#KÉKÕ√˝íÏ‹ò∂D®ÓÒ6óP 0≥ [5÷„†F·Ω´·À‹úYF—ií¬Äû›Ø>üfî¸Uú©ñò§VI6#ü&sg¯ÖÚª˛<πé«7_ná„≥	¯h©ﬂÛ9j+@E¶%ì<Öã B>ëäRX˝“vÕVà:Ü"ê´M„LQà∂î◊±ÃÎ4°ˇ(œh≤&aãTZ05#ÌÑêu[I:åà∏Æzƒ⁄µ2º∫k|A‚Ûì∑}ôzû=WΩ˛ImÍﬂ´Ød9“'S¢œ(ï¥ü-˛˚eJÆÑúO@?PNçõ	ß
+–≤ÃxVª••ÎıèkƒÆR7ï∞ èq 7ÈSg©©-5º9Á@b™Ì¨öôt«‚{íw|u˘Òêó¸ˆ˙˛Í„ÿ”çyè˛Èü:Û"»$ˇÉf?∫'ø…ﬂï¯ﬁ÷åAóM—µ≠kÂØ@ë£ÇäI∂“›“ºH„fûü∞ﬁø∑'Ÿ_€è?ÿÄmÚbjlIieK–€gW◊„_∆¸ö%˝£n´â9''EOÀ≤ﬁÿ¯"∂TÜC)‡õB¸x6ÁBmræÙ13!Ÿ#µâ%d2—ëR)F˚ÖFH€NEÍ¨L€‚/;ÕÏØÕmè“2–JdŸû≤XÄf,¨Bg∫LQÜÏˆ7KC™πx«'òe¥ıDÄ≠)YK·.2ìdW8ìáö1DÂÔˆ±ﬂıv€dÛñ0ÃRıew%Xr‘˚T™V]‚“€fá€4úL†¬Ö8ØÖ^¥ãÑ^ìË∑Í«ı ’zN¡êB≥£Ÿ∆πv⁄˙<Ë◊3ùñ0ﬂò¶·ÌïáïQ_[˙†îû„U6Ldˆvv™b€¯30
+ıI7‡"‰˚Zú1ÉÎÊπ]-˚™u9Æ7
+¨Ö6°Ñ›OJè¯$W∂tv3R¯£3ó∏qå®g@+Â_Va∏´ú™éÎ¶ä´ê∂d≥§(≈øﬁ ªä)T≥e07Ï¬ú©)£_V€Y¡±Vu SYHπ=ÒÈ√£˙sÙSgHc◊ÎÛı›n[¸†›û¬'îã>Xêb≤çK'˛y5td_≤9¬^J∞«nKGG+%ß'ﬁÜx≈±ˆ⁄P¬ì'1SN˛)í≤îôh´4eÖéÔ´äúk„0à6Z†4ã› ¬®÷LGi¥dRbe±xÖ¯uà†{!>[Sö‚-nu¯•özbâù-Lw?œ˜,#≠ÉliÎÄŒm*	Û/ΩëZêp íVr0Æﬁù§jÿ@)¡†MôÖ8ê¿%E$CËö¥ñM3)Œ:“•Hb#q{◊öt∞Ÿ°˝6÷≤≤®∆TêäÔèc=åë¡2G&K-6êãä-Î·,A-Y„ã7jëâPè¢XæîÑì( N$≠oR1-ﬁùÓ‹ï7Áÿ@æ™ÒVºµpöß»Åî§{ÉÍ≠xZ‰†^âIopEŒ" 7∆’uHÛzZô¬ÿÌ}HK8 9?År($«6ﬁ≤Á(ñc{ú^'¢€ËeÔ6˝,∞U|˘∞z“GÌàÚVUwWvm©\\õÜÃ≤'ˇ]Âê)Ì>.•Î´_ùecr˝
+Ê˚˝nÀ;-!©◊@Ùe]{/ÎílZÁn ˚o8™¡æı5ŒO›r≠ˇ∑GmK‚û]	∫ˇ¸v◊YÎ_±R	*éy'Œ¸p5:7Ûç™;ßÑè¯hÅ')EÑ$x7ﬂ:†ç‚k1uD ¶ı∂ºmâ[MTÍ=¨¶¡ú–  a¯}ˆÏ±yP/ Æl¥ÖgÃåT™êÇ$ÉOä,>—4äı<¨i©‘COã˘¸≈ä
+ı°ç\ Û àzù‚6‘ß«k¡hêGÆ–ﬁ'Ê ±≠±ŸV5kôI˚E)
+Í·aµP®ÜºoElIò jÓhHΩ™\Lß‹˙7âAßæní\¸Zß8ÿÙ¥HÀbhW¶Á@ üsí–æJBîîÍÃ∏2ÍZâ
+:ïxD8oÉ[0—¥w÷h^cﬂ›^_}Ê›˝ÒÏ”˛‚ÒâqÈµ≤œîZ∂t
+ˇæø§ÎÆJò+´U°F£ﬁﬁU◊VJÚ‚ï-ß„¸÷Y∞a·ö®◊∆L„,yﬁ8∑%1\À«k¡	°„Ñø%Ò0IÎra∫\∆b!lÊÇ|=µä⁄‡aA>òf)^≥Ì„≥§[€÷~@SppÇ?BC„H¿4ìô'øKﬁ)_Ìq∞Êvëòé6 ìn\çÌ≤âkJLÎ8°U€®:Øò< Î◊ì4·ÇFN#…Ü≠¸πuk#jÁ—xc∫íl#â)y’"|©^]/ÚìŒ|ŒŸ?õZŒŒJ£ÎS-<Œfä~≈|}mR˛s∫êæncZ2∆nóŒƒUÚ"R†ˇJ:Œ¯6Ò+ç0¥·gú˘p◊∞ïÓ*pï"»È
+∆b‰D∞∫≠ﬁ4˚¡™À«∆∑§…‘Dol~!aûíåÄ…”îQªy°ï"P¯“oÔ≥PÃ„*ïq ™zÓ¿˘Zk[dÀ
+6Õ}m:oÿä˜≠U[‡¶?Kû0≈ëÑ,wey∆÷úTk§≠àï4õÕWtÌëˇÄm	{-;™∞7®I‹˚¶˛ÿIÂ)+A9˜Rõ	Ò%xò˘B2‹\ÈÓAùÀöBÀd‘√~jº0%p
+Å∂ÎÙ˚sFìò°+¸Ô/Lπ›eñmOkî!…ÜÌ≤xÙt&AÑy‡‡˘cıî.nDxú∞s6…Ô´¿ª_ã}JÑäô≤%Ûòñu_h;ƒT+Áù∆q∆7vÒÜ-
+˝|v%5±ó7gógWw„âıgìõ€≥OÁ?∑§˛”¸™Oß6∆∏
+§Å“zú›˜ Ωô‹Ì˛◊“∑Q#ÅÎ“∑ïÒoeoﬂ©{$∆π>™YªdìIû†∂,åI—-$@ ÜC†o•mîÍã::õr}rûvKá√•~¯≈MnZü[pæ†òRgÑêpË˝µpˇ_j’¬Tø∆Îæƒ˙øÚf¿!¯E-¿îçÖ/–rÎ=ß7∑º·∞è–-⁄9KoïU⁄ôMÓ”“‡kF“#ÕukHëZ^ú_›ˇ\;|Uml
+vKö¡øa7S<…µ∂W8éÃÁT,˛∂»Sd‰§””UúÁ9é@2V èàÛ	Ó‹/4tC˚-ﬂCû¶⁄¯Kd:~˚◊’æ_)mÙı!˛
+=td•·6v™ﬂug‡À¥∫á!ÂÕ∂ò¿:'[Ç≠ a‡FÎu§S8¿7e˚Ù¡Ò6¿clÖ™{åCx◊úé6É>) ≈Ÿ<Yà—r%Û6\Fï|ó«ï¥ˇoáóË‘56ˆæó'Ø°÷∂≤©n0øA°ë8ÚU¨»fÅΩ(ıª≠ZÈ”≤%µe®”V€◊$⁄”≤⁄£+π›HtØFc2‘´Å◊*X2›÷˙Y¨ˆOg∑„ÛÎ´…ªñ/AÆ,jœ3Ííé°©¥ÿêv‹%-≠ ;Æ<fW≤A¬%ëy˚w
+°⁄d„˛⁄-íH^±>7l}pj”€œ3B·;¢ÒX©u®Á.<1ŸL5}#È‡\3üI®ñÑª£\eM82ê≤m¢;„NπT_!Áõ∂-ŒÙLæ+*}SÀ§º¡ñâ+≥_6c¡ïcõ¥®ØD∆'◊âÀuR U¨÷Ú„Íò¿$ÆGy~“´ΩÂ‹≥çıÈr:öá¸=®ëSùí[|0ﬂõbDZ*»8§pπ+ ’ÑXÅñ-√·bY¶∫H~∂]ŸÂ|ÙE4iBÔŸªº(J†Ì 
+ıKZèÄ¨™M3wÀ3QyÕµN¯†ìŒ:'y¬îﬂ˙j›8q6»AÆ˙S`·ìBÉN÷·¥–)ıÊ‘Œ«≥Ò·ã®çD·A_äVÔæ«_†1J]~<‹£c∑]Áı,XÂ‘∏Q˚Œ√ÒU.∆=›WFÇÃVêm
+ı∑πWS$m\j“ìÅ–Oÿ∂¯?˙ÕÒîC±7CHŸÓcñ$7Û«^[›_\_}F^˘O¢kÀòåbÏmádâl, k‡à=kŸK’a“=—¯Hó•˙î—Y LQ9%“∞ƒ≤TÜõ† ˛=ç¢∂\à≥\æ"/æ”á@qÇ+”6§&DÃÆHÈõãƒ∑R‘‰≤9UBıˆÄçÜ(∞*VŸ‘⁄Í†zpzt‹?=¸ì32< ‰]˘Zö˜LÇîjHJ√‚˜˛◊¸⁄Â@&Ç[Ktn≤°3ˇhûΩØB¶·Ó,±mQıwø€€›Pî[⁄ÀoW8%A¿¯7ày&Ê.s∑1‘.·27ƒ¬`ıˆ∞≠ﬁ…4ﬁNß\Ë?Á´Ï±àÚDéÏSŒª8=ŒÒ≈%a(yUª∑À;Ωv>vñº,ZaÁeûÇµΩÿfáˆ+	≤€"“`•û!bz/wWë58.Ó”â,)Œfƒfeÿë–NÀıRçŒÓ™íëªÓF4WÆWï[fl≠ÅáÃ4 >^Ÿ‘≥Ñjè=‚ﬁõz#®Ãk…~∆÷ïû∑°∫ÆzêD∫t&}|?>C„∂îu[íõQ<ÕÃB
+õœ˝l\jwè⁄ßØ√õ—ı’›Ÿœw &1“ŸL.Åˇ_ÓúSt[hâŸçC)[ë<ﬂ°†7•ztÌÂbñôFyLÏr ˛>k?X>È“Ïx¶VÛ€n’EXwÚØÈCÓÏß∏+ÑØö(À §‰‘Ñî§ÛÈùJ
+»ÿc™í%B¥V«Ë√Æ(w„J;'∏‹Œ¡)˜`fÒS≠¡§õ )˝ÛFLÖê‹|!p•LUüèqsl%∑Iè[ÔˆflöÚD≠î‰ñLë∏uJ§qdTt‚ÎFpóYâI+
+C≠˝B–%îÍ8¯0NV4{∞W3D˛à∂@°Sπ¿†vÄ≠j‡Ó´*Õ˙íÒ!jáyÎîWäL˝9ÀKWÖ"û…ﬁíá6ﬂ@¸\ªÏ∞>Ö¶K_Dr2=KSÏ¬z‡ª©{Th“[,k]ü6/÷Ïuvı_—.Ñ	‰rçw∞ÇÇ∆@A»§¿¿ﬁ]®^eªﬁ©ôñ;Aπ¨∂<—Èä¸*¨CüÏgj§QÂ@ﬂo≥&[œfTkË.≈Ü—… Lé‰&Ø€¯·áÛ“BXäO*∂˜gçVıjëf˘õÙl§N_®ª“<Ω>ßéü,XÍGõ	tô7+.Ÿ‚´pyà/‡™ÿˇ˝Óñ2ıìÓ≥;Vª⁄åü ƒ>ÿ∑"9m_π!∑ÇŸPPÊoœÄF÷{fœÉƒå-¬)Ó'\}ªÌ‹&ü˚t Ω
+¨rı[nWŒbâ∏;\–\Â•Ï)!w 
+F…å't£!K#1üΩ¶I1«7q˘ƒŒ¬]ïWJÛµæŒ¢ÚéçW◊we£‘L}6ndsòñf–¯†vò«ÏıO>Ï⁄ã´`•›°|pó¬PvP„j¥PBR∏„À“u^?>-∏tè9Fœn◊˜ló/rÛ
+ß◊÷)ø„¢´7¬Kø)k(9âèh«’€8c’‡!D$>AJ#Ø9SÕß=K™õŸ|œoÌp¨¿ó•Xj⁄äô>Á#≠†≈•£·˝›˘ı’{Ù‡Î(jiKAΩªc¬Whús|l…#Ñ,ı'‹¨<dÉò™R”áº£Ö6˘ª◊'Ò_µ\3˜ø"Í dÄg1ﬂ~…≈ã.K‹<¨÷Û ¨#>/’∂5≤mWâÎê√•Rt\-@∂ZK [ …UúLÖªt{Ãüÿvg2w‹—eœŒbPJ¿e£Å=Ï√X_¶¥+WéŸç¬«ƒïı+«dÇôˆ;V™™‹‚}ÉD´˘πçS÷1ò“è5™«ã›F-8≈á¢Y«_eíúiôä¥I∫
+QfÑ¢Â4ü?˝(»r‚qZGA˝*)WÉG∂¸œ/¡˜Vw$¶^ﬁ∂qÉOøßíp∑@ñÉÆF|i"Ω6√XπXbawô¡˙H]ÿ9ñg·-‡É‰~«ÚU∑zA	
+möúÙÜeB∞»A‰-ãyWÁ-7NwVU≈]ÿ û‡6Øu‚‘HoP#Ù'˜ìΩC‚ëh
+ÑP†ˆ,c√'Çä∞ôÕ*∑ï†ûAÓ€®˝"ª∫àÁãé/æ«æ¨VW2ö˚'ÿp≠t#5Xucï€Lò”i•6f¬_>∫π'πœ	 Ç`úÍôªÎµi€‹]<©T7paÕ“]vqˇi‘Ò©jó“b nA a∆:¸ﬁ^£mÉG©'L[ﬁ@Œ® Õ{fª¢»HMuı⁄ $õQ@àXø21r&@ÉØÂ@MØΩàäK8€m78é!KlU+è}ë ‡ì
+ùNµŸRçNO˝•ïR{µ∏ı8ÜkYÏÌV•Ò›A˘ÃîI:wÈZΩ¿=cá±ÕK∏T-´ø;∫Î&R3?Hó·Tê[ñrê#∂p	»§ ™y˝n◊ﬂ∫Pﬂ√ï ÙkíÚ/>o∆£Ûﬂ˘$∂/Tq6ﬂSß¸BYJeoTÊ∞ÂrZIÒü≠Œgf™ˇV*˝{Uöˆ∫Ã≈¢~Póç€&7(ÃÅ•0˘[Øâ«¡á »˝¥¯Øê'¬Qm*¥ê;ÿ¢ÊæVÓwÇ2wäuΩœ˝ÚkíπVæb5Ã›h∫{ÂÑ7óHÖs√í~Ê-oLéGd-öe+œêdóßÈ“ÿá‰|ÈôT	®˜Cî>•∏mì¨Òzæ®¢’˘ «ØyDrGñ≥)§Iòÿ©ï⁄‡ÓöC+v€~9ñäêˆªøŸ™÷^l2EµÎwHó]kı˚e·ïﬂ¿d$d£ëó©?›´q}ñ^¨∑Ë‚HÆ≠\â„ºîÛ±¨Ç„„≠$¿ı≤ò”V)õÍ≥∆/â%FkU™<ÎÊÔÎÔ$,$Q˝à»≥˙hø‰ ("ŸEp∞v≈Rp&a˙Û…Qw,'§'G€U›Øó¯m‡ö‰≥˝®`—&A w≥Å)_VÓƒk¬®ÆÏ¶Áï£ÒÁd$~¸¢‡Aø*∏}>¨\ipPZŒ•⁄ˆF?ç)∆¥‰•éW¯#˛áÓ<Ö\°+$;yâ^Õnµ´~U}C«¿ü∑‹∫ÛÂÊfXmì[ÈlŒe=]+<wñ•¸S%Ωä‰}∆∂⁄é∞‡üÏfc¸›≈¡Ø[i                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  This is the Debian GNU/Linux prepackaged version of libxcrypt.
+
+It has been packaged by Marco d'Itri <md@linux.it>.
+
+Original sources were obtained from:
+https://github.com/besser82/libxcrypt
+
+On Debian systems the complete text of the licenses can be found in
+/usr/share/common-licenses/ .
+
+
+# Detailed copyright and licensing information for libxcrypt
+
+The overall license for libxcrypt is the GNU Lesser General Public
+License, version 2.1 (or, at your option, any later version); see
+the file COPYING.LIB for the full terms of this license.
+
+Many individual files are under other licenses.  This file provides an
+inventory of the copyright holders and licenses of all files in the
+source tree.  For specific licensing terms consult the files themselves.
+
+ * Copyright Thorsten Kukuk, Bj√∂rn Esser, Zack Weinberg; LGPL (v2.1 or later):
+   crypt.c, crypt-static.c, crypt-gensalt-static.c, crypt-port.h
+
+ * Copyright Free Software Foundation, Inc.; LGPL (v2.1 or later):
+   crypt.h, crypt-obsolete.h, crypt-md5.c,
+   test-badsalt.c, test-crypt-nonnull.c, test-explicit-bzero.c
+
+ * Copyright David Burren et al.; 3-clause BSD:
+   alg-des.h, alg-des.c, alg-des-tables.c,
+   crypt-des.c, crypt-des-obsolete.c, gen-des-tables.c
+
+ * Public domain, written by Ulrich Drepper et al.:
+   crypt-sha256.c, crypt-sha512.c
+
+ * Public domain, written by Solar Designer et al.:
+   alg-md4.h, alg-md4.c, alg-md5.h, alg-md5.c,
+   crypt-bcrypt.c, crypt-gensalt.c, test-crypt-bcrypt.c
+
+ * Copyright Solar Designer, Colin Percival; 0-clause BSD:
+   alg-yescrypt-common.c, alg-yescrypt-platform.c
+
+ * Copyright Solar Designer, Colin Percival; 2-clause BSD:
+   alg-sha256.c, alg-sha256.h, alg-yescrypt.h, alg-yescrypt-opt.c
+
+ * Copyright Colin Percival; 2-clause BSD:
+   alg-sha512.h, alg-sha512.c
+
+ * Copyright Alexey Degtyarev; 2-clause BSD:
+   alg-gost3411-2012-const.h, alg-gost3411-2012-core.c,
+   alg-gost3411-2012-core.h, alg-gost3411-2012-precalc.h,
+   alg-gost3411-2012-ref.h
+
+ * Copyright Vitaly Chikunov, Bj√∂rn Esser; 0-clause BSD:
+   alg-gost3411-2012-hmac.c, alg-gost3411-2012-hmac.h,
+   crypt-gost-yescrypt.c, test-alg-gost3411-2012.c,
+   test-alg-gost3411-2012-hmac.c, test-crypt-gost-yescrypt.c,
+   test-crypt-scrypt.c
+
+ * Copyright Alexander Peslyak; 0-clause BSD:
+   test-alg-yescrypt.c
+
+ * Copyright Alexander Peslyak, Bj√∂rn Esser; 0-clause BSD:
+   crypt-scrypt.c
+
+ * Copyright Bj√∂rn Esser; 0-clause BSD:
+   crypt-common.c, test-checksalt.c, test-compile-strong-alias.c,
+   test-gensalt-nthash.c, test-short-outbuf.c, test-special-char-salt.c
+
+ * Copyright Michael Bretterklieber, Bj√∂rn Esser et al.; 2-clause BSD:
+   crypt-nthash.c
+
+ * Copyright Zack Weinberg; 2-clause BSD:
+   crypt-sunmd5.c
+
+ * Public domain, written by Steve Reid et al.:
+   alg-sha1.c, alg-sha1.h, test-alg-sha1.c
+
+ * Copyright Juniper Networks, Inc.; 3-clause BSD:
+   crypt-pbkdf1-sha1.c, crypt-pbkdf1-sha1.c
+
+ * Copyright Bj√∂rn Esser; 2-clause BSD:
+   alg-hmac-sha1.c, alg-hmac-sha1.h, test-alg-hmac-sha1.c
+
+ * Public domain, written by Zack Weinberg et al.:
+   byteorder.h, randombytes.c, test-byteorder.c
+   test-alg-pbkdf-hmac-sha256.c
+   test-badsetting.c, test-crypt-badargs.c, test-getrandom-fallbacks.c,
+   test-getrandom-interface.c, test-symbols-compat.sh,
+   test-symbols-renames.sh, test-symbols-static.sh,
+   build-aux/scripts/gen-crypt-h,
+   build-aux/scripts/gen-crypt-symbol-vers-h,
+   build-aux/scripts/gen-libcrypt-map,
+   build-aux/scripts/skip-if-exec-format-error,
+   build-aux/m4/zw_alignment.m4, build-aux/m4/zw_static_assert.m4,
+   build-aux/m4/zw_endianness.m4, build-aux/m4/zw_ld_wrap.m4
+
+ * Copyright Zack Weinberg and Free Software Foundation, Inc;
+   GPL (v3 or later), with Autoconf exception:
+   build-aux/m4/zw_automodern.m4, build-aux/m4/zw_simple_warnings.m4
+
+ * Copyright <vt at altlinux.org>; 0-clause BSD:
+   crypt-yescrypt.c, test-crypt-yescrypt.c
+
+ * Copyright Kevin Cernekee; FSF All Permissive License:
+   build-aux/m4/ax_check_vscript.m4
+
+ * Copyright Maarten Bosmans; FSF All Permissive License:
+   build-aux/m4/ax_append_compile_flags.m4
+
+ * Copyright Guido U. Draheim, Maarten Bosmans;
+   FSF All Permissive License:
+   build-aux/m4/ax_append_flag.m4, build-aux/m4/ax_check_compile_flag.m4
+
+ * Copyright Mike Frysinger; FSF All Permissive License:
+   build-aux/m4/ax_require_defined.m4
+
+ * Copyright Gabriele Svelto; FSF All Permissive License:
+   build-aux/m4/ax_gcc_func_attribute.m4
+
+ * Copyright Scott James Remnant, Dan Nicholson;
+   GPL (v2 or later), with Autoconf exception:
+   build-aux/m4/pkg_installdir_compat.m4
+
+ * Copyright Tim Toolan; FSF All Permissive License:
+   build-aux/m4/ax_compare_version.m4
+
+ * Copyright Philip Withnall; FSF All Permissive License:
+   build-aux/m4/ax_valgrind_check.m4
+
+ * Copyright Steven G. Johnson, Daniel Richard G.;
+   GPL (v3 or later), with Autoconf exception:
+   build-aux/m4/ax_pthread.m4
+
+ * Copyright Francesco Salvestrini; FSF All Permissive License:
+   build-aux/m4/ax_prog_python_version.m4
+
+ * Copyright Andrew Collier; FSF All Permissive License:
+   build-aux/m4/ax_python_module.m4
+
+ * Copyright holders unknown, no statement of license (all of these
+   files are part of the testsuite and do not contribute to the
+   installed library or its headers):
+   test-alg-des.c, test-alg-md4.c (adaption of test-alg-md5.c),
+   test-alg-md5.c, test-alg-sha256.c, test-alg-sha512.c, test-crypt-des.c,
+   test-crypt-md5.c, test-crypt-sha256.c, test-crypt-sha512.c,
+   test-des-cases.h, test-des-obsolete{,_r}.c, test-gensalt.c,
+   test-crypt-nthash.c (adaption of test-crypt-des.c),
+   test-crypt-sunmd5.c (adaption of test-crypt-des.c),
+   test-crypt-pbkdf1-sha1.c (adaption of test-crypt-des.c)
+
+ * The NEWS file formerly contained the following copyright assertions:
+
+     Copyright 2002, 2003, 2004 SuSE Linux AG, Germany
+     Copyright 2005, 2008, 2009 2011 SUSE LINUX Products GmbH, Germany
+     Copyright 2015 Bj√∂rn Esser
+
+   These were meant to apply to the library as a whole rather than
+   specific files or portions of files.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         .   f   ..       build_signature_i386.txt!   changelog.Debian.gz "  ¨	copyright                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           6518977b
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       ã     •W€R‹F}Á+∫Ïáò≠u]Ì $eÃ≈6eaqR©T IΩ“iFûõo…ﬂ‰«“#	º`X∞]ÀJ5ó>›ÁúnÚ4Ñ>F˛‰i>◊ÖÔL◊°⁄∞¥¬Á–™E∂¯•∆ú∑ı⁄¿œ€¥M%Y>Í˜¯ò·—8tRnÄÉÖbòEÉ†€¶ë ¿\*–¯π•”P?¢ç ¨52ìbµÅsnJ(≤ºpD˜8lÂä3/[q
+õ)}æ»1•7#©ä_NZ‹ /Ç√ÃÄÔ˙!mLB7°7O›¿u◊÷Ú[¿MŒ>˛3V∑X¡I…S÷V˛ÓQ‘F…*ÅW(ê†Ú VÂ&cõ Ÿ?2±ıÁºd⁄X0ØP’Là·õ∫Ωìó{3H1c≠Fês‡uSÒåáŒÅ'€ï‘®xÏπì0û¯ÎWèv +1;m§]ô#À+ôù.mô~M÷˚lﬁå`3eﬁ»hŸRF›•åzI&nHıÔ hº:£wAﬂñu√+Ñ<˝†y!òiˆ¿ã3É9Ã+VË˛åìR*mê©òF5úqkÆá4j£Z¬axçöÑ'i;ü”VyÜj^…sêﬁº=
+|0„∞Á£ JnËn
+Eo@-)"ZîÚP‰a˝yaâUs%kxâJîLÂ›˛ˇ˛M±bŸ)]≤\∂q<¶Cn‚ÿ4≈ãö´TÁ£©3f®l5j®@îx~åWU`¸pN€ßæ‰œfà=‚Vû€¥i.
+xÃEVµ91xNÈ¥Ú‰Ö-M«¥+\^ãmÏ∫¡ÄmÜÈPÈcV3ZO¥æ^'⁄òo>8`LﬂKÇ 	,—ºª`F˜¡Ä©∂≤∞l¯
+k∆Ö¶êjﬂyèÖVÒ¥ø¡îÃ@ÕN±s0'«≥YCU$u–}‹ﬁXUˆ“¡ïfœﬁ2QP…òŒ§™§∏EH˛ˆ0ÌÒπn∏I‰>˜.|·»ª·;)ã»–/•wô¸«(XçôbäLk∏É#[|†?ä	Õób∞LP
+—Ì¡¨d‰wØ€\”];rA›¨œÀÓ˘∂"Nñ@z	FËØ˘m\µ‹Ïé˘`ZqCWQ˚˛√ÕmOÒŒ‹ﬁ…3n`€Ö$ëªäs¡}·™¶§{-{“<8†NÎ‰≠W˘ƒê(	ß´ÚÔ¡≥s+Ïvîl@PÒÇS,§ÅsL©¸ÿ-€¡Zº¬OéóäõÖ’ál,KX’◊†i™[U9«‘¡π≤_§ºﬁú¬¿ç„æ9u7bgò»¡d’ejÙ“éqD˝,\_ÊÓπí¢†´+ø†0X‘óCıÁ™;Sõ[œÙ(o”8‹†ŒÁ”·}âΩ(é;˜•.≤”•ˆô‡F^6ëøìÀ¨w¬ÍÚ‹ŸR6Ö$!§ﬁ4zxI[A%√V[ãà`âª“æÔU˝n≈kNÅÅ¶ﬁSÅŒoLÔ^%”ÙﬁzÆ–V4C°q‡B&õÖ‚Eiÿß)Ål0oEŒh\†˛[£0zêôÏéª"Òı§Ü4’<\híí‡çmö^{â%˛
+°yé;Ú‹ÔrøK†§¬+Y$ÑL)j‚ê∂K∂?¨¶Ó4ØQÆË ãƒÿ!£üHçÊJ	M"dô_È·ZV/7—"€Ë(0G— fAX˙‘lY%ÒÑíÈ≠/«íó‘ck":L°¬π±”â˛∂Å-paøÌRÌ€TáÙ3πõo6’”˚F∂F°ÌKAÍÍE2€›~¸Ê‰Ox¥≥u≤õ¿kd»÷8rÓ§í8•¡‚Ó∫Á◊z‹˛}◊Ò]oÍL¬(æúÓEÆÃJñ∑îÂMfüœuyãIz!M
+ã°I«I0]çpÚù‘éë,ß`4	ãàP÷hxFS}ÔG}Ù˚íúI¿¨Q‹|%úõütˇtKﬂq£À6ÈÅ7I\üÊÍ’rà Åı±¡;ª1‡’ˆ∂Ì|KˇD±ÁáÎﬂÖ∆öAŸ%H¸xIŸè·∞ )2ñn)-èRDk<ñÓy?5õík∏RÏà∂ù»é>ùY=ThÀ
+∞#˝GFıÂ’eÁ¢·˝„hÌî”EK»                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    

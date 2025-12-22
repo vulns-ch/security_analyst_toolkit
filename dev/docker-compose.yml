@@ -1,0 +1,11 @@
+services:
+  web:
+    image: nginx
+    volumes:
+     - ../docs:/usr/share/nginx/html
+     - ./default.conf:/etc/nginx/conf.d/default.conf:ro
+    ports:
+     - "127.0.0.1:8080:80"
+    environment:
+     - NGINX_HOST=localhost
+     - NGINX_PORT=80

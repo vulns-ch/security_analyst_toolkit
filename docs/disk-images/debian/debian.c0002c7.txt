@@ -1,0 +1,1345 @@
+Red Hat, Inc.
+License: LGPL-3+
+
+Files: libsmartcols/*
+Copyright:  2009-2023 Karel Zak <kzak@redhat.com>
+            2014 Ondrej Oprala <ooprala@redhat.com>
+License: LGPL-2.1+
+
+Files: pam_lastlog2/*
+Copyright: 2023-2024 Thorsten Kukuk
+License: BSD-2-clause
+
+Files: debian/*
+Copyright:           Guy Maor <maor@debian.org>
+                     Sean 'Shaleh' Perry <shaleh@debian.org>
+                     Adrian Bunk <bunk@stusta.de>
+                     LaMont Jones <lamont@debian.org>
+           1996-2003 Martin Mitchell (martin@debian.org)
+           2008-2012 Frank Lichtenheld (djpig@debian.org)
+           2014      Andreas Henriksson <andreas@fatal.se>
+           2017-2020 Michael Biebl <biebl@debian.org>
+           2019      Petter Reinholdtsen <pere@debian.org>
+           2017-2024 Chris Hofstaedtler <zeha@debian.org>
+License: GPL-2+
+
+Files: debian/po/*
+Copyright:           Aiet Kolkhi <aietkolkhi@gmail.com>
+                     Anton Gladky <gladky.anton@gmail.com>
+                     Arief S F (arief@gurame.fisika.ui.ac.id>
+                     Armin BeÅ¡iroviÄ‡ <armin@linux.org.ba>
+                     astur <malditoastur@gmail.com>
+                     Axel Bojer <axelb@skolelinux.no>
+                     Bart Cornelis <cobaco@skolelinux.no>
+                     Bartosz Feï¿½ski <fenio@o2.pl>
+                     Basil Shubin <bashu@surgut.ru>
+                     Baurzhan Muftakhidinov <baurthefirst@gmail.com>
+                     Bjorn Steensrud <bjornst@powertech.no>
+                     Claus Hindsgaul <claus_h@image.dk>
+                     Clytie Siddall <clytie@riverland.net.au>
+                     Dafydd Tomos <l10n@da.fydd.org>
+                     Damyan Ivanov <dam@modsoftsys.com>
+                     Daniel Franganillo <dfranganillo@gmail.com>
+                     Daniel Nylander <po@danielnylander.se>
+                     Danishka Navin <danishka@gmail.com>
+                     Dauren Sarsenov <daur88@inbox.ru>
+                     Dominik Zablotny <dominz@wp.pl>
+                     Dr.T.Vasudevan <agnihot3@gmail.com>
+                     Eddy Petrisor <eddy.petrisor@gmail.com>
+                     Eder L. Marques <frolic@debian-ce.org>
+                     Elian Myftiu <elian.myftiu@gmail.com>
+                     Emmanuel Galatoulas <galas@tee.gr>
+                     Esko ArajÃ¤rvi <edu@iki.fi>
+                     Frank Lichtenheld <djpig@debian.org>
+                     FrÃ©dÃ©ric Bothamy <frederic.bothamy@free.fr>
+                     Gabor Burjan <buga@buvoshetes.hu>
+                     George Papamichelakis <george@step.gr>
+                     Hans Fredrik Nordhaug <hans@nordhaug.priv.no>
+                     HÃ¥vard Korsvoll <korsvoll@gmail.com>
+                     Hideki Yamane <henrich@samba.gr.jp>
+                     Hleb Rubanau <g.rubanau@gmail.com>
+                     I Gede Wijaya S <gwijayas@yahoo.com>
+                     Ivan MasÃ¡r <helix84@centrum.sk>
+                     Jacobo Tarrio <jtarrio@debian.org>
+                     Jamil Ahmed <jamil@ankur.org.bd>
+                     Janos Guljas <janos@resenje.org>
+                     Jordi Mallach <jordi@debian.org>
+                     Josip Rodin <joy+ditrans@linux.hr>
+                     Karolina Kalic <karolina@resenje.org>
+                     Kartik Mistry <kartik.mistry@gmail.com>
+                     KÄ™stutis BiliÅ«nas <kebil@kaunas.init.lt>
+                     Kevin Scannell <kscanne@gmail.com>
+                     Khoem Sokhem <khoemsokhem@khmeros.info>
+                     Klaus Ade Johnstad <klaus@skolelinux.no>
+                     Knut Yrvin <knuty@skolelinux.no>
+                     Konstantinos Margaritis <markos@debian.org>
+                     Kostas Papadimas <pkst@gnome.org>
+                     Kumar Appaiah <a.kumar@alumni.iitm.ac.in>
+                     Lior Kaplan <kaplan@debian.org>
+                     Luiz Portella <lfpor@lujz.org>
+                     Mallikarjuna <Mallikarjunasj@gmail.com>
+                     Mert Dirik <mertdirik@gmail.com>
+                     Milo Casagrande <milo@ubuntu.com>
+                     Ming Hua <minghua@ubuntu.com>
+                     Miroslav Kure <kurem@debian.cz>
+                     Mouhamadou Mamoune Mbacke <mouhamadoumamoune@gmail.com>
+                     Nabin Gautam <nabin@mpp.org.np>
+                     Ossama M. Khayat <okhayat@yahoo.com>
+                     Ovidiu Damian <deelerious@gmail.com>
+                     Parlin Imanuel Toh <parlin_i@yahoo.com>
+                     Pavel Piatruk <berserker@neolocation.com>
+                     Piarres Beobide <pi@beobide.net>
+                     Praveen|à´ªàµà´°à´µàµ€à´£àµâ€ A|à´ <pravi.a@gmail.com>
+                     RÅ«dolfs Mazurs <rudolfs.mazurs@gmail.com>
+                     Sahran <Sahran.ug@gmail.com>
+                     Sampada Nakhare <sampadanakhare@gmail.com>
+                     Setyo Nugroho <setyo@gmx.net>
+                     SimÃ£o Pedro Cardoso <pthell@gmail.com>
+                     Stefano Melchior <stefano.melchior@openlabs.it>
+                     Sunjae Park <darehanl@gmail.com>
+                     Sveinn Ã­ Felli <sveinki@nett.is>
+                     Tetralet <tetralet@gmail.com>
+                     Theppitak Karoonboonyanan <thep@linux.thai.net>
+                     Tshewang Norbu <bumthap2006@hotmail.com>
+                     Vahid Ghaderi <vahid_male1384@yahoo.com>
+                     Vanja Cvelbar <cvelbar@gmail.com>
+                     Veeven <veeven@gmail.com>
+                     Vikram Vincent <vincentvikram@gmail.com>
+                     Yoppy Hidayanto <yoppy.hidayanto@gmail.com>
+License: GPL-2+
+
+
+License: public-domain
+ The files tagged with this license contains the following paragraphs:
+ .
+ No copyright is claimed.  This code is in the public domain; do with
+ it what you wish.
+ .
+ Written by Karel Zak <kzak@redhat.com>
+
+License: GPL-2
+ This program is free software; you can redistribute it and/or modify
+ it under the terms of the GNU General Public License, v2, as
+ published by the Free Software Foundation
+ .
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+ .
+ You should have received a copy of the GNU General Public License along
+ with this program; if not, write to the Free Software Foundation, Inc.,
+ 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ .
+ On Debian systems, the complete text of the GNU General Public
+ License version 2 can be found in `/usr/share/common-licenses/GPL-2'.
+
+License: GPL-2+
+ This program is free software; you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation; either version 2 of the License, or
+ (at your option) any later version.
+ .
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+ .
+ You should have received a copy of the GNU General Public License along
+ with this program; if not, write to the Free Software Foundation, Inc.,
+ 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ .
+ On Debian systems, the complete text of the GNU General Public
+ License version 2 can be found in `/usr/share/common-licenses/GPL-2'.
+
+License: GPL-3+
+ This program is free software: you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation; either version 3 of the License, or
+ (at your option) any later version.
+ .
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+ .
+ You should have received a copy of the GNU General Public License
+ along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ .
+ On Debian systems, the complete text of the GNU General Public
+ License version 3 can be found in `/usr/share/common-licenses/GPL-3'.
+
+License: BSD-2-clause
+ Redistribution and use in source and binary forms, with or without
+ modification, are permitted provided that the following conditions are
+ met:
+ .
+    * Redistributions of source code must retain the above copyright
+      notice, this list of conditions and the following disclaimer.
+    * Redistributions in binary form must reproduce the above
+      copyright notice, this list of conditions and the following disclaimer
+      in the documentation and/or other materials provided with the
+      distribution.
+ .
+ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+ A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+ OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+License: BSD-3-clause
+ Redistribution and use in source and binary forms, with or without
+ modification, are permitted provided that the following conditions are met:
+ .
+ 1) Redistributions of source code must retain the above copyright notice,
+ this list of conditions and the following disclaimer.
+ .
+ 2) Redistributions in binary form must reproduce the above copyright notice,
+ this list of conditions and the following disclaimer in the documentation
+ and/or other materials provided with the distribution.
+ .
+ 3) Neither the name of the ORGANIZATION nor the names of its contributors
+ may be used to endorse or promote products derived from this software
+ without specific prior written permission.
+ .
+ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ POSSIBILITY OF SUCH DAMAGE.
+
+License: BSD-4-clause
+ Redistribution and use in source and binary forms, with or without
+ modification, are permitted provided that the following conditions
+ are met:
+ 1. Redistributions of source code must retain the above copyright
+    notice, this list of conditions and the following disclaimer.
+ 2. Redistributions in binary form must reproduce the above copyright
+    notice, this list of conditions and the following disclaimer in the
+    documentation and/or other materials provided with the distribution.
+ 3. All advertising materials mentioning features or use of this software
+    must display the following acknowledgement:
+    This product includes software developed by the University of
+    California, Berkeley and its contributors.
+ 4. Neither the name of the University nor the names of its contributors
+    may be used to endorse or promote products derived from this software
+    without specific prior written permission.
+ .
+ THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
+ ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
+ FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+ OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+ OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+ SUCH DAMAGE.
+
+License: BSLA
+ Redistribution and use in source and binary forms are permitted
+ provided that the above copyright notice and this paragraph are
+ duplicated in all such forms and that any documentation,
+ advertising materials, and other materials related to such
+ distribution and use acknowledge that the software was developed
+ by the University of California, Berkeley.  The name of the
+ University may not be used to endorse or promote products derived
+ from this software without specific prior written permission.
+ THIS SOFTWARE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR
+ IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
+ WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+
+License: LGPL
+ This file may be redistributed under the terms of the
+ GNU Lesser General Public License.
+ .
+ On Debian systems, the complete text of the GNU Lesser General Public
+ License can be found in â€˜/usr/share/common-licenses/LGPLâ€™.
+
+License: LGPL-2+
+ This program is free software: you can redistribute it and/or modify
+ it under the terms of the GNU Lesser General Public License as published by
+ the Free Software Foundation, either version 2 of the License, or
+ (at your option) any later version.
+ .
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ GNU Lesser General Public License for more details.
+ .
+ You should have received a copy of the GNU Lesser General Public License
+ along with this program. If not, see <http://www.gnu.org/licenses/>.
+ .
+ The complete text of the GNU Lesser General Public License
+ can be found in /usr/share/common-licenses/LGPL-2 file.
+
+License: LGPL-2.1+
+ This program is free software; you can redistribute it and/or modify
+ it under the terms of the GNU Lesser General Public License as published by
+ the Free Software Foundation; either version 2.1, or (at your option)
+ any later version.
+ .
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU Lesser General Public License for more details.
+ .
+ You should have received a copy of the GNU Lesser General Public License along
+ with this program; if not, write to the Free Software Foundation,
+ Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ .
+ On Debian systems, the complete text of the GNU Lesser General Public
+ License version 2.1 can be found in â€˜/usr/share/common-licenses/LGPL-2.1â€™.
+
+License: LGPL-3+
+ This package is free software; you can redistribute it and/or
+ modify it under the terms of the GNU Lesser General Public
+ License as published by the Free Software Foundation; either
+ version 3 of the License, or (at your option) any later version.
+ .
+ This package is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ Lesser General Public License for more details.
+ .
+ You should have received a copy of the GNU General Public License
+ along with this program. If not, see <http://www.gnu.org/licenses/>.
+ .
+ On Debian systems, the complete text of the GNU Lesser General
+ Public License can be found in "/usr/share/common-licenses/LGPL-3".
+
+License: Expat
+ Permission is hereby granted, free of charge, to any person
+ obtaining a copy of this software and associated documentation files
+ (the "Software"), to deal in the Software without restriction,
+ including without limitation the rights to use, copy, modify, merge,
+ publish, distribute, sublicense, and/or sell copies of the Software,
+ and to permit persons to whom the Software is furnished to do so,
+ subject to the following conditions:
+ .
+ The above copyright notice and this permission notice shall be
+ included in all copies or substantial portions of the Software.
+ .
+ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+ BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+ ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ SOFTWARE.
+
+License: ISC
+ The ISC License
+ .
+ Copyright (c) 2024 by the copyright holder
+ .
+ Permission to use, copy, modify, and/or distribute this software for any
+ purpose with or without fee is hereby granted, provided that the above
+ copyright notice and this permission notice appear in all copies.
+ .
+ THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+ WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+ MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+ ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+ WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+ ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           The following is a list of commands or features that are deprecated.  All
+deprecated utils are in maintenance mode and we keep them in source tree for
+backward compatibility only.
+
+
+what:  column --table-empty-lines
+why:   renamed to --keep-empty-lines
+since: v2.37
+
+--------------------------
+
+what:  hwclock --debug
+why:   renamed to --verbose, and may be repurposed later.
+since: v2.32
+
+--------------------------
+
+what:  hwclock -v for version
+why:   renamed to -V
+since: v2.20 (was repurposed to verbose in v2.32)
+
+--------------------------
+
+what:  column --columns
+why:   renamed to --output-width
+since: v2.30
+
+--------------------------
+
+what:  sfdisk --show-size
+why:   this does not belong to fdisk, use "blockdev --getsz"
+
+--------------------------
+
+what:   sfdisk --Linux
+why:    unnecessary option, only Linux (non-DOS mode) is supported
+
+--------------------------
+
+what:   sfdisk --unit
+why:    unnecessary option, only 'S'ector unit is supported
+
+--------------------------
+
+what:   sfdisk --show-pt-geometry
+why:    equal to --show-geometry for a long time
+
+--------------------------
+
+what:  "swapon --summary" output format
+why:   does not provide control on output data formatting. The recommended solution
+       is to use --show=<columns> in all scripts.
+
+--------------------------
+
+What:   mkfs
+Why:    use filesystem specific mkfs.<type>.
+
+--------------------------
+
+What:   fdisk -s <device>
+Why:    this does not belong to fdisk, use "blockdev --getsz"
+
+--------------------------
+
+What:   'udev' and 'list' blkid(8) output formats
+Why:    udevd links libblkid directly; the 'list' is unnecessary, use lsblk(8)
+
+--------------------------
+
+What:   line(1) command
+Why:    use the read(1) command
+
+--------------------------
+
+What:   pg(1) command
+Why:    use less(1) or more(1)
+
+--------------------------
+
+What:   CHS stuff in fdisk (except SUN where are partitions addresses by cylinders only)
+Why:    use addressing by sectors, CHS does not work with modern disks,
+        confusing for users...
+
+--------------------------
+
+What:	losetup -s
+Why:	the option -s is in collision with the Loop-AES losetup dialect that is used
+        in some distributions. Use the long version (--show) only.
+
+--------------------------
+
+What:   losetup output format without --list
+
+        deprecated format:
+
+          # losetup -a
+          /dev/loop0: []: (/home/fs-images/swap.img)
+          /dev/loop1: []: (/home/fs-images/disk.img), offset 100
+
+	new format:
+
+          # losetup
+          NAME       SIZELIMIT OFFSET AUTOCLEAR RO BACK-FILE
+          /dev/loop0         0      0         0  0 /home/fs-images/swap.img
+          /dev/loop1         0    100         0  0 /home/fs-images/disk.img
+
+--------------------------
+
+What:	tunelp
+Why:	parallel port printers are probably almost extinct devices
+
+----------------------------
+
+The Single UNIX(TM) Specification, Version 2
+Copyright (C) 1997 The Open Group
+
+  Legacy utilities which are part util-linux package are:
+
+	col
+	line
+	pg
+
+  https://pubs.opengroup.org/onlinepubs/7908799/xcu/intro.html#tag_001_003_003
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 	   .   
+	   ..  	  ègetopt-example.bash                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             #!/bin/bash
+
+# A small example script for using the getopt(1) program.
+# This script will only work with bash(1).
+# A similar script using the tcsh(1) language can be found
+# as getopt-example.tcsh.
+
+# Example input and output (from the bash prompt):
+#
+# ./getopt-example.bash -a par1 'another arg' --c-long 'wow!*\?' -cmore -b " very long "
+# Option a
+# Option c, no argument
+# Option c, argument 'more'
+# Option b, argument ' very long '
+# Remaining arguments:
+# --> 'par1'
+# --> 'another arg'
+# --> 'wow!*\?'
+
+# Note that we use "$@" to let each command-line parameter expand to a
+# separate word. The quotes around "$@" are essential!
+# We need TEMP as the 'eval set --' would nuke the return value of getopt.
+TEMP=$(getopt -o 'ab:c::' --long 'a-long,b-long:,c-long::' -n 'example.bash' -- "$@")
+
+if [ $? -ne 0 ]; then
+	echo 'Terminating...' >&2
+	exit 1
+fi
+
+# Note the quotes around "$TEMP": they are essential!
+eval set -- "$TEMP"
+unset TEMP
+
+while true; do
+	case "$1" in
+		'-a'|'--a-long')
+			echo 'Option a'
+			shift
+			continue
+		;;
+		'-b'|'--b-long')
+			echo "Option b, argument '$2'"
+			shift 2
+			continue
+		;;
+		'-c'|'--c-long')
+			# c has an optional argument. As we are in quoted mode,
+			# an empty parameter will be generated if its optional
+			# argument is not found.
+			case "$2" in
+				'')
+					echo 'Option c, no argument'
+				;;
+				*)
+					echo "Option c, argument '$2'"
+				;;
+			esac
+			shift 2
+			continue
+		;;
+		'--')
+			shift
+			break
+		;;
+		*)
+			echo 'Internal error!' >&2
+			exit 1
+		;;
+	esac
+done
+
+echo 'Remaining arguments:'
+for arg; do
+	echo "--> '$arg'"
+done
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      This package contains a reimplementation of getopt(1).
+
+PREFACE
+
+Getopt(1) is a program to help shell scripts parse command-line parameters.
+
+HIGHLIGHTS
+
+It can do anything that the GNU getopt(3) routines can do.
+
+It can cope with spaces and shell metacharacters within arguments.
+
+It can parse long parameters.
+
+It can shuffle parameters, so you can mix options and other parameters on
+the command-line.
+
+It can be easily identified as an enhanced getopt(1) from within shell scripts.
+
+It can report parse errors as coming from the shell script.
+
+It is fully compatible with other getopt(1) implementations.
+
+COPYING
+
+This program comes under the GNU general public license version 2. See the
+file COPYING included in this package. Note that though you may freely
+copy it, it is copyright (c) 1997-2005 by Frodo Looijaard
+<frodo@frodo.looijaard.name>.
+Files in the gnu directory are from glibc-2.0.4: copyright (C) 1987, 88,
+89, 90, 91, 92, 93, 94, 95, 96, 97 Free Software Foundation, Inc.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                20051107: Bumped up version number to 1.1.4
+20051107: Makefile: package target
+20051107: Changed email and website to current ones
+20051107: Fixed a few typos in the manpage (sync with util-linux (2.12r)
+20030123: Bumped up version number to 1.1.3
+20030123: Changed WITH_GETTEXT option to WITHOUT_GETTEXT
+20030123: Renamed example programs to have the string getopt- prepended
+20030123: Manpage: all minus signs are now escaped
+20030123: Sync with util-linux (2.11y)
+20010329: Bumped up version number to 1.1.2
+20010329: Sync with util-linux
+20010311: Bumped up version number to 1.1.1
+20010311: Fixed stupid compilation error if NLS not selected
+20000630: Bumped up version number to 1.1.0
+20000630: Ported the Native Language Support patches from util-linux
+          They are written by Arkadiusz MiÅ›kiewicz <misiek@pld.org.pl>
+20000627: Bumped up version number to 1.0.6
+20000627: A few manpage tweaks
+20000616: Introduced DESTDIR and directory creation in the Makefile.
+19990716: Bumped up version number to 1.0.5
+19990622: Made -u work
+19990101: Bumped up version number to 1.0.4 (aka. 1.0.3a in util-linux)
+19990101: Very small fix in main()
+19990101: Updated util-linux Makefile
+19980628: Bumped up version number to 1.0.3
+19980628: Removed remaining incompatibility with tcsh-6.02 from parse.tcsh
+980626: Added separate Makefile for util-linux
+19980625: Removed several bugs from parse.tcsh, partly thanks to Volker Kuhlmann
+          (v.kuhlmann@elec.canterbury.ac.nz).
+19980612: Removed reference to getopt in util-linux
+19980611: Bumped up version number to 1.0.2
+19980611: Fixed --version bug (was not available, though documented!)
+19980611: Removed compiler warnings.
+19980603: Bumped up version number to 1.0.1
+19980603: Fixed sizeof() bug (should be strlen) in getopt.c, thanks to
+          Bob Proulx (rwp@hprwp.fc.hp.com).
+19980505: Changed date field in LSM to proper syntax
+19980505: Released version 1.0
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         util-linux build system
+=======================
+
+ - the build system is non-recursive, individual subdirectories use
+   Makemodule.am files. These files are merged together by automake
+   into one global Makefile in the top-level directory
+
+ - all final build results (binaries, libtool scripts) are stored in top-level
+   source directory
+
+ - all Makemodule.am files have to be designed as top-level makefiles, it
+   means with full paths (e.g. foo_SOURCES = subdir/foo.c)
+
+ - always use '+=' operator for global variables (e.g. bin_PROGRAMS += foo)
+
+ - use libcommon.la (without path!) for lib/ stuff (e.g. foo_LDADD = libcommon.la)
+
+ - for libblkid, libuuid and libmount use lib<name>.la in _LDADD and
+   -I$(ul_lib<name>_incdir) in _CFLAGS, for example
+
+	foo_LDADD = libmount.la
+	foo_CFLAGS = -I$(ul_libmount_incdir)
+
+ - always use suffixes for hooks, for example
+
+	install-exec-hook-foo:
+		ln -sf foo foooo
+
+	INSTALL_EXEC_HOOKS += install-exec-hook-foo
+
+
+ - all util-linux specific autoconf macros use UL_ prefix
+
+ - utils in Makefile.am files are enabled/disabled according to BUILD_<NAME>
+   conditions (AM_CONDITIONAL), for example:
+
+	if BUILD_HWCLOCK
+	...
+	endif
+
+ - "if BUILD_<NAME>" blocks are never nested within another "if BUILD_<NAME>",
+   all dependencies have to be resolved in configure.ac (see UL_REQUIRES_BUILD())
+
+ - all BUILD_<NAME> in configure.am are always based on build_<name> variables,
+   for example:
+
+	AM_CONDITIONAL([BUILD_HWCLOCK], test "x$build_hwclock" = xyes)
+
+   the $build_<name> should be available in whole configure script
+
+ - AC_ARG_ENABLE() status is always stored in $enable_<name> variable, possible
+   setting:
+
+	"check" - util/feature is optional, if any subcomponent (function, lib,
+                  ...) is missing a warning is printed and the util/feature is
+                  disabled
+
+	"yes"	- util/feature is required, if any subcomponent (function, lib,
+                  ...) is missing an error is printed and ./configure aborted
+
+	"no"	- the util/feature is unwanted
+
+   The default status is always defined by UL_DEFAULT_ENABLE() and it might be
+   globally modified by $ul_default_estate (see AC_ARG_ENABLE([all-programs])).
+
+ - it's possible to disable all programs, but enable just one (or more)
+   explicitly specified, for example:
+
+        ./configure --disable-all-programs --enable-hwclock
+
+ - some basic scenarios for the ./configure script are defined in the
+   tools/config-gen.d/ directory. If you want to use these predefined scenarios
+   then call
+
+	./tools/config-gen [<scenario> ...]
+
+   for example
+
+	./tools/config-gen all selinux
+
+   will build all utils with enabled selinux support. You can also define some
+   CFLAGS, for example:
+
+	CFLAGS=$(rpm --eval '%optflags') ./tools/config-gen all
+
+   will use the default distro flags.
+
+   WARNING: config-gen is not designed for end-user or downstream distributions!
+            It's for development purpose only. All end-users and downstream have
+            to use standard ./configure script only.
+
+ - the tools/config-gen script is also used for build system regression tests,
+   the test is not enabled by default, you have to use
+
+	tests/run.sh build-sys --force
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       The common case
+
+	./autogen.sh && ./configure && make
+
+	  If something fails read the last lines. Typical reason to
+	  fail is a missing dependency, such as libtool or gettext.
+
+        make install-strip
+
+	  Note that on the production systems it is strongly recommended to use
+	  "make install-strip" to install binaries and libraries. The result
+	  from the standard "make install" may produce large binaries with
+	  unnecessary symbols.
+
+Autotools
+
+	`./autogen.sh' generates all files needed to compile
+	and install the code (run it after checkout from git)
+
+	`make distclean' removes all unnecessary files, but the
+	code can still be recompiled with "./configure; make"
+
+	`make dist-gzip' (or -bzip2) creates a tarball that can
+	be configured and compiled without running `./autogen.sh'
+
+Compiling
+
+	Use SUID_CFLAGS and SUID_LDFLAGS when you want to define
+	special compiler options for typical suid programs, for
+	example:
+
+	./configure SUID_CFLAGS="-fpie" SUID_LDFLAGS="-pie"
+
+	The SUID_* feature is currently supported for chfn, chsh,
+	newgrp, su, write, mount, and umount.
+
+	Use DAEMON_CFLAGS and DAEMON_LDFLAGS when you want to define
+	special compiler options for daemons; supported for uuidd.
+
+	Use SOLIB_CFLAGS and SOLIB_LDFLAGS when you want to define
+	special compiler options for shared libraries; supported for
+	libmount, libblkid and libuuid.
+
+	FIXME: add notes about klib and uClib.
+
+
+Compile certain portion
+
+	See ./configure --help and use --disable-* and --enable-* options.
+
+        It's also possible to disable all the programs and enable only wanted.
+        For example:
+
+	./configure --disable-all-programs --enable-fallocate
+
+	Note that the configure script tracks dependencies between libs and
+        tools. Always see warning messages and follow error messages if any
+        dependence is necessary. For example to compile mount(8) you need also
+        libmount, libblkid and libuuid:
+
+	./configure --disable-all-programs --enable-mount --enable-libmount \
+                    --enable-libblkid --enable-libuuid
+
+
+Static linking
+
+	Use --enable-static-programs[=LIST] configure option when
+	you want to use statically linked programs.
+
+	Note, mount(8) uses get{pw,gr}nam() and getpwuid()
+	functions for translation from username and groupname to
+	UID and GID. These functions could be implemented by
+	dynamically loaded independent modules (NSS) in your libc
+	(e.g. glibc). These modules are not statically linked to
+	mount(8) and mount.static is still using dlopen() like
+	dynamically linked version.
+
+	The translation won't work in environment where NSS
+	modules are not installed.
+
+	For example normal system (NSS modules are available):
+
+		# ./mount.static -v -f -n -ouid=kzak /mnt/foo
+		LABEL=/mnt/foo on /mnt/foo type vfat (rw,uid=500)
+							 ^^^^^^^
+	and without NSS modules:
+
+		# chroot . ./mount.static -v -f -n -ouid=kzak /mnt/win
+		LABEL=/mnt/win on /mnt/win type vfat (rw,uid=kzak)
+							 ^^^^^^^^
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               ‹     ZkoÇıLıŠ
+”RBRIP µœ¦u¹Qà8®e'.Š îÉ‰–;›™]QÌ¯ï9÷Î.—²Ò%`Y^ÎÜ÷ãÜ»~şı«·W¯ŞŞœ˜W—¾^›×¶-6.è/ò$†Â%<¹ÚZ_™!nm{b9Óî+wb¾oZjúÁFºd^…–TnZ[—6–	ç·Måm]¸““‡ÌN&™„gfºh}jÚ`Ú3äÊÃ•O­9KÎ™ÅââÍÕ³¯¿»:7!šåşdbÌÚ·›n¹(ÂÖ4]U™è~é\jBÛ‰ä>[®i]i,~¯¯AÙ)C³…	ò—Ğµ3cIUÈ‘COÑ¼ÑWÒÉÔD!°¯‹ª+®d“kÍ
+T£»ónGBM›\ZÀèÎlÂ®s2™÷ÚûÒ•=… e‰7}¢èìëÔÆ®Ëµmk‹ÍÖÕ-´ŒÎ”~µòEWµ”Påúu E˜GKW.Hó_·—¦KNøÑ)s!ªôÃ`­ÆE“¿À-*2=½µõŞ¤­…¹zŸRœ&º•‹w bM‚{+g*×™<Lƒ`iÅZ½“YÚ„K]jS…µ/leV]-ú[œŞ/Èİ¸{‹Hs—æwŒ²¤ˆ·$Ô5if lã+pİÙXƒ-ÑîÊ[ù{ˆ™ ¢’/ì\ú;_vVâàH!U´õ´|¿vµ‹–Qvf»6´!Té„+öõQŒ?0ù”6/*‡Ğœ¿/§ nòç!&\˜³6Ú:UVünŠ­×‡´ºmtv{`e†ÏÛRHm·Z1/àººÅú¤6›¶mÒåÅÅˆ~ÃÏ®h!®/ÊÀã]ë«9ò§»_lÚm5"O‹vM)&°ÕÎîá:‡Ö´¨İ=ÃZ&§æ«]Vôà¥œLu`Ñ{dÉh†b~ÙQ¬y¾*v|m‹[KTşÖ™7¯¿ƒs¿¾ú*»˜„#²k&1ÈĞ‡Nğ*âöØg$&öÁl—ˆÊUDIáå1_Èı¦OE¿7_ÁVC-{=¢n?JW–½u±v­x9²—z¹…ß`wü\N^4İò"[1x™}ì\Î_Á]3flÛQm¼Ì¥2³ë}8ğÉó£“8m7PgÄ!·TÆ±Åè¬[¯ß½|iŞ\ıíİÕÍÛ›™Ô­”:jÄä Ø!˜ZVÜJ­X~™M*ËqÔti#•–tè•eh7Q¼Æ¿HvAıVbÌ˜ëvšÆÅ2ç*×÷
+[º;W…†µSc³÷ë¥PÉBÊg‚Q·0ÛİèÔÑàâîıâï8—õÉ1Ÿ„Ò2ÙÔ¿„p2Ÿ-şğÉLÄ>U§Y{\b²¥¯joBãj±Ü@bµc!Mİ’9ªº­œm»ÈğuîWöÚ˜‚ ™ş*)Íøgc§Ş½5»†`³Í²’»GÉIúí)EÙ	6ÉléÓ¬íéà1IÇw¬Óú„%í áéÈH³S´m©µkÃ:“j¸ŒJ*.&ï;xSÙÂmBUBùÜ!çÚ#²]É÷LºM1¬Å÷y>1åst›n™Ø|ë¶ÚÏ†JšWxtÎ¾¤RÀl;KD9PJµŞ¡3X¡-©É6èuûyã‹[¦Vi~š%,cWŒ0-ƒhk£Jù"c|ÚºC	IêÓnã¤åˆ\ëÀçĞfâ­¸Ğ¤°uÚfcKŒ`Ñ›¼½°Ê1°E£\¬5›HpÈÆU*ØEé8ö.ø2gcÅl›9âeUù¢%Ö‘¶	b¿t0…H0CSƒ™Y‹{ü´az¥ÊG §NúÊ™ZÈ6Mµ§:‡~:43øaçÁ.·{ÒÌ¨ÎÀ!æ¾İÁ	MÁk„Fš`À©%qäÈ:¢‰.İÆâËÈ`¤¼¶‚l×«>wTôQD‘ Ğ‘cIUOÁİ#n‘:;òÕP+¥Eõ„Ğµ\IÃ{´«œez¸ç‚5ŞŞ"Ğîz`n( üb d@×/]åS&
+ñR
+¶8Ş_XÁ°7ÎõUhÏX;Z‰2â“nY®9Ùò5-øğFKÑ¥ùÇëgoŸcŞ¼xşà¬ÊŠÊ€€™Ï™xian‡òİ£óÆ©ZâìD²éµ¤Cœg •÷šJ`Šl ¨d’”Û ké4æ­%¥r8‡ª1-JèN¨‹æÓbë¤0±2UÆıQõòÿÈsƒv…eÓc¯á
+²[­`ªèÁ²ˆ£8#T‘ÇçÄ(Ú‘{O<4ıİgjù# Éãóynsrÿ§iaŠ#B*„€Ò•Àú¹È29:¢ö<"  ƒ%÷ü`í$æ–®ü
+bÚä]Æ†ÿeşQÍØmÆÄÔÙÿÙÊL§è´Ê@×O}ÂşÍERoÌgAi4±A)ÏÂC{¤NÙ78†)İ»ÿD!Ó5}{	tŠè›Œy¸E¤¨šÅÀ1HK±7Œ%%¢Ö.V‡|˜iN{BÚCŒj´ûœe+©í„y®‚Ëwù1©ô2
+”3¯C‹–¢eUç:$•‚\ºƒW«b”%»§h¢nEI/Ğä.Í·aS›¯ƒ3_üŒ2ÿ4¢H˜B¨õ¥úSîŞø5ÆyX­æË½PzdÍêÍ;	”Á5^’©ÿbúª¶Ï²·İØœÔÏ†j÷uØÃé…Cê®ü¸lªÅØW£vº‡8¨â®§ız#Cuƒ®—;°nˆĞæ	©&ZJ»ê0·­Lñ*ûS:Œ\™,*Ì^ûY¨ª°C®©m¿Ú3•4õˆ	û‰D1
+cV'µ™¹‘±­Ş†sÏE£«;È\H5*4¦ [ÒëµT4¿ K3#¯…?½6²Ãtu™!Œ Õlà Wk‹§ê¢çÙwî§à›%]>"©?Zô[áµœõPm‰:2pBl÷æ¶»Ê•k7#™‚»Yasà‰šèÛ#±"Y|5ÃCõ{9ı¹ƒEøx s@^ÛP\js™¨iûmGDÄ!³‘eØyÄØæ¬«¥~]»®7.²wd4­Bf;È®†©EÎgéÁY#÷=æ´â7Â«ŸµA]([!5a•ÒüHı‡¼d]‚(Œ
+vğ9‚ˆLÍ9°]d¡PÄ®UÁÄu¤Ü´h¿®Ç~‡´Vc’’¸İ–ÉçˆFvÄ¡Ø©~¦û¤ë»˜èäákm¬<{İ»B¢C‘_¾Œğî÷…ïüÁŞB¯QÂ	^ İÖîY×YÖóâbdH™ğ˜~vG6¿™¼ Ö£ ¸Õbt©É:güÜM>ÖäsTî/ÍHŠ‰è[óµĞˆÁ/¢<ûKÙ?Yä·
+_
+¥wˆlıÈ•ÊÔş³0fÍ
+¦I®+C½ß&iş5e•{&-Î¥½â2ê°¤ÀK·öuİ£MX‚²Ù7PpÙ˜„66ÚBıÙ|>?×‘Eö©2Ÿ±ßj~!ÅŞYj1Gó”Xf–å¾€sÜ•_>2ºyÙ3‹K˜¨wÆøèh/³Íf¼i-ôëÄ¯U4ŒºaÓÕM>9—“Ò‰Ÿ«0vpº²_•¡HG‹*K/HÈnP£3Ó×ï¿»ºœf¤ƒ4”ct4ë»àÎÖ­îÓ™ yĞÔé9Ç’¡¦ÎãfÊ6×bİöõoWÓŠyêÈí;·¬ †U‘bišI U¿ÔÒû_ôè4ˆ' Õ¶“ıñ°€N²|&é~ÿ,‘
+uÎ˜[ˆ‘	<qvõşúí?_<»~93§’s+×•§çOåjÅşøÈAè|8((6Ôºe;€¸]¤õÿÅû¿1ıè°KWúÕ”œc;—Ÿ­9ı¤:6÷»hÆ²èØvUë{°«]sË#ÉĞp·
+áVÃ„X¸Ök²ÎÏwjĞÊœRÛs±à©I{TÅ{¸±-Eé{ü¥…ºÛ.ê¤#c¤h¸Kh,;€™èËR
+a›'¶32óŒ1zMµ¼ñÙE	ÛÅ Á çÎÓÃøC€RÏÆ¥–²rÕUª­¥H6ô¯‘èëÉx~>çRFŠ,*>ï9Zô/8xîë·Ã¹şÁpRföeo<MbîÆa¶õö`4i¤qİÉl+—ƒ†.^d]©®uf~ÉP‚©Šf°,ëi#½˜U¿¨«õµzŠÏ™öL#EË$Ü™SN–´“ç‡ê¬†bD™é|*hG/è2I~<e)˜nCt|é2™¼ËÃm0!,J\™¡ß}ùğêË0ò­V+á™+^î4'Â´	Y·zy:ÿótX11ŒÙ»ÄõSuïT­çE ®–ÉÜp#j%;È„ûİzÜO˜ÎsŒ”àSÔ_×â²¤9’"¿¾•²}x3$%ƒ!·‹³ÄU"#± Ñ™—îV@·¬Bq›Œ¾©“¼zë_F§[¼áåH¿¹ÎÆë_Ö@¡—Ò|ß†xg«2Mµ°9÷gsşÉãï'ÓPË¡}¢2ÒWIŠ.¿'úk]s2áŠö(àBVÛã¤à‹ÂIøÓ7EÜêßxrëù2y¢El‚É}M+M¶.­ùWàŠi‚€_G0›4kq*&n
+Ä¡É”*.ÂeYÿxõÕBÇEYÆL2°á+WY¦l­£¨³¼yğ–X§’ÔÌÊ+têÃşğ¶o¯˜™	Í>ğ‚BÀc¡ì
+úŸ»õjœ:ÃÛzBI–ÏMŸw¯®ßŸ½ıîÜÜä½UôğCÿ>…u 4{ÎÎŸ›OŸ<ù\
+ğÈ›8ÔC ú´ à]óA3Aşs ¿¸øüÉ'üüÉ“‹û¢óùmçÉ¿{2¨<;!                                                                                                                                                                                                                                                                                                                                                                                                                                     Debugging util-linux programs
+=============================
+
+How to deal libtool
+-------------------
+
+There are considerations to be made when profiling or debugging some programs
+found in the util-linux package. Because wrapper scripts are used for the
+binaries to make sure all library dependencies are met, you cannot use tools
+such as gdb or valgrind directly with them.
+
+Let's take for example the mount command:
+
+	$> cd /path/to/util-linux
+	$> file mount/mount
+	mount/mount: Bourne-Again shell script text executable
+
+The binary itself is located in the mount/.libs/ directory:
+
+	$> file mount/.libs/mount
+	mount/.libs/mount: ELF 64-bit LSB executable, x86-64, version 1 \
+	(SYSV), dynamically linked (uses shared libs) [...]
+
+When this command is run, there's a library dependency error:
+
+	$> mount/.libs/mount
+	mount/.libs/mount: /lib/libblkid.so.1: version `BLKID_2.20' not found \
+	(required by mount/.libs/mount)
+
+To overcome this we need set the LD_LIBRARY_PATH variable to read the path of
+the shared lib found in the sources, and not system-wide:
+
+	$> export LD_LIBRARY_PATH=$PWD/libblkid/src/.libs/:$LD_LIBRARY_PATH
+
+Now external debugging tools can be run on the binary.
+
+Happy hacking!
+Davidlohr Bueso, August 2011
+
+
+The libmount & libblkid
+-----------------------
+
+Both of the libraries can be debugged by setting an environment variable
+consisting of a number. The number will be used as a bit mask, so the more 1 the
+higher the debugging level. Search for `DEBUG' from files
+
+	libblkid/src/blkidP.h
+	libmount/src/mountP.h
+
+to see what the different bits mean. At the time of writing this the following
+enabled full debug.
+
+	export LIBBLKID_DEBUG=all
+	export LIBMOUNT_DEBUG=all
+	export LIBFDISK_DEBUG=all
+	export LIBSMARTCOLS_DEBUG=all
+
+The libblkid reads by default /etc/blkid.conf which can be overridden by the
+environment variable BLKID_CONF. See manual libblkid/libblkid.3 for details
+about the configuration file.
+
+Block device information is normally kept in a cache file (see blkid man page
+for more information about the cache file location) that can be overridden by
+the environment variable BLKID_FILE.
+
+To libmount uses three paths, which can be overridden by using environment
+variables. Notice that these environment variables are ignored for non-root
+users.
+
+	env variable		if not set defaults to
+	LIBMOUNT_FSTAB		/etc/fstab
+	LIBMOUNT_MTAB		/etc/mtab
+	LIBMOUNT_UTAB		/run/mount/utab or /dev/.mount/utab
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           Since v2.37 util-linux project uses asciidoc format to maintain man pages.
+See man-common/manpage-stub.adoc for more details.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  ‹     ¥ZısÛF’ıÅ\²J9’EQ_[¹;9ql×m>Jò–kkk+5 ä„ †‹Ds¯îşö{¯g ‚²²ç½uÙ²`zzúãõëßUMíò6k¬«’ÉàO’¼_o”­|S‡û^éÚ¨]í£§2‡µ6mW{µ[9Õ˜*çÏÿK×xåŠ$[éjiüT)ÈS©ö6óª¨İF­Ü®q“^Š™6UØÒÈ6ÚûvcD^j’Úè\iˆm«ÜÔ¾q.Wé^5ÙØ~¬¬kS“¹ñªõ¦hËi’$¦i·I<Ôlª¾·£ÕÒ6Ğ´~25VëFeºÂb…²öuµß­LM+àocêÊ4‰®\µß¸Ö—{œêmVmª¸½«•ù¨7[@mİ¶-u­²•³™Sõ-„Ãv{×ÖÊí*Õ6¶œ”¶j?	¶Î[ü¶Ë™·­_áÕná
+£7IVºJ\ĞP9ÈOÕ»ŠŸ;Œê–Aî†®;ˆ§Ö™.K“'#WÛ¥­F²!W¨%l4âC¼ğ\Cl›åêÎ¶µûÕdOhĞ ~»;;ÃÏéš&+§®^mÛôÌg›3ÚŸ>øuŠ%z¸"B£Ş:ÏUTŠ;üÇR,?…»ïx¹tĞÿ¹0>+æ‹¯j]ÁÃ>9D:‚‚ÁYiD’+‚Ry‡¯F8ju9V8¾²ò„ÄCˆ÷C#N—ôz	ÏÁtU™Âr-4¾ÑiiéMnf«%×>™ŠÎ
+Q¸sõÙdÊ’ñ”`#,,N¯B!3æ
+o‘j[CôG
+*,‡ØÁ4â4ß¦~ï³ù„wÆ¸‚‡44+×6«Ò¦åª+Ód!JïŸœ…<%K$l4$Ô£nÆ¹ìØŸ›¡LøìÙÄ¯\[æ!¯$ÙrY³ì)ŞïñPí*û7Üè•l©!Æ‚¸õè‰áÈDkLˆ	±ÛøàêNW]>ÆzÓç<J¼®L¶vpjĞ[®uKÍÇ¦Õeò¥ò[xH	lœo"TÓ8Ê§!Ö-¼ë$‹©úÎ©Ê‰w™u!€€P9,Ñnm>AÖM ¬0ÉÀŒ¡–àidij°¥xuc½‡Ùã1â¢Éæ%y¶,­®^P´¿u×ÿ¦î €Â[p
+™¿ÊD—?¯+ßÖâµÒOFTâa˜+ )ú9şX”‰¸L½¸ıyÀÁ^•1y(âÎÒ¶úçBp<sˆ†˜]}„Fi²çåTıLK®…EÙ=æE³È	Xuåå3 Ÿ–µŞòjJSÏ'¤bÓì¿özxA§imPÜ6¬ï‚ë(
+‡¯A¤ÁŠeŒOíqië÷!5¨\WNaD9-aÃm»ˆö(C… r—$WñÀ8[·Ûç07ŠÁ::2Ã˜R«ßÎ”ø-T³ÁõşÙ.Š‹Æñ±–ˆW5ÈœU”•„ÁŞ•œpuõ-ãÓ¼&İmV¨ÜÀÙ¶lx ®Âé
+Hç#K’·e,Œ•±Ì	‰ÏÁ™eYU;½õ•k=8‘Ã¢ìcá„¦ôŠ¬¤ƒ­è<Õ |®£d0ŒÂ¨Ê(R0>¶]ìÅy!ô5Øìn`á£Û“	\púxŞ?+Û=²U¹Ä;³ª_m`‹="s×Q X)w¬~à_º¨u_,x#ÊÔ5$‹‚~ôÓÃ}&s'PÂÅ¤ m”G“"Cö(OPl·ÁáŞD¼nÅƒ )
+hà};ë…éúºêäëÓÂAsBï™|ôt@"Şæ®}òé¥¶6”êrTH(,î!Ï%^ÔÑ’*¸l2ÙX±HO8^I2ª÷?¾ş.Òàş©pWUíÚ@vI	.
+€B®†<5Ó(c3{¦ÿè¢¿¨XÁ‹$¿¶ˆµşVn‘ ÂI±k·†OšI¿u ÎUNKÈ¼ÿÚ"VŸƒÿ¡| S	[dï+½İ`«Y_ğ¡3*»\5b˜Yu‚Zs³¸›Æ†T¥#…40¡šè•Î­;~Ò8)BvÙ'®@”#"×¸É2cDƒ}‡’À#äDvb7ˆ-°“®M‘¬„b	Q@%¤H¶z¾ï‰¸'Ğ%8&‰rY?ÑğH»£å<+ŸÆ"fJByÔN×ŒT/&HdğK)/t:"qÚJ0[ñ°pµA||õUø4ùuŞÿ. œ$?†Òó²´p„ £Ä$ÂÛú1¡Š—œ*íÚ F`à6Â3«4ÆÃúĞãÅš¹Í¡TÕ2écûcÕai‡;P·]ùò“'©Xü6%øSOUvN‰ã$0bû*Q;ü;.šuíŞğ:a%Ùl°Ìä§DİĞƒ«RL¼¹k‰ï!¤?µHŞÒ!êÊO¢ü/XÏø±ı[ô<Ô‘õØk*õ(4„0-£h4 [(xº„b}A†3)”F97nm(ˆBD2âOt ×
+ÕØü‹R/ÁCHùeß3–l ?6‹Épv0î
+Îşâ˜èZIİ'kvÇÖ;à“«bIjò<5Ó±HcK¯¶dnÜm"Ö‘¤õ.I53©ÑÕ#éş÷Æ<·™öA] ]P>å#‰æ)…~t†”‚s@Á(ÒÖ¶!H!X×ĞËQŒ<š4ã-ûdX–Ò'+Ã†O(µ¤"w&˜ziš›ô
+U4íVûXC)ŞtüÖÕİLÄ2¨I’ô4U¬â!Á¦Óc
+'ûND‰®JFâ§VM³õ¡ímùÙoµå]>ªÃo›-ç6H‚”LšÎîÆH>’i%/–Ÿäp¢Â•¥ÛIƒĞÕ%Ëâéúì:-n³Y6¿M/‹ùbv57Ù"»¼œ§7iš/n×ó›«<Ï¡Rv›Õ›;¡œ­××“‹óÙbr>›œ_©Ùìn±¸»˜©=ŸŸ#e²õ/K¬X™Ù¨`Ú~(#„]ıìùÏ['aĞdµ{K¯2fĞçøsÓ22p#ò†!Y…€V£WøãÃ«äíë‡×#Dïƒ94Ì£aüŒŠİõî0"°Ë
+-Kà÷óœc,]ß<¶)‘ãNI‡¥"cæÆgµô³“8‹NtKÿüóıûoßâ8g³Å_$•îÔ“¤¾ÉÈ€ÛúĞÌ–I²	ØÜwŞ>ù{fz´qZA`bĞ1ñR:À[?Ü]!úĞòIœl‹È³&¨è4Ğ¤jh~Qƒ~–]ÉAã@»C	«­©™şC\NÉu»v;	L~ùRÔíixtëşèÙ`t<‡D[ñ™!Š;¶19'5G5œ}gÍ
+‹÷¸=z:aòIº¿_½G´>="ÀğÉEwåÁ\ø‰Ÿ´ÈqÒü1È|hÏ°ßÑzaOÜ7q°KC¨P¦–Ê¯!çÉÖM;7`çNÚ¦!‰‘Ñ7RØ|eéê½–.I‡Âxˆ#Aú8òƒe8‹õs0\0ÉÀGw
+I-ÁÑÍ™\[…áw’|&_œÏ.æ—‹«ë›[f¹)~ë³ğ½÷]g]¹Ü2r^*s$£yAïxÎ_5øÇúƒcæ¤ú¦rír@‡­»4S¿fo»“³Óìp¨+’LÅkòw²ºërú‘b?'Ó\FÌf0˜€æ9¨ë8`¾¯HHq…©ãºİä…Á£šäŸ¶úGá9³ aÛß"Xz»¾ˆÃîñÙqæ×+Ãô]™~P&Dpxó#Ö%›¾$sï7¿;9ŒèOgPºL¶rà°èMwêwï¾ÀÅÁ$Ÿw.'”(á f¶ÀG³eÙ.ÏÂx@05@Ocó}T›Æ8ÛÆ÷İBÁ‰ù¸E«;ã-3~X†Şç)Ìï Ğ7©äChº$Î*Ø rB!X$…67z0¦“šœ{b/'I?ÌL…”ô-]0Æ–¹Ë€8’ Ÿ¢pé½ÖìŸ%±°‰hú	PI,€>–ÊGğBÜÿÀÑ`çæñ`ŠøÒµétšüãDâmÌo-í7ûˆ*ÃØ_Æˆ(W–¯ÊcÙ~ÆúµšÍÓ¢(æêäíëûï8ÁÊü$ Ë©|¸S~Ã@Öy¡/¼„¸Åå|‘_Ü¨ğ{¶qdüüy*?ïˆëÒ/S$«SåNNã+ü¿l5ÆQÇèèÿ[²ì!rnf:;¿Œâ°¦­*ÃğÖ€"X¿âÉlv[ÌgY|Rj'Ünª“ù)Ö¡³®@_J¯ÕÕbf²Y‘~m·[š›ƒà®ÃÌO«¢­¤*ÇqXhÖON!$-Î³}ı¢RÏ²˜ëËùM>Âj./GMFñÿ—³ÙÕÅÍÑajF7aàØ‘:ji«Ÿ¯¾Êtz~iâê0¸)ù*Ä”‰¸¤Ï	]Û:mY¢/òÛ"M]ºº´a|¹6{$v.>¹J/ò‹ÛãG·Å£dçŞŠ¦—³ÂÌŸ9º?5‡'l÷#®Á>¨‘¤b­õ,ë@~æ¸òÓUß^¦ Id_ñM!iÛ“fÆòóÙ•>Ÿt”H‘Rˆ4àéC[|pÖÅ5–èces¸3—›ğîİ9ck4¢èõù"»¾êlsäJÒ'~‘lreäÎ"qY‚;–Âº	Z’:¿¼¹ºéw†¡_xfe›‰€¥Ğª¢¾ äúââÜÜæ¿aë¡5Q¯îDğøşşıïÔ‡ŸşS½ûQıüğÓ›‡×´àez»¸¼Œi‹Sşçd«"ví7Ñ‘Š>æ:½Éçıúİ9cø—ƒõ]e3@ü‰Ë$’©¬)|ÚlÅÀ³‹›ÛüâH ‘£[˜ˆIĞì·‚Iáhğ®Ì¾Ç...ÍÜ\÷q%ğ…*¸”`ÑÒµ0?©[ß~ÿ‡û7ê5ùP¹Iœì/Öb˜«…¹.zi!LÜ/–¸×Í#8DfÃ5*Ïô‘Gò!ÌéM>
+Í]œ£’–è-ç‡bÆèÍ|vµE¶·N=yáé$[8ío
+ÀááÑğª*wb3¨J!^wjf(‡Œ[õsÁĞö[W–XXZ…/°s+á€#W§8Zô*òàìL:ÀpV¹Ô7Wùmvd•˜BáÒg&Q>ËŠÙ@Îó Ê4¡Â‡¯ôu™ÛİœWìÖçç°ƒÏÖS¢ı+u@iŠÍx2ó4+®UéK—­}x’’»y5Súv»˜Re­tV2ÌDÁµ¨“gÓ¤±
+õ6~Xÿm¹ê?„ÿO?™¼$SùKxë¥S±8˜T»¥®[ØÅÁ˜45Û@rãî…fÎ/¼RáQg¥ğ™Q°óHÈ¿œŞ¢˜¾	èFš‰¼Äõ¦W ´kÓ æˆpÕ¿çŞé@2\ìÓ¤ò>íjNÓä]¯'G¼½£ªA+y…eøl^¯9g®ú!½•½¤9	Ma˜¿’ŒÆ—-ìTeG§^úîÁy¥*xg<½Á¬ÿ}ü¶UíÃ)X(r_Á³…9Lq/¤¬"]¥Ê|{êŒ©é­ĞÁMÙ&|/ƒ;#ßı"hMl^è„ÉOåcè¼Ä»*˜	°ÖÄ×é<ÁV¾xÁñÈ^˜ß¡qFuôŠaË†Şµ~ßf¾Ô¢‡[wİûÎû’_Ó±ˆrdìs ÔG¯ÌÇqîü–üµå€8 Ñ3¼eÖÈ m÷%‹ğı±~Íá›ÓŸøN<4 ²»tpÿ®Ô}É¾í–¬€2Çá/ü<$Àÿš]ıg(                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        
+ util-linux regression tests
+ ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+ It's expected that for each invasive change or important bugfix you will
+ include a test to your patch.
+
+ Compile binaries, libs, extra test programs and run the basic tests:
+
+	$ make check
+
+ Compile extra test programs only:
+
+	$ make check-programs
+
+ Note that the configure option --disable-static disables many of libmount and
+ libblkid unit tests.
+
+ Run all tests including tests that require root permissions:
+
+	# cd tests
+	# ./run.sh [options, see --help]
+
+	Alternatively using sudo and make:
+
+	$ make check-programs
+	$ sudo -E make check TS_OPTS="--parallel=1"
+
+ note that as root you have to manually remove output and diff directories
+
+	# rm -rf output diff
+
+ or run 'make clean' as root.
+
+
+ Run subset of tests:
+
+	$ cd tests
+	$ ./run.sh <test_directory-name>
+
+        for example:
+
+              $ ./run.sh blkid
+              $ ./run.sh libmount
+
+        or individual test script, for example:
+
+	      $ ./ts/cal/year
+
+ The tests is possible to exclude by ./run.sh --exclude=<list>  where the
+ <list> is blank separated test names in format "testdir/testname", for example:
+
+	$ ./run.sh --exclude="mount/move"
+
+ The --exclude is evaluated by the ./run.sh script only. See below
+
+	TS_OPT_testdir_[testscript_]fake=
+
+ environment variable which provides more powerful functionality to skip tests.
+
+
+ *** WARNING for root users ***
+
+ The tests touch your /etc/fstab, initialize loop devices or scsi_debug devices
+ if executed with root permissions.
+
+ Please, be careful and use these tests only for development and never on
+ production system.
+
+fuzz targets
+------------
+
+The fuzz targets can be built and run along with the other tests (after installing
+clang):
+
+	$ ./tools/config-gen fuzz
+	$ make check
+
+environment variables
+---------------------
+
+TS_COMMAND
+
+    Evaluated by "make check" to override the default command (run.sh).
+    Example:
+      - build all test dependencies, but skip the actual test
+        $ make check TS_COMMAND="true"
+
+TS_OPTS
+
+    Evaluated by "make check" to pass options.to run.sh (see ./run.sh --help).
+    Examples:
+      - run utmp tests only
+        $ make check TS_OPTS="--parallel=1 utmp"
+
+TS_OPT_testdir_[testscript_]fake="<yes|no>"
+
+    Evaluated by any test script to skip certain tests.
+    Examples:
+      - skip all the tests within "fdisk" test-directory:
+        $ make check TS_OPT_fdisk_fake="yes"
+
+      - skip only "fdisk/bsd" test:
+        $ make check TS_OPT_fdisk_bsd_fake="yes"
+
+      - skip all "fdisk" tests except fdisk/bsd:
+        $ make check TS_OPT_fdisk_fake="yes" TS_OPT_fdisk_bsd_fake="no"
+
+TS_OPT_testdir_[testscript_]known_fail="<yes|no>"
+
+    Similar usage like TS_OPT_*_fake above. "known_fail" means that the given
+    test will run but (negative) results will be ignored. The build log and test
+    diffs will still remind you about the issue.
+
+TS_OPT_testdir_[testscript_]verbose="<yes|no>"
+
+    Set verbosity for certain tests. Similar usage like TS_OPT_*_fake above.
+
+TS_OPT_testdir_[testscript_]memcheck="<yes|no>"
+
+    Run certain tests with valgrind. Similar usage like TS_OPT_*_fake above.
+
+
+External services
+-----------------
+
+Coveralls coverage reports
+
+    URL: https://coveralls.io/github/util-linux/util-linux
+
+lgtm CI - automatically executed security code analysis
+
+    URL: https://lgtm.com/projects/g/util-linux/util-linux/
+
+Coverity Scan
+
+    URL: https://scan.coverity.com/projects/karelzak-util-linux
+
+Fossies codespell report
+
+    URL: https://fossies.org/linux/test/util-linux-master.tar.gz/codespell.html
+
+OSS-Fuzz
+
+    URL: https://google.github.io/oss-fuzz/
+    URL: https://oss-fuzz-build-logs.storage.googleapis.com/index.html#util-linux
+    URL: https://oss-fuzz.com/coverage-report/job/libfuzzer_asan_util-linux/latest
+
+CIFuzz
+
+    URL: https://google.github.io/oss-fuzz/getting-started/continuous-integration/
+    URL: https://github.com/util-linux/util-linux/actions?query=workflow%3ACIFuzz
+                                                                                                                                    ‹     …XkoÜ¸ış
+"@1 MÒ¢ŠÄ›Â¼]A¼X'} DYìH¤–¤2üú{IÎH†“K|ÜÇ¹ç+qı ÆiĞ²3ƒõâGˆßt§½ŒNÆ^ËíËÃ?*êm#õbŸ<ôôÛkÕ{å&ÈŞ¢Û
+!~q©äÔ½–Q?D‰—a&tK‡ÎíWïGˆ°ƒºx!İ§9ÊÎùQÑ™¯åG¾"è&g+Ù¸qT¶•­7=”Îêz0VûJÜò“PÖË‹ µÜéÁ^T2Lº1j(/ƒÌ^ËÍÕWeµƒ«æÑ†M%q… ø*DIg“Úà‘ç¸Á9‘a¢©m£¥óØ%õ8Å#ïØJr,9$vúŞàÂNàÃ¥VM/]Ç‡©ûŠßÜœ”G&Z¹;Vä×ò¼©U<`±ŠN¦sÂÑº)˜="˜Â´Óœ9ÊâG9bçr,·òÎ:š«n†oGi5lç!BÃêà°*ŒºµÃq}=ùçRjÒrÍØV[x¶•7ü?
+(9&…à]¼zøó+œv»ÜÖ:i]64?¨µe N³mâ¬háVŞrJ$Ğ˜ôŞE~ø´Föì¼jö:&[æÒQù=%Mùûy$›ğlÇà°ÀØ7"ü>Ó†í>¢0¸<Tò‰=Pà6#ÅêüDì–ëBE )¯KÈNo)R20ÂÇFÍn~Úˆ¦NzŒ+½ş}6-†ùñ uÚW\\ÉDT©¶£æØ¿¼&4X jXl|µÊÀší`FC°ôzRRÕ%ğN^7šò’ñzçc¹šÀ0ÔÈ÷&"Eˆ­±B€ã<¹èÂ´i+©pb]l·JM +ØÁúwø ÌWûåi„A(R]‡š¡Ë
+u0÷–âAEÊy«èÍG½ï­y¥×Ä”Äpóoıêq´ƒ5aüŸxA:Ğ±p\a8Ø:­ šdÂ±uÍgÁ%şZ ´îŞ«Q~Ê®|–—ÄËoå§ívûYˆ;ö·¬Z0"¬hµŠ³C•R±¦“pxUum]}‚FúÉ™kŠ©T_Y"xE]È~úé¯Ş~–±»,\åéªJyÏâªü",+›¾É'¬[¦·Xôpüöí¸Z§–ËØ}œ©Ét+¯G ¦¦é×ò´§~(
+–ÚíiÕ€=0@”©[\2Ğ%|ª~@_µLEò*¾j¤_;qê(éªÿ–ÈG­OÆƒc9±5“gEFy&ŒEıÃØD¦O5—çÁ¥Bğ­#ß:çvÊ¯’B¡)ÈY˜‡¬k¦ãö÷´¿×Ã”<1:fiAO¹5>Êÿ?h)"8z¹lÊßÆ&‰Pø÷ˆŸ)ö·]q  K}\üíåTb¥Ñ,Œâ;êÄ„õuCpRMÓ`,´Ç(9_³¢X0xaqz&CT>RÇ`JÛÔôßÔ)^ËZÙr:!WÂ‚Ø£„¯ìS‘N|Â«êŞD9ÓF–y%O-fÉ›NP«ç6Ÿ*Eû5ƒâ×bCR*SóM„¿´‚•`Ö:wcêÎ€r»à«Â	,Ó0B˜HCËë¤j¹Í+Xw(ëÉ;´š®G®zaM¾@,3
+ŒEµõ*äöŞ‚¹bÈÅ9„l>6ñ¸Ğú †ÃÌ{nÑ@
+:ş—Ò´dÃ‰…"Tæ¾ø–Â>™“7Ø	j–’À›	vwÄ™@#hA"2;Ü£ÂéìJn.ñôí†4¢CRö|7DS£¢ó9]t¹/Ù(=’‚cİI SçG
+ªQZH˜ÊèD®`‚Ã¹B!(ÄÖ’¹I#í²„v„“åŒ	‘Fˆ¤däÅÆ‚²’€K‘ş8{¨…›˜º6Q<İ×(Vo`®º™LİŠ+lK…J2*0ºµ÷ÑéıÅõ¿n>|ùùêæİÇß®IÓŞeyİcöÕIïW…*æ«Tœù`RÖ–KÑÍ–‹^A9„è	Ñ¤°¢¢­î€!lc›anõËfÛor‹
+!¥	vĞ‰ÆW³‘@”¤EtSJ©!½ÓÌEÚè3«–<å”³¼‚É»lrôÀÊ†›Æ»lJTûugææ—¦’C¬{EÒJËÒK™Jµä,Æ¸»«¿_ùåúİ¯_nıpsûşî‚qû‚åëDˆª@'VhÄİ“öT3ˆK¶ÈT–Èk©'BR(™rK¬‚‰“‚IFÑåN™ušÉÂ÷µÏP6vè=•ürñ\ÖP<è~¤xBzD8•ŞÂsL˜/Ş`×ÃEnŒ¼k!L&-fIZs±rRZÓhÉ=n¨Z‰¤o!5î‰OÀ9ˆ¼?)Š…ËTÊ¥®W	ÒF È5™°#dÛRƒöëÈÓ1tñìÙ˜ÅÊ?ÉËCïFVj»¾³:¦ÆÎ®´Z—8ü¿n—F£wâ3`£,Uõ\<{öü±"á4ªE½ÜƒlïıëòZñOÒ[hùûèJWczL›j Ój[ØŸ·3÷œ„
+mgÀ
+úGĞô³İçYÚ|cvsª'Š(|Ÿ°Â0§dÁ•qTz7Aß¸®KâÍ¹‰N`c3¯9®.@A‰ •?!`)ÛÍ¤qtãõ ş²â«(|ÉwüM™&­ãò!’Lˆ‚ïòÈ.Î´ûïå Äd¥}ÀëÀßÈuş6ƒÙA€²[E„Á=²5'á
+£ºl1H¦qŞÙU+Â/éSÊIC‰uct\+¹©'OBDÃIÑ&q0[›8—m¢~¥ù–èì44å±²ğq9#Í hÙ$&MLC¶
+gĞ[ÜfZge¼Šj­XxÚêI^N¦}+1µ=ñú2›ˆ±.MFi¸{ïbş†³ú¶bÒTFU>W¨'¦òÂòù;QÂî"%§„4<ë¦È”‰õyiˆá¢)>é”ÓWŒ9bş¬ ğfO8*Ãß¢ˆ=FÀ7Ì»‘æ~Ï sVL{ĞğĞdâ‚ÓH˜e²P4¬Šÿò¶ÄÇ                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          Hwclock is a program that runs under Linux and sets and queries the
+Hardware Clock, which is often called the Real Time Clock, RTC, or
+CMOS clock.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             25/10/95 Peter Orbaek <poe@daimi.aau.dk>
+
+Some notes for using agetty with modems
+
+Using a comms program to initialize the modem
+---------------------------------------------
+
+* Use kermit or minicom to initialize the modem to
+
+	- be entirely quiet.
+	- don't do local echo in command mode.
+	- turn on DCD (carrier detect) only when there is a connection going.
+	- enable auto-answer.
+	- keep a constant computer/modem bitrate at all times.
+	- optionally save this setup as the modem startup configuration.
+
+* Run agetty on the appropriate ttySn port with the arguments:
+	* -w to wait for a CR or LF before writing the /etc/issue message
+	* computer/modem bitrate
+	* the tty name.
+
+Example from my modem setup, an old 2400 bps SupraModem using Hayes standard
+AT commands.
+
+Initialize modem using kermit with the commands
+
+	AT E0 Q1 &D2 &C1 S0=1 &W0
+
+to
+	- turn off local echo from modem when in command mode (E0).
+	- disable all result codes from modem (Q1).
+	- make an on/off transition on the DTR line make the modem
+	  disconnect and go into command mode (&D2).
+	- make the computer/modem DCD line track the modem/modem
+	  carrier detect signal, i.e. no connection means no
+	  carrier detect signal to the computer (&C1).
+	- enable auto-answer after the first ring (S0=1).
+	- store the configuration as the start configuration (&W0).
+
+The commands on your modem to achieve the same setup may vary, especially
+the &D2 and &C1 commands may not be entirely standard.
+
+Exit kermit/minicom.
+
+Put the command
+
+	/sbin/agetty -w 2400 ttyS1
+
+in the command field of the appropriate line in /etc/inittab to start
+agetty on /dev/ttyS1 with a 2400 bps speed between modem and computer.
+
+Initializing the modem with agetty
+----------------------------------
+
+Use the agetty -I command line option to specify a modem init string, like
+for the same setup as above, use the following agetty command in your
+/etc/inittab.
+
+	/sbin/agetty -w -I 'ATE0Q1&D2&C1S0=1\015' 2400 ttyS1
+
+The final \015 is an octal coding of the carriage return character
+ending the command string.
+
+If you're using simpleinit (part of this package) instead of the SYSV
+compatible init (you're most likely using the SYSV one!) then you must
+remove the single quotes from the command line above.
+
+Note that the &W0 command was not used here since the modem will be
+initialized each time agetty starts.
+
+With a V.34 (28.8 kbps) modem try starting with a command like:
+
+	/sbin/agetty -w -I 'ATE0Q1&D2&C1S0=1\015' 115200 ttyS1
+
+Note that agetty supports the higher (>9600 bps) serial speeds
+directly, there's no need to use setserial to use the higher speeds.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          mount/umount for Linux 0.97.3 and later.
+Authors:
+Doug Quale <quale@saavik.cs.wisc.edu>,
+H.J. Lu <hlu@eecs.wsu.edu>,
+Rick Sladkey <jrs@world.std.com>,
+Stephen Tweedie <sct@dcs.ed.ac.uk>.
+Andries Brouwer <aeb@cwi.nl>
+Adrian Bunk <bunk@stusta.de>
+
+Presently in util-linux maintained by Karel Zak <kzak@redhat.com>.
+
+== Notes to developers ==
+
+	The final solution will be libmount/mount.c as the
+	mount(8) command implementation. So, let's keep the
+	current mount/* code in maintenance mode and don't try to
+	rewrite it :-)
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       ‹     ”[msÓHşÌüŠ¹p)'¬ml‡·„ÚºËva‹À	u_.²5µÈ’O/IÌ¯¿çé‘dÇ°w)ª°ä™î~ï¶yzşÚ<XEEéşG•³+¥¬<—U‘d×6Éª¯ªdéÊ•›ñu=«†Æ\|~ÿá‹·æÁÃ$›¥uììWÕU’–ÃÅ1°×¶'èÖÔ£Â•uZõílv–gee­úæÁƒÛKı—Y~{¸ïÎNÏÎlšLgùr™gÃ42æìõÅ«oÿ¸|ûá½yğõ„<&OMÿçBVµpV—'.¹‰ÒÚ)½³¡yp¹h9Q•.Û¤´««\l±rºÊCk?ºª.2;¶ÉÜ–õlæÊr^§ ğhegQf§@'p`¼JØ›8?ªäÆéñ¤3™'3¼Ê³—'ïÛºt€ºmT
+ÒÓ¨slWx,Q\Š¹\ğÛ:›
+qÅz|]¯ğtÕàY¯Ô;9²m=ˆãçÑ‹çc øÅ¥8+¡¬Ò(Élåî*{ãŠ’ğò¹œª€¶Á`e Ùe”ÕQjbWÎŠd8d«ºòü$9Qe£‚TÌòë,ùæb`pš­A Èrv™ÇGJr›0(_ƒ4Éê;E ğpæs‰Ù8Á”‹¼Nc2?ËyaSRG6íe\Wƒ™Ë¨*Í£Æüš%d4²ÿ©ãÄË¿uaë"!<qËU^D©]º¨âK—aÇ¼È—¶iYŒUî€$@^«EÙW($¾Ì­ét1*×Ë¥3 Œ²ØÆIù§\è,„Ëè«S³|á
+hy*¶€™_óLUW%+JS;	°,Ëdš:ìÛ,v<nÅ
+§Ì±´ZQ–ÉÑ×yLµ"7*ê.+Ó8ä }™(ŞèãƒÂ VĞ“'ŠÄÖ²"­@J=ıÓ©˜âe™Ç±ËJ‘ã3Z"P_gĞ—¨Œ@ X»*˜(`í€¯–#N×øˆÅyæy2uU¥‚‘á«,&7âü6ÜWPnò«\—¸8²¢¢À§ÉWšŒÒU¸RS@ô[ÄÉIR3MóÙW p›Tˆu£†ÀŒË·œ×àyZóhF„=ô4Ê®ëèš’goÉl!"]&4
+0päõzQÙØAâRäEFYH«HeÃ€-¢Ë8>õÜJ]v]-Ö^2’bV/n-{@é§Lğà™Ëœ²×X*À!Ë2‘ç€¥RÀ-g‰Ëf¸iEÚeïTï“Zw·r…¬±Ó<å•€PKŞ]¥pRwãÒÁÂE±Ã÷}¹½ƒ+gu*:Æ€ 
+À€ƒYÑa¼Åq DKüœJ`jeÇpØ\±˜PrŠ7[$Ä¯¤ˆB©êzò~æÎU^Oo“XßA1€°dá^^º4-_v€ÓDÏğEs]A9hK¹Ğ©È~…aO]y Òs*8Ş\Õ9\BĞW(¸[X‘n—©í»å~ğÄ¦yşU=ùAO`Kâ„ò³ÂEàRŠXˆ%_^Ö®Œ#½1Àr_Õt]ÔŞzA3R1ÚA7.]‰ B.ç5½ÃPxí¹>|Ì§Ğû[QCmúöêRLGé;-¨eö]r =İ$®«ô&Á;§NN¼ÓÀ¤p^ƒƒ_ ~{ÿÉ¬Šüºˆ–¸Hõª¤cP¨È¿³ÎkšY%*úâŸËzµ¢œ•&*®kšÒÆáÜDE’CÔx…k_‘ÑNôÛÜ$×š«6Ü¡öW|Hùƒj£ Òñpls™+}å¤İ™ŸwÿÁAÚ=®ÛS/oh¡ËU…[£é†ÿ¦Å‚¸­a•İ’ì‚ô3Ë-U \ ORû{Öt›ù2©è8o)k½h9M®ë¤§Ä÷É‘!L‚"e>Tq×I&P%sŠØA2tÃ>ÜGœQ{qğ‡Âl|d¡X‚0È-Ğ,’(Å’Óˆ”¨yê”´9ÜR^ˆhÊ~õÑhID¸Ğİò•ÿFÜ"$J÷ŞÃ€o®†{F.áïì-RJDºß5Ñ^÷åŠ&'«—PğÒüË5òa]C«ÀJİï¼‚BĞ­#èë7ÑŒ%‡æî
+Uƒy€áo^"Ÿ˜«[,(âñÉIh—Üd"¬_æ°	ĞzzmL×âCwÑ×eõìAéœ¢Ç>EÌsí@kĞI­™náÜ5"ŠöŠÆ©‡[§+LcØ‘
+hn¼õåN®æÔzú9I=3Ía¹d¥,—_Ü,Â¹J‚œ¢ÚD	3ÜQ¢äª+êªj°½`ÈT³Iô%ô! ¾q™xEC¼‹Íc@Í†ºZôäù	Ÿ“yx|ŠÇ2¹Ïú¸^xñß‹òÏ/ğmÇäU»z<Â~—vŒÇÊ¬êyMór¢õ/j|¤á*)BDö“}Æy4ØÇS	Nè±OŠpƒ~9˜â$”¥Ç§K„û§Måi²•ÂŠ»­Ótï¥ÂGB˜Áó²[ó[,ñÖ[±{›	ëgu!¾Râ§ep	-(^¯³ë4)yZ÷¼ !#‰¢ †¤GÓiá`»Õ‘HltuzŞçÎ..ùßkıOE~§/Ö=ğRİ#_V9‚©"¿íyA\»¨h|ãåŠY†×›+‘({¯¥`ip\[E!7ÁÂs6õ2ì!61%v.Uşiäa¥éÊ¯ ¢f1Ô¼‘øMÃçYñÔ½(ÀÅg×Æc;¾—U¹ûå'ÁˆfhKiËûÁ’ØÈÈÍ»ÔÓô`ßŠ›³ª„ú˜kâÜ)·D±é`œ“Fø¯>]¾òvàñCâ5Õ•Âh`ç"k!¡û»}÷êß§ïŞıüÊ^~ùFÊ}ùòÉ9	òûÑèd2>y2±Xb'£Ñ“°½»ËşÔÛÿ<Ø_öc»ÿædÿüdÿâKOWrÏ`t4µ°¾ZˆóÙàèèèøg¥}Øy¡.±âmğY¢®.ÔÉ`rlÇÏêğÙñäùd2¼Œ^œŒF;™¼˜LxÂL]	ï[ÀûÕM|ØŞ¸ôÚıo=ÂŞÿöa½ø?÷Ëáş{§Ñ÷ş{¹Ñ ¥‡úÏñèù‹ñhôtÔáºÉtµˆ"<ŸE¥hD(È@¯’ë,/Ôñ\z¯ ¦ª+5ï"ë™Ô`7¡ÈV†ÕIv
+İMéò"
+µ”Æ6beE.ƒS‘èÂ0QL×+(šJø<÷Va,¹N´Râ^º6Yì{“JÕûæŠ\
+ÁısCXæ­æM”&ÇÇ<Õ+èYoš¯@jz¾BÃ\p¼åE("I¯°Ú!÷-«-=õf—Ià*TBÀõ©şŒ£“§Ç'Ïpî"œbé¥XK-€âr•ûzCd•‚4
+Rbè‰}µ#ÚûQ}?:Ü58_mbô&‰kbÓäjômj»$Øejï¼9r­m6v"3²‡|`¬gª_ÈV‚Ñ”&bÄÖE<˜¯ññóÉ`t<˜<‘Ç‡öíÅûâÙhìuß6_Ê÷§e	,°ïîNÃ‹cœPHşz|ìÓŞ­¿‡ĞW¿z4jV?{Ñ1êœñpK07¤QV?<yü|Ò‚%‘¡ı4¼J¼ÍÁP<±ğŒN",ÒºñÚz ;‹â@…y¬£uıÈ°{/…sƒTKG›‘ApÏª” wO³uÑ Á´xÂC(F’lzß²«¡gh N}ïÕ¡N­Èp¯ÁÆÌ}ëcÔş`¨Kw`¿âkwÑ®ñ «}IJ°–×_”Jr:\q¿ÑP®”%A¤‚ã¾úüúôãàüÃûË7ƒ³ÓÏ¢ÂE}s+!WÈk¤iÈPI€Ô>õ­ìTçàcç`SG™'}	Ó üGËÆ’#¦q³Ëìc ¢¥“ÌÛí,ö±r!Á|ù?oP}ö‚ì-— „HJ•FrÄ
+LûĞ&©^jÄq›ğÂ’v{ÈoËv¶#KòwSÔ³WÂÇ õ1Aõ˜Ñ¯ê”«÷ì¾¨h¼û‚D‹"?§”¨v‹l…º»0¹Ûwjkü½†1„á>Cd(~Ò	víb€"¾ç,ñåéªHR~8×8ø÷:sú*Ï§õu­as£–ÜÿaVåòÑ^½Ïoô5Y~uæfú4üVÂúju&)¬ç4GÕ;joÙ)‡lxÒ¬£×R®àĞ´4HÂ!ûzG“à	ê½næÒ!¦“)y<©M!õiÌºjÏ¦¿ñ]'ôt¬:e·QŒ_P^Š¿ê
+%cëPåk¾ÜXâ•SŞñå‡b‡`„cô§Göò^ãû¾t»²b¨-/–„z¬g~©À¾¡ÙÓ½c¼ —ØZynŠ­?$°@Ãdt2š jä¯óR?"¬–×D‰£à`…‘ğÙq@¯a€]‘Qá4_"CõÊÏY<×¨¹ß.¶o÷êÍ‡OOÎß¾ÿtùúäâõ«ïÏz¬¥“b~µÛº‰q›ÁPÊFóıEO5õTĞöGÍNÍ¸ª
+ö5oŠì¼ˆ´Û©#2ÙÂ"vŒ„¤¥XrIŠ?äÄU /t=½ë·¼¥¢]E_]æSEšm–ÕÚ†”¾¾»;”Ô³Œg÷³‘sçí…H¯´Cg´TBWøÿ€¢áÒÓ¾â§Ã¾\ˆ‘h”Â;óæ ¨3-‹ùÏ¤	¦¿ÔŞvÁô@H3-i,„ÉéHs¥Õ§š Æk¥ó şRsüš•RQ¢·—vbDÜ¾ü1n®€²Ä-é‹˜ñISzåŠ«ñ„áZRvHµaŒ—8pBA€HÂ g‡‡¶W*ß€­ŠUTPÂ YPK+•R)KcöÔâDš"±ÓÖ¢põ-²šS€²ÔŠ” Ö–wŠáa]Éuó¢®D’ı›ÉT[êÔB¤¼oÜí
+qÚWoŞœŸ7z!lùI¥d€×o6£Oxf‘×¾7t~¾k»¦µæ•D¸ûŠ½«%ı¼o6i[o„™Hx›45l)¡V5·£ÔtÑqşç¼n#ÑĞ ]rççFš> §ÒØñÕÀ]¼#¥jè6Jƒ¸%ÈİIiT³Èùk•(#Ğá¼œ?-®9øtù
+Z‰H¡(	ğ$˜¤gWfcl¢©Ş¶ˆê“æÌV›×›Q2ôí§ÑÓ£‘—_|>áÃVù˜`Z¸O‡O­¿ğ…X:pÃëaŸİõ$:ú¦Vú!Pu-›¦¶›§Ô`£Tz¼Ò˜e;gª ARî’e½Üu!HnôªE=^'’Òü<Ë"¾·¡&ZL„i‘bº¤ÚO44è´I~4ë6ÒëL»gYäIl–ö³§új$÷mù6¾S6k¥jùEíÂN92Ä—®Šm°¦ë“Ç›i©µ¿¬Ûğg#¡ÀÈ¦45ƒ2ºif…„¨éºÓVÔ’1µ5jŠ•fsàœı¶ûÆ­ZŒdÇÍJËíĞ‡‰M½Ã7\äpsïğí‹ºïŠÿ
+}ï ¿cMÇ:Já%ÖÎ-ŒNJ•éÎ˜²š‹Êe]F®ç¥\L«ix;İêä†‘qÅC‚êùâùVQú{%^¹Ã|Zæg„$!L!C?†³E¬áÅ"Ëm÷g-+´Ÿ	;²%ÿZChË<MÅ—|ŠÌÁŸ´}E˜ïçhâš%mè#áë•ÍTJ.ì:ko²í]*©Õ8s%‘ªºÕ¶‡ìÏm­¡îiâ Ì©êG[~ŞØì¹tÃ©ıbğ`—+¯)×"¶vĞ%nÕiÕ‘¤ƒGœ¾²m±=W¶œŠeyÊ
+Ğ_¶ZşßşŒ´¦›šÅN€R:µ-ÄŠ†´±ÊÆÖb³i6sì
+BÁaEXf0Õ«s^h,¨ô´Î!¾±êO©f;òÆâ4†.}t•F³ Úo[^ û9‡Ÿu£hMhı›ˆph~mI˜Hñ÷Õñğ²"­)U5‘.àÃî¬¥»©µĞC<#2êUÛ¢Åc)ñCtŸEYîãÜFğ‡çi­S‘îÁ¬!JI„5	ÅI9C¢ªİ»óÉ6Sûzåe›4>e>xÒæX‚GãK-S#Í:?ÇÍÂññóÑ`4ö-Ñè…ù™=Ó
+rgà‚Š 4Mf‰ñùP)º×p¿e³pË„TS ˆõ-.K\™ÄúQ±>””EF´$¿İ¸W»¡c@Ê®3V8»k~Xj»Ÿç¹~2W~ˆ/ÿåâ¬y¸\@üç_Ãá“øì‹§óièOÇ‰f³Êc\åÉW*vÛu£¢ëí]E`ôDW£†û˜÷Ôµd¨¯!%Š»Ğvú¼NqH3TŠu8Ãàä¨j“Ûq·:âÁ	ÑîØˆ%ÖÖv±–uÍ<˜Æ“2DÁ!4M`(9ÚY‘y³ÔÛé–˜uà£¯óV
+·¤‚#¶-ã’ˆ¦ıÒˆÇÌhµß©›³BG2¯|³ƒ4‰À±5]‡™é[š&ÓÔn[ÔÒt®İ<aŒÑ´±ÆÃçöãÆ(Ív­Éü/¾aoÆâ›?Y2‚FmVØµG¤öÃF!"Óhö•Ÿ½¨9™B=Úœ÷!3ë%çİvGÚl›¦±Vû;Ÿmtí'läÙÏNÈ¯²É€ıÈŠzCq$K	\¼*»Tûk[‘«,
+”1}ŠK¼(sbˆ¬ô\­ÿ°Ô¹1]7¯¿}[ë<tß @ÑµT™N]Tç¤–‡¨ÓnuyW"5µêJ‡6I¯€H%‰~Ï'ÁÌ0ñnaÇO„xˆ1¥çß>/)ôFß…\oùXúlœ¾ĞOªøÜ®1mÛ2ëq>‡uÔ	ßŒdšïzğióyr‡¯ŒöótZ<	CÌÍ9ÿÑíÏŞ»DoŞfø˜`É-0<CÜ*Œ€e:Æ°Xí3ÂìÈÜïÆ½-¾EeÓ˜ÑeØñ>F+Ò[ãˆ37éşl`!¹t›3mÈı¶¤Aw„ıM„ÑL^™-J5@Ñ_hÆ-·Üf§Ş‰]W‡ü¼{²9ñ™W«,üŠ=ÿ0™¥í€b ¨§½Ãmôàk2¢F¡‘1ÈĞSß0›‰p“’›ßWéşV—xÆGŠ7B,â1\Å!´¥ôrÃÔÉB?ïY™¦Éåg²D›tC0WKĞ½k_ğfl…	 ôSğàáÕ˜ñ–Î„ö†[W)ó}â€ş7/>ï2ı[ägÖuHÚ:Ówh¼#a{Ç½1ò¶)À’0–[¿€ qVä%lSÎ€ÀAû®§°S~& /FK/¾…qv"_Ñ¢›ÛNn®[G5yKÔFC"ÕëtİŠM1iVsÃ_S^?Vª&mÊVÃL›ıNFPzÈÚf½SX
+ª¬÷ä‡e£q“Z}÷Œ[_çi‡NxÕ92DV;‘æmæ®:(!İ — î@~°…ÊòkSÜÓ…>üà‹ñÓ*ŒÊ16²hw3<Œ@ù>Â·¾º¿×©PdÇGÌ-h»76Åÿ~îµ\ù©÷Æ@qº…Àîÿò?éµõÛ¢ÿØmïï:ç¤3Tã§‡×÷vÁÿÛ÷àgîo~Ì‰?£}ï
+¯ÍKèĞJ~Xá¥Š^@f—DTÃÌ%²`Ïj[8ÙyÑšÛCîVêÑ¥7Còûmo³y^O+É‘cKØøáÖLÉÁ}ş¨IgIõGbm¤âfê¦,
+ÀÂ™kû—W—_zÖe7I‘gbÔ8¬/ó“´ÈœÇë/(n9Š¯~@G›±…aj~pRJ€ùÂşÑËş¿ÃKÍçB0s¿ éÔwŒï—íØ°ÎÉü€ÒƒÃé °ÑãÚ’”m¹XÚÏø;??ûo%×¶Ü¶DßñOgdw¬[í8–ê¦vc·i“88iÚ¼D”DI¬eR¥h+òõCúcİsvAR—\:“9$°XìİƒsÚ$5 Í'¢]QøB³¥„ªÛİÂÙŒşœMd¼"UQÊJô¨(F8ôŒE8ƒHmø¿Uc½wòsè›l |k¿Øóe%ÌJıLR:«QAOx@}~ ÁÊ@5T&tÛ•‰9Ÿòƒ¦ƒéÂ»ÛÆf9MìÉ×Ûª…ü™×ê
+4{[Å…tP>7Ft/CçgiËò_=$ö=ßÈog™h^-1i7:Áµ!Lót0<¼˜¥ƒ‰ûì‘ÁÖ—á±ÉÇãªwZcR©â²”„i‰9¦»bÕ8HóİÍÁ°y$}¤Úˆi#¹Wœ;Ë™‰ñ½ï™xR*(¨lËü]W´ºJVb&(»K†m0Š„jÀÊŒb9²±î×4˜®”]ô£’‡¢É9TŒPÆb·ójÅ„ãb’<œ¨NÉºİå‘¯şTçÔäö9ÄõIuºº2ƒ·^ul:­£eÔiô\<æõQ¬ı¼zuıëN©VZÆ60;ëPÜD1ã<$z§­Úª×ŠúL½ÓöÊ£ÍfÚÚÉŒ)¶½É‘˜¢³IéêJÉšh‰Qò|´‰¢–eÓ²Çøõ¾aãI4ÖÄÉ›sDGz§õuy:
+5:5B^së|Ê\ôém"1¥I×ÄºÔŠƒïê}Ñ€|‘Öæ:úÅTÈ±§.bT
+i8­mèÈœô<@uÌá£î£ï|§8vÇ˜Òv'htÛ‡İÖcŠhÁûm:DµŒ.çÑ!eÑÁÃ¬­HZÁzÅ_ğ3´)^¨±&fÌpšÄI ]£È›:‹á+¨÷PÁñ¼]éP§õU¢|$BĞ>2a5,÷şéœ¼V¦Ëê“†[É §ÕÖd;íGíÃãÇÎÚ:wu¿Îzé?8nµÖ?èlİÆ¤ô´g´¤Õú(š!PÌóE$bµLİÚvë3™÷EßçÒRû…ùUY£jôé4l€²İ-+Jƒ>éşí›cEÆ>+ô#ãİˆ/©1I™/Ó}FßHh™äzí i£„ÁºM"Ë‰¥ÍòÒI²r
+‹q«n‰HóÃÎë·/.v| Œ+ï(SMó`··SÛskU­ÕÃÛç –ú-‘:€“ói8Íæ“×ÑSÑŒ2ñV*^.‹€å¦øè	örÁTDhÉ|a(ğßwrÒÀ î¼ÃùB,õ§.%tø3Ín4*	ƒ+0I-™OÒÅ<8ê´Â[ì(+u`‚+òãdU2¤¶$™ª§€é¼¸¹¢É–wj0Óh8q
+*Ğ*™X—Lddñ,/#Äè#=Z;Óbı¦ş‚ïl7úUrK»…MÖÂj­ãBÄÙjËcG_œ¿Q.Q5ÑWÌ>5]ûgde˜vÛL)¯¡{ÍvÙaCÔÂÈg²şk"$éÀ*<@D¬:ˆšªºˆ nty¤fc€t?ÀÚp„=dºÙ
+ ïtİ“Vø„_ Å¹íòé§÷,¼\ß‘t‰Öxsæ|ìª’!J.Jær®ğª³äû°«.F@XÉ˜(ı,FÁ3Íõˆ.[¾táıä±\t	b¿‡Y¹Ú™Ú »pŞä×*¢$¤ tIGm¶—?Ô»…¸Ú%Øäù¬Ûl.‹F.J=¿K2‹ÍüAşá”›Æ$¿%IgXi.œ¦0C®hÛ:³ Èzzó.¾‰õ¦,
+ë1~‘¿ä¬q¾_éó&n¤Ù¸9ÇrŞ'Í²Ÿ¤o,¨v° ¥(0z<f€Ne9˜ù€«2VÈ£Å4œªB©Y÷ã¸Ë»³BºÄ$Å$YÕfs!‰(g¬é{¡ÂdL>¤xB®w–òxĞ|‘&c„6ıe”÷Ø;C*ÏÂæµèğäÃU:EÙ;GbˆÒáüI_ 8²ô72Ì²ø>Ì£jÅSšU¿ôæ­:en;±*_©f@b“HaØ;^„¤.7µÌJÙg6«ÏìLSp”¸I°¥DçÁÛKcDXK¼TÁZĞûM6Š™21a·¬“ùör½@Ú‡^ß3İh–½ÖvqëÓŞ›÷îw;éÕgig²z	@°~	ÃW 6÷6ğüsU\L–„£œ&JëZ³xkª¥ ë
+×9¹k/ÁOr´ …ìÌoû§8±Aœh„yúdÏênÃÜ—ñ–¥|	á’Y‡§a–ÊñÎÓ‰ÕÓàY<Ü‘aDûBv­¸QxãóßâÆbÆ¥¥Y”òW¼—!Ê-¯ĞaM'âáè·¯át}NÜî	`·‡Ó~?1¡Ì¿Å·24ñåÄ'9ù«Ï_•WXÚxQVƒët(/Išìİ6ïŒÇÅm8$¾w.Ú1^†ƒçQò‹JK—îe´Œœ¸Qƒ‹ñ—‹@ *l?÷¸ê•X½±‹;V–îƒç-»ğ>‡Œg“Ñ4–s¸ğm*uÃÁUŠã¡¸G«ºúğ²œN9;R¨qMl‰>Õv‡ã'z«S£º¯e5×YAOÛUl<"N(ml…>!"‚R£xj¾á†R Wõy8R#¸¡ş•YÄa¬‹UµŸ4Øeğ³XÎÿIåå+yŠŠÇ“œŠl; yÒß´1EA
+ğw­ÏÆR6ØÈ*¶¿¨ªÑ06då9vU–-Eónú§ƒ¹´İoDÃ»'H¹ıRœ?¬ÒN                                                                      README for the "pg" utility for Linux.
+
+The "pg" utility is the historic System V equivalent to BSD's "more". This
+is a free clone of it, and it is intended to conform to the SVID 4 as well
+as the SUSv2 specification of this command.
+
+Contrasting to the System V implementation, this one filters backspace
+formatting sequences while searching, so you can comfortably search in nroff
+output like manual pages.
+
+Gunnar Ritter
+Freiburg i. Br.
+Germany
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                ‹     |ksÛH’ígòWTk?Xš!QòS«pH–üP¯lk,¹½î™‰"P$Ñ6
+MßˆûÛ÷œÌÂƒ²¼»á™ ª*+'OfñÓëÓó÷¯Í´(Mš§ÕŞÌUÕz/+fi¾k&k³,ÜIbÓEY[GÉípx3O½YÚøÖÎœ‰‹¼²iîOËÌñ»ÆÊCğ7OŒ<É,ËbVÚ…—q.Ó¼şO“$­Ò"·™©«4Ãkç1‡8«—[º#3/|•Û…Û5«yÿ”iÅ×6ËvMí]é‡I±Àğz¯N“]sb{áü,ßãsSLMÅ‰ûbZ­ğp3·ŞLœËe	e:©+ŒŠÕŞ5fb}c¬µù³öÕpY”¼_óIùÌ›ªhÖ2ü÷`-f=~a¶öG¿ÖùèÅ³áàzG@^U<wºşÜ­dÅ£Œ7›$õ:>ïç´gY:‰1­nŠ†ƒ«Ó÷Æ×Kñ¨@£˜S}]¦·æ¦,l¾9ƒçfûi7ÅÊÄs›Ï0ü¢HT4Å*w%…²—¸»½»ØüMã0CˆÄ™Ó±<æp:­pyš8ËqOó¤äf½*‹zåÊÍÁŸaù£Óe©ƒ¿-*Yï]¸ #ê6aœGx36Ó²X@XøİÙÜ¼·™÷Øc·8¹-¾/ÒoQ±Šòì%æóÉ-Š;lÆ²t[ÕØN—'ØÁ¼ÚŞ1Ü³¤v{º©£ª¡x‡-œ¸ ët‚%¯Òj.{¬"KŒÇy•BB˜û,¯wç sx“~£0~u˜¦Qd…9–7‘¼9Y“â[„G¿ÜĞSèùèWÛè‡ƒl`ŞÅ5ô{m¦é·°j;ãÜŞ¥‰yWde¶=©§Sîn,ëÜã!ÇÉ\¿<™Ç>šÛòÎ–Iä’ú¥ÌËÛ¡0°b¬,ÁR­Á¦.Ò+ÏgféÊ´H Š²tq•­EÊ£û‘Sí[a¦Ğ
+·UEA;óëÍE>±f{üttîâÑ‹§˜à+\)ß×cY¦ŸÛ:º´Ş¯Š2ñ‘9Ã~¤a3†ƒÑùõ»Óó_ş¸úrnÒ©Y5–pç rg4ñJø_!KÜÔÖ­çÕšTº[ó>Åf·©[¥ñws¼à‡‹“tüL¬pÁ
+}´\•Ñª,âh)jvt€ú°ªKL:¾åª=ŒyáúJÖhÔn_Ù†H{Ê› –{®Š÷ø¾Ç­¾r6Q¿>åš“´•¿¬ÉŞi‚?XSBOp<mÕØª‚Æ…×&ÓÈ–"å#?½ÍY¹^VEmÀNİ:8‘9¬l¯t~	[w°ˆ÷PÏ-ıPgîœ}şúšj_Ú^İ¥ôt>±ùZÔùì‘ğmâà5ÃØÿYÀ©~7"Š+…!:ØU;£(ÆÔ/ (.«™½8Jná'(i‘-çæî÷¸Z>Ñ—'3¸ŸYäõY=‹Šrö²Û+ì5	‡ì$ÌtYW|Û“øtY¦y5İŞÙTÚÇĞÙÃÑ‡â:{4¼·ğ–©·Ëj-÷Cp.¾UÇ±(àt >.LŠcDûÆ¯1Æò¨æ¶%ÍU¸lôşô?_Ÿ¿şí‘*SZ<³q¹›“84ÛÏ{s —ÁÃ»‘ÌÕÍ×GÒäõbâJ<3Ié0++¾zBb“¬öó_LpUo]9§&\ÇóÜ¥t´Ç3’fÓITÕ+¬#²qd«—ó9ˆMº	i<›†'Ú	¶"3ï#>´^g|¦¯N°?•ø@q<ØÌ)¸‚µ‡íˆï°MÛcsùñíÅóæôâòó§×ıı:Øüêz‡aQ¥f\-5t/Ü¦(&fûptí–aîŒFª`jín2ú˜³y	'P@å.'0Gh\œéË“EZ¦vMkXN)P‚Î0)œç&W¥es¢ÿ3DÆ%Íy8ØBø¨‰"¶8Yj¤×K\%Wù±vŸ¤^UËM§iLÕ$$e¶œõë%z~¸¸ŞûzuoÑğ¼{‹Î‚xÜ7L0½‰‘Ø‘MèKÃOgE‘t‘_Å,ò¹®ªÌ‚ÛrsÈq@<ÙÆˆı€¶©Â6Ï¯åÃÌYì„+‰"ácè„Ã Xc·»\íé‡ë‹GÓ´Ûë0Ğ°b)è	T?,¯è8EÔ-],«Í™ïSX/4L=é¦>ššãÔûÚıAY¿üáñ‘if(‚WøÉúEMÄ­ÁšNj?MK(?½Ó®l½‡—^Ñ/üOJ{Høødô1®ÂŒ.‹J GKbè¡$&õLQ–ÕÌˆ0‹%Ä[–7¾Pü¼¨³Û˜EŒ½5Û4€…Û‰Ìi=FÌ«Â­Q ¥ŠAm,}øp€ÉÍ9‚úÔph¦÷Axúië,Ÿ|:öÑÖ‰)-–À•>¼¿¿k<{Ê?ãñ“ƒı}…e‡ûøÊL–›>ñ˜rüDUº¿KØ%¬“ğ9Ÿ½ÉŒVa³|o·â±N“º¿YÁ½AŸÊFœÖ³0èë&Æ¸È™~ğö©üéõ9bŸÍº#ó^@j¥	S‰q±úÅu™9B#Ná½¤|›!©È“½Ê×«ñ'X_Œğáõ9Ôd,Ó¯óôÛH'³pŒ~.á£vR'0;_¥€¥f-æô2 c¿tqJ“Û•/[m šôGëÂ\‡ÃÁŸ…ücQäGUíV.9ªæõÑ´LÆOÿu2±eiã:±æÁ‹öGÏÆÏF‡ÿ:Áƒ Äˆ¢9qÍ?¼­|ãš¾ÆÈŞ®½ì«Ijj‚h8ÿBï™ÉıZ@µíÚ”rÒd9q
+á¨™“L%ô¾ `@xÜ|È·¯œ,
+úÏUÔTñNìÄÕ™!(ÄÆƒàÀ§6ÍTg0XÎ˜T€ß°ÍTÑPú‡SR¯[5,ˆG<³ÓËËî)VˆØ6†¼ZO¿©ÑOÌö³B·óy_ÃÅ«•¢®­F7@²UuøÂ]†ˆb„Óè³ç"ëTo‚ºMÜıM’Ò‰ ]5äƒñŒ	DõŸ/W‰C~´„‰RpšÁ{İŒºÓ4IúY[]ı‘ÒÕ¹L6KF©‰­ª‘[„ <"²Ç;‚7ÊŠûÌ%ƒ0.ä¡_á~ˆ%\¶…¸Ê×¹¯BŒSTÇ~Š|Ì|ª@É-Şœ¸ï¸ïVà''è^=Ô8z-×Úó¡@¶WœòÌ’—¡Î„ŒyÂçeb9Ff!o'E\†oº®@
+pTAû-#Réz ¡7 :Ñ•ñÛ³3 İ'Ñó°“Ø<ÆÛƒ§›švh;Dt­Ä`¶å$&JÊ£|ák¢(³½UÆÑÖNOŒbÉÍ•’éP;óoééèÔ(obáŞ‚²ˆ›BAõçFÂc&x?ª—AË}— Šƒ-rh24ÉYh¾né]jÊ >ˆî{8˜¹ÜiÔâğàxmÎ/N/?_5ğB-×÷Ön¶ŸôV~Õ&4ø‰ÚÂeœâ±——'>N£Û:'¯¡şıÏÌ¦óâ„Ùjá£xş$š¦fû×znMñíìp›rÒBÉ5KÓ&Àà e3â}]ä`±¹³Xy¬·ÿ5ĞN™	!İÉ×QEo†A(–Oi|Ë¼á¥
+Oùç$öQÇ‚„w	ñ°(z(Õ@o h»M0c*î:pé{˜FI†Eä“²Î÷hâZ`«Ê.Èş’Azs}}óá<¸ƒ>FQœ]}Æ^JH6¢#§¨;Ø±ÊQ„§’©%HIÀæ©ò[¢/iŞAÚã(©ø»AåŸFGØ$¼™eŒFïmÙ"6ê×î]¥`Ÿæ¦á+ÚÂ»­~z³%œãVdÎİşB$YäÂJa–#	Ñ|¾~ıÇÍÍ×?Ş~ú%l-´ıš“LtÿéÁ>&;ìaõÂ&½ÇRø±ºTY“OémØãà…™×C£Ê CS¾LÚ#«Ë [v¡ š‹pé¾ÅnY™W¯/Íö?÷÷ŸjÒ{i~Š¨ığĞ÷dkáİø`ßÚ9,»Œä4ƒâÌ>_CiñÊM
+¹(aÀâaEé:'Â%ùut8út-Ì©_¯ ¢ª4SÏ£äG‚-±wro¢ımÇpºíérâ_Ãó@F¹‹+E^vKÂö#­¨¾ùèñ„Œê7	êuns¦Ü¯Óœæø/}q²Í’w¦†[ø©ÀÈ¯Ò² w‚?÷¯éÅ® Ö~JH?¬Ñ&ÁÉ9l¸±Ù•ÑÕè‡pI'3À“—ˆƒ-:X;i·Íh&”è]Ïµ&kwt4Şßß×ÿ|¬+4åÑŞ$Í\</Ì«µaË¥è¶pÛ–¨¼h‰Då}×†w‘­^;î´L:.ç¢^Ü³Ëe¸/u Ëå2ÙóYº¼·VØ[IÏUen\6åˆ„PiÒ“§ğ›½ÒcÎ7h²h@é&E]]¦kÌc³šóª ¾aÚŠ®êmN%V"‡vxvŒú Í™îÃ+=ÓœI&Z“Ôúr‡$0ªQšO£é¼¹EY`Äí+2æF.Ü±â´ÂHÀ-'wš 5èj¡®ªR“ºb!6fªÛ&bğÒÂé"­¦<ŞüıüãCd.‰!pWñ;EDÏ‘ùìõ]3ÚpĞ¼J=İÅ W øæCX¦fûÇRÂN·=é ‹HWd+‰¿‚Ñ^zıÏÏbQÿ¬ÅÂİ·¥¬»P/©<õ>Š4œV§8¹‹ªK£”ˆÎ+®•CŞÙ£áÎ›×ŸŞ7úĞ^¯xaœSI®ÛµÀ{êZr“:ÍÂÆ´QHVãøÿ€å^@‘kÚğXIåf¡ƒĞI•¬¸Ö¶Ü£\¤„p P\ÌÄ![Ç„+Ä1bç$û–tì«·Œ	0ÈJÖ·/Ûã=ë’ÂFÀ¹˜„cvÅ­îq–â“W×ç¡şÑ&Šù˜ÿRu9Áh^ûyÈäT1DÈ#¨À¸4h!¹¸ğ;ÍŒÈ×ÕR"!TúğæÚl§Ø,É%M	³¤ÿƒ%k¾¤öÊûù!¡nd£g™³9F¨ ñ"qíÊF_q'@z´¹KÏc8¦±’p²M]0b‡õĞàÔC&¥»œ¥"ZƒY…Î_T-ßã¨+±úŞ®Ã`ó>”ö+Ö¿X#Eª¾“t†r8sü§|xâkn†_EÅ÷È²Fua¬R:#ºó@·%@Ê‹”
+DM*g^<;3T>¿%úšğÎln~4¡ÏY¿¤~¶ºW†¦-ZPö“j@ë•¶sæ`KÁ½ñ÷¤ 5®N
+“4ËNf…ŸÛÕm„œE³â®b ÀL¬=Àì]	zå8Ö+ìë}´’®N¾ñ&Â1yÍõ'pAŒ¥~Â[úà¹Í½i“Lëï]S8éÊ¥…ğÀÛ˜‰­3æü(Å S’M6MÊñUÒLÿ^’ÏÄ…¼âÒZ½ôâ†Çc2¥ ì½ÿûQÄ!ÒåwÀ3ùBò&©Áx- WüÆ’)¤Lùl
+|RAÿ°)'È„æQQ^¼6d"rK¦–ïN{ıÇß?¼9m|Û_uQYÍë¡7¯sÉ0(Ìt8hk‘z™0®œ(>/û¨ºEŞë2Ò¤tß¥9y‰ri»X–iAév^Òş•“Í–8æ.|«æ|OÍiŠÌ„È‹"º2Á’ZAUXkÔD7otaâ}Ç”#ÔÌ˜šb†çµ8_­½½-Ì»õİÿ«ªÔ¿ûúÛéÍÍÅ	¼2P ËmŠÄ”åmdU´õÈœš-¸ÓpøW†„¨ß·AhÀÌ…uÛöcxôÈ<ĞĞZm5ê’¶‰‡q?Ş½²şì¦WAıyÇ˜$q„¶w	 SƒüE4¥Ëq%üHé†-'Ò¤²ijO;!’Ùñ¸c¯{iÌ+øóÉ­ó"v:~Ğ¼OwJ²Ï{“²XJªP¤Â¤ éÔÓŞÆE³HÇœzVû“}b¶_hš¡³ÜÜ?)´L›Êw?zñb™ŸØN½_Ÿ½ûxvs):Ç×WŸn´XÙ77;³¸¼Â3…¬ãª1…òŠ%Z‘™³˜ÜmÉ[Í[&Â[0r&T×½ˆõ{p¨MX]ÛqÅßĞ²ü—B×îpÏ§â¯—ò÷äÏ:K]İÚÈ×©éü€õCÑ—-Àš iÒj()¾]6Ñ­h±e?VÿH®ÀÕ…ºƒ"­Š¹÷yÏ>ÖbÖáC‹ïSÌ´^˜óë¢şnûÖäB/¡Q‡†i Ğÿ„UDıO¢ñã OÂG0ûã†óz)»+‚2{ä)ÄFndrñ xÉÜOœZ6Ãu“A”$»Rè¿¶·¹„ƒ³É¾-ÄINÒä—eÈFÜ…ĞH¶¨ÛF\ÖL‚%’‡M2É@D|Mş¡ßÂL+Áúª¸|È=ÂV8˜Ìh¹$U67¤ÍÁ4ÿ…‘
+Á®aÁ2`:îB6!Z1r†#‚vô!{’6ê\'´ ê:²k¥ğ17+ÑğÜ†néú±UE‹DMëR`rFº¸Á\!fÚj=Cà‘İ&Ô
+Zvê«#™`®´Üoo-ë×;M–>YK#Y„ÖsfåğlîUCÁ¬›CM6´pÒ$R_c$]!‚ Œr±SÄ_d¤›†2ø*Iüƒ†²Ï¾”¶±#AŒ`ÂÆ­º’BÈN+¨¿IÎó·á IÔS!•¤ÿa	IÛ¦ÅJ"6A<	³¢5ÔÎ,4]˜ã¤’' B¡ã G’“¨L¿5B{Å¿Gª Ù«g…ciYh$¼í–¡°`ÕM	\sÅ)-Šì‘†{Bå†^Ní=àeµ/÷l²h®ÙïIV/ Oj!«¨R;'†(€ÅG˜t­HÌ`“}¼®Ü’,îÍ
+.(e*î—iÙ¬\½¹©û²©’ =´©ãgj¿5Y'ŞkÚ‹/ ³Êï‹/ë	\{iî75ÙêWfÚÂ¶¥C÷+ñ
+bqÌÓHåQà±®ıìòãÙé¥™fvÖÃ+0éim´³Èù™6ş®9›÷´ÎN2([³!¤”p ¥Š8 R«E1­'Zï.áŒ¬(vî˜µB3<:¨€nÛC]­ÙŠWk‚Bÿ›ÿè÷ËBsÖ€×ğM_Òò»ËÓZ¼Àuk8
+Oóà?½~õñãMc;P1%©bâõ^f1¾Óÿµı‚jc=î[§yEp ÑÃ»&·‚œ¸­²¡äHşzáá
+€F¶ñÃÔÿ˜©ÔM¥T¹§M5 ßƒ*j§âx\İo‡$uW´EÓÖ”m~+ şT¨7óŠD=3cÆÂ­Êµ RçÅÌ^_^‡z­.rR|k´å‚U£Üiè»`ÂŠù±È¨ÍJt[˜ŠUÑ[óç-õÅI	%ŸDÎEõ$bàŞ_‹y‡E¯—ä;¬½À	$[â¡Yğ&½!é§ÒÔ$úAI?±GzG‘Jo‘ea(™Ôê~}§Rh±ì2MùĞ’²_Ï.=M³GºJ!ïSäµ+‰@+Pk­fİÛXJ	K” ¿,–ufKd¤ñ‰ÔÖ¤ƒ€y°Ì)˜ÁÆŠ¥ƒö‰–•\ò!—ü'Tqú`«¼d“Ûgµ07ï,.vZi[.d$Ü;b‡òE[¯V% aó`ãUlÙT~©ñşó;àü¾4"f	ïòâò£Ù†IíìÑR˜]yß²¤ òRÒl“/TÌÒœfˆšW2‘8¶áÍ	şH`#WÍ¿Gñüe[_j
+Êt®H’Ø3ÍGßıã_B¥ŠwHÕûü¡É“´zöS­{ªì$Szpáã£Ÿz’§=lüJÈÙ{¶LìãÉŸ¥?œù*Ñ]e)Ö\g6¹ukRYÇê‰)ÁÉçwÛ[7¿oíFÑĞBM='Iï=·åBÎV¿ÖÒíô&ëRoÆc¥º~ºæöçk~ÒsƒÓğ4_›Oõ‚›|lKyqÂöÄ"ªá}}ü=:ıüR÷†Z{gË¦qKárw–â©—Ø³®E17×‘9§ °dBô¿H7Š‡İÅ¾Êjç¥¸“õæ¦(ï,ğ.±Ë•<TÏTºÌ†–÷fØ]€ˆ
+Ş°˜A7¯¦S%”ãŒè\[h3€ì¾Ã”$æAD9—7¥]ÆgVM7¶ã…J^²Ù‡vã¹ş7nğTcş›ÌÅ¢=ã6àhP¡J×!_µçs$Ìo
+ûØûä„ 
+¹wakM’;ÏÓ1öçVœß|
+•.á0BW'=fÉšÁH¤£YGœs)éwZú/¿`k›¦k™Û<¤2ÚI „š:•|í6•\èÜCMŸê³Ÿ©øó³g|kÙş%Ïz¦=6"šƒZK×j	ÛeE™/8¯ğJÒß)W1¡æ"e1åÄ]ú®¼Á&öªáF8¯ĞO›l„‘ùõX¨×	±â²!–ºŞÈ`,Ô)%­¹ù€¤i¢*&€ Là˜§Ë×Í-¢%Êáı¶q¤G>kŠvshZ•ÆÒó#©BQ\'ÆõwµÆ¶wØùØ.“w¿É=jfÎA” ”ÚÓ:Ès‚h^±²ªdêF‹´dmŒĞğˆ¡@ÏæÈ]ª^í­œ—¾õËCÅV¿4éZhX
+ŠÎ.–±a vş=jéîBÁÙÜDf"	é6Ç×É×¡wJ&u4Ú
+ØÚí!ÎÆ‡ä‹WøªŸó‹¼mÿÉ¤‡üòí‡ÏMe„N‹ô†Çh<w+[ÍªïÒËLÈİö“J[`R»Ç÷+.)Á,YN&: 9dGÍ³ğ!ŒE¤Í¬¯¿^ÿÖ?ÀÅ!‚ª¾'¹”	}|½(úòI]ÎÌñB>÷'·°3¯¼ìÜRÌ^:w=±5bŸÖRéè;’gGæà©²?x‘§?ó"Ï®.÷ÓŒAïD>»¦E¹,ööşXB—V	q]OR“»
+67ÇM†÷²%Ä×f:ª-B¸9»Ú»¸ŠÌ¶¶¼îigÕì­öRkI¡kÛSOÚ”›-Eé`Ë™E Rç_:í¸ÛRdÚXÓ|K›P%vŒS\©o·×)ó‡vy°,_ÂU°j{c‰mL8ÃJßGØ’$¡6)R\[é[Òİ–l¬=RÚ! 3%¿m3¶ÉB,e4GX~ô{«ğf•OåH‚ÔÛ
+CO~®@ãßP nÏÛC'˜!»Œ›cY,Z·¡kÔú¼Ğ]Ê›…Àn1‰À8@fŠVêàİ™«i+7Û4=4¶®‡XÂ±b˜PÍCg"}A±­§à›B›ƒÄ¥×+>h;Ÿ4F`¹e¨ş^>68äĞ„mÄ§^º§Ã
+zV`åÕ7g{™¨püŞXz|#q'½kjĞl,Pæ­9ò%Ùa¯4ÛM;LH
+l½İ~"Íƒ?İíÇ?Ûìv§Õ»ßkùØÀh€uÈúdòPœT˜%©í(iò	b?I‚›íÇJµ=4éÃŸ©èÓÉƒ³•¼Yw —ñßPGÇS«ªÇ×o/>Ü4d–ù2—8ˆgNX¹ğ}páD×°[¡,'p[¡’šñnmfzv.|óC‚­$ö<Ë
+ş¼Ö­îÕèêr,7#;!&MR-qgU™N³
+ğ2“’”tynŸvåDÂ.“	%¥r²zrE¸ûu‹…²(³–³éÜWDN´²z>±ñR=4n=Ñj²°¡èŞ+³Nº/¨µBNUº°B1©pHJ"C7RJí#vÉıàÈÕcm~Hu~ª:§Õq•mß\|<»şrñáú÷NÊp,\Œ³=(vKÕ‘L*@G½3÷Y]zp–[[Y2e‚nBù­ı-©h¥.Ö#:Wq	mÔü”Aˆc¦ô¼Û)ÿ-Ìùo¬UMªõCkãšä¤-IbZ,XsH„nûìdò¬âõÄ²ÌlÂ[@yMÿ•d8î3•Æ€0ßFOéNÎV¥'nY§%ÆL%<š0\€ár£¸™f·Û™i½¬kÜê÷È5©š€6Vô lşèÂte
+=ñVıŒ‘èÜz}9 {Ysôc3_j'í‹ìÎÉQ’ Ğ†ƒwÒ ˆIÿ^ÛïHØ‘!_Nå|É­o–^v‚ï ^»Êúîíİç+‘çÍõÍUpr¾=$¤ùL¨d® |ä@nÓ–T¥ÿ£G¡~ØûIŒ4Ñ´ÛÈ
+}aYÔ³ög(t…míºíy”€é®şTDà*Ê6·–ğè5…~$h’`Û™Î Å²¤!<°Yâg)óœ„c‘vø¨iÕ©œê@wDrßO‘îÒ"I#–/d—ï:«‡š”+óBÔÂ3¸ršÕEíC/’²¢]«ñ=©4Lo{°K*ßœæ‡Ë^Sds{Ï´ÜñÁYÃãxù-ŠÒÆ¼«yànsJÓÁÆÀô”¯è™YPí5æ=g–‹7À¥.[Ê9rE*ù`=eeM¯ØÀ>$vqf›!’Å‰¿èLñì)î³µ¤á'¶/i¯ï™—¹JÒ4s¿é¦Ú0¦«LC³9ü¸mv£w?ğÒüŠSyø2İ©Ï×o0§²×BÍQ´¡ëJ5˜-ù…”-æáš”…”Ú[™s˜œ®y™¿×6bk
+˜o!©”ÏoxÂÓD)ly€šò6L:ïB]×İ¸şbBæ8¿–Ù¨;ì+´DÈÀ›¸¯±oWƒ‹ox´I m›¤hôêPts3i-O[4ËØğ˜:šfp.¹çAU©±hù‰‘ğU°»PÀlÊÒ•iõ×EB‰œó™àe±qñ0ÔHÈÀàß@(kÜU”¡#‡ ÛI„bÕ¤9´AËô®û‰†¶ÂsË&#	$¯›Ùr"ŒD8/ 3Õß]AÈœòg$×\è±Ğ*ô9HÙÔŠ½."£I±X)¼â–ı]d o.¯ßíšƒ¦ó<m›'ÂÏ´hŠ6ßÖÒ"BI’ŠD µ¢é/ÏF€9°-’Kˆæ£á0¨ÚàÇ.î`Œ•£oMg€$8!i“ÓìÃK2ï®FŸÿË<öé¨åwUàaßfÀ­Û°ƒdã÷¢vBx4?–d¶Ã!×Lb	ƒğN{¾9Ò&STİi§ø†;NP…”+ZÀ[ÉT}‰~ÌoHË2x§\Ÿôğ´’@yïU`<*=:Òı$ ÒÊ){WBa=š(³¡¶iØv‹÷µûÕX±Tq…l$¯}{Ôå&Bñ^â®î#aîzšÂ ÎuÀQ¬•ŠÓ½—`KÂŒp®ùùL:T1‚[àÓt?¤	C#Öpˆ¨9—#»ÑœqŞ!!0;Ê„¥yÕcªË4G~´Ë3*u¹DH¦ŒôŒ
+¤Á´wÈP”%2gÿ·ç.Š*	ğ–ôÓ:šÑXô)í]»á¼~)ı»Zö°)Û.†ÿ¯×~Ÿvs+Íi%Dí/Âtòâ‡ë…ŒÌî/&­|·™Hêå,Õ‡,C3V8"WÊÙ8¦E:›ShŒüù½-qÂBil•ş2E"[íAª"wü°é9’nÚÒİÕ ÷fâ(hö×£ÙšsaalÒcFFmßÿU¸áv¡÷
+HN                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              Release schedule
+----------------
+
+The util-linux package uses the <major>.<minor>.<maintenance> version
+numbering scheme.  Since the major version is pretty much fixed, any
+release means an increment of the minor number.  The minor version is
+incremented roughly twice per year.  The easiest way to estimate when
+the next version will appear, is to look at the time stamp of the last
+release.
+
+Before each release there are a few release candidates, which will be
+collectively tested.  During the test period changes to the code base
+are restricted.  Usually there are two release candidates.
+
+  what	 length		what will be accepted into upstream
+  ---------------------------------------------------------
+  rc1	 1-2 weeks	bug fixes only
+  rc2	 1-2 weeks	translations, fatal/trivial bug fixes
+
+The period between a release and the next release candidate can be considered
+as the merge window.
+
+The release tarball is generated by "make distcheck" command.
+
+Release criteria
+----------------
+
+For all releases it is required that:
+
+   - make checkincludes passes
+   - make checkconfig passes
+   - make distcheck passes
+   - cd tests && ./run.sh passes
+   - an out-of-tree build works
+     (cd .. && mkdir build && cd build && ../util-linux/configure && make)
+
+   - ideally: a build with uClibc works, and --with-slang works
+
+See also
+--------
+
+../README
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      *	   .   
+	   ..  +	    v2.13-ReleaseNotes.gz   ,	    v2.14-ReleaseNotes.gz   -	    v2.15-ReleaseNotes.gz   .	    v2.16-ReleaseNotes.gz   /	    v2.17-ReleaseNotes.gz   0	    v2.18-ReleaseNotes.gz   1	    v2.19-ReleaseNotes.gz   2	    v2.20-ReleaseNotes.gz   3	    v2.21-ReleaseNotes.gz   4	    v2.22-ReleaseNotes.gz   5	    v2.23-ReleaseNotes.gz   6	    v2.24-ReleaseNotes.gz   7	    v2.25-ReleaseNotes.gz   8	    v2.26-ReleaseNotes.gz   9	    v2.27-ReleaseNotes.gz   :	    v2.28-ReleaseNotes.gz   ;	    v2.29-ReleaseNotes.gz   <	    v2.30-ReleaseNotes.gz   =	    v2.31-ReleaseNotes.gz   >	    v2.32-ReleaseNotes.gz   ?	    v2.33-ReleaseNotes.gz   @	    v2.34-ReleaseNotes.gz   A	    v2.35-ReleaseNotes.gz   B	    v2.36-ReleaseNotes.gz   C	    v2.37-ReleaseNotes.gz   D	    v2.38-ReleaseNotes.gz   E	    v2.39-ReleaseNotes.gz   F	    v2.40-ReleaseNotes.gz   G	  hv2.41-ReleaseNotes.gz                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           ‹     œ[ënÛH–şï§¨ˆ6¥$ÉdI²,'öE°ìÌd‚†P"‹by)Eéíûûk¥±ïµß9ER”LÊm X®Suê\¾s+Üç:tBßœx!Şô_ÿ(nU¨¤Qâ:É•âğÍ{gX,œ7¯^ıéèàÃ¿÷ßÁAµ[ Aˆ?¹99pıwp ¢¤ˆóÃ÷GÂK”‰_äBÇnXxàã|*ÜP«8n‚Ÿe¼’LõÅYBËü$[¨\äÉ(L.ÃPÄ¾q
+\Ìˆ×ı×ıW"ÉD¬V*+b`æ:|-~áû¿bõ1ş¼ı­¿_‡Ê¬M®"á©\¹¹Nâ~¾$ÅäRü*JA"‡u|“fÉ\}øu>hïx™„E¤fÚûíôõœq Õ^»0GÄ7~Q¯‡`d)~ú –¯_¿:ÚˆLı³Ğ™ò¶X7Eš&YnèÒXÊ\GêÅ¹ú–ßÔÿ¤³=å—?—{ˆ$¥ÛÚ4LŒÊ‹tk[\-²LÇª\+zìÑµCmrA:(ŒÂŠ$IpÀR»Ê‹yA‹ÒLãYşBÄ2RBûØÃï1G’¥-d¶ÀÅc°%3"eğƒå¹çd|œ›)™c%®)='‰Ã5ŸYîLğ=mˆıi‹PÎUX]ª2b®T,t/!ÅÍjÈV†&rª:i%³?%E^ê×û8¹‡LR›Kµ7~uDÇçÒ<@‚‡¯yK{*Uø	9™G&ä‰ëÛÙhr?í7Èxq%ì1}ŸÍN‡w£OÂ¸ò
+È}!Ò$Ôîš¸ é>È…óB‡(íÆÉJÌ%©ÇÉ"Oò$	MŸišk6ÚF¥2#©Î/‡§,ïË3ûo8VÂÉB3q8½¿8›Ù¥Çà–~*WõÅ9Ö“sÌ$9¤Qğ~;]YÏ¸B°rÃÄ}xÒÊ'ËİNeüÄ| è>{UYYkèJIà
+¿ˆÙMe¨óõcm[KÒy­;WÂhalâ¯^E¤,éºE&İµPÒy-‡XÉ¸IôÃÂÃ¥¸+Õ–./é—G›s¥Gš†)5nÈÇ:†ÒiÇéø’ÀøÑfF1H·m=˜•Lëİ* İ`y2sú]‘šNm6ˆ€Ó³˜X4Ã QB¦+ù ˆ²RÄã“QñaÖÔaè™r%¹‰…/—°„>^°·;QĞ­ZïgI„s2Å¨Æ½ëÿçGÖR·Î©m½R›µcÚJÌ×„f²s˜â:)j4†ÂØìj;R1y¶CT`üà\£FAßd+Ú˜Bµ*«FŸÇWïß¼Îz|ÉÊ@£®dÌgz±@ø‘âúşòò@ìşç©Lùø»Êâdœ¦ğoi£L&MPúÎùÓëWïqhe6"‰4üe2¼0Xğ%LŞ³Ä«@±ç¸Ôã“ÍƒNSåA£@Æ…=·ÆM[Ø®½L6*
+™ŸÀ‡ó<5'ƒÁjµê?¨,Va‘yó«nÀºlt9XRº1ÀÙĞf¯Oˆ=G¼sø”l” Y— ÕY¿@¤2	b’
+6A§åYVXÕŠ¯S@ù»@ÏÉ~±ÛÂhÅ‹›BW¦ÊFnĞ¼ÓPÂl’HÂNÙ8Å×ŸpBñwùPvİ.ƒÄä´æğ'/ ê¢Ä×pâ€\8"£pÉtEÁ`Ä Ç8.¾^Ê+„_ñ—$Væ—ƒ9A°ìdÃöéåÏç·Ãã»ı×t|'tâæĞF«L\¤0>Hõ1¾ïÃ‹á<‹.n{ÕÑp\Õ|ï1Ü‡ÃªŠá-¤äZ—÷6Jào"›àvzñ÷1¼ùñİÛíØu	¯·ıÃ¯ÃÑñpr<¼:~úmv3¹›’¢(x-TÜ7AD7Í>^ßÏ¦7÷·£q×lÖ*€ösgş]§oÈnr¾Xü,4ƒUDY¦˜$«¸ã”ğAªµÎÑ¾¦5÷­¨ân'wUœ ±sÀéØÒâ‰á IeAAœ¢- ¥:$_è/t®1a@+.e{²¬ôs:üOõ;(J%ğÕ”J9dî9Zï3kØŠMí"#S5ënôĞJô{÷õÊøYË«Úï1™§ÜòÍ¦†ÈŠ·ôPHáM'…i¿£—°hml'KkÆwÈ>“™V”_Ğƒ½ô¸“ø¾^U¼ ÆmO75#Ç÷³ñùô˜]•6šL¦EêÀ¤3?A [Q¾o9m¤¸À7¬Ô¿ÄMÉuÌ“´+ÈÉE:Ìbÿíîv8;»˜ŞµÓùˆ”N0òGQB°F)#§‹W0Fò?Ò}û@<¥íTjcëØ6„ü4ü<]îo§ãiÇí#ãëáéåxö×‹³ñèÓğÖ‚q™oí™1CÜ6«‚ª†„taìó¹ı»³ééÂ|WúÿçA+hé{cçFM1ËØÜâ@\777\RVßd”†jãXÖ÷!¹ò¤NAµ¯É4ÀË©à¢·ê¸éÂî1åH;D/MzÂùIôş`2*ĞÏ];ĞÉìë¨Ä¨OÀ¹»è [¿/şK|Ãç(¤#AÕgë6¡Êwæçš"*íaº%$½ì§¨.İL§y‡Å3FXAªEZYâº¬×mÖŠ¨g[QúuşCºTN"ün®Ï/>Î>Aã[Z›OÏï¯GSVXkOÚ²Î°½n‹s•	ÈÃ¨±BÆ{}9åÌß†KŠ(åÎŠS$sßUVÑ>òPXôº†ä‹‹÷“uĞ@’Î™ğC¹`Kùú1AU)Dú»M¢kò·R;¢#‹­B˜fP˜f¶7öÃ-Î³"]®%úÑ[‹nÓÑU÷bh{r{óqv;¼¾¼8í:Óîk¢å‚}ÔµÊäİ{Z;èdÌÁçÑtïÎ–`PöÍœ¦¾˜ş)p/·AÄŞ_ŞÍ.®G—÷gÀÛU¸Ë:R•’Èñ©rüpç¤	¤îÕ •q…ZwF„ÉD[ft¡÷ˆ8LİzìêQ–fIª²Ş1mçX$‚,’Ä*NŠEĞ½Eš°µ#ˆš~®€9ÿ©/@èÖ7†Mêf»ä‚§‰°]{qQß51
+B°«fÊvÙ(ïn¿Ì^Râ‚¿œ]œ/§ÁÂ°äÓør2›Şİ^\§[?vP I£OãÑÏ%àİßgÖS)
+$©ª%ø‹JsìØHCÊÚ_‹kªÇ´$¯§ó‰²Æ‚Î&7wç—ã©Î¶¥Fqå1+Ñv6¼>±4N(îØ•Ô„3ˆÒrîå-lªÀ‹QèÍ®†×ÓçíYÅ.PÙiŸqÛj`ÛVğM¹³éèö‚Š5ìÓˆ‰û¶°5
+?Æ!®ËÛS	=/V9´9?F›¡‚­¤w©l2Vˆcäš±có«¹“+S{œyÉWµ@ 3»ªµbp¹û[^¢®f	ş!cÆÛÉ5o9×åO²4’¹tuò"Eq–¯Sjop“™ûp5Î·¶LpReÓÔ#ÍàrùZ˜@aµøË-¸Ê]@¾1«= šgR‡6Eeæ˜TºeŞHûN†wŸf§S8äåI¥Hä5+’Ùá‘PY–d†š Eèq£¦@§vò	w±:ÙI’˜*6UvŸLŠbË×®ÍçÖ¨Ğ<ğ¬èbÿ,`8¶õó—ÿŠÅ©¸]«]¼¦S¯ğØÊ¥hğá‘ŸlôPNp²ªvŞ1R¼µñ“f2o+k›ğ“'ps”W2Ïºñç¥à¢‘ZF>á1E„ŠØúñÍlü·Ñe—¸ÍvÉÙxr;ïÆgÛ‰|G 6¨Ê15ìÄ` •Ç&ä<±êHC©o×AN57õ9çP3µ‚]^;pk'³õA?D›v_åİËYal'­kÈ w.±¼µ] Lw7g7å4©,~d9£¯í›¼é¿~Û…9EÀˆRÅòŞáÖdÕ¾à®%JÏnW>	¾t=åŠŸ#.$©Æ«æMˆ\ƒHÊfæPà «N»¿½ä›z˜Æq¼G·ß7ôhÊÙ&'ua÷¨ëgÃİ5‘± sùŞm„x;3Öö…WÃQ9ÒÛ,o_Ùl“ñ9™Aü¢Ê©1…4j;À¶çËrµc?5´å•“#ŞEÇÎ³5i¸.|*Ëñ ³>uÍŠ„Î ûn[ËÊöQ°BJê¬ÙdjQ„2«ÛŸúb¢È„†ñRÇÍÆ¯§}ŸƒÒèE¬<„.Ó{
+ÿ6ä°5–Èœ45ìm·GÕ®ê–ÓÒ^[9)QÉÑáò¨®«!mü±A·™ã6zègr	Ô½ÒaØ¨2É®;FQÍÄU÷’÷ ò'±ôƒæv[©ˆ0ÁYü?Ê›h Acl‰rñŞšCPa\Äªg7S«{f€ê‚%Wg-j²‚“-wMÒ‹˜Gì-Mæ@}óŠ(}”D*ªºzÕx‚è/òk—ÃÉ“f¼1t-ç¤‘¦OÕsØgøŸlMÛMj3Ã5Ô²aÄ«şIĞIì!©“U«Áë¦‘¦kæ²é¸vXSö	}êóÃ^¸Êñü2£:Ö0›»fi]NvÂçFMî@æ0‡…§=jÀ…Hã:‰8zğ©eûú»™Ûî')ÏÅôËt¦“4ÓÉìWıÒù­¬ƒ‘Ô¸<·®Ÿ+,	=wÁV§[‰	EY[k2ßø%B!O*»‚ÿA™·Í«È£ñm2u¶&ËDyª"™”-v¯$Ö'¹‘–JÂ(øuİ@ş0_çÜú²®MÍ‘Â„¦¸'d01¿dñk"ä¦şHØõŒØÛ3>Ü6DUzDé#íâ¹˜,ß=±¤M‚ú}l=¬­+¢æTÑK*‘cµO¨DCÿ8a/X‘®K»Ñì•ú*‹¸±‹ä[œüg°ÉÚ‚.®àº–5;!òáMŠ¤Í`mnÆíBT‡ğ´Y1ŸWœ¶Şeà",n=(Åó!H—´ƒ Ë ôÒ`¡ßBÌ*yaø‘ÏdÌ<vİëÙ3÷jÄ.·æ÷GûF· Mwƒ…ú‹“¢€@í#·¥l|s)Ò=ş-³¹ßP~[äQÊuµpMèñîí¼±ÃÄ>¢sCøbtûer7»¾¹3h™N¢.¾¡=’‡F	EïäBœÃ×ømdÊI˜€×îÒåµhlÇéC™N~ÿ—Ğ^ˆÓLzëç ùÎÕøå[3Ê*üµ>tÛ3#ßÔÕ”®Uœ^”ïïª¼gŸæšÁuû\g•löÛ*2ê
+ÀÍÖiğ•¶¶¨Èš(ß~^\O/./î¾ôêâ¡;‘…+Ò·şk[¦Øçqøi##f¡ÕvŞCœ°|²‹auÏ©$á*Ï¾bªŸ0‰¯§*‹)‰¿BwªAÕ¼”á°­IX¥ìÛÃm#%£G?»éTß?º†AñW6sÛµKT}7“QM\I[H r³Äì,Jdîk Sâa¨±neD]ïJ.7áã6ƒisbºÃ.õ9NºƒQ‹1ò›\SSkmå^émzC¥=;*|¹LÉ”í+
+.!9ÁÚÎŠ”WÕvmS~ÛIÄ!Ÿ_:RâR)»/­Ú”GLY'­l`No“rÕan•™î-Z¤¶WY
+²–I¯r”|h˜´¸ˆ‘ş@”<ã¥\¸©¦ô†ŸUíjDÕLFÜ°~“¸ü ·‚Q0ı–ÿXŞX•ùİYèN³‰»Q.ç`Gk9×ü*“Ğˆ#Èû§V¾çá€_>íìîè•ø“›9V]ÏñÖM8,oh1Ø§Ğ
+ÓöT’VóôöĞæ|€¦u-Q7>Çôr•ÏsìgIúÌÅã§Ú;/µkWÙz°ıŒ#~èXT3øéd<RÏ¢#Õõ
++Ş›°[nÊnXOõ¼‚·àÔÈ2íøOÓÛâ!Kè•Òf“Îr‰â±}ŞoíàÏÔoøÉ¾äŞœÌq0H6ÕsòŞ¾ş!Ê ß¼‡¾ÁÁ}÷È>rñ¥»·ëØˆ«d—:Şc—Õ3Ö,ug©N•om4öWnE),Ùİ÷¡w½0,Ø2›åªı®FT™¦Ù­‘×Qt ñ ïgĞhÚºé¾p†>ZÛQÈûKÙçl¼´Öñ&¿4)~A’‚èlYÌ«q±€%ƒ]ÕßÇ
+ª”ÙËºÙdê\Û>Ğ=êl±–\ˆ¹
+P'Ye$Í ÀÎ%»ã¥òv
+ÁµÊ0GÒ Åïÿígrë5büàÓæÕ³ÒhÛx(ëÏz^°MÑyaúıŒ»"ûkb+ĞêÑMËÚL©fòÊ=;¤Æ…}í'†˜"{Úœn¿È"l¶ÚüvJwqú4afkİ¹÷xÊŸfpÏ8çŞúFı¬@nºé½[•a›x¶( ¥üÊîÿê¿=ƒ”RşâNçàrC`™¬\U7xù"šyd”D±‡“‹*¶<*ÈJ6¥ËÃ58õxÅÙW¬¨¨—°Ä–¬… pVa`©9P£9¯DÕL'TÂßéíqK®ÃpKŞíÔoxÕ0ÌŒ¬‰v† JWè÷î¦†ŞF¿]g”µ‚òŒmqÅÔ`+Ô’ÒW]Ò,‚Á\—m×²"6mı 1dNáàâóSñWht`Úñ ~úÅ_ØjøÓgÂ”•ø„¢!‰wò@ ü¹vû«ìÔ7ö;
+åw-RDŠËıöç'¶Óc?_ÏHÈü©/Ã&`‹SĞ¶ÔÁvÖSÌsB—nX°“a~½a_ÉĞT†–‘'Ô@sXâëyøû¿€ĞâRé<®Á¨zØNòÜD”fáğõ;;ß|ó(…j7,«Çe=Dõ‰MM6PFg¬ÅT+j6ˆY²¢÷p¢|ùÏ}ÍÎ|(Èì?T)ÖvÚ2_·å7íÛ°k'.ø‡ÃyR5`²ìÏ©g‘AUM›¿FlŒàI7çßùø{U@ó˜¬ˆ˜£İ/µí@vO½ˆ‹¬Y]nÍ¨´XÀê¼Ö™@5 0TîÙ†¶ÊHñ©©Ä‘ÂävÀFnßgÖí;Åğ<ZpÑ„ô¾4“ìì’l^FPæ®¿“M«†efÔüâ64Gh†’SÇ‰˜ºAªx®²ÅöC,û2ŠivÙwëšÇZÄ¬şü± ªœÀ§/¢1÷'õX/à|¡3Õ*Æ5}ìtÈ²l=@Ğ?Qy&&Ae›ÚSÏ¡¾ÒÈ<ÀşD+_í¼±ŠÃçìĞ%Ær³|Î&g2¦÷«×ëPRM½½ÅR?K”H~Öq@ßHŠƒr‹¥NWu:ÌŞjß3 7v3[ßa[vŠ®L®&ÊQÉ~¡‚j†«×OŒÛÊ:œúù)Ê¹zE_kåCé®g}õ;BÔ}5zåJ°Ô´u}X¶íĞífvvq;İíä
+ÙæPe˜“á„å`YFŞ»·ÄïŠ9áoıãûwÿ×Êµ¶¶DÑïı¦»°)X›„P
+YpœJİMY(-„0Èvd‹:–V²šzCşûŞ{îŒ4’g$»ì§Òvf</İÇ9çÎ`Ç»3DçÁûbY).Hg(FÚ1öRbÛ-sc×ã:q%ÎúíF°à¦‡ÃX¡°jîèR_$LãùÅ°„ˆZAH²/YØ[nS2y]lØ]’¬=©ÇW.+m¸˜Š˜UK;¾@›ZÛÆ‚ğvÊ*NSãê"­a {¯q©]y˜ÆáZ\Ï§'ıó³Ğ-Gí÷ÿ†Rá*]†JYs¹¤•š3J×hp«5™ğ8g¡ÿAW¤êã9÷éÉ4Ì—ôíÆƒ‹r¬E7fËBæ‰RÊ›xÅ>¨’Wâ `T®[B—üû¨Çd][İÜ”ÜVåüÚGŠyèÛ	R¬ÙãÇˆşçûAwqcä7”†h¦v½ Hœù˜Íà¿´‚§0M¢È`âeĞ§#÷/_>\]H1âèòzrÑ‹¹Ø^Sšgˆ±Öx"G¯Ã¸usEuuÉÈ(¾ğÁólùµfÇ,`Náš¾$U¤ô‰®KÒ›ÿñbG‡ÆÄKjŒmnŠ;œ¾»”6Ó§ô[¼[™WÖÙP°.Ï†Aq3§Q#7Bpß‰Ù–8?@÷ÂbĞØÈûZèĞ`N\Ÿº„¿ÒÂùC
+Ï—Á¡àœÓ‚Ñ—w<·õ®š™zo‘‚C66|
+gÁ D!Úİúv¿öğC´ûğØ{éˆ¢Ş×xöı‘­ôÖ‘°e!ô…TN!­GÏ>D—	ªà­—1-N;[lÛZ<üLå}‘oH¼,T–§G•“HÅ1„QÒ‚&Ó©ñÓÊ¥‘µÌPŠ0·øµÉ•úü÷õävt¥¹€8-Pio‘ÓÏ£7e€w¼ø<ºøòÒ‰®’t#]ı8^–~@ÿ-ø72/<û~šrbš&ÍK?PcOZ–H‰E%ò\¬‹<ï‘dÕËº²«ß±8ÊÖíA–…ZĞµ”<#Ûèy	¦ÛàYÎœ¼¯ñ¼ï`œ¨à¥ûAÍåÁTœ=Z¶m§-öLÉèÆßU
+­÷ì)¿c-hŸ™ÂÑíÕR†—:=ÇÃfvøŠØº ôÙ§!fòKË©zp´9jçÜ=?=u·«8”–¶ZÀØ"†–ˆİu*mUó—Âê	ïRIœK
+Ë+Õl¦F²…”Ø2œ®Nõç„<í%ŞÙï®w]¤Ò<:0µİR›ª[®Xc&Ì®ËÚóêBæÑd®´öÍAÚP½Èå0S„ÏÊ0Û·Ç¸&¶Ğ>~\Q<D¥Î>h´©u²Vö—†`tB10¨Ê›àGêÈÿ½@R] 3†gõ(`²Å»{«g½QÜ]åEÉÀ—›hM19wK»´áÈöŸpˆ>êq¦)œ*;úñ•tLnÿºQŸFß*™‹õ(GY‚Úí÷š"ü»Á`pÿº"¥=riùf@”ëz
+C%¯01œ‹âÈs Uæ6yë(Çİê›kÏÔ¬Éïıë¤kBñë²:d­üe
+SG“ÇV‘|[‹unZ¼qLá^JÍ“pp<7ÈW*j$#ãóånŒÃı>úú±zX­z@`æÜ‹Èk‚‡µôšrÏ“"›Ù¯Å4ówêÌğğ °kI²-ö \„ŒÛC›;B3+¥à¯ÙM «/€‘hü™õf}yÑâEõ’,¥Ø¶±BF3m	§Eã‡ÁŸgÃáIŸÈ)Ñ¦³¿[ÜçË„Q{‡í‰n–5ä-ËG/'·ãå¹ŒVtoÇE–mıµLñ‚r¸GJåñõä6ëºk±~
+¡#;µÂ§åéDGÇ
+¨÷µ”âüLl­é« 76Ÿ ’OÊ‚?n®HÂjb ŠÍò¶)•Cöƒ±5¦ã¶˜T•ÒTrÜ›pSäæ­)1tv1ócÊˆ—0¸›-ïM5°Øˆ4æÉ…¿+ÚÛ
+¥å{Î¯œİ6ÛVÊÓšxŒCzh{«"}dòbÃWÿ˜îIÌT                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       

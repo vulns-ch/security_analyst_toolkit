@@ -1,0 +1,1409 @@
+Template: libpam-modules/disable-screensaver
+Type: error
+Description: xscreensaver and xlockmore must be restarted before upgrading
+ One or more running instances of xscreensaver or xlockmore have been
+ detected on this system.  Because of incompatible library changes, the
+ upgrade of the libpam-modules package will leave you unable to
+ authenticate to these programs.  You should arrange for these programs
+ to be restarted or stopped before continuing this upgrade, to avoid
+ locking your users out of their current sessions.
+Description-bg.UTF-8: xscreensaver и xlockmore трябва да бъдат рестартирани
+ Открити са работещи процеси xscreensaver или xlockmore. Поради несъвместими промени в библиотеката, обновяването на пакета libpam-modules ще направи невъзможно идентифицирането с тези програми. Трябва да осигурите рестартирането или спирането на xscreensaver и xlockmore за да избегнете проблеми с идентификацията при потребителите, които ги използват.
+Description-ca.UTF-8: Cal reiniciar «xscreensaver» i «xlockmore» abans de l'actualització
+ S'han detectat una o més instàncies dels programes «xscreensaver» o «xlockmore». L'actualització del paquet «libpam-modules» podria impedir l'autenticació en aquests programes degut a canvis incompatibles en la biblioteca. Heu de procurar que aquests programes es reinicien o s'aturin abans de continuar amb l'actualització. Així evitareu que els usuaris quedin bloquejats i no puguin continuar les seves sessions actuals.
+Description-cs.UTF-8: Programy xscreensaver a xlockmore musí být před aktualizací restartovány
+ Zdá se, že v systému běží jedna nebo více instancí programu xscreensaver resp. xlockmore. Z důvodu nekompatibilních změn v knihovnách se po aktualizaci balíku libpam-modules nebudete moci pomocí těchto programů autentizovat. To jinými slovy znamená, že se uživatelé nedostanou ke svým uzamčeným sezením. Abyste tomu předešli, měli byste před aktualizací zmíněné programy zastavit, nebo je ve vhodný čas restartovat.
+Description-da.UTF-8: xscreensaver og xlockmore skal genstartes før opgradering
+ En eller flere kørende instanser af xscreensaver eller xlockmore er blevet fundet på dette system. På grund af inkompatible biblioteksændringer vil opgradering af pakken libpam-modules gøre, at du ikke kan bekræfte ægtheden af disse programmer. Du skal sørge for at disse programmer bliver genstartet eller stoppet, før du fortsætter med opgraderingen, for at undgå låsning af dine brugere i deres aktuelle sessioner.
+Description-de.UTF-8: Xscreensaver und Xlockmore müssen vor dem Upgrade neu gestartet werden
+ Eine oder mehrere laufende Instanzen von Xscreensaver oder Xlockmore sind auf diesem System entdeckt worden. Aufgrund inkompatibler Änderungen in Bibliotheken wird das Upgrade des libpam-modules-Paketes Sie außerstande setzen, sich gegenüber diesen Programmen zu authentifizieren. Sie sollten dafür sorgen, dass diese Programme neu gestartet oder beendet werden, bevor Sie dieses Upgrade fortsetzen, damit Ihre Benutzer nicht aus ihren laufenden Sitzungen ausgesperrt werden.
+Description-es.UTF-8: Debe reiniciar xscreensaver y xlockmore antes de la actualización
+ Se han detectado una o más instancias de los programas xscreensaver o xlockmore. La actualización del paquete libpam-modules podría impedir que pueda autenticarse en estos programas debido a cambios incompatibles en las librerías. Debería procurar que estos programas se reinicien o se paren antes de continuar con la actualización. Así evitará que los usuarios queden bloqueados y no puedan reanudar sus sesiones actuales.
+Description-eu.UTF-8: xscreensaver eta xlockmore berrabiarazi egin behar dira bertsio-berritu aurretik
+ xscreensaver edo xlockmore-ren instantzia bat edo gehiago exekutatzen dagoela detektatu  da sisteman. Liburutegiaren aldaketaren bateraezintasunagatik libpam-modules paketearen bertsio-berritzeak programa horiekin ezin autentifikatzea eragingo dizu. Programa horiek berrabiarazi edop gelditu egin beharko zenituzke bertsio-berritzearekin jarraitu aurretik, sistemako erabiltzaileak beraien uneko saioan blokeatzea saihesteko.
+Description-fi.UTF-8: xscreensaver ja xlockmore täytyy käynnistää uudelleen ennen päivitystä
+ Järjestelmässä ajetaan parhaillaan yhtä tai useampaa xscreensaverin tai xlockmoren instanssia. Paketin libpam-modules kirjastot ovat muuttuneet niin, että päivityksen jälkeen näihin ohjelmiin ei voitaisi yhteensopivuussyistä enää tunnistautua. Nämä ohjelmat tulisi pysäyttää tai käynnistää uudelleen ennen päivityksen jatkamista, jotta käyttäjät eivät lukitse itseään ulos nykyisistä istunnoistaan.
+Description-fr.UTF-8: Redémarrage indispensable de xscreensaver et xlockmore avant la mise à niveau
+ Une ou plusieurs instances de xscreensaver ou de xlockmore ont été détectées sur le système. À cause de la modification de certaines bibliothèques, la mise à niveau du paquet libpam-modules entraînera l'impossibilité de s'authentifier. Avant de poursuivre la mise à niveau, vous devrez planifier le redémarrage ou l'arrêt de ces programmes pour éviter que des utilisateurs ne puissent plus accéder à leur session.
+Description-gl.UTF-8: xscreensaver e xlockmore deben ser reiniciados antes da actualización
+ Detectouse que se están a executar unha ou máis instancias de xscreensaver ou xlockmore no sistema. Por mor de modificacións incompatíbeis en bibliotecas, a actualización do paquete libpam-modules ha facer que non sexa quen de autenticarse nestes programas. Deber reiniciar ou deter estes programas antes de continuar coa actualización, para evitar deixar trancados os usuarios fora das súas sesións de traballo actuais.
+Description-it.UTF-8: xscreensaver e xlockmore devono essere riavviati prima dell'aggiornamento
+ Su questo sistema una o più istanze in esecuzione di xscreensaver o xlockmore sono state rilevate.  A causa di cambiamenti incompatibili nelle librerie, l'aggiornamento del pacchetto libpam-modules renderà impossibile l'autenticazione a questi programmi. Si dovrebbe procedere con il riavvio o l'arresto di questi programmi prima di continuare con l'aggiornamento, al fine di evitare che gli utenti siano bloccati al di fuori delle proprie sessioni.
+Description-ja.UTF-8: xscreensaver と xlockmore を更新前に再起動する必要があります
+ このシステムで 1 つ以上の xscreensaver あるいは xlockmore の動作が検出されました。非互換のライブラリ変更のため、libpam-modules パッケージの更新はこれらのプログラムでの認証ができなくなるという事態にあなたを追いやります。ユーザが現在のセッションの外に締め出されるのを避けるため、このパッケージの更新を継続する前に、これらのプログラムを再起動するか停止するように手配すべきです。
+Description-nl.UTF-8: xscreensaver en xlockmore moeten worden herstart voor u kunt upgraden
+ Er zijn een of meer draaiende instanties van xscreensaver of xlockmore gedetecteerd op dit systeem. Wegens strijdige veranderingen in bibliotheken zal de upgrade van het pakket libpam-modules een systeem veroorzaken waarin u zich niet zult kunnen authenticeren tegenover deze programma's. U dient ervoor te zorgen dat deze programma's worden herstart of gestopt voordat u verder gaat met deze upgrade, om te voorkomen dat gebruikers worden uitgesloten van hun huidige sessies.
+Description-pl.UTF-8: xscreensaver i xlockmore muszą zostać zrestartowane przed aktualizacją
+ Wykryto jedną lub więcej działających kopii programu xscreensaver lub xlockmore. Z powodu niekompatybilnych zmian biblioteki, aktualizacja pakietu libpam-modules uniemożliwiła by autoryzację użytkownika do tych programów. Należy zrestartować lub zatrzymać te programy przed aktualizacją, aby zapobiec utknięciu użytkowników poza ich aktualnymi sesjami.
+Description-pt.UTF-8: xscreensaver e xlockmore têm que ser reiniciados antes da actualização
+ Uma ou mais instâncias do xscreensaver ou xlockmore foram detectadas a funcionar neste sistema. Devido a alterações incompatíveis em bibliotecas, a actualização do pacote libpam-modules irá deixá-lo incapaz de se autenticar nestes programas. Você deve fazer com que estes programas sejam reiniciados ou parados antes de continuar com esta actualização, para evitar trancar os seus utilizadores fora das suas sessões actuais.
+Description-pt_BR.UTF-8: xscreensaver e xlockmore devem ser reiniciados antes da atualização
+ Uma ou mais instâncias do xscreensaver ou do xlockmore foram detectadas em execução neste sistema. Por causa de modificações incompatíveis de biblioteca, a atualização do pacote libpam-modules impossibilitará você de se autenticar nestes programas. Você deve providenciar que estes programas sejam reiniciados ou parados antes de continuar com esta atualização, para evitar bloquear seus usuários fora de suas sessões atuais.
+Description-ro.UTF-8: xscreensaver și xlockmore trebuie repornite înainte de înnoire
+ în sistem s-a detectat cel puțin o instanță activa de xscreensaver sau xlockmore. Datorită unor schimbări de compatibilitate în biblioteci, înnoirea pachetului libpam-modules nu vă va mai permite să vă autentificați în aceste programe. Va trebui să aranjați lucrurile în așa fel încât aceste programe să fie repornite sau oprite înainte de a continua înnoirea pentru a evita blocarea utilizatorilor în afara sesiunilor lor curente.
+Description-ru.UTF-8: Перед обновлением требуется перезапустить xscreensaver и xlockmore
+ Обнаружено, что в системе запущен один или несколько процессов xscreensaver или xlockmore. Из-за изменений в библиотеке обновление пакета libpam-modules приведёт к невозможности выполнения аутентификации в этих программах. Перед тем как продолжить обновление, вам нужно перезапустить или остановить работу этих программ, чтобы избежать блокировки пользователей в их активных сеансах.
+Description-sk.UTF-8: je nutné reštartovať xscreensaver a xlockmore pred aktualizáciou
+ Na tomto systéme bola zistená jedna alebo viacero bežiacich inštancií programov xscreensaver alebo xlockmore. Z dôvodu nekomaptibilných zmien v knižniciach balíka libpam-modules nebudete schopní po aktualizácii overiť identitu týmto programom. Mali by ste zariadiť, aby sa tieto programy reštartovali alebo zastavili predtým, než budete v tejto aktualizácii pokračovať, aby ste predišli tomu, že používatelia sa nebudú môcť prihlásiť zo svojich súčasných relácií.
+Description-sv.UTF-8: xscreensaver och xlockmore måste startas om innan uppgraderingen kan genomföras
+ En eller flera instanser av xscreensaver eller xlockmore körs på det här systemet. På grund av förändringar i biblioteket kan uppgraderingen av paketet libpam-modules innebära att du inte kan identifiera dig i dessa program. Programmen behöver startas om eller allra helst stängas av helt före uppgraderingen, resultatet kan annars innebära att du inte kan komma åt dina aktiva sessioner på systemet.
+Description-tr.UTF-8: Yükseltme işleminden önce xscreensaver ve xlockmore yeniden başlatılmalı
+ Sisteminizde çalışmakta olan birden fazla xscreensaver ya da xlockmore örneğine rastlandı. Uyumsuz kitaplık değişiklikleri yüzünden, libpam-modules paketinin yükseltilmesi bu programlarda kimlik doğrulaması yapmanızı olanaksız kılacaktır. Oturum açmış kullanıcılarınızın oturumlarının kilitlenmemesi için, yükseltmeyi sürdürmeden önce bu programları durdurmalı ya da yeniden başlatmalısınız.
+Description-vi.UTF-8: xscreensaver và xlockmore phải được khởi chạy lại trước khi nâng cấp
+ Một hai nhiều tiến trình xscreensaver hay xlockmore được phát hiện trên hệ thống này. Do thay đổi thư viện không tương thích, việc nâng cấp gói libpam-modules sẽ để lại trường hợp người dùng không thể xác thực với những chương trình này. Vì thế bạn nên khởi chạy lại hoặc ngừng chạy những chương trình này trước khi tiếp tục tiến trình nâng cấp, để tránh chặn người dùng đăng nhập vào buổi hợp đang chạy.
+Description-zh_CN.UTF-8: 在升级前必须重新启动 xscreensaver 和 xlockmore
+ 检测到一个或多个 xscreensaver 或 xlockmore 运行实例。因为不兼容的库的变化，libpam-module 软件包的升级将使您无法向这些程序认证。您需要在继续此升级前安排这些程序重新启动或者停止运行，以避免将您的用户锁在他们的当前会话之外。
+
+Template: libpam-modules/profiles-disabled
+Type: error
+Description: PAM Profiles with Deprecated Modules Disabled
+ Your system had PAM profiles enabled with the ${modules} PAM
+ modules. These modules have been removed from PAM. Leaving these PAM
+ profiles enabled would prevent users from accessing your system. As a
+ result, these profiles have been disabled.
+Description-bg.UTF-8: Изключване на профили на PAM, използващи остарели модули
+ В системата имаше активни профили на PAM, използващи модулите ${modules}. Тези модули са премахнати от PAM. Използването на тези профилите би възпрепятствало достъпа на потребителите до системата и затова са изключени.
+Description-ca.UTF-8: Perfils de PAM amb mòduls descartats desactivats
+ El vostre sistema tenia perfils de PAM activats amb els mòduls PAM ${modules}. Aquests mòduls s'han eliminat de PAM. Deixant aquests perfils activats els usuaris no podrien accedir al vostre sistema. Com a resultat, aquests perfils s'han desactivat.
+Description-de.UTF-8: PAM-Profile mit veralteten Modulen deaktiviert
+ Ihr System hatte PAM-Profile mit den PAM-Modulen ${modules} aktiviert. Diese Module sind aus PAM entfernt worden. Diese PAM-Profile aktivert zu lassen würde Benutzer daran hindern, auf Ihr System zuzugreifen. Infolgedessen sind diese Profile deaktiviert worden.
+Description-fr.UTF-8: Les profils PAM avec des modules obsolètes sont désactivés.
+ Le système comportait des profils PAM activés avec les modules PAM ${modules}. Ces modules ont été retirés de PAM. Laisser ces profils PAM activés pourrait empêcher l'accès d'utilisateurs au système. En conséquence, ces profils ont été désactivés.
+Description-nl.UTF-8: PAM-profielen met achterhaalde modules uitgeschakeld
+ Op uw systeem waren PAM-profielen ingeschakeld met de PAM-modules ${modules}. Deze modules zijn verwijderd uit PAM. Deze PAM-profielen ingeschakeld laten zou gebruikers de toegang tot uw systeem beletten. Daarom zijn deze profielen uitgeschakeld.
+Description-pt.UTF-8: Perfis PAM com Módulos Deprecados Desativados
+ O seu sistema tem perfis PAM activos com os módulos PAM ${modules}. Estes módulos foram removidos do PAM. Deixar estes perfis activos iria impedir os utilizadores de aceder ao seu sistema. Deste modo, estes perfis foram desactivados.
+Description-pt_BR.UTF-8: Perfis PAM com módulos obsoletos desabilitados
+ O seu sistema tinha perfis PAM habilitados com os módulos PAM ${modules}. Esses módulos foram removidos do PAM. Deixar esses perfis PAM habilitados impediria que os usuários acessassem o seu sistema. Como resultado, esses perfis foram desabilitados.
+Description-ro.UTF-8: Profilele PAM cu module învechite au fost dezactivate
+ Acest sistem are profile PAM activate cu modulele PAM ${modules}. Aceste module au fost scoase din PAM. Păstrarea acestor profile PAM activate ar împiedica accesul utilizatorilor la sistem. În consecință aceste profile au fost dezactivate.
+Description-ru.UTF-8: Профили PAM с устаревшими модулями отключены
+ В вашей системе были включены профили PAM с модулями ${modules}. Эти модули были удалены из PAM. Если оставить данные профили включёнными, то пользователи не смогут получить доступ к системе. По этой причине данные профили были отключены.
+Description-sk.UTF-8: Profily PAM s vypnutými zastaranými modulmi
+ Váš systém mal povolené PAM profily s modulmi ${modules}. Tieto moduly boli odstránené z PAM. Ponechanie týchto PAM profilov by zabránilo používateľom v prístupe k vášmu systému. V dôsledku toho boli tieto profily vypnuté.
+Description-sv.UTF-8: PAM-profiler med utfasade moduler har avaktiverats
+ Ditt system hade PAM-profiler med PAM-modulerna ${modules} aktiverade. Dessa moduler har tagits bort från PAM. Om PAM-profilerna fortsatt skulle vara aktiverade så hade det förhindrat användare för att komma åt systemet. I och med detta så har profilerna inaktiverats.
+Description-tr.UTF-8: Artık kullanılmayan modülleri içeren PAM profilleri etkisizleştirildi
+ Sisteminizde ${modules} PAM modüllerinin etkinleştirildiği PAM profilleri bulunuyordu. Bu modüller şimdi kaldırıldığı için, o PAM profillerindeki ilgili içerikler de etkisizleştirildi. Öbür türlü kullanıcıların sisteminize erişiminde sorunlar yaşanacaktı.
+Description-zh_CN.UTF-8: 已禁用带有已弃用模块的 PAM 配置策略
+ 您的系统上存在带有 ${modules} PAM 模块的 PAM 配置策略。这些模块已从 PAM 中移除。如继续启用这些 PAM 配置策略则用户将无法经此方式验证并访问系统。因此，这些配置策略已被禁用。
+
+Template: libpam-modules/deprecate-tally
+Type: error
+Description: you are using pam_tally or pam_tally2 in your configuration
+ The pam_tally and pam_tally2 modules have been removed from PAM. You
+ are using one of these modules in your PAM configuration in
+ /etc/pam.d. You must remove the uses of these modules before PAM can
+ be upgraded; including these modules in your PAM configuration after
+ the upgrade will stop users from being able to log into the system.
+ .
+ Consider the pam_faillock module as a replacement for pam_tally.
+Description-bg.UTF-8: настройките на системата използват pam_tally или pam_tally2
+ Модулите pam_tally и pam_tally2 са премахнати от PAM. Необходимо тези модули да бъдат премахнати от настройките в /etc/pam.d преди обновяването на PAM. В противен случай, след обновяването на системата потребителите няма да могат да влизат.
+ .
+ Модулът pam_faillock може да се използва като заместител на pam_tally.
+Description-ca.UTF-8: esteu utilitzant pam_tally o pam_tally2 a la vostra configuració
+ Els mòduls pam_tally i pam_tally2 s'han eliminat de PAM. Esteu utilitzant un d'aquests mòduls a la vostra configuració de PAM a /etc/pam.d. Heu d'eliminar els usos d'aquests mòduls abans que es pugui actualitzar PAM ja que, amb aquests mòduls inclosos a la vostra configuració de PAM, després de l'actualització els usuaris deixarien de poder entrar al sistema.
+ .
+ Valoreu el mòdul pam_faillock com a substitut de pam_tally.
+Description-de.UTF-8: Sie verwenden pam_tally oder pam_tally2 in Ihrer Konfiguration
+ Die Module pam_tally und pam_tally2 sind aus PAM entfernt worden. Sie verwenden eines dieser Module in Ihrer PAM-Konfiguration in /etc/pam.d. Sie müssen die Verwendung dieser Module entfernen, bevor das Upgrade von PAM durchgeführt werden kann; die Einbindung dieser Module in Ihrer PAM-Konfiguration nach dem Upgrade wird Benutzer davon abhalten, sich an dem System anzumelden.
+ .
+ Betrachten Sie das Modul pam_faillock als Ersatz for pam_tally.
+Description-fr.UTF-8: Vous utilisez pam_tally ou pam_tally2 dans votre configuration.
+ Les modules pam_tally et pam_tally2 ont été retirés de PAM. Vous utilisez un de ces modules dans le fichier de configuration de PAM dans /etc/pam.d. Vous devez supprimer l'usage de ces modules avant que PAM puissent être mis à niveau. L'inclusion de ces modules dans la configuration de PAM après la mise à niveau empêchera certains utilisateurs de se connecter au système.
+ .
+ Vous devriez envisager d'utiliser le module pam_faillock comme alternative à pam_tally.
+Description-nl.UTF-8: u gebruikt in uw configuratie pam_tally of pam_tally2
+ De modules pam_tally en pam_tally2 zijn verwijderd uit PAM. U gebruikt één van deze modules in uw PAM-configuratie in /etc/pam.d. U moet het gebruik van deze modules verwijderen voordat PAM opgewaardeerd kan worden; het opnemen van deze modules in uw PAM-configuratie na de opwaardering zal ervoor zorgen dat gebruikers zich niet meer kunnen aanmelden op het systeem.
+ .
+ Beschouw de module pam_faillock als een vervanging voor pam_tally.
+Description-pt.UTF-8: está a usar pam_tally ou pam_tally2 na sua configuração
+ Os módulos pam_tally e pam_tally2 foram removidos do PAM. Está a usar um destes módulos na sua configuração de PAM em /etc/pam.d. Tem que remover as referências a estes módulos antes de actualizar o PAM; incluir estes módulos na sua configuração após a actualização do PAM irá impedir os utilizadores de fazer login no seu sistema.
+ .
+ Considere usar o módulo pam_faillock como substuituto do pam_tally.
+Description-pt_BR.UTF-8: você está usando pam_tally ou pam_tally2 na sua configuração
+ Os módulos pam_tally e pam_tally2 foram removidos do PAM. Você está usando um desses módulos na sua configuração do PAM em /etc/pam.d. Você deve remover o uso desses módulos antes que o PAM possa ser atualizado. Incluir esses módulos na sua configuração do PAM depois da atualização impedirá que os usuários consigam logar no sistema.
+ .
+ Considere o módulo pam_faillock como um substituto para o pam_tally.
+Description-ro.UTF-8: folosiți pam_tally sau pam_tally2
+ Modulele pam_tally și pam_tally2 au fost scoase din PAM. Acum utilizați unul din aceste module în configurația PAM din /etc/pam.d. Înainde de a putea actualiza PAM utilizarea acestor module trebuie oprită. Includerea acestor module după actualizare în configurația PAM va împiedica accesul utilizatorilor la sistem.
+ .
+ Modulul pam_faillock are putea fi un înlocuitor pentru pam_tally.
+Description-ru.UTF-8: В вашей конфигурации используется pam_tally или pam_tally2
+ Модули pam_tally и pam_tally2 были удалены из PAM, однако в ваших настройках PAM в /etc/pam.d используется один из этих модулей. Перед обновлением PAM необходимо удалить использование данных модулей; включение этих модулей в конфигурацию PAM после обновления не позволит пользователям войти в систему.
+ .
+ Рассмотрите модуль pam_faillock как замену pam_tally.
+Description-sk.UTF-8: používate pam_tally alebo pam_tally2 vo vašej konfigurácii
+ Moduly pam_tally a pam_tally2 boli z PAM odstránené. Používate jeden z týchto modulov v konfigurácii PAM v /etc/pam.d. Pred aktualizáciou PAM musíte odstrániť použitie týchto modulov. Zahrnutie týchto modulov do konfigurácie PAM by po aktualizácii znemožnilo používateľom prihlásiť sa do systému.
+ .
+ Zvážte pam_faillock modul ako náhradu za pam_tally.
+Description-sv.UTF-8: Du använder pam_tally eller pam_tally2 i dina inställningar
+ pam_tally och pam_tally2 har tagits bort från PAM. Du använder någon av dessa moduler i PAMs inställningar i /etc/pam.d. Du måste ta bort användandet av dessa moduler innan PAM kan uppgraderas. Att ha dessa moduler i dina inställningar efter uppgraderingen kommer hindra användare från att logga in i ditt system.
+ .
+ Överväg att använda modulen pam_faillock som ersättare för pam_tally.
+Description-tr.UTF-8: Yapılandırmanızda pam_tally ya da pam_tally2 modülünü kullanıyorsunuz
+ pam_tally ve pam_tally2 modülleri PAM sisteminden kaldırıldı. /etc/pam.d dizinindeki yapılandırmalarınızda bu modüllerden birini kullanıyorsunuz. PAM yükseltmesi öncesinde bu kullanımları kaldırmanız gerekiyor. Bu modülleri kullanan PAM yapılandırmalarını öylece bırakırsanız, kullanıcılarınız yükseltmeden sonra sisteminize giriş yapamayacaklardır.
+ .
+ pam_tally yerine pam_faillock modülünü kullanmayı düşünebilirsiniz.
+Description-zh_CN.UTF-8: 您的配置文件中正在使用 pam_tally 或 pam_tally2
+ 请注意，pam_tally 和 pam_tally2 模块已从 PAM 中移除。您正在系统上 /etc/pam.d 中的配置文件中使用其中某个模块。在 PAM 更新之前，您必须移除对这些模块的使用；在升级后依旧于 PAM 配置中使用这些模块将导致用户无法使用该方式登录系统。
+ .
+ 请考虑使用 pam_faillock 模块作为 pam_tally 的替代。
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             /etc/pam.conf
+/etc/pam.d/other
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 /.
+/etc
+/etc/pam.conf
+/etc/pam.d
+/etc/pam.d/other
+/usr
+/usr/sbin
+/usr/sbin/pam-auth-update
+/usr/sbin/pam_getenv
+/usr/share
+/usr/share/doc
+/usr/share/doc/libpam-runtime
+/usr/share/doc/libpam-runtime/changelog.Debian.gz
+/usr/share/doc/libpam-runtime/changelog.gz
+/usr/share/doc/libpam-runtime/copyright
+/usr/share/lintian
+/usr/share/lintian/overrides
+/usr/share/lintian/overrides/libpam-runtime
+/usr/share/locale
+/usr/share/locale/af
+/usr/share/locale/af/LC_MESSAGES
+/usr/share/locale/af/LC_MESSAGES/Linux-PAM.mo
+/usr/share/locale/am
+/usr/share/locale/am/LC_MESSAGES
+/usr/share/locale/am/LC_MESSAGES/Linux-PAM.mo
+/usr/share/locale/ar
+/usr/share/locale/ar/LC_MESSAGES
+/usr/share/locale/ar/LC_MESSAGES/Linux-PAM.mo
+/usr/share/locale/as
+/usr/share/locale/as/LC_MESSAGES
+/usr/share/locale/as/LC_MESSAGES/Linux-PAM.mo
+/usr/share/locale/az
+/usr/share/locale/az/LC_MESSAGES
+/usr/share/locale/az/LC_MESSAGES/Linux-PAM.mo
+/usr/share/locale/be
+/usr/share/locale/be/LC_MESSAGES
+/usr/share/locale/be/LC_MESSAGES/Linux-PAM.mo
+/usr/share/locale/bg
+/usr/share/locale/bg/LC_MESSAGES
+/usr/share/locale/bg/LC_MESSAGES/Linux-PAM.mo
+/usr/share/locale/bn
+/usr/share/locale/bn/LC_MESSAGES
+/usr/share/locale/bn/LC_MESSAGES/Linux-PAM.mo
+/usr/share/locale/bn_IN
+/usr/share/locale/bn_IN/LC_MESSAGES
+/usr/share/locale/bn_IN/LC_MESSAGES/Linux-PAM.mo
+/usr/share/locale/bs
+/usr/share/locale/bs/LC_MESSAGES
+/usr/share/locale/bs/LC_MESSAGES/Linux-PAM.mo
+/usr/share/locale/ca
+/usr/share/locale/ca/LC_MESSAGES
+/usr/share/locale/ca/LC_MESSAGES/Linux-PAM.mo
+/usr/share/locale/cs
+/usr/share/locale/cs/LC_MESSAGES
+/usr/share/locale/cs/LC_MESSAGES/Linux-PAM.mo
+/usr/share/locale/cy
+/usr/share/locale/cy/LC_MESSAGES
+/usr/share/locale/cy/LC_MESSAGES/Linux-PAM.mo
+/usr/share/locale/da
+/usr/share/locale/da/LC_MESSAGES
+/usr/share/locale/da/LC_MESSAGES/Linux-PAM.mo
+/usr/share/locale/de
+/usr/share/locale/de/LC_MESSAGES
+/usr/share/locale/de/LC_MESSAGES/Linux-PAM.mo
+/usr/share/locale/de_CH
+/usr/share/locale/de_CH/LC_MESSAGES
+/usr/share/locale/de_CH/LC_MESSAGES/Linux-PAM.mo
+/usr/share/locale/el
+/usr/share/locale/el/LC_MESSAGES
+/usr/share/locale/el/LC_MESSAGES/Linux-PAM.mo
+/usr/share/locale/eo
+/usr/share/locale/eo/LC_MESSAGES
+/usr/share/locale/eo/LC_MESSAGES/Linux-PAM.mo
+/usr/share/locale/es
+/usr/share/locale/es/LC_MESSAGES
+/usr/share/locale/es/LC_MESSAGES/Linux-PAM.mo
+/usr/share/locale/et
+/usr/share/locale/et/LC_MESSAGES
+/usr/share/locale/et/LC_MESSAGES/Linux-PAM.mo
+/usr/share/locale/eu
+/usr/share/locale/eu/LC_MESSAGES
+/usr/share/locale/eu/LC_MESSAGES/Linux-PAM.mo
+/usr/share/locale/fa
+/usr/share/locale/fa/LC_MESSAGES
+/usr/share/locale/fa/LC_MESSAGES/Linux-PAM.mo
+/usr/share/locale/fi
+/usr/share/locale/fi/LC_MESSAGES
+/usr/share/locale/fi/LC_MESSAGES/Linux-PAM.mo
+/usr/share/locale/fr
+/usr/share/locale/fr/LC_MESSAGES
+/usr/share/locale/fr/LC_MESSAGES/Linux-PAM.mo
+/usr/share/locale/ga
+/usr/share/locale/ga/LC_MESSAGES
+/usr/share/locale/ga/LC_MESSAGES/Linux-PAM.mo
+/usr/share/locale/gl
+/usr/share/locale/gl/LC_MESSAGES
+/usr/share/locale/gl/LC_MESSAGES/Linux-PAM.mo
+/usr/share/locale/gu
+/usr/share/locale/gu/LC_MESSAGES
+/usr/share/locale/gu/LC_MESSAGES/Linux-PAM.mo
+/usr/share/locale/he
+/usr/share/locale/he/LC_MESSAGES
+/usr/share/locale/he/LC_MESSAGES/Linux-PAM.mo
+/usr/share/locale/hi
+/usr/share/locale/hi/LC_MESSAGES
+/usr/share/locale/hi/LC_MESSAGES/Linux-PAM.mo
+/usr/share/locale/hr
+/usr/share/locale/hr/LC_MESSAGES
+/usr/share/locale/hr/LC_MESSAGES/Linux-PAM.mo
+/usr/share/locale/hu
+/usr/share/locale/hu/LC_MESSAGES
+/usr/share/locale/hu/LC_MESSAGES/Linux-PAM.mo
+/usr/share/locale/ia
+/usr/share/locale/ia/LC_MESSAGES
+/usr/share/locale/ia/LC_MESSAGES/Linux-PAM.mo
+/usr/share/locale/id
+/usr/share/locale/id/LC_MESSAGES
+/usr/share/locale/id/LC_MESSAGES/Linux-PAM.mo
+/usr/share/locale/is
+/usr/share/locale/is/LC_MESSAGES
+/usr/share/locale/is/LC_MESSAGES/Linux-PAM.mo
+/usr/share/locale/it
+/usr/share/locale/it/LC_MESSAGES
+/usr/share/locale/it/LC_MESSAGES/Linux-PAM.mo
+/usr/share/locale/ja
+/usr/share/locale/ja/LC_MESSAGES
+/usr/share/locale/ja/LC_MESSAGES/Linux-PAM.mo
+/usr/share/locale/ka
+/usr/share/locale/ka/LC_MESSAGES
+/usr/share/locale/ka/LC_MESSAGES/Linux-PAM.mo
+/usr/share/locale/kk
+/usr/share/locale/kk/LC_MESSAGES
+/usr/share/locale/kk/LC_MESSAGES/Linux-PAM.mo
+/usr/share/locale/km
+/usr/share/locale/km/LC_MESSAGES
+/usr/share/locale/km/LC_MESSAGES/Linux-PAM.mo
+/usr/share/locale/kn
+/usr/share/locale/kn/LC_MESSAGES
+/usr/share/locale/kn/LC_MESSAGES/Linux-PAM.mo
+/usr/share/locale/ko
+/usr/share/locale/ko/LC_MESSAGES
+/usr/share/locale/ko/LC_MESSAGES/Linux-PAM.mo
+/usr/share/locale/kw_GB
+/usr/share/locale/kw_GB/LC_MESSAGES
+/usr/share/locale/kw_GB/LC_MESSAGES/Linux-PAM.mo
+/usr/share/locale/ky
+/usr/share/locale/ky/LC_MESSAGES
+/usr/share/locale/ky/LC_MESSAGES/Linux-PAM.mo
+/usr/share/locale/lt
+/usr/share/locale/lt/LC_MESSAGES
+/usr/share/locale/lt/LC_MESSAGES/Linux-PAM.mo
+/usr/share/locale/lv
+/usr/share/locale/lv/LC_MESSAGES
+/usr/share/locale/lv/LC_MESSAGES/Linux-PAM.mo
+/usr/share/locale/mk
+/usr/share/locale/mk/LC_MESSAGES
+/usr/share/locale/mk/LC_MESSAGES/Linux-PAM.mo
+/usr/share/locale/ml
+/usr/share/locale/ml/LC_MESSAGES
+/usr/share/locale/ml/LC_MESSAGES/Linux-PAM.mo
+/usr/share/locale/mn
+/usr/share/locale/mn/LC_MESSAGES
+/usr/share/locale/mn/LC_MESSAGES/Linux-PAM.mo
+/usr/share/locale/mr
+/usr/share/locale/mr/LC_MESSAGES
+/usr/share/locale/mr/LC_MESSAGES/Linux-PAM.mo
+/usr/share/locale/ms
+/usr/share/locale/ms/LC_MESSAGES
+/usr/share/locale/ms/LC_MESSAGES/Linux-PAM.mo
+/usr/share/locale/my
+/usr/share/locale/my/LC_MESSAGES
+/usr/share/locale/my/LC_MESSAGES/Linux-PAM.mo
+/usr/share/locale/nb
+/usr/share/locale/nb/LC_MESSAGES
+/usr/share/locale/nb/LC_MESSAGES/Linux-PAM.mo
+/usr/share/locale/ne
+/usr/share/locale/ne/LC_MESSAGES
+/usr/share/locale/ne/LC_MESSAGES/Linux-PAM.mo
+/usr/share/locale/nl
+/usr/share/locale/nl/LC_MESSAGES
+/usr/share/locale/nl/LC_MESSAGES/Linux-PAM.mo
+/usr/share/locale/nn
+/usr/share/locale/nn/LC_MESSAGES
+/usr/share/locale/nn/LC_MESSAGES/Linux-PAM.mo
+/usr/share/locale/or
+/usr/share/locale/or/LC_MESSAGES
+/usr/share/locale/or/LC_MESSAGES/Linux-PAM.mo
+/usr/share/locale/pa
+/usr/share/locale/pa/LC_MESSAGES
+/usr/share/locale/pa/LC_MESSAGES/Linux-PAM.mo
+/usr/share/locale/pl
+/usr/share/locale/pl/LC_MESSAGES
+/usr/share/locale/pl/LC_MESSAGES/Linux-PAM.mo
+/usr/share/locale/pt
+/usr/share/locale/pt/LC_MESSAGES
+/usr/share/locale/pt/LC_MESSAGES/Linux-PAM.mo
+/usr/share/locale/pt_BR
+/usr/share/locale/pt_BR/LC_MESSAGES
+/usr/share/locale/pt_BR/LC_MESSAGES/Linux-PAM.mo
+/usr/share/locale/ro
+/usr/share/locale/ro/LC_MESSAGES
+/usr/share/locale/ro/LC_MESSAGES/Linux-PAM.mo
+/usr/share/locale/ru
+/usr/share/locale/ru/LC_MESSAGES
+/usr/share/locale/ru/LC_MESSAGES/Linux-PAM.mo
+/usr/share/locale/si
+/usr/share/locale/si/LC_MESSAGES
+/usr/share/locale/si/LC_MESSAGES/Linux-PAM.mo
+/usr/share/locale/sk
+/usr/share/locale/sk/LC_MESSAGES
+/usr/share/locale/sk/LC_MESSAGES/Linux-PAM.mo
+/usr/share/locale/sl
+/usr/share/locale/sl/LC_MESSAGES
+/usr/share/locale/sl/LC_MESSAGES/Linux-PAM.mo
+/usr/share/locale/sq
+/usr/share/locale/sq/LC_MESSAGES
+/usr/share/locale/sq/LC_MESSAGES/Linux-PAM.mo
+/usr/share/locale/sr
+/usr/share/locale/sr/LC_MESSAGES
+/usr/share/locale/sr/LC_MESSAGES/Linux-PAM.mo
+/usr/share/locale/sr@latin
+/usr/share/locale/sr@latin/LC_MESSAGES
+/usr/share/locale/sr@latin/LC_MESSAGES/Linux-PAM.mo
+/usr/share/locale/sv
+/usr/share/locale/sv/LC_MESSAGES
+/usr/share/locale/sv/LC_MESSAGES/Linux-PAM.mo
+/usr/share/locale/ta
+/usr/share/locale/ta/LC_MESSAGES
+/usr/share/locale/ta/LC_MESSAGES/Linux-PAM.mo
+/usr/share/locale/te
+/usr/share/locale/te/LC_MESSAGES
+/usr/share/locale/te/LC_MESSAGES/Linux-PAM.mo
+/usr/share/locale/tg
+/usr/share/locale/tg/LC_MESSAGES
+/usr/share/locale/tg/LC_MESSAGES/Linux-PAM.mo
+/usr/share/locale/th
+/usr/share/locale/th/LC_MESSAGES
+/usr/share/locale/th/LC_MESSAGES/Linux-PAM.mo
+/usr/share/locale/tr
+/usr/share/locale/tr/LC_MESSAGES
+/usr/share/locale/tr/LC_MESSAGES/Linux-PAM.mo
+/usr/share/locale/uk
+/usr/share/locale/uk/LC_MESSAGES
+/usr/share/locale/uk/LC_MESSAGES/Linux-PAM.mo
+/usr/share/locale/ur
+/usr/share/locale/ur/LC_MESSAGES
+/usr/share/locale/ur/LC_MESSAGES/Linux-PAM.mo
+/usr/share/locale/vi
+/usr/share/locale/vi/LC_MESSAGES
+/usr/share/locale/vi/LC_MESSAGES/Linux-PAM.mo
+/usr/share/locale/yo
+/usr/share/locale/yo/LC_MESSAGES
+/usr/share/locale/yo/LC_MESSAGES/Linux-PAM.mo
+/usr/share/locale/zh_CN
+/usr/share/locale/zh_CN/LC_MESSAGES
+/usr/share/locale/zh_CN/LC_MESSAGES/Linux-PAM.mo
+/usr/share/locale/zh_HK
+/usr/share/locale/zh_HK/LC_MESSAGES
+/usr/share/locale/zh_HK/LC_MESSAGES/Linux-PAM.mo
+/usr/share/locale/zh_TW
+/usr/share/locale/zh_TW/LC_MESSAGES
+/usr/share/locale/zh_TW/LC_MESSAGES/Linux-PAM.mo
+/usr/share/locale/zu
+/usr/share/locale/zu/LC_MESSAGES
+/usr/share/locale/zu/LC_MESSAGES/Linux-PAM.mo
+/usr/share/man
+/usr/share/man/man5
+/usr/share/man/man5/access.conf.5.gz
+/usr/share/man/man5/faillock.conf.5.gz
+/usr/share/man/man5/group.conf.5.gz
+/usr/share/man/man5/limits.conf.5.gz
+/usr/share/man/man5/namespace.conf.5.gz
+/usr/share/man/man5/pam.conf.5.gz
+/usr/share/man/man5/pam_env.conf.5.gz
+/usr/share/man/man5/pwhistory.conf.5.gz
+/usr/share/man/man5/sepermit.conf.5.gz
+/usr/share/man/man5/time.conf.5.gz
+/usr/share/man/man7
+/usr/share/man/man7/PAM.7.gz
+/usr/share/man/man8
+/usr/share/man/man8/faillock.8.gz
+/usr/share/man/man8/mkhomedir_helper.8.gz
+/usr/share/man/man8/pam-auth-update.8.gz
+/usr/share/man/man8/pam_access.8.gz
+/usr/share/man/man8/pam_canonicalize_user.8.gz
+/usr/share/man/man8/pam_debug.8.gz
+/usr/share/man/man8/pam_deny.8.gz
+/usr/share/man/man8/pam_echo.8.gz
+/usr/share/man/man8/pam_env.8.gz
+/usr/share/man/man8/pam_exec.8.gz
+/usr/share/man/man8/pam_faildelay.8.gz
+/usr/share/man/man8/pam_faillock.8.gz
+/usr/share/man/man8/pam_filter.8.gz
+/usr/share/man/man8/pam_ftp.8.gz
+/usr/share/man/man8/pam_getenv.8.gz
+/usr/share/man/man8/pam_group.8.gz
+/usr/share/man/man8/pam_issue.8.gz
+/usr/share/man/man8/pam_keyinit.8.gz
+/usr/share/man/man8/pam_limits.8.gz
+/usr/share/man/man8/pam_listfile.8.gz
+/usr/share/man/man8/pam_localuser.8.gz
+/usr/share/man/man8/pam_loginuid.8.gz
+/usr/share/man/man8/pam_mail.8.gz
+/usr/share/man/man8/pam_mkhomedir.8.gz
+/usr/share/man/man8/pam_motd.8.gz
+/usr/share/man/man8/pam_namespace.8.gz
+/usr/share/man/man8/pam_namespace_helper.8.gz
+/usr/share/man/man8/pam_nologin.8.gz
+/usr/share/man/man8/pam_permit.8.gz
+/usr/share/man/man8/pam_pwhistory.8.gz
+/usr/share/man/man8/pam_rhosts.8.gz
+/usr/share/man/man8/pam_rootok.8.gz
+/usr/share/man/man8/pam_securetty.8.gz
+/usr/share/man/man8/pam_selinux.8.gz
+/usr/share/man/man8/pam_sepermit.8.gz
+/usr/share/man/man8/pam_setquota.8.gz
+/usr/share/man/man8/pam_shells.8.gz
+/usr/share/man/man8/pam_stress.8.gz
+/usr/share/man/man8/pam_succeed_if.8.gz
+/usr/share/man/man8/pam_time.8.gz
+/usr/share/man/man8/pam_timestamp.8.gz
+/usr/share/man/man8/pam_timestamp_check.8.gz
+/usr/share/man/man8/pam_tty_audit.8.gz
+/usr/share/man/man8/pam_umask.8.gz
+/usr/share/man/man8/pam_unix.8.gz
+/usr/share/man/man8/pam_userdb.8.gz
+/usr/share/man/man8/pam_usertype.8.gz
+/usr/share/man/man8/pam_warn.8.gz
+/usr/share/man/man8/pam_wheel.8.gz
+/usr/share/man/man8/pam_xauth.8.gz
+/usr/share/man/man8/pwhistory_helper.8.gz
+/usr/share/man/man8/unix_chkpwd.8.gz
+/usr/share/man/man8/unix_update.8.gz
+/usr/share/pam
+/usr/share/pam/common-account
+/usr/share/pam/common-account.md5sums
+/usr/share/pam/common-auth
+/usr/share/pam/common-auth.md5sums
+/usr/share/pam/common-password
+/usr/share/pam/common-password.md5sums
+/usr/share/pam/common-session
+/usr/share/pam/common-session-noninteractive
+/usr/share/pam/common-session-noninteractive.md5sums
+/usr/share/pam/common-session.md5sums
+/usr/share/pam-configs
+/usr/share/pam-configs/unix
+/var
+/var/lib
+/var/lib/pam
+/usr/share/man/man5/environment.5.gz
+/usr/share/man/man5/pam.d.5.gz
+/usr/share/man/man7/pam.7.gz
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               db00f40afc9a1eb9d2bf8c0c5ce278ac  usr/sbin/pam-auth-update
+f599dc6c03a2251b3b53ecd115d5b0e9  usr/sbin/pam_getenv
+931ec50c91ab1cdd00d812ab1af23347  usr/share/doc/libpam-runtime/changelog.Debian.gz
+d98c39ac49c0e05d7d83483a9f76fe59  usr/share/doc/libpam-runtime/changelog.gz
+d87fc780d44c6d0f836bac2a852fcc9a  usr/share/doc/libpam-runtime/copyright
+d194f98c1ff1ddf4c9f9a017ad3aff56  usr/share/lintian/overrides/libpam-runtime
+8fc8bfef98b506dea6c5004f72abd362  usr/share/locale/af/LC_MESSAGES/Linux-PAM.mo
+d78699c2349b8a617b21fb35d0009c7b  usr/share/locale/am/LC_MESSAGES/Linux-PAM.mo
+e89561b48d4ea7826f9425f57c6e6488  usr/share/locale/ar/LC_MESSAGES/Linux-PAM.mo
+ebcbab50dcab1384f0fd0afc7ca75528  usr/share/locale/as/LC_MESSAGES/Linux-PAM.mo
+4f071a049d662fb196ed4ad607f2c09d  usr/share/locale/az/LC_MESSAGES/Linux-PAM.mo
+0314545a410f19f96ae6d93e179e99e5  usr/share/locale/be/LC_MESSAGES/Linux-PAM.mo
+398d6b17285148ba9625a13b0a5a8c8b  usr/share/locale/bg/LC_MESSAGES/Linux-PAM.mo
+9e0ce4c436455a0ba8dbb0317564f725  usr/share/locale/bn/LC_MESSAGES/Linux-PAM.mo
+67647c94b437627b34c2fc899c6e0879  usr/share/locale/bn_IN/LC_MESSAGES/Linux-PAM.mo
+87740e032f1761a5e3647b4572913add  usr/share/locale/bs/LC_MESSAGES/Linux-PAM.mo
+34cd914b9809d1e00563e939103bbec0  usr/share/locale/ca/LC_MESSAGES/Linux-PAM.mo
+dcc0c9c4b16e532225f27356f8b32db3  usr/share/locale/cs/LC_MESSAGES/Linux-PAM.mo
+f58b089e7b0e8b24e4fa9c8a47f80624  usr/share/locale/cy/LC_MESSAGES/Linux-PAM.mo
+666ec413c10c6044bce858d9489117c1  usr/share/locale/da/LC_MESSAGES/Linux-PAM.mo
+28aeae24c5b6711e8beb15c048b886b0  usr/share/locale/de/LC_MESSAGES/Linux-PAM.mo
+910cac1c5714805342ef2b2d528d304b  usr/share/locale/de_CH/LC_MESSAGES/Linux-PAM.mo
+b6f9c493012d79846e0ee514eff16d33  usr/share/locale/el/LC_MESSAGES/Linux-PAM.mo
+f1a350ce45279f7934b690e4ffc5cc8f  usr/share/locale/eo/LC_MESSAGES/Linux-PAM.mo
+87501f7aa90faf219ebf6a58f9e1d92d  usr/share/locale/es/LC_MESSAGES/Linux-PAM.mo
+55889421d9e4d0e7eae60c248ac39369  usr/share/locale/et/LC_MESSAGES/Linux-PAM.mo
+aaaa9365712a9148fc5e0c1769a4abcd  usr/share/locale/eu/LC_MESSAGES/Linux-PAM.mo
+fac4c19de37cf4febeb1c799cd05108a  usr/share/locale/fa/LC_MESSAGES/Linux-PAM.mo
+553dfdea6b57992570572a6498ab6e88  usr/share/locale/fi/LC_MESSAGES/Linux-PAM.mo
+8e701c2a28aafc0bf8039c5255637260  usr/share/locale/fr/LC_MESSAGES/Linux-PAM.mo
+9018bd132892bfdd6018609a4dff4842  usr/share/locale/ga/LC_MESSAGES/Linux-PAM.mo
+b15addbf77c59210cceb65d790946aa2  usr/share/locale/gl/LC_MESSAGES/Linux-PAM.mo
+e9091fa9430b9008794b6464b88b1d11  usr/share/locale/gu/LC_MESSAGES/Linux-PAM.mo
+eda1bcd31d657b78a203c76feef9ef45  usr/share/locale/he/LC_MESSAGES/Linux-PAM.mo
+21794fdd9e3f9b3d91c8a320dc2c2bb2  usr/share/locale/hi/LC_MESSAGES/Linux-PAM.mo
+e51137f69983c33f16420775c5b0c869  usr/share/locale/hr/LC_MESSAGES/Linux-PAM.mo
+225cb6d94b808a7263e070dc0189bf77  usr/share/locale/hu/LC_MESSAGES/Linux-PAM.mo
+7427398597a61e1246a9ee71163bae3e  usr/share/locale/ia/LC_MESSAGES/Linux-PAM.mo
+701fc1828efb3a0d38395e3b156dc6b7  usr/share/locale/id/LC_MESSAGES/Linux-PAM.mo
+4817afc65795fc97caa115aa74bbf1e9  usr/share/locale/is/LC_MESSAGES/Linux-PAM.mo
+ef5612cee549c79d1d62ff53f48ec036  usr/share/locale/it/LC_MESSAGES/Linux-PAM.mo
+06b223e4e35b45374979450d71122ed3  usr/share/locale/ja/LC_MESSAGES/Linux-PAM.mo
+4efbc8ff5794dab7ff46ec6a165bc824  usr/share/locale/ka/LC_MESSAGES/Linux-PAM.mo
+b5ec4f723f3ec314dc2e87bd0766c494  usr/share/locale/kk/LC_MESSAGES/Linux-PAM.mo
+de95c357e9de72836a7c90338e7b5346  usr/share/locale/km/LC_MESSAGES/Linux-PAM.mo
+78f783c8599d854848b19239fae0b6f4  usr/share/locale/kn/LC_MESSAGES/Linux-PAM.mo
+d5db90c9d23ce5383e8cae97312184b4  usr/share/locale/ko/LC_MESSAGES/Linux-PAM.mo
+8b8aa391f8ae453160d89f448616d0be  usr/share/locale/kw_GB/LC_MESSAGES/Linux-PAM.mo
+ab645586b0bd4c3e797fc66aff802c9d  usr/share/locale/ky/LC_MESSAGES/Linux-PAM.mo
+e1655e2ce1ed95c6ace75bec9b5702ab  usr/share/locale/lt/LC_MESSAGES/Linux-PAM.mo
+bf9b3b005d5fcf626619d5771d6a1b22  usr/share/locale/lv/LC_MESSAGES/Linux-PAM.mo
+02d887898cf0a6faca60d66b2b093ea8  usr/share/locale/mk/LC_MESSAGES/Linux-PAM.mo
+0f8d931b582ca1806dc90995bfefbe05  usr/share/locale/ml/LC_MESSAGES/Linux-PAM.mo
+791cc027bf44c171e8f7271ae1d2925a  usr/share/locale/mn/LC_MESSAGES/Linux-PAM.mo
+434d6e6d2ef3c4f35b21e26d5f00921a  usr/share/locale/mr/LC_MESSAGES/Linux-PAM.mo
+ca927b5452b91098f717c668b5c51d27  usr/share/locale/ms/LC_MESSAGES/Linux-PAM.mo
+7e3f02a1af095d14c4cfcb5a15a1ac0f  usr/share/locale/my/LC_MESSAGES/Linux-PAM.mo
+6d02a9d3e2d67243e715d1f19849abf9  usr/share/locale/nb/LC_MESSAGES/Linux-PAM.mo
+398b2f044564a01b8eb124db6bccabd9  usr/share/locale/ne/LC_MESSAGES/Linux-PAM.mo
+bcb056a437ec2faf0211f35c94574669  usr/share/locale/nl/LC_MESSAGES/Linux-PAM.mo
+1d5e8479962885bfdbc275b803216130  usr/share/locale/nn/LC_MESSAGES/Linux-PAM.mo
+e0da975d1c3516ca37cc35db07d78058  usr/share/locale/or/LC_MESSAGES/Linux-PAM.mo
+c7483e894ebf46fc5848803c42b94b33  usr/share/locale/pa/LC_MESSAGES/Linux-PAM.mo
+935a07f589af34808a48a57d29480348  usr/share/locale/pl/LC_MESSAGES/Linux-PAM.mo
+79a37060c4ff81974ad7b9e6a874ce24  usr/share/locale/pt/LC_MESSAGES/Linux-PAM.mo
+3430d692fc5b1e300ec7fb835993ad71  usr/share/locale/pt_BR/LC_MESSAGES/Linux-PAM.mo
+a088d7f1db975a2976508643929f8e2c  usr/share/locale/ro/LC_MESSAGES/Linux-PAM.mo
+fc771f26bf8c92672de30534ddef5529  usr/share/locale/ru/LC_MESSAGES/Linux-PAM.mo
+e6ae51179bfeba7cf3c806ffe3808d98  usr/share/locale/si/LC_MESSAGES/Linux-PAM.mo
+6c1e23ba22a02afe1a4c9d7a331116c9  usr/share/locale/sk/LC_MESSAGES/Linux-PAM.mo
+3e7bb204fb1d57a536329e40c2761b8b  usr/share/locale/sl/LC_MESSAGES/Linux-PAM.mo
+4067c73cd0163536789c3b904f9569e5  usr/share/locale/sq/LC_MESSAGES/Linux-PAM.mo
+e1d382f31edb16830df9b371a3ecfd58  usr/share/locale/sr/LC_MESSAGES/Linux-PAM.mo
+4e6cb51d32ea0c9d9547111efd1db16a  usr/share/locale/sr@latin/LC_MESSAGES/Linux-PAM.mo
+e0d7d7a608a30d880031679476dcc265  usr/share/locale/sv/LC_MESSAGES/Linux-PAM.mo
+ff076e1689a99037b3d7b262e333d2fb  usr/share/locale/ta/LC_MESSAGES/Linux-PAM.mo
+4c11b05f1f0f71847abe42b3ce374c1f  usr/share/locale/te/LC_MESSAGES/Linux-PAM.mo
+4ad452ef87eb57287ce74d7a984d525e  usr/share/locale/tg/LC_MESSAGES/Linux-PAM.mo
+92dbabb7e3dd40c39ab11e0e7434d139  usr/share/locale/th/LC_MESSAGES/Linux-PAM.mo
+f6c87298073e106c0dd00ed62659642b  usr/share/locale/tr/LC_MESSAGES/Linux-PAM.mo
+32241022d4294a1b645c894331f3d583  usr/share/locale/uk/LC_MESSAGES/Linux-PAM.mo
+410cdc7c0e3ec06a00d199ecc3a97848  usr/share/locale/ur/LC_MESSAGES/Linux-PAM.mo
+a3ce48535d1e6dd275282d735f6bc448  usr/share/locale/vi/LC_MESSAGES/Linux-PAM.mo
+91739b4afafe486a7ef7e809bf404ca6  usr/share/locale/yo/LC_MESSAGES/Linux-PAM.mo
+600db407e8daf89f59dfaa9058f98c7b  usr/share/locale/zh_CN/LC_MESSAGES/Linux-PAM.mo
+1ff09f49c11ecb0c4bca7b6a2a79eb8a  usr/share/locale/zh_HK/LC_MESSAGES/Linux-PAM.mo
+986927e05e3b33434548d72a9b96bfe3  usr/share/locale/zh_TW/LC_MESSAGES/Linux-PAM.mo
+e93e186b8268c22a1664d3a3fdd4df07  usr/share/locale/zu/LC_MESSAGES/Linux-PAM.mo
+c49d6564b107304e95f48089e97b0454  usr/share/man/man5/access.conf.5.gz
+4813bae5c65230b7b9846d0243c99d6f  usr/share/man/man5/faillock.conf.5.gz
+125b20fa522350fe1099cee04d936469  usr/share/man/man5/group.conf.5.gz
+90cef46b54415b4c435dd5c34b442626  usr/share/man/man5/limits.conf.5.gz
+998664f4bd4d1254fb334be51812fa35  usr/share/man/man5/namespace.conf.5.gz
+dcb3e6394380970ec43010f233a269aa  usr/share/man/man5/pam.conf.5.gz
+ab07b9185fc4403046bc76013c505827  usr/share/man/man5/pam_env.conf.5.gz
+d0ac57dce29d9d0d9be51f73e510fd93  usr/share/man/man5/pwhistory.conf.5.gz
+dc12c6b608043c95c56dda1199be831d  usr/share/man/man5/sepermit.conf.5.gz
+2f8638e13423c67621e483c637b662c6  usr/share/man/man5/time.conf.5.gz
+ba070cf7b2bec5df2f6ef7e419ddb685  usr/share/man/man7/PAM.7.gz
+dd8b0da48507c5a573133c7dd603c996  usr/share/man/man8/faillock.8.gz
+0092dbdb152502da40af2ffa459550a8  usr/share/man/man8/mkhomedir_helper.8.gz
+d42ed0c6efcbfd02514d832ff462b112  usr/share/man/man8/pam-auth-update.8.gz
+675dc9de7a138006bddaf0ab572cba46  usr/share/man/man8/pam_access.8.gz
+dfaff6c22f8bda55547f18431f61ec4d  usr/share/man/man8/pam_canonicalize_user.8.gz
+86fcb07c84b12cb4a92c20523e8d2103  usr/share/man/man8/pam_debug.8.gz
+2edd56c830a53cadcbe5a9a2ce8cec90  usr/share/man/man8/pam_deny.8.gz
+622e91dd475144bab9b6fd523c9c8804  usr/share/man/man8/pam_echo.8.gz
+594a422e46d4cf63315e6896829a704d  usr/share/man/man8/pam_env.8.gz
+a9792cfb7090b14efbfb11acbc90967c  usr/share/man/man8/pam_exec.8.gz
+a2726d4e13abc270dc63847ecf82f69a  usr/share/man/man8/pam_faildelay.8.gz
+ec01b7f7cac80ee257c9fcb0a80710d3  usr/share/man/man8/pam_faillock.8.gz
+1ed44301cc6317ac7fdc62be3d612c7e  usr/share/man/man8/pam_filter.8.gz
+6a039050837d16389f217ecf5b717609  usr/share/man/man8/pam_ftp.8.gz
+e3b78989604c4a5f9c2d16dcba7d4585  usr/share/man/man8/pam_getenv.8.gz
+fe19e1038106f003886fa948c0083df7  usr/share/man/man8/pam_group.8.gz
+ac4755b8ff2510413a2d257590ab9e89  usr/share/man/man8/pam_issue.8.gz
+6e9b96da52f959a9ee30a3eb4187bbcc  usr/share/man/man8/pam_keyinit.8.gz
+dc406de5ae13dc247a562ecd2c16b622  usr/share/man/man8/pam_limits.8.gz
+76cc5de7f92f2a78086dfe8813032364  usr/share/man/man8/pam_listfile.8.gz
+c949c2a1458ffcd3dd1e69cb5c270571  usr/share/man/man8/pam_localuser.8.gz
+f25e9f7e521488ec385ea2fafd543f9f  usr/share/man/man8/pam_loginuid.8.gz
+8967e2f4facba4b8a367b4821474e3a3  usr/share/man/man8/pam_mail.8.gz
+c84c48aa1191dff3192d959c40daa258  usr/share/man/man8/pam_mkhomedir.8.gz
+bee7bd4ec9c71eeb27ca4b5c7eae1363  usr/share/man/man8/pam_motd.8.gz
+2acf86807766832b596776a88a27e119  usr/share/man/man8/pam_namespace.8.gz
+000ed47d1baead4ded1ec8a6c84c3780  usr/share/man/man8/pam_namespace_helper.8.gz
+36ea6bd2e9db34773d207ebf6bed9f7e  usr/share/man/man8/pam_nologin.8.gz
+6da1da4d9542b384b1378f2cbf2ed7bd  usr/share/man/man8/pam_permit.8.gz
+387ee9286faab00acc9dbbf8bef18d7a  usr/share/man/man8/pam_pwhistory.8.gz
+aab05a48df837dda702b47db65e81b8f  usr/share/man/man8/pam_rhosts.8.gz
+7774ce1369cdf9d968f212fd22ae4ae4  usr/share/man/man8/pam_rootok.8.gz
+a572a9252c058d3efe6480720fd217f8  usr/share/man/man8/pam_securetty.8.gz
+f7de65801492895bdd02eb1952794ccb  usr/share/man/man8/pam_selinux.8.gz
+c2cee809b805626f26fb31a154b2567b  usr/share/man/man8/pam_sepermit.8.gz
+03b039f6f7b19e6adef588a1882cb837  usr/share/man/man8/pam_setquota.8.gz
+9a8f7807615b65a74ba8071c54eff769  usr/share/man/man8/pam_shells.8.gz
+bebafe02867507104fbe32d7e5b95915  usr/share/man/man8/pam_stress.8.gz
+d8d38fa8255a8ef74e74f242a03e7b0f  usr/share/man/man8/pam_succeed_if.8.gz
+d0cc65831c631aa2dcecba7badf21758  usr/share/man/man8/pam_time.8.gz
+912ebca7975a23d8a4f71ab10dc2457b  usr/share/man/man8/pam_timestamp.8.gz
+168b47f786962dd2e546e083a9548604  usr/share/man/man8/pam_timestamp_check.8.gz
+06e31da5f4356b8119da92c4a0240c2e  usr/share/man/man8/pam_tty_audit.8.gz
+3a5f7d36fa85eae96b4724d8b0e6471d  usr/share/man/man8/pam_umask.8.gz
+51496bfea9eaa1d2d1f184d4cf1a566a  usr/share/man/man8/pam_unix.8.gz
+4c21fef6be92ac934f119f0bcc95e4fc  usr/share/man/man8/pam_userdb.8.gz
+45ffa47c580d95b4d5a48198b3e48b9b  usr/share/man/man8/pam_usertype.8.gz
+f2f8c1937554c5a82a904065434c077b  usr/share/man/man8/pam_warn.8.gz
+de9860ae34b869389aca943bbc05f597  usr/share/man/man8/pam_wheel.8.gz
+5563e90e88f015e0dede6655fd245bca  usr/share/man/man8/pam_xauth.8.gz
+c3362e0a027736445ec98c691f2671e2  usr/share/man/man8/pwhistory_helper.8.gz
+5c6c75f3fcd19cc69d227fcc050d0619  usr/share/man/man8/unix_chkpwd.8.gz
+d22bf7c326dffd036c981f2e2c0b8655  usr/share/man/man8/unix_update.8.gz
+ca78117c7ea5c63c58c25f0491e89153  usr/share/pam-configs/unix
+117df385af6d411fbd1ffa97bc048f66  usr/share/pam/common-account
+a16cd434ecf1fd38ade67f3ce31ecdc6  usr/share/pam/common-account.md5sums
+4e8989cd590e8bdeaa97c3d77320e3c4  usr/share/pam/common-auth
+4e92a1187df5d09844592f3afbaf54e1  usr/share/pam/common-auth.md5sums
+10fc4e7208f68b132eaa6623d10d73cb  usr/share/pam/common-password
+894b91ed648db1b4964c1c0b1c0686c9  usr/share/pam/common-password.md5sums
+52431610324286cc3f552872e21aa26d  usr/share/pam/common-session
+65967fd67324a59d5336ef8e37c07d3b  usr/share/pam/common-session-noninteractive
+4e12461200b864f5337bdc2acec117a7  usr/share/pam/common-session-noninteractive.md5sums
+e82dff1f5fabeb74e3f3ce5235fd1821  usr/share/pam/common-session.md5sums
+                                                                                                                      #!/bin/sh -e
+
+. /usr/share/debconf/confmodule
+
+calculate_md5sum()
+{
+	configfile="$1"
+	sed -n -e'1,/# here are the per-package modules (the "Primary" block)/p;
+	          /# here.s the fallback if no module succeeds/,/# and here are more per-package modules (the "Additional" block)/p;
+	          /# end of pam-auth-update config/,$p' \
+	    "$DPKG_ROOT"/etc/pam.d/"$configfile" | md5sum | awk '{ print $1 }'
+}
+
+# If the user has removed the config file, respect this sign of dementia
+# -- only create on package install.
+force=
+if [ -z "$2" ] || dpkg --compare-versions "$2" lt 1.0.1-11
+then
+	force=--force
+	for configfile in common-auth common-account common-session  \
+	    common-password
+	do
+		if [ -f "$DPKG_ROOT"/etc/pam.d/$configfile ] && \
+		    ! fgrep -q $(calculate_md5sum $configfile) \
+		    "$DPKG_ROOT"/usr/share/pam/$configfile.md5sums 2>/dev/null
+		then
+			force=
+		fi
+	done
+fi
+
+pam-auth-update --root "$DPKG_ROOT" --package $force
+
+if [ -n "$force" ]; then
+	rm -f "$DPKG_ROOT"/etc/pam.d/common-auth.pam-old \
+	      "$DPKG_ROOT"/etc/pam.d/common-account.pam-old \
+	      "$DPKG_ROOT"/etc/pam.d/common-password.pam-old \
+	      "$DPKG_ROOT"/etc/pam.d/common-session.pam-old
+fi
+
+
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    #!/bin/sh -e
+
+if [ "$1" = "purge" ]; then
+	rm -f /etc/pam.d/common-auth /etc/pam.d/common-account \
+	      /etc/pam.d/common-session /etc/pam.d/common-password \
+	      /etc/pam.d/common-session-noninteractive
+	rm -f /var/lib/pam/auth /var/lib/pam/account /var/lib/pam/session \
+	      /var/lib/pam/password /var/lib/pam/seen \
+	      /var/lib/pam/session-noninteractive
+	rmdir --ignore-fail-on-non-empty /var/lib/pam ||true
+fi
+
+# Automatically added by dh_installdebconf/13.24.2
+if [ "$1" = purge ] && [ -e /usr/share/debconf/confmodule ]; then
+	. /usr/share/debconf/confmodule
+	db_purge
+fi
+# End automatically added section
+
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             #!/bin/sh
+
+set -e
+# Packages including pam configurations need to include a block like
+# the following to arrange for removal of the PAM profile prior to
+# package removale.  Libpam-runtime is special because it includes the
+# machinery for managing the profiles and because there is a check to
+# make sure at least one profile is enabled.  Libpam-runtime can only
+# be removed in a situation where dpkg checks are being overriden; in
+# that case the resulting PAM config is likely to be broken anyway.
+# But we prefer to permit the removal if enough dpkg force options are
+# given than to create an infinite loop.  So, this block is commented
+# out, left here as an example for other packages.
+
+
+# if [ "$1" = remove ] ; then
+# 	pam-auth-update --package --remove unix
+# fi
+
+
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       Template: libpam-runtime/title
+Type: title
+Description: PAM configuration
+Description-bg.UTF-8: Настройване на PAM
+Description-ca.UTF-8: Configuració de PAM
+Description-cs.UTF-8: Nastavení PAM
+Description-da.UTF-8: PAM-konfiguration
+Description-de.UTF-8: PAM-Konfiguration
+Description-es.UTF-8: Configuración de PAM
+Description-fr.UTF-8: Configuration de PAM
+Description-ja.UTF-8: PAM の設定
+Description-nl.UTF-8: PAM-configuratie
+Description-pl.UTF-8: Konfiguracja PAM
+Description-pt.UTF-8: Configuração PAM
+Description-pt_BR.UTF-8: Configuração do PAM
+Description-ro.UTF-8: Configurarea PAM
+Description-ru.UTF-8: Настройка PAM
+Description-sk.UTF-8: Konfigurácia PAM
+Description-sv.UTF-8: PAM-inställningar
+Description-tr.UTF-8: PAM yapılandırması
+Description-zh_CN.UTF-8: PAM 配置
+
+Template: libpam-runtime/profiles
+Type: multiselect
+Choices: ${profiles}
+Choices-C: ${profile_names}
+Description: PAM profiles to enable:
+ Pluggable Authentication Modules (PAM) determine how authentication,
+ authorization, and password changing are handled on the system, as well
+ as allowing configuration of additional actions to take when starting
+ user sessions.
+ .
+ Some PAM module packages provide profiles that can be used to
+ automatically adjust the behavior of all PAM-using applications on the
+ system.  Please indicate which of these behaviors you wish to enable.
+Description-bg.UTF-8: Разрешаване на PAM профили:
+ Модулите за идентификация (PAM, Pluggable Authentication Modules) управляват идентификацията, оторизацията и промяната на паролите. Те дават и възможност за изпълняване на допълнителни действия при стартиране на нови потребителски сесии.
+ .
+ Някои пакети с PAM модули предлагат „профили“, чрез които може да се промени поведението на всички приложения, използващи PAM. Изберете кои от профилите желаете да разрешите.
+Description-ca.UTF-8: Perfils PAM que cal habilitar:
+ Els «Pluggable Authentication Modules» (PAM, o mòduls d'autenticació inseribles) determinen com es gestionen en el sistema l'autenticació, autorització i modificació de contrasenyes. També permet la definició d'accions addicionals a realitzar quan s'inicia la sessió d'un usuari.
+ .
+ Alguns dels paquets de mòduls de PAM ofereixen perfils que poden utilitzar-se per ajustar automàticament el comportament de totes les aplicacions que fan servir PAM en el sistema. Indiqueu quin d'aquests comportaments desitjau activar.
+Description-cs.UTF-8: PAM profily, které se mají povolit:
+ Moduly PAM (Pluggable Authentication Modules) určují, jakým způsobem je na systému řešena autentizace, autorizace, změna hesel a také umožňují nastavit dodatečné akce při spouštění uživatelských sezení.
+ .
+ Některé balíky s PAM moduly poskytují profily, které mohou automaticky upravit chování všech aplikací používajících PAM. Vyberte si, která chování chcete povolit.
+Description-da.UTF-8: PAM-profiler at aktivere:
+ Pluggable Authentication Modules (PAM) afgør hvordan ændring af godkendelse, autorisation og adgangskode håndteres på systemet, samt tillader konfiguration af yderligere handlinger, der skal igangsættes ved opstart af brugersessioner.
+ .
+ Nogle PAM-modulpakker tilbyder profiler som automatisk kan justere opførelsen af alle PAM-brugende programmer på systemet. Indiker venligst hvilke af disse profiler du ønsker at aktivere.
+Description-de.UTF-8: Zu aktivierende PAM-Profile:
+ Pluggable Authentication Modules (PAM) bestimmen, wie Authentifizierung, Berechtigung und Passwort-Änderung auf dem System gehandhabt werden. Ebenso erlauben sie die Konfiguration zusätzlicher Maßnahmen, die beim Start von Benutzersitzungen vorgenommen werden.
+ .
+ Einige Pakete mit PAM-Modulen stellen Profile bereit, die das Verhalten aller Anwendungen, die PAM verwenden, automatisch anpassen können. Bitte geben Sie an, welche dieser Verhaltensweisen Sie aktivieren möchten.
+Description-es.UTF-8: Perfiles PAM a habilitar:
+ Los «Pluggable Authentication Modules» (PAM, o Módulos de autenticación insertables, N. del T.) determinan cómo se gestiona dentro del sistema la autenticación, autorización y modificación de contraseñas. También permiten la definición de acciones adicionales a realizar cuando se inicia la sesión de un usuario.
+ .
+ Algunos de los paquetes de módulos de PAM ofrecen perfiles que pueden utilizarse para ajustar automáticamente el comportamiento de todas las aplicaciones que utilicen PAM en el sistema. Indique qué comportamiento desea activar.
+Description-eu.UTF-8: Gaitu behar diren PAM profilak:
+ Autentifikazio modulu txertagarriak (PAM) ezartzen du zein autentifikazio, autorizazio eta psahitz aldaketa kudeatzen diren sisteman, baita erabiltzaile saioak hastekoan ekintza gehigarrien konfigurazioaren onarpena du.
+ .
+ Zenbait PAM modulu paketek sisteman PAM erbailtzen duten aplikazioak  automatikoki doitzeko erabili daitezkeen profilak ekartzen dituzte. Mesedez profil hauetako zein gaitu nahi duzun.
+Description-fi.UTF-8: Käyttöön otettavat PAM-profiilit:
+ Pluggable Authentication Modules (PAM) määrittää kuinka tunnistautuminen, oikeuksien hallinta ja salasanan vaihto tehdään järjestelmässä. Se mahdollistaa myös käyttäjäistuntojen käynnistyksen yhdessä suoritettavien lisätoimintojen asetusten muokkaamisen.
+ .
+ Eräiden PAMin moduulipakettien tarjoamien profiilien avulla voidaan automaattisesti muokata järjestelmän kaikkien PAMia käyttävien ohjelmien toimintaa. Valitse mitkä näistä toiminnoista otetaan käyttöön.
+Description-fr.UTF-8: Profils PAM à activer :
+ Les modules d'authentification PAM déterminent la façon dont le système gère l'authentification, les autorisations et les changements de mots de passe. PAM permet aussi de configurer des actions supplémentaires à effectuer au démarrage des sessions utilisateur.
+ .
+ Certains paquets de modules PAM fournissent des profils qui peuvent être utilisés pour ajuster automatiquement le comportement de toutes les applications utilisant PAM qui sont présentes sur le système. Veuillez indiquer lequel de ces comportements vous voulez autoriser.
+Description-gl.UTF-8: Perfís de PAM a activar:
+ Os Pluggable Authentication Modules (PAM) determinan como se xestiona a autenticación, autorización e mudanza do contrasinal no sistema, e tamén permiten configurar accións adicionais a realizar cando se inician sesións de usuario.
+ .
+ Algúns paquetes de módulos de PAM fornecen perfís que poden empregarse para axustar automaticamente o comportamento de todos os programas do sistema que empregan PAM. Indique cais destes comportamentos desexa activar.
+Description-it.UTF-8: Profili PAM abilitabili:
+ PAM (Pluggable Authentication Modules) determina come le autenticazioni, le autorizzazioni e i cambiamenti di password siano gestite dal sistema. Allo stesso modo permette la configurazione di azioni addizionali da effettuarsi all'inizio di una sessione utente.
+ .
+ Alcuni pacchetti di moduli PAM forniscono profili che possono essere usati per modificare il comportamento di tutte le applicazioni presenti sul sistema che sfruttano PAM. Indicare quali di questi comportamenti devono essere abilitati.
+Description-ja.UTF-8: 有効化する PAM プロファイル:
+ PAM (Pluggable Authentication Modules) は、ユーザのセッションが開始したときに起こす追加のアクション設定の許可と共に、どのように認証、認可、パスワード変更がシステムで扱われるかを決定します。
+ .
+ いくつかの PAM モジュールパッケージは、システム上のすべての PAM 利用アプリケーションの挙動を自動で調整するのに利用できるプロファイルを提供しています。これらの挙動の中から有効化したいものを指定してください。
+Description-nl.UTF-8: PAM-profielen die ingeschakeld moeten worden:
+ Pluggable Authentication Modules (PAM) bepalen hoe authenticatie, autorisatie en wachtwoordverandering worden behandeld op het systeem. Ook staat het het instellen van overige acties die moeten worden ondernomen bij het starten van gebruikerssessies toe.
+ .
+ Sommige PAM-modulepakketten leveren profielen die kunnen worden gebruikt om automatisch het gedrag van alle programma's die PAM gebruiken aan te passen. Geeft u alstublieft aan welk van deze instellingen u wilt gebruiken.
+Description-pl.UTF-8: Profile PAM do włączenia:
+ Pluggable Authentication Modules (PAM) określa, jak obsługiwane jest przez system uwierzytelnienie, autoryzacja i zmiana hasła, jak również pozwala na konfigurację dodatkowych akcji do podjęcia podczas uruchamiania sesji użytkownika.
+ .
+ Niektóre moduły PAM dostarczają profile, które mogą być użyte do automatycznego dostosowania zachowania wszystkich aplikacji używających PAM w systemie. Proszę określić, które z tych zachowań mają być włączone.
+Description-pt.UTF-8: Perfis PAM para activar:
+ O PAM (Pluggable Authentication Modules) determina como a autenticação, a autorização, e a mudança de palavras-chave são manuseadas no sistema, assim como permitir a configuração de acções adicionais a tomar quando arrancam sessões de utilizador.
+ .
+ Alguns pacotes de módulos do PAM disponibilizam perfis que podem ser usados para ajustar automaticamente o comportamento de todas as aplicações no sistema que usam o PAM. Por favor indique quais destes comportamentos deseja activar.
+Description-pt_BR.UTF-8: Perfis PAM para habilitar:
+ O PAM ("Pluggable Authentication Modules") determina como a autenticação, a autorização e a alteração de senha são tratadas no sistema, assim como permite a configuração de ações adicionais a serem tomadas quando sessões de usuário são iniciadas.
+ .
+ Alguns pacotes de módulos PAM fornecem perfis que podem ser usados para ajustar automaticamente o comportamento de todas as aplicações que usam PAM no sistema. Por favor, indique quais desses comportamentos você deseja habilitar.
+Description-ro.UTF-8: Profile PAM de activat:
+ Modulele de autentificare conectabile (PAM) definesc cum se manevrează în sistem autentificările, autorizațiile și schimbările de parole, dar permite și adăugarea de diverse acțiuni ce se vor efectua la pornirea sesiunilor utilizatorilor.
+ .
+ Unele pachete de module PAM furnizează profile care pot fi folosite pentru ajustarea automată a comportamentului aplicațiilor din sistem care folosesc PAM. Indicați pe care dintre aceste comportamente le doriți activate.
+Description-ru.UTF-8: Активируемые профили PAM:
+ Через подключаемые модули аутентификации (PAM) указывается, как нужно проводить аутентификацию, авторизацию и смену пароля в системе, а также можно назначать запуск дополнительных действий при старте пользовательских сеансов.
+ .
+ Некоторые пакеты модулей PAM предоставляют профили, которые можно использовать для автоматического регулирования поведения всех использующих PAM программ в системе. Выберите профили, которые нужно применить.
+Description-sk.UTF-8: Zapnúť nasledovné profily PAM:
+ Zásuvné autentifikačné moduly (PAM) určujú ako systém pracuje s autentifikáciou, autorizáciou, zmenou hesiel a umožňuje tiež nastavenie ďalších operácií, ktoré sa majú vykonať pri prihlásení používateľa.
+ .
+ Niektoré balíky modulov PAM poskytujú profily, ktorými možno automaticky prisôpsobiť správanie všetkých aplikácií v systéme, ktoré používajú PAM. Prosím označte tie z nich, ktoré chcete zapnúť.
+Description-sv.UTF-8: Aktivera följande PAM-profiler:
+ Pluggable Authentication Modules (PAM) hanterar hur autentisering, identifiering och byte av lösenord ska utföras på systemet. Dessutom hanteras särskilda åtgärder som ska vidtas vid uppstart av användarsessioner.
+ .
+ Vissa paket med PAM-moduler tillhandahåller profiler som kan användas för att automatiskt justera hur applikationer som använder PAM fungerar på systemet. Ange vilka av dessa funktioner du önskar aktivera.
+Description-tr.UTF-8: Etkinleştirilecek PAM profilleri:
+ Pluggable Authentication Modules (PAM), sisteminizdeki kimlik doğrulama, yetki izni verme ve parola değiştirme işlemlerinin ne şekilde yapılacağını belirler ve kullanıcı oturumları başlatılırken atılması gereken adımları yapılandırır.
+ .
+ Bazı PAM modül paketleri sisteminizde bulunan ve PAM kullanan tüm uygulamaların davranışlarını otomatik olarak ayarlamaya yarayan profiller sağlar. Lütfen bu profillerden hangilerini etkinleştirmek istediğinizi belirtin.
+Description-vi.UTF-8: Các hồ sơ PAM cần bật:
+ Mô-đun Xác thực Dễ kết hợp (PAM) quyết định quá trình xác thực, cho phép và thay đổi mật khẩu được quản lý như thế nào trên hệ thống, cũng như cho phép cấu hình các hành vi bổ sung cần làm khi khởi chạy buổi hợp người dùng.
+ .
+ Một số mô-đun PAM nào đó cũng cung cấp các hồ sơ có thể được dùng để tự động điều chỉnh ứng xử của tất cả các ứng dụng dùng PAM trên hệ thống. Hãy ngụ ý những ứng xử nào bạn muốn hiệu lực.
+Description-zh_CN.UTF-8: 要启用的 PAM 配置策略：
+ 可插入身份验证模块（PAM）决定系统上的身份验证、授权和密码更改应当如何进行，同时允许配置启动用户会话时要进行的额外操作。
+ .
+ 某些 PAM 模块软件包提供了配置策略（profile），可用来自动调整系统上所有使用 PAM 的应用程序的行为。请选择您希望启用其中的哪些行为。
+
+Template: libpam-runtime/conflicts
+Type: error
+Description: Incompatible PAM profiles selected.
+ The following PAM profiles cannot be used together:
+ .
+ ${conflicts}
+ .
+ Please select a different set of modules to enable.
+Description-bg.UTF-8: Избрани са несъвместими PAM профили.
+ Следните PAM профили не могат да се използват едновременно:
+ .
+ ${conflicts}
+ .
+ Изберете друга група профили.
+Description-ca.UTF-8: Heu seleccionat perfils PAM incompatibles.
+ No és possible fer servir conjuntament els perfils de PAM indicats a continuació:
+ .
+ ${conflicts}
+ .
+ Seleccioneu un conjunt distint de mòduls a activar.
+Description-cs.UTF-8: Vybrány nekompatibilní PAM profily.
+ Následující PAM profily nelze používat současně:
+ .
+ ${conflicts}
+ .
+ Povolte prosím jinou sadu modulů.
+Description-da.UTF-8: Inkompatible PAM-profiler valgt.
+ De følgende PAM-profiler kan ikke bruges sammen:
+ .
+ ${conflicts}
+ .
+ Vælg venligst et andet sæt af moduler at aktivere.
+Description-de.UTF-8: Inkompatible PAM-Profile ausgewählt.
+ Die folgenden PAM-Profile können nicht gemeinsam verwendet werden:
+ .
+ ${conflicts}
+ .
+ Bitte wählen Sie eine andere Zusammenstellung zu aktivierender Module aus.
+Description-es.UTF-8: Se han seleccionado perfiles PAM incompatibles.
+ No pueden utilizarse conjuntamente los perfiles de PAM indicados a continuación:
+ .
+ ${conflicts}
+ .
+ Seleccione un conjunto distinto de módulos a activar.
+Description-eu.UTF-8: PAM profil bateraezinak hautatuak.
+ Hurrengo PAM profilak ezin dira elkarrekin erabili:
+ .
+ ${conflicts}
+ .
+ Mesedez hautatu gaitzeko beste modulu bilduma bat.
+Description-fi.UTF-8: Epäyhteensopivia PAM-profiileita valittu
+ Seuraavia PAM-profiileita ei voida käyttää yhdessä:
+ .
+ ${conflicts}
+ .
+ Valitse uusi käyttöön otettavien moduulien joukko.
+Description-fr.UTF-8: Profils PAM incompatibles
+ Les profils PAM suivants sont en conflit :
+ .
+ ${conflicts}
+ .
+ Veuillez choisir un autre jeu de modules à activer.
+Description-gl.UTF-8: Escolléronse perfís de PAM incompatíbeis.
+ Non se poden empregar xuntos os seguintes perfís de PAM:
+ .
+ ${conflicts}
+ .
+ Escolla un conxunto diferente de módulos para activalos.
+Description-it.UTF-8: Sono stati scelti dei profili PAM incompatibili.
+ I seguenti profili PAM non possono essere usati contemporaneamente:
+ .
+ ${conflicts}
+ .
+ Selezionare una serie differente di moduli da abilitare.
+Description-ja.UTF-8: 矛盾する PAM プロファイルが選択されました。
+ 次の PAM プロファイルは一緒に利用することはできません:
+ .
+ ${conflicts}
+ .
+ 有効化するために違うモジュールセットを選択してください。
+Description-nl.UTF-8: Strijdige PAM-profielen geselecteerd.
+ De volgende PAM-profielen kunnen niet samen worden gebruikt:
+ .
+ ${conflicts}
+ .
+ Selecteer een andere set modules om in te schakelen.
+Description-pl.UTF-8: Wybrano niezgodne profile PAM.
+ Następujące profile PAM nie mogą być używane razem:
+ .
+ ${conflicts}
+ .
+ Proszę wybrać inny zestaw modułów do włączenia.
+Description-pt.UTF-8: Seleccionados perfis PAM incompatíveis.
+ Os seguintes perfis do PAM não podem ser usados juntamente:
+ .
+ ${conflicts}
+ .
+ Por favor seleccione um conjunto diferente de módulos para activar.
+Description-pt_BR.UTF-8: Perfis PAM incompatíveis foram selecionados.
+ Os seguintes perfis PAM não podem ser usados em conjunto:
+ .
+ ${conflicts}
+ .
+ Por favor, selecione um conjunto diferente de módulos para habilitar.
+Description-ro.UTF-8: Selecție de profile PAM incompatibile.
+ Următoarele profile PAM nu pot fi folosite împreună:
+ .
+ ${conflicts}
+ .
+ Selectați un alt set de module de activat.
+Description-ru.UTF-8: Выбраны несовместимые профили PAM.
+ Следующие профили PAM нельзя использовать одновременно:
+ .
+ ${conflicts}
+ .
+ Выберите другой набор активируемых модулей.
+Description-sk.UTF-8: Boli vybrané nekompatibilné profily PAM.
+ Nasledovné profily PAM nemožno použiť súčasne:
+ .
+ ${conflicts}
+ .
+ Prosím, zmeňte množinu modulov, ktoré sa majú zapnúť.
+Description-sv.UTF-8: Inkompatibla PAM-profiler valdes.
+ Följande PAM-profiler kan inte användas tillsammans:
+ .
+ ${conflicts}
+ .
+ Ange en annan uppsättning med moduler som ska aktiveras.
+Description-tr.UTF-8: Uyumsuz PAM profilleri seçildi
+ Bu PAM profilleri birlikte kullanılamaz:
+ .
+ ${conflicts}
+ .
+ Lütfen farklı bir modül kümesi seçin.
+Description-vi.UTF-8: Bạn đã chọn một số hồ sơ PAM không tương thích với nhau.
+ Không thể sử dụng với nhau những hồ sơ PAM theo đây:
+ .
+ ${conflicts}
+ .
+ Hãy chọn một tập hợp mô-đun khác để hiệu lực.
+Description-zh_CN.UTF-8: 选中了不兼容的 PAM 配置策略。
+ 以下的 PAM 配置策略不能共同使用：
+ .
+ ${conflicts}
+ .
+ 请选择另一组要启用的模块。
+
+Template: libpam-runtime/override
+Type: boolean
+Default: false
+Description: Override local changes to /etc/pam.d/common-*?
+ One or more of the files /etc/pam.d/common-{auth,account,password,session}
+ have been locally modified.  Please indicate whether these local changes
+ should be overridden using the system-provided configuration.  If you
+ decline this option, you will need to manage your system's
+ authentication configuration by hand.
+Description-bg.UTF-8: Отмяна на локалните промени в /etc/pam.d/common-*?
+ Някои от файловете /etc/pam.d/common-{auth,account,password,session} са променени. Укажете дали желаете променените файлове да бъдат презаписани и да се използват настройките доставени със системата. Ако откажете ще трябва ръчно да настроите PAM.
+Description-ca.UTF-8: Desitjau sobreescriure els canvis locals realitzats a «/etc/pam.d/common-*»?
+ S'ha modificat localment algun dels fitxers «/etc/pam.d/common-{auth,account,password,session}». Indicau si desitjau que aquests canvis locals siguin substituïts amb la configuració definida pel sistema. Caldrà gestionar la configuració d'autenticació del sistema manualment si rebutjau aquesta opció.
+Description-cs.UTF-8: Přepsat místní změny v /etc/pam.d/common-*?
+ Některé ze souborů /etc/pam.d/common-{auth,account,password,session} obsahují místní úpravy. Vyberte si, zda se mají tyto změny přepsat verzí z balíku. Zamítnete-li tuto možnost, budete muset spravovat tyto soubory ručně.
+Description-da.UTF-8: Overskriv lokale ændringer til /etc/pam.d/common-*?
+ En eller flere af filerne /etc/pam.d/common-{auth,account,password,session} er blevet overskrevet lokalt. Indiker venligst hvorvidt disse lokale ændringer skal overskrives med den systemtilbudte konfiguration. Hvis du afslår denne indstilling, skal du på egen hånd håndtere systemets godkendelseskonfiguration.
+Description-de.UTF-8: Lokale Änderungen an /etc/pam.d/common-* außer Kraft setzen?
+ Eine oder mehrere der Dateien /etc/pam.d/common-{auth,account,password,session} sind lokal verändert worden. Bitte geben Sie an, ob diese lokalen Änderungen durch die vom System bereitgestellte Konfiguration außer Kraft gesetzt werden sollen. Falls Sie diese Option ablehnen, müssen Sie die Authentifizierungs-Konfiguration Ihres Systems von Hand verwalten.
+Description-es.UTF-8: ¿Desea sobreescribir los cambios locales realizados a «/etc/pam.d/common-*»?
+ Se ha modificado localmente alguno de los ficheros «/etc/pam.d/common-{auth,account,password,session}». Indique si desea que estos cambios locales se sobreescriban con la configuración definida para el sistema. Deberá gestionar la configuración de autenticación de su sistema manualmente si rechaza esta opción.
+Description-eu.UTF-8: Gainidatzi aldaketa lokalak /etc/pam.d/common-* -era?
+ /etc/pam.d/common-{auth,account,password,session} fitxategietako bat edo gehiago lokalki eraldatua izan da. Mesedez zehaztu aldaketa horiek sistemak-hornitutako konfigurazioaz gainidatzi behar diren ala ez. Aukera hau baztertzea hautatzen baduzu sistemaren autentifikazio konfigurazioa eskuz kudeatu behar duzu.
+Description-fi.UTF-8: Kirjoitetaanko paikallisten muutosten päälle tiedostoissa /etc/pam.d/common-*?
+ Joitain tiedostoista /etc/pam.d/common-{auth,account,password,session} on muokattu paikallisesti. Valitse tulisiko paikalliset muutokset korvata järjestelmän tarjoamilla asetuksilla. Jos et valitse tätä vaihtoehtoa, järjestelmän tunnistautumisasetuksia täytyy hallinnoida käsin.
+Description-fr.UTF-8: Faut-il écraser les modifications locales sur /etc/pam.d/common-* ?
+ Au moins un des fichiers /etc/pam.d/common-{auth,account,password,session} a été modifié localement. Veuillez indiquer s'il faut abandonner ces changements locaux et revenir à la configuration standard du système. Dans le cas contraire, vous devrez configurer vous-même l'authentification dans le système.
+Description-gl.UTF-8: Desexa sobrepor as mudanzas locais a /etc/pam.d/common-*?
+ Modificouse localmente un ou varios dos ficheiros /etc/pam.d/common-{auth,account,password,session}. Indique se estas modificacións locais deben sobrescribirse empregando a configuración fornecida polo sistema. Se rexeita esta opción deberá xestionar manualmente a configuración da autenticación do sistema.
+Description-it.UTF-8: Ignorare i cambiamenti in /etc/pam.d/common-*?
+ Uno o più dei file /etc/pam.d/common-{auth,account,password,session} sono stati modificati. Indicare se questi cambiamenti locali debbono essere annullati usando le configurazioni fornite dal sistema. Se questa opzione verrà annullata, sarà necessario gestire manualmente la configurazione di autenticazione del sistema.
+Description-ja.UTF-8: /etc/pam.d/common-* にローカルの変更を上書きしますか?
+ /etc/pam.d/common-{auth,account,password,session} のファイルのうちの 1 つ以上がローカルで変更されています。これらのローカルの変更をシステムで提供される設定を使って上書きすべきかどうかを指示してください。この選択肢で「いいえ」と答える場合、あなたのシステムの認証設定を手動で管理する必要があります。
+Description-nl.UTF-8: Wilt u de lokale veranderingen aan /etc/pam.d/common-* laten overschrijven?
+ Een of meer van de bestanden /etc/pam.d/common-{auth,account,password,session} zijn lokaal aangepast. Geef aan of deze lokale veranderingen moeten worden overschreven, door de door het systeem geleverde configuratie te gebruiken. Als u dit afwijst, zult u de configuratie van de authenticatie op uw systeem met de hand moeten onderhouden.
+Description-pl.UTF-8: Nadpisać lokalne zmiany w /etc/pam.d/common-*?
+ Jeden lub więcej plików /etc/pam.d/common-{auth,account,password,session}, zostało lokalnie zmodyfikowanych. Proszę określić, czy zmiany te powinny zostać nadpisane przez konfigurację dostarczaną z systemem. W przypadku braku zgody użytkownika, konieczne będzie ręczne zarządzanie systemową konfiguracją uwierzytelniania.
+Description-pt.UTF-8: Sobre-escrever as alterações locais em /etc/pam.d/common-*?
+ Um ou mais dos ficheiros /etc/pam.d/common-{auth,account,password,session} foi modificado localmente. Por favor indique se estas alterações locais deverão ser sobre-escritas usando a configuração disponibilizada pelo sistema. Se você recusar esta opção, terá que gerir a configuração de autenticação do sistema manualmente.
+Description-pt_BR.UTF-8: Sobrescrever as modificações locais de /etc/pam.d/common-*?
+ Um ou mais dos arquivos /etc/pam.d/common-{auth,account,password,session} foram modificados localmente. Por favor, indique se essas modificações locais devem ser sobrescritas usando a configuração fornecida pelo sistema. Se você recusar esta opção, você precisará gerenciar a configuração de autenticação do seu sistema manualmente.
+Description-ro.UTF-8: Se ignoră schimbările locale făcute în /etc/pam.d/common-*?
+ Există modificari locale într-unul sau mai multe dintre fișierele /etc/pam.d/common-{auth,account,password,session}. Precizați dacă aceste schimbări locale trebuie suprascrise cu configurația oferită de sistem. Dacă refuzați, va trebui să administrați manual configurația de autentificare a sistemului.
+Description-ru.UTF-8: Переопределить локальные изменения в /etc/pam.d/common-*?
+ Один или более из файлов /etc/pam.d/common-{auth,account,password,session} был изменён вручную. Укажите, следует ли заменить эти локальные правки конфигурацией, предоставленной системой. Если вы ответите отрицательно, то вам придётся управлять настройками аутентификации вашей системы вручную.
+Description-sk.UTF-8: Prepísať lokálne zmeny v /etc/pam.d/common-*?
+ Jeden alebo viacero zo súborov /etc/pam.d/common-{auth,account,password,session} bolo na lokálnom systéme zmenených. Zvoľte prosím, či sa majú tieto lokálne zmeny prepísať štandardnými konfiguračnými voľbami. Ak túto možnosť zamietnete, budete musieť nastaviť autentifikácie tohto systému ručne.
+Description-sv.UTF-8: Skriv över lokala förändringar i /etc/pam.d/common-*?
+ En eller flera av filerna /etc/pam.d/common-{auth,account.password,session} har förändrats. Ange om dessa lokala förändringar ska skrivas över med standardinställningarna. Om du avböjer detta alternativ kommer du behöva hantera inställningarna för systemets autentisering manuellt.
+Description-tr.UTF-8: /etc/pam.d/common-* konumundaki yerel değişikliklerin üzerine yazılsın mı?
+ /etc/pam.d/common-{auth,account,password,session} dosyalarından bir ya da daha fazlası yerel olarak değiştirilmiş. Lütfen bu yerel değişikliklerin yerine sistem tarafından sağlanan yapılandırmanın konulmasına izin verip vermediğinizi belirtin. Bu seçeneği kabul etmezseniz sisteminizin kimlik doğrulama yapılandırmasını elle ayarlamanız gerekecektir.
+Description-vi.UTF-8: Có quyền cao hơn thay đổi cục bộ trong « /etc/pam.d/common-* » không?
+ Một hay nhiều tập tin « /etc/pam.d/common-{auth,account,password,session} » đã bị sửa đổi cục bộ. Hãy ngụ ý có nên ghi đè lên các thay đổi cục bộ này dùng cấu hình được hệ thống cung cấp, hay không. Không bật tuỳ chọn này thì bạn cần phải tự quản lý cấu hình xác thực của hệ thống này.
+Description-zh_CN.UTF-8: 覆盖 /etc/pam.d/common-* 的本地修改吗？
+ 在 /etc/pam.d/common-{auth,account,password,session} 中的一个或多个文件有本地的修改。请选择是否应当使用系统提供的配置覆盖这些本地修改。如果您拒绝本选项，您需要稍后手动管理您系统上的验证配置。
+
+Template: libpam-runtime/no_profiles_chosen
+Type: error
+Description: No PAM profiles have been selected.
+ No PAM profiles have been selected for use on this system.  This would grant
+ all users access without authenticating, and is not allowed.  Please select
+ at least one PAM profile from the available list.
+Description-bg.UTF-8: Не са избрани PAM профили.
+ Няма избрани PAM профили. Това ще разреши достъпа на всички потребители без удостоверяване на самоличността и не е позволено. Изберете поне един профил от списъка.
+Description-ca.UTF-8: No heu seleccionat cap perfil PAM.
+ No heu seleccionat cap perfil de PAM per a aquest sistema. Així és possible que qualsevol usuari accedeixi sense autenticació, la qual cosa no és permesa. Heu de seleccionar almenys un perfil de PAM de la llista.
+Description-cs.UTF-8: Nebyly vybrány žádné PAM profily.
+ Pro tento systém nebyly vybrány žádné PAM profily, což znamená, že všem uživatelům umožňujete přístup bez autentizace. To není dovoleno. Vyberte prosím ze seznamu alespoň jeden PAM profil.
+Description-da.UTF-8: Ingen PAM-profiler er blevet valgt.
+ Ingen PAM-profiler er blevet valgt til brug på dette system. Dette vil tildele alle brugere adgang uden godkendelse, og er ikke tilladt. Vælg venligst mindst en PAM-profil fra den tilgængelige liste.
+Description-de.UTF-8: Es wurden keine PAM-Profile ausgewählt.
+ Es wurden keine PAM-Profile für die Verwendung auf diesem System ausgewählt. Dies würde allen Benutzern Zugang ohne Authentifizierung gestatten und ist nicht erlaubt. Bitte wählen Sie mindestens ein PAM-Profil aus der Liste der verfügbaren aus.
+Description-es.UTF-8: No ha seleccionado ningún perfil PAM.
+ No ha seleccionado ningún perfil de PAM para este sistema. Esto podría permitir que cualquier usuario accediera sin autenticación, lo que no está permitido. Debe seleccionar al menos un perfil de PAM de la lista.
+Description-fi.UTF-8: Yhtään PAM-profiilia ei ole valittu.
+ Yhtään PAM-profiilia ei ole valittu käytettäväksi tässä järjestelmässä. Tämä sallisi kaikille käyttäjille pääsyn ilman tunnistautumista, eikä siksi ole sallittua. Valitse ainakin yksi PAM-profiili annetulta listalta.
+Description-fr.UTF-8: Aucun profil PAM n'a été choisi.
+ Aucun profil PAM n'a été mis en place pour ce système. N'en utiliser aucun donnerait à tous les utilisateurs un accès sans authentification, ce qui n'est pas autorisé. Merci de bien vouloir choisir au moins un profil PAM dans la liste proposée.
+Description-gl.UTF-8: Non se escolleu ningún perfil PAM.
+ Non se escolleu ningún perfil PAM para este sistema. Esto daría acceso a todos os usuarios sen necesidade de autenticarse, e isto non está permitido. Escolla polo menos un perfil PAM desde a lista de perfís dispoñibeis.
+Description-it.UTF-8: Non è stato selezionato alcun profilo PAM.
+ Non è stato selezonato alcun profilo PAM da usare su questo sistema. Questo non è permesso, in quanto si consentirebbe l'acceso a qualunque utente senza effettuare l'autenticazione. Selezionare come minimo un profilo PAM tra quelli disponibili nell'elenco.
+Description-ja.UTF-8: PAM プロファイルが何も選択されていません。
+ このシステムで利用する PAM プロファイルが何も選択されていません。これは、すべてのユーザが認証なしにアクセスできてしまうことになるので、認められません。利用可能な一覧から少なくとも 1 つの PAM プロファイルを選んでください。
+Description-nl.UTF-8: Er zijn geen PAM-profielen geselecteerd.
+ Er zijn geen PAM-profielen geselecteerd om gebruikt te worden op dit systeem. Dit zou alle gebruikers toegang geven zonder authenticatie, hetgeen niet is toegestaan. Selecteer minstens een PAM-profiel van de beschikbare lijst.
+Description-pl.UTF-8: Nie wybrano żadnych profili PAM.
+ Nie wybrano żadnych profili PAM, które mają być używane przez system. Dałoby to dostęp wszystkim użytkownikom bez uwierzytelniania, co nie jest dozwolone. Proszę wybrać przynajmniej jeden profil PAM z dostępnej listy.
+Description-pt.UTF-8: Nenhum perfil do PAM foi seleccionado.
+ Não foram seleccionados perfis do PAM para utilização neste sistema. Isto irá permitir acesso sem autenticação ao todos os utilizadores, e não é permitido. Por favor seleccione pelo menos um perfil PAM a partir da lista disponível.
+Description-pt_BR.UTF-8: Nenhum perfil PAM foi selecionado.
+ Nenhum perfil PAM foi selecionado para uso neste sistema. Isto garantiria a todos os usuários acesso sem autenticação, e isto não é permitido. Por favor, selecione no mínimo um perfil PAM da lista disponível.
+Description-ro.UTF-8: Nu au fost selectate profile PAM.
+ Nu a fost ales nici un profil PAM pentru a fi folosit pe acest sistem. Acest lucru ar permite tuturor utilizatorilor accesul fără autentificare, ceea ce nu este permis. Selectați cel puțin un profil PAM din lista disponibilă.
+Description-ru.UTF-8: Профили PAM не выбраны.
+ Для использования в системе не выбрано ни одного профиля PAM. Это предоставило бы полный доступ всем пользователям без аутентификации, что запрещено. Пожалуйста, выберите по крайней мере один профиль PAM из доступных.
+Description-sk.UTF-8: Neboli vybrané žiadne profily PAM.
+ Pre tento systém neboli vybrané žiadne profily PAM. To by udelilo všetkým používateľom prístup bez overovania a to nie je povolené. Prosím, vyberte aspoň jeden profil PAM zo zoznamu dostupných profilov.
+Description-sv.UTF-8: Inga PAM-profiler valdes.
+ Inga PAM-profiler används på detta system. Detta skulle ge alla användare tillgång till systemet utan att behöva ange lösenord och det kan inte tillåtas. välj åtminstone en PAM-profil från listan med tillgängliga profiler.
+Description-tr.UTF-8: Hiçbir PAM profili seçilmedi
+ Sisteminizde kullanılmak amacıyla hiçbir PAM modülü seçilmedi. Bu durum kullanıcılarınızın sisteminize hiçbir kimlik doğrulama yapmadan erişmesine olanak verecektir ve kabul edilemez. Hazırdaki profiller listesinden en az bir PAM profili seçin.
+Description-vi.UTF-8: Chưa chọn hồ sơ PAM.
+ Chưa chọn hồ sơ PAM nào để sử dụng trên hệ thống này. Trường hợp này cho phép mọi người dùng truy cập đến hệ thống mà không xác thực: không tốt ! Xin hãy chọn ít nhất một hồ sơ PAM trong danh sách sẵn sàng.
+Description-zh_CN.UTF-8: 未选择任何 PAM 配置策略。
+ 未选中任何用于本系统的 PAM 配置策略。如果这样做会允许所有用户不经验证进行访问，而这种行为是不允许出现的。请从可用列表中选择至少一个 PAM 配置策略。
+                                                                                                                                                                                       /.
+/usr
+/usr/lib
+/usr/lib/i386-linux-gnu
+/usr/lib/i386-linux-gnu/libpam.so.0.85.1
+/usr/lib/i386-linux-gnu/libpam_misc.so.0.82.1
+/usr/lib/i386-linux-gnu/libpamc.so.0.82.1
+/usr/share
+/usr/share/doc
+/usr/share/doc/libpam0g
+/usr/share/doc/libpam0g/Debian-PAM-MiniPolicy.gz
+/usr/share/doc/libpam0g/README
+/usr/share/doc/libpam0g/README.Debian
+/usr/share/doc/libpam0g/TODO.Debian
+/usr/share/doc/libpam0g/changelog.Debian.gz
+/usr/share/doc/libpam0g/changelog.gz
+/usr/share/doc/libpam0g/copyright
+/usr/share/lintian
+/usr/share/lintian/overrides
+/usr/share/lintian/overrides/libpam0g
+/usr/lib/i386-linux-gnu/libpam.so.0
+/usr/lib/i386-linux-gnu/libpam_misc.so.0
+/usr/lib/i386-linux-gnu/libpamc.so.0
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               5e4da120f156ac1f696d7ebb9edb0846  usr/lib/i386-linux-gnu/libpam.so.0.85.1
+97045b7735506d21c0a89257e924466b  usr/lib/i386-linux-gnu/libpam_misc.so.0.82.1
+ababfd594c58838ff91a4e2728fbd726  usr/lib/i386-linux-gnu/libpamc.so.0.82.1
+d51904d08dd25120fdb49aadeff89402  usr/share/doc/libpam0g/Debian-PAM-MiniPolicy.gz
+c91270e29ef51d3c477fb7b7353758d7  usr/share/doc/libpam0g/README
+ce3d89b0d852f9edb5fd439931b955a8  usr/share/doc/libpam0g/README.Debian
+753b68d5c11c1b677dae92530e611be5  usr/share/doc/libpam0g/TODO.Debian
+33e4cc1a997131f3746feddb967a86dd  usr/share/doc/libpam0g/changelog.Debian.gz
+d98c39ac49c0e05d7d83483a9f76fe59  usr/share/doc/libpam0g/changelog.gz
+d87fc780d44c6d0f836bac2a852fcc9a  usr/share/doc/libpam0g/copyright
+a08edec203c3cecebd3feb97c735f46b  usr/share/lintian/overrides/libpam0g
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 #!/bin/sh
+
+# postinst based heavily on the postinst of libssl0.9.8, courtesy of 
+# Christoph Martin.
+
+. /usr/share/debconf/confmodule
+
+set -e
+
+# element() is a helper function for file-rc:
+element() {
+    local element list IFS
+
+    element="$1"
+
+    [ "$2" = "in" ] && shift
+    list="$2"
+    [ "$list" = "-" ] && return 1
+    [ "$list" = "*" ] && return 0
+
+    IFS=","
+    set -- $list
+    case $element in
+	"$1"|"$2"|"$3"|"$4"|"$5"|"$6"|"$7"|"$8"|"$9")
+	    return 0
+    esac
+    return 1
+}
+
+# filerc (runlevel, service) returns /etc/init.d/service, if service is
+# running in $runlevel:
+filerc() {
+    local runlevel basename
+    runlevel=$1
+    basename=$2
+    while read LINE
+    do
+	case $LINE in
+	    \#*|"") continue
+	esac
+
+	set -- $LINE
+	SORT_NO="$1"; STOP="$2"; START="$3"; CMD="$4"
+	[ "$CMD" = "/etc/init.d/$basename" ] || continue
+
+	if element "$runlevel" in "$START" || element "S" in "$START"
+	then
+	    echo "/etc/init.d/$basename"
+	    return 0
+	fi
+    done < /etc/runlevel.conf
+    echo ""
+}
+
+if test -d /run/systemd/system; then
+    is_service_configured() {
+        systemctl is-enabled --quiet $1 || return 1
+    }
+    restart_service() {
+        if systemctl try-restart $1; then
+            :
+        else
+            failed="$failed $1"
+        fi
+    }
+else # not systemd
+    is_service_configured() {
+        service="$1"
+	idl="/etc/init.d/${service}"
+	if [ -n "$idl" ] && [ -x $idl ]; then
+	    return 0
+	else
+            return 1
+        fi
+    }
+
+    restart_service() {
+        service="$1"
+	idl="invoke-rc.d ${service}"
+	echo -n "  $service: stopping..." 2>&1
+	$idl stop > /dev/null 2>&1 || true
+	sleep 1
+	echo -n "starting..." 2>&1
+	if $idl start > /dev/null 2>&1; then
+	    echo "done." 2>&1
+	else
+	    echo "FAILED! ($?)" 2>&1
+	    failed="$service $failed"
+	fi
+    }
+fi
+    
+                 installed_services() {
+    check="$@"
+
+    # Only get the ones that are installed, and configured
+    check=$(dpkg -s $check 2> /dev/null | egrep '^Package:|^Status:' | awk '{if ($1 ~ /^Package:/) { package=$2 } else if ($0 ~ /^Status: .* installed$/) { print package }}')
+
+    # some init scripts don't match the package names
+    check=$(echo $check | \
+	sed -e's/\bapache2-common\b/apache2/g' \
+	    -e's/\bat\b/atd/g' \
+	    -e's/\bdovecot-common\b/dovecot/g' \
+	    -e's/\bdante-server\b/danted/g' \
+	    -e's/\bexim4-base\b/exim4/g' \
+	    -e's/\bheartbeat-2\b/heartbeat/g' \
+	    -e's/\bhylafax-server\b/hylafax/g' \
+	    -e's/\bpartimage-server\b/partimaged/g' \
+	    -e's/\bpostgresql-common\b/postgresql/g' \
+	    -e's/\bsamba\b/smbd samba-ad-dc/g' \
+	    -e's/\bsasl2-bin\b/saslauthd/g' \
+    )
+
+    for service in $check; do
+	if is_service_configured $service; then
+		services="$service $services"
+	else
+		echo "WARNING:  $service not configured." >&2
+	fi
+    done
+    echo "$services"
+}
+
+if [ "$1" = "configure" ]
+then
+    if [ ! -z "$2" ]; then
+	if dpkg --compare-versions "$2" lt 1.4.0-2; then
+	    db_version 2.0
+
+	    echo -n "Checking for services that may need to be restarted..."
+
+	    check="apache2-common at bayonne cherokee courier-authdaemon"
+	    check="$check cron cups"
+	    check="$check dante-server diald dovecot-common exim exim4-base"
+	    check="$check fcron fireflier-server freeradius gdm heartbeat"
+	    check="$check heartbeat-2 hylafax-server iiimf-server inn2"
+	    check="$check kannel linesrv linesrv-mysql lsh-server"
+	    check="$check muddleftpd netatalk nuauth partimage-server"
+	    check="$check perdition pgpool popa3d"
+	    check="$check postgresql-common proftpd pure-ftpd"
+	    check="$check pure-ftpd-ldap pure-ftpd-mysql"
+	    check="$check pure-ftpd-postgresql racoon samba sasl2-bin"
+	    check="$check sfs-server solid-pop3d squid squid3 tac-plus"
+	    check="$check vsftpd wu-ftpd wzdftpd xrdp yardradius yaws"
+
+	    if [ -z "$(who | awk '$2 ~ /console/ && $NF ~ /:[0-9]/ { print $NF }
+                                  $2 ~ /:[0-9]/ { print $2 }')" ]
+	    then
+		check="$check wdm xdm"
+	    fi
+
+	    echo "Checking init scripts..."
+	    services=$(installed_services "$check")
+	    if [ -n "$services" ]; then
+		db_input critical libraries/restart-without-asking || true
+		db_go || true
+		db_get libraries/restart-without-asking
+		if [ "$RET" != true ]; then
+		    db_reset libpam0g/restart-services
+		    db_set libpam0g/restart-services "$services"
+		    db_input critical libpam0g/restart-services || true
+		    db_go || true
+		    db_get libpam0g/restart-services
+
+		    if [ "x$RET" != "x" ]
+		    then
+			services=$RET
+		    else
+			services=""
+		    fi
+		fi
+		echo
+		if [ "$services" != "" ]; then
+		    echo "Restarting services possibly affected by the upgrade:"
+		    failed=""
+		    rl=$(runlevel | sed 's/.*\ //')
+		    for service in $services; do
+			idl="invoke-rc.d ${service}"
+
+			case "$service" in
+			    gdm)
+				echo -n "  $service: reloading..."
+				if $idl reload > /dev/null 2>&1; then
+				    echo "done."
+				else
+				    echo "FAILED! ($?)"
+				    failed="$service $failed"
+				fi
+				continue
+			    ;;
+			esac
+                        restart_service "$service"
+		    done
+		    echo
+		    if [ -n "$failed" ]; then
+			db_subst libpam0g/restart-failed services "$failed"
+			db_input critical libpam0g/restart-failed || true
+			db_go || true
+		    else
+			echo "Services restarted successfully."
+		    fi
+		    echo
+		fi
+	    else
+		echo "Nothing to restart."
+	    fi
+
+	    if [ -n "$(who | awk '$2 ~ /console/ && $NF ~ /:[0-9]/ { print $NF }
+                                  $2 ~ /:[0-9]/ { print $2 }')" ]
+	    then
+		dms=""
+		for service in wdm xdm; do
+		    case "$services" in
+			*$service*)	;;
+			*)	dms="$dms $service"
+		    esac
+		done
+		services=$(installed_services "$dms")
+		if [ -n "$services" ]; then
+		    db_input critical libpam0g/xdm-needs-restart || true
+		    db_go || true
+		fi
+	    fi
+
+	    # Shut down the frontend, to make sure none of the
+	    # restarted services keep a connection open to it
+	    db_stop
+	fi # end upgrading and $2 lt 1.4.0-2
+    fi # Upgrading
+fi
+
+
+
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        #!/bin/sh
+set -e
+# Automatically added by dh_installdebconf/13.24.2
+if [ "$1" = purge ] && [ -e /usr/share/debconf/confmodule ]; then
+	. /usr/share/debconf/confmodule
+	db_purge
+fi
+# End automatically added section
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          libpam 0 libpam0g (>= 1.7.0)
+libpam_misc 0 libpam0g (>= 1.7.0)
+libpamc 0 libpam0g (>= 1.7.0)
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   
