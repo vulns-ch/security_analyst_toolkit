@@ -17,7 +17,7 @@
 //        "wss://disks.webvm.io/debian_large_20230522_5044875331.ext2"
 //      );
 
-      const blockDevice = await CheerpX.GitHubDevice.create("/disk-images/debian")
+      const blockDevice = await CheerpX.GitHubDevice.create("/disk-images/debian/debian")
 
       // Read-write local storage for disk blocks, it is used both as a cache and as persisteny writable storage
       const idbDevice = await CheerpX.IDBDevice.create("block1");
