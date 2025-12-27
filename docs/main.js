@@ -21,7 +21,7 @@ function addInputFile(file) {
 var filename = file.name;
 getBase64(file).then(
 function(encoded) {dataDevice.writeFile("/."+filename+".b64", encoded).then(
-function(args) {cx.run("/bin/bash", ["-c", "cat /data/."+filename+".b64 | base64 -d > /home/user/input/"+filename], {
+function(args) {cx.run("/bin/bash", ["-c", "cat '/data/."+filename+".b64' | base64 -d > '/home/user/input/"+filename+"'"], {
         env: [
           "HOME=/home/user",
           "USER=user",
