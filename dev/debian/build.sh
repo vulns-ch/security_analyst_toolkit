@@ -17,5 +17,6 @@ chmod +rw "$index_list";
 echo "created $index_list";
 rm -rf ../../docs/disk-images/debian
 cp -r split ../../docs/disk-images/debian
+cp -r debian.ext2 ../../docs/disk-images/
 
 

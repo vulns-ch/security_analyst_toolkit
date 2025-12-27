@@ -2,8 +2,9 @@
 <html lang="en" style="height: 100%;">
   <head>
     <meta charset="utf-8" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src-elem 'self' 'unsafe-inline' cdn.jsdelivr.net cxrtnc.leaningtech.com; script-src 'unsafe-eval' cxrtnc.leaningtech.com; style-src-elem cdn.jsdelivr.net 'self' 'unsafe-inline'; style-src cxrtnc.leaningtech.com 'self' 'unsafe-inline'; connect-src 'self' sat.vulns.ch cxrtnc.leaningtech.com; worker-src 'self' blob:"/>
     <title>CheerpX Getting Started</title>
-    <script src="https://cdn.jsdelivr.net/npm/xterm@5.3.0/lib/xterm.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xterm@5.3.0/lib/xterm.min.js" integrity="sha256-/B3TGyIePl+SlIbgeoC0d6iq+dzitPnD/+fdJfNwZV0=" crossorigin="anonymous"></script>
     <link href="https://cdn.jsdelivr.net/npm/xterm@5.3.0/css/xterm.min.css" rel="stylesheet">
     <script src="coi-serviceworker.js"></script>
     <script type="module">
@@ -12,18 +13,13 @@
     </script>
     <script type="module">
       // The read-only disk image
-//      const blockDevice = await CheerpX.HttpBytesDevice.create("/disk-images/debian.ext2");
-// const blockDevice = await CheerpX.CloudDevice.create(
-//        "wss://disks.webvm.io/debian_large_20230522_5044875331.ext2"
-//      );
 
-      const blockDevice = await CheerpX.GitHubDevice.create("/disk-images/debian/debian")
+      const blockDevice = (window.location.href.indexOf("localhost") > -1) ? await CheerpX.HttpBytesDevice.create("/disk-images/debian.ext2") : await CheerpX.GitHubDevice.create("https://sat.vulns.ch/disk-images/debian/debian")
+
 
       // Read-write local storage for disk blocks, it is used both as a cache and as persisteny writable storage
       const idbDevice = await CheerpX.IDBDevice.create("block1");
       await idbDevice.reset();
-
-
 
       // Convenient access to JavaScript binary data and strings
       const dataDevice = await CheerpX.DataDevice.create();
@@ -34,9 +30,6 @@
         blockDevice,
         idbDevice
       );
-
-
-  //    const filesDevice = await CheerpX.IDBDevice.create("files");
 
 
       const cx = await CheerpX.Linux.create({
@@ -71,8 +64,6 @@
 
 
 
-//      cx.setConsole(document.getElementById("console"));
-
       // start bash
       await cx.run("/bin/bash", ["--login"], {
         env: [
@@ -102,6 +93,7 @@
     <pre id="console" style="height: 100%;"></pre>
 
 <script>
+// hacky way to upload files
 const form = document.querySelector('form');
 form.addEventListener('submit', handleSubmit);
 
