@@ -1,4 +1,302 @@
-ceilf@GLIBC_2.0 2.0
+te@GLIBC_2.15 2.15
+ __exp10f128_finite@GLIBC_2.26 2.26
+ __exp10f_finite@GLIBC_2.15 2.15
+ __exp10l_finite@GLIBC_2.15 2.15
+ __exp2_finite@GLIBC_2.15 2.15
+ __exp2f128_finite@GLIBC_2.26 2.26
+ __exp2f_finite@GLIBC_2.15 2.15
+ __exp2l_finite@GLIBC_2.15 2.15
+ __exp_finite@GLIBC_2.15 2.15
+ __expf128_finite@GLIBC_2.26 2.26
+ __expf_finite@GLIBC_2.15 2.15
+ __expl@GLIBC_2.2 2.2
+ __expl_finite@GLIBC_2.15 2.15
+ __expm1l@GLIBC_2.2 2.2
+ __finite@GLIBC_2.1 2.1
+ __finitef128@GLIBC_2.26 2.26
+ __finitef@GLIBC_2.1 2.1
+ __finitel@GLIBC_2.1 2.1
+ __fmod_finite@GLIBC_2.15 2.15
+ __fmodf128_finite@GLIBC_2.26 2.26
+ __fmodf_finite@GLIBC_2.15 2.15
+ __fmodl_finite@GLIBC_2.15 2.15
+ __fpclassify@GLIBC_2.1 2.1
+ __fpclassifyf128@GLIBC_2.26 2.26
+ __fpclassifyf@GLIBC_2.1 2.1
+ __fpclassifyl@GLIBC_2.1 2.1
+ __gamma_r_finite@GLIBC_2.15 2.15
+ __gammaf128_r_finite@GLIBC_2.26 2.26
+ __gammaf_r_finite@GLIBC_2.15 2.15
+ __gammal_r_finite@GLIBC_2.15 2.15
+ __hypot_finite@GLIBC_2.15 2.15
+ __hypotf128_finite@GLIBC_2.26 2.26
+ __hypotf_finite@GLIBC_2.15 2.15
+ __hypotl_finite@GLIBC_2.15 2.15
+ __iscanonicall@GLIBC_2.25 2.25
+ __iseqsig@GLIBC_2.25 2.25
+ __iseqsigf128@GLIBC_2.26 2.26
+ __iseqsigf@GLIBC_2.25 2.25
+ __iseqsigl@GLIBC_2.25 2.25
+ __isinff128@GLIBC_2.26 2.26
+ __issignaling@GLIBC_2.18 2.18
+ __issignalingf128@GLIBC_2.26 2.26
+ __issignalingf@GLIBC_2.18 2.18
+ __issignalingl@GLIBC_2.18 2.18
+ __j0_finite@GLIBC_2.15 2.15
+ __j0f128_finite@GLIBC_2.26 2.26
+ __j0f_finite@GLIBC_2.15 2.15
+ __j0l_finite@GLIBC_2.15 2.15
+ __j1_finite@GLIBC_2.15 2.15
+ __j1f128_finite@GLIBC_2.26 2.26
+ __j1f_finite@GLIBC_2.15 2.15
+ __j1l_finite@GLIBC_2.15 2.15
+ __jn_finite@GLIBC_2.15 2.15
+ __jnf128_finite@GLIBC_2.26 2.26
+ __jnf_finite@GLIBC_2.15 2.15
+ __jnl_finite@GLIBC_2.15 2.15
+ __lgamma_r_finite@GLIBC_2.15 2.15
+ __lgammaf128_r_finite@GLIBC_2.26 2.26
+ __lgammaf_r_finite@GLIBC_2.15 2.15
+ __lgammal_r_finite@GLIBC_2.15 2.15
+ __log10_finite@GLIBC_2.15 2.15
+ __log10f128_finite@GLIBC_2.26 2.26
+ __log10f_finite@GLIBC_2.15 2.15
+ __log10l_finite@GLIBC_2.15 2.15
+ __log2_finite@GLIBC_2.15 2.15
+ __log2f128_finite@GLIBC_2.26 2.26
+ __log2f_finite@GLIBC_2.15 2.15
+ __log2l_finite@GLIBC_2.15 2.15
+ __log_finite@GLIBC_2.15 2.15
+ __logf128_finite@GLIBC_2.26 2.26
+ __logf_finite@GLIBC_2.15 2.15
+ __logl_finite@GLIBC_2.15 2.15
+ __pow_finite@GLIBC_2.15 2.15
+ __powf128_finite@GLIBC_2.26 2.26
+ __powf_finite@GLIBC_2.15 2.15
+ __powl_finite@GLIBC_2.15 2.15
+ __remainder_finite@GLIBC_2.15 2.15
+ __remainderf128_finite@GLIBC_2.26 2.26
+ __remainderf_finite@GLIBC_2.15 2.15
+ __remainderl_finite@GLIBC_2.15 2.15
+ __scalb_finite@GLIBC_2.15 2.15
+ __scalbf_finite@GLIBC_2.15 2.15
+ __scalbl_finite@GLIBC_2.15 2.15
+ __signbit@GLIBC_2.1 2.1
+ __signbitf128@GLIBC_2.26 2.26
+ __signbitf@GLIBC_2.1 2.1
+ __signbitl@GLIBC_2.1 2.1
+ __signgam@GLIBC_2.23 2.23
+ __sinh_finite@GLIBC_2.15 2.15
+ __sinhf128_finite@GLIBC_2.26 2.26
+ __sinhf_finite@GLIBC_2.15 2.15
+ __sinhl_finite@GLIBC_2.15 2.15
+ __sqrt_finite@GLIBC_2.15 2.15
+ __sqrtf128_finite@GLIBC_2.26 2.26
+ __sqrtf_finite@GLIBC_2.15 2.15
+ __sqrtl_finite@GLIBC_2.15 2.15
+ __y0_finite@GLIBC_2.15 2.15
+ __y0f128_finite@GLIBC_2.26 2.26
+ __y0f_finite@GLIBC_2.15 2.15
+ __y0l_finite@GLIBC_2.15 2.15
+ __y1_finite@GLIBC_2.15 2.15
+ __y1f128_finite@GLIBC_2.26 2.26
+ __y1f_finite@GLIBC_2.15 2.15
+ __y1l_finite@GLIBC_2.15 2.15
+ __yn_finite@GLIBC_2.15 2.15
+ __ynf128_finite@GLIBC_2.26 2.26
+ __ynf_finite@GLIBC_2.15 2.15
+ __ynl_finite@GLIBC_2.15 2.15
+ acos@GLIBC_2.0 2.0
+ acosf128@GLIBC_2.26 2.26
+ acosf32@GLIBC_2.27 2.27
+ acosf32x@GLIBC_2.27 2.27
+ acosf64@GLIBC_2.27 2.27
+ acosf64x@GLIBC_2.27 2.27
+ acosf@GLIBC_2.0 2.0
+ acosh@GLIBC_2.0 2.0
+ acoshf128@GLIBC_2.26 2.26
+ acoshf32@GLIBC_2.27 2.27
+ acoshf32x@GLIBC_2.27 2.27
+ acoshf64@GLIBC_2.27 2.27
+ acoshf64x@GLIBC_2.27 2.27
+ acoshf@GLIBC_2.0 2.0
+ acoshl@GLIBC_2.0 2.0
+ acosl@GLIBC_2.0 2.0
+ acospi@GLIBC_2.41 2.41
+ acospif128@GLIBC_2.41 2.41
+ acospif32@GLIBC_2.41 2.41
+ acospif32x@GLIBC_2.41 2.41
+ acospif64@GLIBC_2.41 2.41
+ acospif64x@GLIBC_2.41 2.41
+ acospif@GLIBC_2.41 2.41
+ acospil@GLIBC_2.41 2.41
+ asin@GLIBC_2.0 2.0
+ asinf128@GLIBC_2.26 2.26
+ asinf32@GLIBC_2.27 2.27
+ asinf32x@GLIBC_2.27 2.27
+ asinf64@GLIBC_2.27 2.27
+ asinf64x@GLIBC_2.27 2.27
+ asinf@GLIBC_2.0 2.0
+ asinh@GLIBC_2.0 2.0
+ asinhf128@GLIBC_2.26 2.26
+ asinhf32@GLIBC_2.27 2.27
+ asinhf32x@GLIBC_2.27 2.27
+ asinhf64@GLIBC_2.27 2.27
+ asinhf64x@GLIBC_2.27 2.27
+ asinhf@GLIBC_2.0 2.0
+ asinhl@GLIBC_2.0 2.0
+ asinl@GLIBC_2.0 2.0
+ asinpi@GLIBC_2.41 2.41
+ asinpif128@GLIBC_2.41 2.41
+ asinpif32@GLIBC_2.41 2.41
+ asinpif32x@GLIBC_2.41 2.41
+ asinpif64@GLIBC_2.41 2.41
+ asinpif64x@GLIBC_2.41 2.41
+ asinpif@GLIBC_2.41 2.41
+ asinpil@GLIBC_2.41 2.41
+ atan2@GLIBC_2.0 2.0
+ atan2f128@GLIBC_2.26 2.26
+ atan2f32@GLIBC_2.27 2.27
+ atan2f32x@GLIBC_2.27 2.27
+ atan2f64@GLIBC_2.27 2.27
+ atan2f64x@GLIBC_2.27 2.27
+ atan2f@GLIBC_2.0 2.0
+ atan2l@GLIBC_2.0 2.0
+ atan2pi@GLIBC_2.41 2.41
+ atan2pif128@GLIBC_2.41 2.41
+ atan2pif32@GLIBC_2.41 2.41
+ atan2pif32x@GLIBC_2.41 2.41
+ atan2pif64@GLIBC_2.41 2.41
+ atan2pif64x@GLIBC_2.41 2.41
+ atan2pif@GLIBC_2.41 2.41
+ atan2pil@GLIBC_2.41 2.41
+ atan@GLIBC_2.0 2.0
+ atanf128@GLIBC_2.26 2.26
+ atanf32@GLIBC_2.27 2.27
+ atanf32x@GLIBC_2.27 2.27
+ atanf64@GLIBC_2.27 2.27
+ atanf64x@GLIBC_2.27 2.27
+ atanf@GLIBC_2.0 2.0
+ atanh@GLIBC_2.0 2.0
+ atanhf128@GLIBC_2.26 2.26
+ atanhf32@GLIBC_2.27 2.27
+ atanhf32x@GLIBC_2.27 2.27
+ atanhf64@GLIBC_2.27 2.27
+ atanhf64x@GLIBC_2.27 2.27
+ atanhf@GLIBC_2.0 2.0
+ atanhl@GLIBC_2.0 2.0
+ atanl@GLIBC_2.0 2.0
+ atanpi@GLIBC_2.41 2.41
+ atanpif128@GLIBC_2.41 2.41
+ atanpif32@GLIBC_2.41 2.41
+ atanpif32x@GLIBC_2.41 2.41
+ atanpif64@GLIBC_2.41 2.41
+ atanpif64x@GLIBC_2.41 2.41
+ atanpif@GLIBC_2.41 2.41
+ atanpil@GLIBC_2.41 2.41
+ cabs@GLIBC_2.1 2.1
+ cabsf128@GLIBC_2.26 2.26
+ cabsf32@GLIBC_2.27 2.27
+ cabsf32x@GLIBC_2.27 2.27
+ cabsf64@GLIBC_2.27 2.27
+ cabsf64x@GLIBC_2.27 2.27
+ cabsf@GLIBC_2.1 2.1
+ cabsl@GLIBC_2.1 2.1
+ cacos@GLIBC_2.1 2.1
+ cacosf128@GLIBC_2.26 2.26
+ cacosf32@GLIBC_2.27 2.27
+ cacosf32x@GLIBC_2.27 2.27
+ cacosf64@GLIBC_2.27 2.27
+ cacosf64x@GLIBC_2.27 2.27
+ cacosf@GLIBC_2.1 2.1
+ cacosh@GLIBC_2.1 2.1
+ cacoshf128@GLIBC_2.26 2.26
+ cacoshf32@GLIBC_2.27 2.27
+ cacoshf32x@GLIBC_2.27 2.27
+ cacoshf64@GLIBC_2.27 2.27
+ cacoshf64x@GLIBC_2.27 2.27
+ cacoshf@GLIBC_2.1 2.1
+ cacoshl@GLIBC_2.1 2.1
+ cacosl@GLIBC_2.1 2.1
+ canonicalize@GLIBC_2.25 2.25
+ canonicalizef128@GLIBC_2.26 2.26
+ canonicalizef32@GLIBC_2.27 2.27
+ canonicalizef32x@GLIBC_2.27 2.27
+ canonicalizef64@GLIBC_2.27 2.27
+ canonicalizef64x@GLIBC_2.27 2.27
+ canonicalizef@GLIBC_2.25 2.25
+ canonicalizel@GLIBC_2.25 2.25
+ carg@GLIBC_2.1 2.1
+ cargf128@GLIBC_2.26 2.26
+ cargf32@GLIBC_2.27 2.27
+ cargf32x@GLIBC_2.27 2.27
+ cargf64@GLIBC_2.27 2.27
+ cargf64x@GLIBC_2.27 2.27
+ cargf@GLIBC_2.1 2.1
+ cargl@GLIBC_2.1 2.1
+ casin@GLIBC_2.1 2.1
+ casinf128@GLIBC_2.26 2.26
+ casinf32@GLIBC_2.27 2.27
+ casinf32x@GLIBC_2.27 2.27
+ casinf64@GLIBC_2.27 2.27
+ casinf64x@GLIBC_2.27 2.27
+ casinf@GLIBC_2.1 2.1
+ casinh@GLIBC_2.1 2.1
+ casinhf128@GLIBC_2.26 2.26
+ casinhf32@GLIBC_2.27 2.27
+ casinhf32x@GLIBC_2.27 2.27
+ casinhf64@GLIBC_2.27 2.27
+ casinhf64x@GLIBC_2.27 2.27
+ casinhf@GLIBC_2.1 2.1
+ casinhl@GLIBC_2.1 2.1
+ casinl@GLIBC_2.1 2.1
+ catan@GLIBC_2.1 2.1
+ catanf128@GLIBC_2.26 2.26
+ catanf32@GLIBC_2.27 2.27
+ catanf32x@GLIBC_2.27 2.27
+ catanf64@GLIBC_2.27 2.27
+ catanf64x@GLIBC_2.27 2.27
+ catanf@GLIBC_2.1 2.1
+ catanh@GLIBC_2.1 2.1
+ catanhf128@GLIBC_2.26 2.26
+ catanhf32@GLIBC_2.27 2.27
+ catanhf32x@GLIBC_2.27 2.27
+ catanhf64@GLIBC_2.27 2.27
+ catanhf64x@GLIBC_2.27 2.27
+ catanhf@GLIBC_2.1 2.1
+ catanhl@GLIBC_2.1 2.1
+ catanl@GLIBC_2.1 2.1
+ cbrt@GLIBC_2.0 2.0
+ cbrtf128@GLIBC_2.26 2.26
+ cbrtf32@GLIBC_2.27 2.27
+ cbrtf32x@GLIBC_2.27 2.27
+ cbrtf64@GLIBC_2.27 2.27
+ cbrtf64x@GLIBC_2.27 2.27
+ cbrtf@GLIBC_2.0 2.0
+ cbrtl@GLIBC_2.0 2.0
+ ccos@GLIBC_2.1 2.1
+ ccosf128@GLIBC_2.26 2.26
+ ccosf32@GLIBC_2.27 2.27
+ ccosf32x@GLIBC_2.27 2.27
+ ccosf64@GLIBC_2.27 2.27
+ ccosf64x@GLIBC_2.27 2.27
+ ccosf@GLIBC_2.1 2.1
+ ccosh@GLIBC_2.1 2.1
+ ccoshf128@GLIBC_2.26 2.26
+ ccoshf32@GLIBC_2.27 2.27
+ ccoshf32x@GLIBC_2.27 2.27
+ ccoshf64@GLIBC_2.27 2.27
+ ccoshf64x@GLIBC_2.27 2.27
+ ccoshf@GLIBC_2.1 2.1
+ ccoshl@GLIBC_2.1 2.1
+ ccosl@GLIBC_2.1 2.1
+ ceil@GLIBC_2.0 2.0
+ ceilf128@GLIBC_2.26 2.26
+ ceilf32@GLIBC_2.27 2.27
+ ceilf32x@GLIBC_2.27 2.27
+ ceilf64@GLIBC_2.27 2.27
+ ceilf64x@GLIBC_2.27 2.27
+ ceilf@GLIBC_2.0 2.0
  ceill@GLIBC_2.0 2.0
  cexp@GLIBC_2.1 2.1
  cexpf128@GLIBC_2.26 2.26
@@ -1762,7 +2060,7 @@ Description-nl.UTF-8: Herstarten van sommige diensten bij de opwaardering van GN
  .
  U dient deze diensten handmatig te herstarten via het commando 'invoke-rc.d <dienst> start'.
 Description-no.UTF-8: Noen tjenester kunne ikke restartes for GNU libc-oppgradering
- ֊  ׊  ؊  ي  ڊ  ۊ  ܊  ݊  ފ  ߊ  ��  �                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  Følgende tjenester kunne ikke restartes for oppgradering av GNU libc-biblioteket:
+ ؊  ي  ڊ  ۊ  ܊  ݊  ފ  ߊ  ��  �  �  �                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  Følgende tjenester kunne ikke restartes for oppgradering av GNU libc-biblioteket:
  .
  ${services}
  .
@@ -1944,56 +2242,4 @@ Description-pt_BR.UTF-8: Reiniciar serviços durante a atualização de pacotes 
 Description-ro.UTF-8: Doriți ca serviciile să fie repornite în timpul înnoirii pachetului fără să fiți întrebați?
  Există servicii instalate pe sistemul dumneavoastră care trebuie repornite atunci când anumite biblioteci, cum ar fi „libpam”, „libc” și „libss”l, sunt actualizate. Deoarece aceste reporniri pot cauza întreruperi ale serviciilor pentru sistem, vi se va solicita în mod normal, la fiecare actualizare, lista de servicii pe care doriți să le reporniți. Puteți alege această opțiune pentru a evita să vi se solicite acordul pentru acest lucru; în schimb, toate repornirile necesare vor fi efectuate automat pentru dvs., astfel încât să puteți evita să vi se pună întrebări la fiecare actualizare a bibliotecii.
 Description-ru.UTF-8: Перезапускать службы при обновлении пакета без подтверждения?
- В системе установлены службы, которые требуют перезапуска после обновления определённых библиотек (например, libpam, libc и libssl). Так как это может вызвать перерыв в работе службы, то обычно при каждом обновлении запрашивается подтверждение списка служб, которые нужно перезапустить. Чтобы этот вопрос не задавался, вы можете ответить утвердительно; в этом случае все необходимые службы будут перезапущены автоматически.
-Description-sk.UTF-8: Reštartovať služby počas aktualizácie balíka bez pýtania sa?
- Na vašom systéme sú nainštalované služby, ktoré je potrebné reštartovať pri aktualizácii určitých knižníc ako libpam, libc, a libssl. Keďže tieto reštarty môžu spôsobiť prerušenie služby systému, za bežných okolností sa vám systém správy balíkov pri každej aktualizácii ponúkne zoznam služieb, ktoré chcete reštartovať. Môžete zvoliť, aby sa vás systém správy balíkov už viac nepýtal, ale aby sa namiesto toho všetky potrebné reštarty vykonávali automaticky, takže sa vyhnete kladeniu otázok pri každej aktualizácii knižnice.
-Description-sv.UTF-8: Ska tjänster startas om vid paketuppgraderingar utan att först fråga?
- Det finns tjänster installerade på systemet som behöver startas om när vissa bibliotek, exempelvis libpam, libc och libssl, uppgraderas. Eftersom dessa omstarter kan orsaka avbrott i tjänsten ställs normalt en fråga vid varje uppgradering där en lista med tjänster som ska startas om presenteras. Du kan välja att aktivera detta alternativ för att undvika att frågan ställs. Istället kommer alla nödvändiga omstarter att göras automatiskt.
-Description-tr.UTF-8: Hizmetler paket yükseltme işlemi sırasında size sorulmadan yeniden başlatılsın mı?
- Sisteminizde libpam, libc ve libssl gibi bazı kitaplıkların yükseltildiğinde yeniden başlatılması gereken hizmetler kurulu. Yeniden başlatma işlemleri sisteminizin sunduğu hizmetlerde kesintilere neden olabileceğinden dolayı her yükseltme işlemi sırasında yeniden başlatmak istediğiniz hizmetler için onayınız alınacaktır. Eğer onayınızın alınmasını istemiyorsanız, "Evet" seçeneğini kullanabilirsiniz. Bu seçeneği seçerseniz, bir kitaplık yükseltmesi yapılırken gereken tüm yeniden başlatma işlemleri size sorulmaksızın kendiliğinden yapılacaktır.
-Description-zh_CN.UTF-8: 要在升级时自动重启服务吗？
- 您系统中部分运行中的服务由于依赖或使用了当前正在更新的库（如 libpam、libc、libssl 等），需要重新启动。鉴于此类重启的操作可能会导致系统中的服务被中断，每次更新时系统通常会提示您选择需要重启的服务。您可以勾选该选项，让系统在后续遇到此类更新时自动重启必要的服务，同时避免在更新时出现此提示。
-
-Template: glibc/kernel-too-old
-Type: error
-Description: Kernel must be upgraded
- This version of the GNU libc requires kernel version ${kernel_ver} or
- later.  Please upgrade your kernel and reboot before installing glibc.
- You may need to use "apt -f install" after reboot to solve dependencies.
-Description-ca.UTF-8: S'ha d'actualitzar el nucli
- Aquesta versió de la «GNU libc» requereix la versió del nucli ${kernel_ver} o posterior. Actualitzeu el nucli i reinicieu abans d'instal·lar la «glibc». És possible que hàgiu d'utilitzar «apt -f install» després de reiniciar per a resoldre dependències.
-Description-cs.UTF-8: Je nutné aktualizovat jádro
- Tato verze GNU libc vyžaduje jádro verze ${kernel_ver} nebo novější. Před instalací glibc nejprve aktualizujte jádro a restartujte počítač. Po restartu možná budete muset vyřešit závislosti příkazem „apt -f install“.
-Description-de.UTF-8: Kernel muss aktualisiert werden.
- Diese Version der GNU-Libc benötigt Kernel Version ${kernel_ver} oder neuer. Bitte führen Sie vor der Installation der Glibc ein Upgrade durch und starten Sie das System neu. Nach dem Neustart könnte es sein, dass Sie »apt -f install« verwenden müssen, um Abhängigkeiten aufzulösen.
-Description-es.UTF-8: Es necesario actualizar el núcleo
- Esta versión de la biblioteca C de GNU (libc) requiere como mínimo la versión ${kernel_ver} del núcleo. Actualice el núcleo antes de instalar glibc. Es posible que tenga que ejecutar «apt -f install» después de reiniciar para resolver dependencias.
-Description-it.UTF-8: È necessario aggiornare il kernel
- Questa versione di GNU libc richiede che la versione del kernel sia ${kernel_ver} o successiva. Aggiornare il kernel e riavviare prima di installare glibc. Dopo il riavvio potrebbe essere necessario eseguire «apt -f install» per risolvere le dipendenze.
-Description-ko.UTF-8: 커널을 업그레이드해야 합니다
- 이 버전의 GNU libc는 ${kernel_ver} 이후 버전 커널이 필요합니다. glibc를 설치하기 전에 커널을 업그레이드하고 다시 시작하십시오. 다시 시작한 뒤 의존성을 해결하기 위해 "apt -f install" 명령을 사용해야 할 수도 있습니다.
-Description-nl.UTF-8: De kernel moet opgewaardeerd worden
- Deze versie van GNU libc heeft kernel versie ${kernel_ver} of een meer recente versie nodig. Gelieve uw kernel op te waarderen en de computer te herstarten voor u glibc installeert. Mogelijk moet u na de herstart "apt -f install" gebruiken om vereisten op te lossen.
-Description-pt.UTF-8: O kernel necessita de ser actualizado
- Esta versão da GNU libc necessita da versão ${kernel_ver} ou mais recente. Por favor, actualize o kernel e reinicie antes de instalar a glibc. Pode ter que utilizar "apt -f install" após o reinício para resolver as dependências.
-Description-pt_BR.UTF-8: O kernel deve ser atualizado
- Essa versão da GNU libc requer um kernel versão ${kernel_ver} ou mais recente. Por favor, atualize o seu kernel e reinicialize o computador antes de instalar a glibc. Você talvez precise usar "apt -f install" depois de reinicializar para resolver dependências.
-Description-ro.UTF-8: Nucleul trebuie să fie înnoit
- Această versiune a bibliotecii libc GNU necesită versiunea nucleului ${kernel_ver} sau o versiune ulterioară.  Actualizați nucleul și să reporniți înainte de a instala glibc. Este posibil să fie nevoie să utilizați comanda «apt -f install» după repornire, pentru a rezolva problemele de dependențe.
-Description-sk.UTF-8: Kernel sa musí aktualizovať
- Táto verzia GNU libc vyžaduje verziu kernelu ${kernel_ver} alebo neskoršiu. Aktualizujte prosím Váš kernel a reštartujte systém pred inštaláciou glibc. V prípade chýbajúcich závislostí po reštarte, použite príkaz "apt -f install".
-Description-sv.UTF-8: Kärnan måste uppgraderas
- Den här versionen av GNU libc behöver åtminstone version ${kernel_ver} av kärnan. Uppgradera kärnan och starta om systemet före glibc installeras. Det kan tänkas att du behöver köra "apt -f install" för att lösa beroendeknutar efter omstart.
-Description-tr.UTF-8: Linux çekirdeği güncellenmelidir
- GNU libc kitaplığının bu sürümü ${kernel_ver} çekirdek sürümü veya daha yenisi ile çalışabilmektedir. GNU libc kurulumu öncesinde çekirdek sürümünüzü güncelleyin ve sisteminizi yeniden başlatın. Bağımlılık sorunlarını gidermek için, yeniden başlatmanız sonrasında "apt -f install" komutunu kullanmanız gerekebilir.
-Description-zh_CN.UTF-8: 内核需要升级
- 此版本的 GNU glibc 需要版本为 ${kernel_ver} 或更高版本的内核。安装 glibc 前请先升级你的内核并重启计算机。重启后你可能需要使用 "apt -f install" 来解决依赖问题。
-
-Template: glibc/kernel-not-supported
-Type: note
-Description: Kernel version not supported
- This version of the GNU libc requires kernel version ${kernel_ver} or
- later.  Older versions might work but are not officially supported by
- Debian.  Please consider upgrading your kernel.
-Description-ca.UTF-8: La versió del nucli no és compatible
- Aquesta versió de la «GNU libc» requereix la versió del nucli ${kernel_ver} o poster
+ В системе установлены службы, которые требуют перезапуска после обновления определённых библиотек (например, libpam, libc и libssl). Так как это мо�

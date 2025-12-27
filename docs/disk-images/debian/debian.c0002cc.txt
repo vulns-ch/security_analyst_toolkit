@@ -1,4 +1,228 @@
-   tuple_member = val['_M_t']['_M_t']
+in([str(a) for a in args]))
+    try:
+        return gdb.lookup_type(t)
+    except gdb.error as e:
+        # Type not found, try again in versioned namespace.
+        global _versioned_namespace
+        if _versioned_namespace not in templ:
+            t = t.replace('::', '::' + _versioned_namespace, 1)
+            try:
+                return gdb.lookup_type(t)
+            except gdb.error:
+                # If that also fails, rethrow the original exception
+                pass
+        raise e
+
+# Use this to find container node types instead of find_type,
+# see https://gcc.gnu.org/bugzilla/show_bug.cgi?id=91997 for details.
+def lookup_node_type(nodename, containertype):
+    """
+    Lookup specialization of template nodename corresponding to containertype.
+
+    nodename - The name of a class template, as a String
+    containertype - The container, as a gdb.Type
+
+    Return a gdb.Type for the corresponding specialization of nodename,
+    or None if the type cannot be found.
+
+    e.g. lookup_node_type('_List_node', gdb.lookup_type('std::list<int>'))
+    will return a gdb.Type for the type std::_List_node<int>.
+    """
+    # If nodename is unqualified, assume it's in namespace std.
+    if '::' not in nodename:
+        nodename = 'std::' + nodename
+    # Use either containertype's value_type or its first template argument.
+    try:
+        valtype = find_type(containertype, 'value_type')
+    except:
+        valtype = containertype.template_argument(0)
+    valtype = valtype.strip_typedefs()
+    try:
+        return lookup_templ_spec(nodename, valtype)
+    except gdb.error:
+        # For debug mode containers the node is in std::__cxx1998.
+        if is_member_of_namespace(nodename, 'std'):
+            if is_member_of_namespace(containertype, 'std::__cxx1998',
+                                      'std::__debug', '__gnu_debug'):
+                nodename = nodename.replace('::', '::__cxx1998::', 1)
+                try:
+                    return lookup_templ_spec(nodename, valtype)
+                except gdb.error:
+                    pass
+        return None
+
+
+def is_member_of_namespace(typ, *namespaces):
+    """
+    Test whether a type is a member of one of the specified namespaces.
+    The type can be specified as a string or a gdb.Type object.
+    """
+    if isinstance(typ, gdb.Type):
+        typ = str(typ)
+    typ = strip_versioned_namespace(typ)
+    for namespace in namespaces:
+        if typ.startswith(namespace + '::'):
+            return True
+    return False
+
+
+def is_specialization_of(x, template_name):
+    """
+    Test whether a type is a specialization of the named class template.
+    The type can be specified as a string or a gdb.Type object.
+    The template should be the name of a class template as a string,
+    without any 'std' qualification.
+    """
+    global _versioned_namespace
+    if isinstance(x, gdb.Type):
+        x = x.tag
+    template_name = '(%s)?%s' % (_versioned_namespace, template_name)
+    return re.match('^std::%s<.*>$' % template_name, x) is not None
+
+
+def strip_versioned_namespace(typename):
+    global _versioned_namespace
+    return typename.replace(_versioned_namespace, '')
+
+
+def strip_fundts_namespace(typ):
+    """Remove "fundamentals_vN" inline namespace from qualified type name."""
+    pattern = r'^std::experimental::fundamentals_v\d::'
+    repl = 'std::experimental::'
+    if sys.version_info[0] == 2:
+        return re.sub(pattern, repl, typ, 1)
+    else: # Technically this needs Python 3.1 but nobody should be using 3.0
+        return re.sub(pattern, repl, typ, count=1)
+
+
+def strip_inline_namespaces(type_str):
+    """Remove known inline namespaces from the canonical name of a type."""
+    type_str = strip_versioned_namespace(type_str)
+    type_str = type_str.replace('std::__cxx11::', 'std::')
+    expt_ns = 'std::experimental::'
+    for lfts_ns in ('fundamentals_v1', 'fundamentals_v2'):
+        type_str = type_str.replace(expt_ns + lfts_ns + '::', expt_ns)
+    fs_ns = expt_ns + 'filesystem::'
+    type_str = type_str.replace(fs_ns + 'v1::', fs_ns)
+    return type_str
+
+
+def get_template_arg_list(type_obj):
+    """Return a type's template arguments as a list."""
+    n = 0
+    template_args = []
+    while True:
+        try:
+            template_args.append(type_obj.template_argument(n))
+        except:
+            return template_args
+        n += 1
+
+
+class SmartPtrIterator(Iterator):
+    """An iterator for smart pointer types with a single 'child' value."""
+
+    def __init__(self, val):
+        self._val = val
+
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        if self._val is None:
+            raise StopIteration
+        self._val, val = None, self._val
+        return ('get()', val)
+
+
+class SharedPointerPrinter(printer_base):
+    """
+    Print a shared_ptr, weak_ptr, atomic<shared_ptr>, or atomic<weak_ptr>.
+    """
+
+    def __init__(self, typename, val):
+        self._typename = strip_versioned_namespace(typename)
+        self._val = val
+        self._pointer = val['_M_ptr']
+
+    def children(self):
+        return SmartPtrIterator(self._pointer)
+
+    # Return the _Sp_counted_base<>* that holds the refcounts.
+    def _get_refcounts(self):
+        if self._typename == 'std::atomic':
+            # A tagged pointer is stored as uintptr_t.
+            ptr_val = self._val['_M_refcount']['_M_val']['_M_i']
+            ptr_val = ptr_val - (ptr_val % 2)  # clear lock bit
+            ptr_type = find_type(self._val['_M_refcount'].type, 'pointer')
+            return ptr_val.cast(ptr_type)
+        return self._val['_M_refcount']['_M_pi']
+
+    def to_string(self):
+        state = 'empty'
+        refcounts = self._get_refcounts()
+        targ = self._val.type.template_argument(0)
+        targ = strip_versioned_namespace(str(targ))
+
+        if refcounts != 0:
+            usecount = refcounts['_M_use_count']
+            weakcount = refcounts['_M_weak_count']
+            if usecount == 0:
+                state = 'expired, weak count %d' % weakcount
+            else:
+                state = 'use count %d, weak count %d' % (
+                    usecount, weakcount - 1)
+        return '%s<%s> (%s)' % (self._typename, targ, state)
+
+
+def _tuple_impl_get(val):
+    """Return the tuple element stored in a _Tuple_impl<N, T> base class."""
+    bases = val.type.fields()
+    if not bases[-1].is_base_class:
+        raise ValueError(
+            "Unsupported implementation for std::tuple: %s" % str(val.type))
+    # Get the _Head_base<N, T> base class:
+    head_base = val.cast(bases[-1].type)
+    fields = head_base.type.fields()
+    if len(fields) == 0:
+        raise ValueError(
+            "Unsupported implementation for std::tuple: %s" % str(val.type))
+    if fields[0].name == '_M_head_impl':
+        # The tuple element is the _Head_base::_M_head_impl data member.
+        return head_base['_M_head_impl']
+    elif fields[0].is_base_class:
+        # The tuple element is an empty base class of _Head_base.
+        # Cast to that empty base class.
+        return head_base.cast(fields[0].type)
+    else:
+        raise ValueError(
+            "Unsupported implementation for std::tuple: %s" % str(val.type))
+
+
+def tuple_get(n, val):
+    """Return the result of std::get<n>(val) on a std::tuple."""
+    tuple_size = len(get_template_arg_list(val.type))
+    if n > tuple_size:
+        raise ValueError("Out of range index for std::get<N> on std::tuple")
+    # Get the first _Tuple_impl<0, T...> base class:
+    node = val.cast(val.type.fields()[0].type)
+    while n > 0:
+        # Descend through the base classes until the Nth one.
+        node = node.cast(node.type.fields()[0].type)
+        n -= 1
+    return _tuple_impl_get(node)
+
+
+def unique_ptr_get(val):
+    """Return the result of val.get() on a std::unique_ptr."""
+    # std::unique_ptr<T, D> contains a std::tuple<D::pointer, D>,
+    # either as a direct data member _M_t (the old implementation)
+    # or within a data member of type __uniq_ptr_data.
+    impl_type = val.type.fields()[0].type.strip_typedefs()
+    # Check for new implementations first:
+    if is_specialization_of(impl_type, '__uniq_ptr_data') \
+            or is_specialization_of(impl_type, '__uniq_ptr_impl'):
+        tuple_member = val['_M_t']['_M_t']
     elif is_specialization_of(impl_type, 'tuple'):
         tuple_member = val['_M_t']
     else:
@@ -1069,7 +1293,7 @@ class StdExpAnyPrinter(SingleObjContainerPrinter):
             visualizer = gdb.default_visualizer(contained_value)
         super(StdExpAnyPrinter, self).__init__(contained_value, visualizer)
 
-    def to_string(selŠY  ‹Y  ŒY  Y  ŽY  Y  Y  ‘Y  ’Y  “Y  ”Y  •Y  –Y  —Y  ˜Y  ™Y                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  f):
+    def to_string(selŒY  Y  ŽY  Y  Y  ‘Y  ’Y  “Y  ”Y  •Y  –Y  —Y  ˜Y  ™Y  šY  ›Y                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  f):
         if self._contained_type is None:
             return '%s [no contained value]' % self._typename
         desc = "%s containing " % self._typename
@@ -3179,247 +3403,4 @@ class VectorAtWorker(VectorWorkerBase):
         return self._val_type
 
     def __call__(self, obj, index):
-        size = int(self.size(obj))
-        if int(index) >= size:
-            raise IndexError('Vector index "%d" should not be >= %d.' %
-                             ((int(index), size)))
-        return self.get(obj, int(index))
-
-
-class VectorSubscriptWorker(VectorWorkerBase):
-    def get_arg_types(self):
-        return get_std_size_type()
-
-    def get_result_type(self, obj, subscript):
-        return self._val_type
-
-    def __call__(self, obj, subscript):
-        return self.get(obj, int(subscript))
-
-
-class VectorMethodsMatcher(gdb.xmethod.XMethodMatcher):
-    def __init__(self):
-        gdb.xmethod.XMethodMatcher.__init__(self,
-                                            matcher_name_prefix + 'vector')
-        self._method_dict = {
-            'size': LibStdCxxXMethod('size', VectorSizeWorker),
-            'empty': LibStdCxxXMethod('empty', VectorEmptyWorker),
-            'front': LibStdCxxXMethod('front', VectorFrontWorker),
-            'back': LibStdCxxXMethod('back', VectorBackWorker),
-            'at': LibStdCxxXMethod('at', VectorAtWorker),
-            'operator[]': LibStdCxxXMethod('operator[]',
-                                           VectorSubscriptWorker),
-        }
-        self.methods = [self._method_dict[m] for m in self._method_dict]
-
-    def match(self, class_type, method_name):
-        if not is_specialization_of(class_type, 'vector'):
-            return None
-        method = self._method_dict.get(method_name)
-        if method is None or not method.enabled:
-            return None
-        return method.worker_class(class_type.template_argument(0))
-
-# Xmethods for associative containers
-
-
-class AssociativeContainerWorkerBase(gdb.xmethod.XMethodWorker):
-    def __init__(self, unordered):
-        self._unordered = unordered
-
-    def node_count(self, obj):
-        if self._unordered:
-            return obj['_M_h']['_M_element_count']
-        else:
-            return obj['_M_t']['_M_impl']['_M_node_count']
-
-    def get_arg_types(self):
-        return None
-
-
-class AssociativeContainerEmptyWorker(AssociativeContainerWorkerBase):
-    def get_result_type(self, obj):
-        return get_bool_type()
-
-    def __call__(self, obj):
-        return int(self.node_count(obj)) == 0
-
-
-class AssociativeContainerSizeWorker(AssociativeContainerWorkerBase):
-    def get_result_type(self, obj):
-        return get_std_size_type()
-
-    def __call__(self, obj):
-        return self.node_count(obj)
-
-
-class AssociativeContainerMethodsMatcher(gdb.xmethod.XMethodMatcher):
-    def __init__(self, name):
-        gdb.xmethod.XMethodMatcher.__init__(self,
-                                            matcher_name_prefix + name)
-        self._name = name
-        self._method_dict = {
-            'size': LibStdCxxXMethod('size', AssociativeContainerSizeWorker),
-            'empty': LibStdCxxXMethod('empty',
-                                      AssociativeContainerEmptyWorker),
-        }
-        self.methods = [self._method_dict[m] for m in self._method_dict]
-
-    def match(self, class_type, method_name):
-        if not is_specialization_of(class_type, self._name):
-            return None
-        method = self._method_dict.get(method_name)
-        if method is None or not method.enabled:
-            return None
-        unordered = 'unordered' in self._name
-        return method.worker_class(unordered)
-
-# Xmethods for std::unique_ptr
-
-
-class UniquePtrGetWorker(gdb.xmethod.XMethodWorker):
-    """
-    Implement std::unique_ptr<T>::get() and std::unique_ptr<T>::operator->().
-    """
-
-    def __init__(self, elem_type):
-        self._is_array = elem_type.code == gdb.TYPE_CODE_ARRAY
-        if self._is_array:
-            self._elem_type = elem_type.target()
-        else:
-            self._elem_type = elem_type
-
-    def get_arg_types(self):
-        return None
-
-    def get_result_type(self, obj):
-        return self._elem_type.pointer()
-
-    def _supports(self, method_name):
-        # operator-> is not supported for unique_ptr<T[]>
-        return method_name == 'get' or not self._is_array
-
-    def __call__(self, obj):
-        impl_type = obj.dereference().type.fields()[0].type.tag
-        # Check for new implementations first:
-        if is_specialization_of(impl_type, '__uniq_ptr_(data|impl)'):
-            tuple_member = obj['_M_t']['_M_t']
-        elif is_specialization_of(impl_type, 'tuple'):
-            tuple_member = obj['_M_t']
-        else:
-            return None
-        tuple_impl_type = tuple_member.type.fields()[0].type  # _Tuple_impl
-        tuple_head_type = tuple_impl_type.fields()[1].type   # _Head_base
-        head_field = tuple_head_type.fields()[0]
-        if head_field.name == '_M_head_impl':
-            return tuple_member.cast(tuple_head_type)['_M_head_impl']
-        elif head_field.is_base_class:
-            return tuple_member.cast(head_field.type)
-        else:
-            return None
-
-
-class UniquePtrDerefWorker(UniquePtrGetWorker):
-    """Implement std::unique_ptr<T>::operator*()."""
-
-    def __init__(self, elem_type):
-        UniquePtrGetWorker.__init__(self, elem_type)
-
-    def get_result_type(self, obj):
-        return self._elem_type
-
-    def _supports(self, method_name):
-        # operator* is not supported for unique_ptr<T[]>
-        return not self._is_array
-
-    def __call__(self, obj):
-        return UniquePtrGetWorker.__call__(self, obj).dereference()
-
-
-class UniquePtrSubscriptWorker(UniquePtrGetWorker):
-    """Implement std::unique_ptr<T>::operator[](size_t)."""
-
-    def __init__(self, elem_type):
-        UniquePtrGetWorker.__init__(self, elem_type)
-
-    def get_arg_types(self):
-        return get_std_size_type()
-
-    def get_result_type(self, obj, index):
-        return self._elem_type
-
-    def _supports(self, method_name):
-        # operator[] is only supported for unique_ptr<T[]>
-        return self._is_array
-
-    def __call__(self, obj, index):
-        return UniquePtrGetWorker.__call__(self, obj)[index]
-
-
-class UniquePtrMethodsMatcher(gdb.xmethod.XMethodMatcher):
-    def __init__(self):
-        gdb.xmethod.XMethodMatcher.__init__(self,
-                                            matcher_name_prefix + 'unique_ptr')
-        self._method_dict = {
-            'get': LibStdCxxXMethod('get', UniquePtrGetWorker),
-            'operator->': LibStdCxxXMethod('operator->', UniquePtrGetWorker),
-            'operator*': LibStdCxxXMethod('operator*', UniquePtrDerefWorker),
-            'operator[]': LibStdCxxXMethod('operator[]', UniquePtrSubscriptWorker),
-        }
-        self.methods = [self._method_dict[m] for m in self._method_dict]
-
-    def match(self, class_type, method_name):
-        if not is_specialization_of(class_type, 'unique_ptr'):
-            return None
-        method = self._method_dict.get(method_name)
-        if method is None or not method.enabled:
-            return None
-        worker = method.worker_class(class_type.template_argument(0))
-        if worker._supports(method_name):
-            return worker
-        return None
-
-# Xmethods for std::shared_ptr
-
-
-class SharedPtrGetWorker(gdb.xmethod.XMethodWorker):
-    """
-    Implements std::shared_ptr<T>::get() and std::shared_ptr<T>::operator->().
-    """
-
-    def __init__(self, elem_type):
-        self._is_array = elem_type.code == gdb.TYPE_CODE_ARRAY
-        if self._is_array:
-            self._elem_type = elem_type.target()
-        else:
-            self._elem_type = elem_type
-
-    def get_arg_types(self):
-        return None
-
-    def get_result_type(self, obj):
-        return self._elem_type.pointer()
-
-    def _supports(self, method_name):
-        # operator-> is not supported for shared_ptr<T[]>
-        return method_name == 'get' or not self._is_array
-
-    def __call__(self, obj):
-        return obj['_M_ptr']
-
-
-class SharedPtrDerefWorker(SharedPtrGetWorker):
-    """Implement std::shared_ptr<T>::operator*()."""
-
-    def __init__(self, elem_type):
-        SharedPtrGetWorker.__init__(self, elem_type)
-
-    def get_result_type(self, obj):
-        return self._elem_type
-
-    def _supports(self, method_name):
-        # operator* is not supported for shared_ptr<T[]>
-        return not self._is_array
-
-    def __call__(self, obj):
-        return SharedPtrGetWorker.__call__(self, obj).dereference(
+        size = int(sel

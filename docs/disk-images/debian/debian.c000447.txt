@@ -1,4 +1,156 @@
-8: Itxoin mesedez...
+�и и текущими настройками Debian по умолчанию. Советуем разрешить update-passwd изменить вашу систему; без этих изменений некоторые пакеты могут работать неправильно. Документация по политике учётных записей в Debian приведена в /usr/share/doc/base-passwd/README.\n\nПредлагаемое изменение:\n\nУдалить пользователя «${name}» (${id})\n\nЕсли разрешить выполнение этого изменения, будет сделана резервная копия изменённых файлов с расширением .org, которые вы можете использовать для восстановления текущих настроек. Если не сделать это изменение сейчас, то можно вернуться к нему позднее, воспользовавшись утилитой update-passwd.
+Extended_description-sv.utf-8: update-passwd har hittat en skillnad mellan dina systemkonton och de nuvarande förvalen i Debian. Det är rekommenderat att tillåta update-passwd att ändra ditt system; utan dessa ändringar kommer möjligen en del paket inte att fungera korrekt. För mer dokumentation om Debians regler för konton, se /usr/share/doc/base-passwd/README.\n\nDen föreslagna ändringen är:\n\nTa bort användare "${name}" (${id})\n\nOm du tillåter denna ändring kommer en säkerhetskopia av modifierade filer att göras med filtillägget .org, som du kan använda om du behöver återställa nuvarande inställningar. Om du inte gör denna ändring nu kan du göra det senare med verktyget update-passwd.
+Type: boolean
+Owners: base-passwd/user-remove
+
+Name: debconf-apt-progress/info
+Description: ${DESCRIPTION}
+Type: text
+Owners: debconf-apt-progress/info
+
+Name: debconf-apt-progress/media-change
+Description: Media change
+Description-ar.utf-8: تغيير القرص
+Description-ast.utf-8: Camudar media
+Description-be.utf-8: Змена носьбіта
+Description-bg.utf-8: Смяна на носителя
+Description-bn.utf-8: মিডিয়া পরিবর্তন
+Description-bs.utf-8: Promjena medija
+Description-ca.utf-8: Canvi de medi
+Description-cs.utf-8: Výměna média
+Description-cy.utf-8: Newid cyfrwng
+Description-da.utf-8: Nyt medie
+Description-de.utf-8: Datenträgerwechsel
+Description-dz.utf-8: མི་ཌི་ཡ་ བསྒྱུར་བཅོས།
+Description-el.utf-8: Αλλαγή μέσου
+Description-eo.utf-8: Ŝanĝo de datumportilo
+Description-es.utf-8: Cambio de medio
+Description-eu.utf-8: Euskarri aldaketa
+Description-fa.utf-8: تغییر رسانه
+Description-fi.utf-8: Taltion vaihto
+Description-fr.utf-8: Changement de support
+Description-ga.utf-8: Athrú meáin
+Description-gl.utf-8: Cambio de soporte
+Description-gu.utf-8: માધ્યમ બદલાવ
+Description-he.utf-8: החלפת מדיה
+Description-hi.utf-8: मीडिया परिवर्तन
+Description-hr.utf-8: Promjena medija
+Description-id.utf-8: Media Berubah
+Description-is.utf-8: Skipti á miðli
+Description-it.utf-8: Cambio supporto
+Description-ja.utf-8: メディアの変更
+Description-ka.utf-8: მედიის ცვლილება
+Description-kk.utf-8: Дискті ауыстыру
+Description-km.utf-8: ផ្លាស់ប្ដូរ​មេឌៀ
+Description-ko.utf-8: 미디어 교체
+Description-lt.utf-8: Laikmenos keitimas
+Description-lv.utf-8: Datu nesēja maiņa
+Description-ml.utf-8: മീഡിയയില്‍ മാറ്റം .
+Description-nb.utf-8: Skift CD/DVD
+Description-nl.utf-8: Verwissel medium
+Description-no.utf-8: Skift CD/DVD
+Description-pl.utf-8: Zmiana nośnika
+Description-pt.utf-8: Mudança de meio de instalação
+Description-pt_br.utf-8: Troca de mídia
+Description-ro.utf-8: Schimbare de disc
+Description-ru.utf-8: Смена носителя
+Description-si.utf-8: මාධ්‍ය වෙනසක්
+Description-sk.utf-8: Výmena nosiča
+Description-sl.utf-8: Sprememba nosilca
+Description-sq.utf-8: Ndryshim media
+Description-sr.utf-8: Промена медија
+Description-sr@latin.utf-8: Promena medija
+Description-sv.utf-8: Byte av källmedium
+Description-ta.utf-8: ஊடக மாற்றம்
+Description-te.utf-8: మాధ్యమ మార్పు
+Description-th.utf-8: เปลี่ยนแผ่น
+Description-tr.utf-8: Ortamı(CD,DVD) değişimi
+Description-ug.utf-8: ۋاسىتە ئالماشتۇر
+Description-vi.utf-8: Đổi vật chứa
+Description-zh_cn.utf-8: 更换媒介
+Description-zh_tw.utf-8: 變更媒體
+Extended_description: ${MESSAGE}
+Extended_description-ar.utf-8: ${MESSAGE}
+Extended_description-ast.utf-8: ${MESSAGE}
+Extended_description-be.utf-8: ${MESSAGE}
+Extended_description-bg.utf-8: ${MESSAGE}
+Extended_description-bn.utf-8: ${MESSAGE}
+Extended_description-bs.utf-8: ${MESSAGE}
+Extended_description-ca.utf-8: ${MESSAGE}
+Extended_description-cs.utf-8: ${MESSAGE}
+Extended_description-cy.utf-8: ${MESSAGE}
+Extended_description-da.utf-8: ${MESSAGE}
+Extended_description-de.utf-8: ${MESSAGE}
+Extended_description-dz.utf-8: ${MESSAGE}
+Extended_description-el.utf-8: ${MESSAGE}
+Extended_description-eo.utf-8: ${MESSAGE}
+Extended_description-es.utf-8: ${MESSAGE}
+Extended_description-eu.utf-8: ${MESSAGE}
+Extended_description-fa.utf-8: ${MESSAGE}
+Extended_description-fi.utf-8: ${MESSAGE}
+Extended_description-fr.utf-8: ${MESSAGE}
+Extended_description-ga.utf-8: ${MESSAGE}
+Extended_description-gl.utf-8: ${MESSAGE}
+Extended_description-gu.utf-8: ${MESSAGE}
+Extended_description-he.utf-8: ${MESSAGE}
+Extended_description-hi.utf-8: ${MESSAGE}
+Extended_description-hr.utf-8: ${MESSAGE}
+Extended_description-id.utf-8: ${MESSAGE}
+Extended_description-is.utf-8: ${MESSAGE}
+Extended_description-it.utf-8: ${MESSAGE}
+Extended_description-ja.utf-8: ${MESSAGE}
+Extended_description-ka.utf-8: ${MESSAGE}
+Extended_description-kk.utf-8: ${MESSAGE}
+Extended_description-km.utf-8: ${MESSAGE}
+Extended_description-ko.utf-8: ${MESSAGE}
+Extended_description-lt.utf-8: ${MESSAGE}
+Extended_description-lv.utf-8: ${MESSAGE}
+Extended_description-ml.utf-8: ${MESSAGE}
+Extended_description-nb.utf-8: ${MESSAGE}
+Extended_description-nl.utf-8: ${MESSAGE}
+Extended_description-no.utf-8: ${MESSAGE}
+Extended_description-pl.utf-8: ${MESSAGE}
+Extended_description-pt.utf-8: ${MESSAGE}
+Extended_description-pt_br.utf-8: ${MESSAGE}
+Extended_description-ro.utf-8: ${MESSAGE}
+Extended_description-ru.utf-8: ${MESSAGE}
+Extended_description-si.utf-8: ${MESSAGE}
+Extended_description-sk.utf-8: ${MESSAGE}
+Extended_description-sl.utf-8: ${MESSAGE}
+Extended_description-sq.utf-8: ${MESSAGE}
+Extended_description-sr.utf-8: ${MESSAGE}
+Extended_description-sr@latin.utf-8: ${MESSAGE}
+Extended_description-sv.utf-8: ${MESSAGE}
+Extended_description-ta.utf-8: ${MESSAGE}
+Extended_description-te.utf-8: ${MESSAGE}
+Extended_description-th.utf-8: ${MESSAGE}
+Extended_description-tr.utf-8: ${MESSAGE}
+Extended_description-ug.utf-8: ${MESSAGE}
+Extended_description-vi.utf-8: ${MESSAGE}
+Extended_description-zh_cn.utf-8: ${MESSAGE}
+Extended_description-zh_tw.utf-8: ${MESSAGE}
+Type: text
+Owners: debconf-apt-progress/media-change
+
+Name: debconf-apt-progress/preparing
+Description: Please wait...
+Description-ar.utf-8: الرجاء الانتظار...
+Description-ast.utf-8: Por favor, espera...
+Description-be.utf-8: Калі ласка, чакайце...
+Description-bg.utf-8: Моля, изчакайте...
+Description-bn.utf-8: অনুগ্রহ করে অপেক্ষা করুন...
+Description-bs.utf-8: Molim čekajte...
+Description-ca.utf-8: Si us plau, espereu...
+Description-cs.utf-8: Čekejte prosím...
+Description-cy.utf-8: Arhoswch os gwelwch yn dda...
+Description-da.utf-8: Vent venligst...
+Description-de.utf-8: Bitte warten ...
+Description-dz.utf-8: བསྒུག་གནང་...
+Description-el.utf-8: Παρακαλώ περιμένετε...
+Description-eo.utf-8: Bonvolu atendi...
+Description-es.utf-8: Por favor, espere...
+Description-et.utf-8: Palun oota...
+Description-eu.utf-8: Itxoin mesedez...
 Description-fa.utf-8: لطفاً صبر کنید ...
 Description-fi.utf-8: Odota...
 Description-fr.utf-8: Veuillez patienter...
@@ -527,14 +679,4 @@ Extended_description-lt.utf-8: „Debconf“ skiria jums pateikiamų klausimų p
 Extended_description-lv.utf-8: Debconf ir paredzētas jautājumu prioritātes. Izvēlieties, kāda ir zemākā prioritāte, kuras jautājumus jūs vēl vēlaties redzēt:\n  - 'kritiska' tikai uzdod jautājumus, ja sistēma var salūzt.\n    Izvēlieties šo opciju, ja esat iesācējs, vai vienkārši steidzaties.\n  - 'augsta' ir paredzēts svarīgiem jautājumiem\n  - 'vidēja' ir paredzēts parastiem jautājumiem\n  - 'zema' ir domāts cilvēkiem, kas grib kontrolēt pilnīgi visu.\n\n\nNeatkarīgi no šeit izvēlētā līmeņa, jūs varēsiet redzēt visu līmeņu jautājumus, ja pārkonfigurēsiet paku ar dpkg-reconfigure palīdzību.
 Extended_description-mg.utf-8: Debconf dia manome laharana ny fanontaniana izay hapetrany aminao. Fidio eto ny laharan'ny fanontaniana ambany indrindra izay tianao hiseo: -'critical' tsy manontany raha tsy misy zavatra mety hanimba ny system.\n Io fidina raha toa ka tsy mbola zatra ianao na somary maika.\n-'high' raha ireo fanontaniana important ihany no apetraka. -'medium' ho an'ireo fanontaniana mahazatra. -'low' raha tianao jerena daholo ny zavatra rehetra\n\nTadidio fa na inona na inona ny laharana fidinao eto dia ho hitanao daholo ny fanontaniana rehetra rehefa mametraka ny fonosana miaraka amin'ny dpkg-reconfigure ianao.
 Extended_description-mk.utf-8: Debconf ги приоритизира прашањата кои те прашува. Избери го најниското ниво на приоритет на прашањата што сакаш да ги видиш: - „критично“ е за делови кои најверојатно ќе го расипат системот Избери го ова ако си нов корисник, или се брзаш - „висок“ е поприлично важни прашања - „среден“ е за нормални прашањ - „низок“ е за оние кои сакаат да ги видат баш сите прашања\n\nИмај на ум дека било кое ниво што ќе го одбереш тука, ќе бидеш во можност да ги гледаш сите прашања ако гопреконфигурираш пакетот со dpkg-reconfigure.
-Extended_description-ml.utf-8: ഡെബ്കോണ്‍ഫ് നിങ്ങളോട് ചോദിക്കുന്ന ചോദ്യങ്ങള്‍ക്ക് അത് മുന്‍ഗണനാ ക്രമം നിശ്ചയിക്കും. നിങ്ങള്‍ കാണാനാഗ്രഹിക്കുന്ന ചോദ്യങ്ങളുടെ ഏറ്റവും താഴ്ന്ന മുന്‍ഗണന തിരഞ്ഞെടുക്കുക:\n  - 'ഗുരുതരം' സിസ്റ്റം കുഴപ്പത്തിലാക്കാന്‍ സാധ്യതയുള്ള ചോദ്യങ്ങള്‍ മാത്രം.\n    നിങ്ങള്‍ പുതുമുഖമാണെങ്കില്‍, അല്ലെങ്കില്‍ തിരക്കിലാണെങ്കില്‍ ഇത് തിരഞ്ഞെടുക്കുക.\n  - 'ഉയര്‍ന്ന' എന്നത് പ്രാധാന്യമുള്ള ചോദ്യങ്ങള്‍ക്കാണ്\n  - 'ഇടയ്കുള്ള' എന്നത് സാധാരണ ചോദ്യങ്ങള്‍ക്കാണ്\n  - 'താഴ്ന്ന' എന്നത് എല്ലാം കാണണം എന്നാഗ്രഹിക്കുന്നവര്‍ക്കാണ്\n\n\nഇവിടെ നിങ്ങള്‍ ഏത്  ലെവല്‍ തിരഞ്ഞെടുക്കുന്നു എന്നതിനെ ആശ്രയിക്കാതെ തന്നെ ഒരു പാക്കേജ് dpkg-reconfigure ഉപയോഗിച്ച് പുനക്രമീകരിക്കുകയാണെങ്കില്‍, നിങ്ങള്‍ക്ക് എല്ലാ ചോദ്യങ്ങളും കാണാവുന്നതാണ്.
-Extended_description-mr.utf-8: डेबकॉन्फ प्रश्नांचा प्राधान्यक्रम ठरवितो। तुमच्या प्राधान्यक्रमातील सर्वात कमी महत्वाचा प्रश्न निवडा\n - गंभीर हा शब्द एवढेच दर्शवितो की संगणकामध्ये कदाचित बिघाड संभवतो।\n तुम्ही नवखे असाल वा घाईत असाल तरच याची निवड करा।\n  'अधिक' हा शब्द जास्त महत्वाचे प्रश्नांसाठी आहे\n  'मध्यम' हा शब्द साधारण प्रश्नांसाठी आहे\n  'निम्न' हा शब्द अधिक अधिकार गाजवू पहाणा-यांसाठी आहे ज्यांना प्रत्येक गोष्ट पहावयाची असते\n\n\nजर तुम्ही पॅकेजची संरचना डिपीकेजी वापरून पुन्हा करणार असाल तर कृपया ध्यानात घ्या की तुम्हीकोणतीही पातळी निवडलीत तरी तुम्ही प्रत्येक प्रश्न पाहु शकाल
-Extended_description-nb.utf-8: Debconf setter en prioritet for hvert spørsmål som stilles. Velg laveste prioritet på spørsmål du vil se:\n  - «kritisk» spør deg bare hvis systemet kan bli ødelagt.\n... Velg dette om du er nybegynner eller har det travelt. ..- «høy» gjelder ganske viktige spørsmål ..- .«middels» er for normale spørsmål .. -«lav» er for kontrollfriker som vil se alt\n\nMerk at uansett hvilket nivå du velger her, vil du kunne få se alle spørsmål hvis du setter opp en pakke på nytt med dpkg-reconfigure.
-Extended_description-ne.utf-8: यसले तपाईँलाई सोधिएका प्रश्नहरुलाई Debconf ले प्राथमिकता दिन्छ । तपाईँले हेर्न चाहनु भएको कम प्राथमिकताको प्रश्न झिक्नुहोस्:\n  - यदि प्रणाली विच्छेदन भएमा 'critical' ले मात्र तपाईँलाई प्रोम्प्ट गर्दछ ।\n    यदि तपाईँ newbie, वा हतारमा हुनुहुन्छ भने, यसलाई झिक्नुहोस् ।\n   - 'high' खास गरेर महत्वपूर्ण प्रश्नहरुको लागि हो\n   - 'medium' सामन्य प्रश्नहरुको लागि हो\n   - 'low' नियन्त्रण लहरहरुको लागि हो जसले सबै चीज हेर्न चाहन्छ\n\n\nयाद गर्नुहोस् तपाईँले यहाँ कुन स्तर झिक्नु भएको थियो त्यसले केही फरक पार्दैन, यदि तपाईँले dpkg-reconfigure संगै प्याकेज पुन: कनफिगर गर्नु भयो भने तपाईँ प्रत्येक प्रश्न हेर्न सक्नुहुनेछ ।
-Extended_description-nl.utf-8: Debconf vragen zijn geordend volgens prioriteit. Kies de laagste prioriteit die u wilt zien:\n  - 'kritiek' is voor vragen die noodzaakelijk zijn om het systeem in werkbare staat te houden\n    Kies dit indien alles nieuw voor u is, of wanneer u haast heeft.\n  - 'hoog' is voor relatief belangrijke vragen\n  - 'gemiddeld' is voor normale vragen\n  - 'laag' is voor controle-freaks die alles willen zien\n\n\nMerk op dat u met dpkg-reconfigure in staat bent om elke vraag te zien, onafhankelijk van wat u hier kiest.
-Extended_description-no.utf-8: Debconf setter en prioritet for hvert spørsmål som stilles. Velg laveste prioritet på spørsmål du vil se:\n  - «kritisk» spør deg bare hvis systemet kan bli ødelagt.\n... Velg dette om du er nybegynner eller har det travelt. ..- «høy» gjelder ganske viktige spørsmål ..- .«middels» er for normale spørsmål .. -«lav» er for kontrollfriker som vil se alt\n\nMerk at uansett hvilket nivå du velger her, vil du kunne få se alle spørsmål hvis du setter opp en pakke på nytt med dpkg-reconfigure.
-Extended_description-pa.utf-8: Debconf ਤੁਹਾਨੂੰ ਇਹ ਸਵਾਲ ਪੁੱਛੇਦੀ ਹੈ। ਸਭ ਤੋਂ ਘੱਟ ਤਰਜੀਹ ਵਾਲੇ ਸਵਾਲਾਂ ਦੀ ਚੋਣ ਕਰੋ, ਜਿੰਨਾਂ ਨੂੰ ਤੁਸੀਂ ਵੇਖਣਾ ਚਾਹੁੰਦੇ ਹੋ:\n  - 'critical' ਸਿਰਫ਼ ਤਾਂ ਹੀ, ਜੇਕਰ ਸਿਸਟਮ ਵਿਗੜ ਸਕਦੇ ਹੈ।\n    ਇਸ ਦੀ ਚੋਣ ਤਾਂ ਹੀ ਕਰੋ, ਜੇਕਰ ਤੁਸੀਂ ਨਵੇਂ ਹੋ ਜਾਂ ਕਾਹਲੀ ਵਿੱਚ ਹੋ।\n  - 'high' ਖਾਸ ਸਵਾਲਾਂ ਲਈ ਹੈ।\n  - 'medium' ਆਮ ਸਵਾਲਾਂ ਲਈ ਹੈ।\n  - 'low' ਕੰਟਰੋਲ ਉਹਨਾਂ ਲਈ ਹੈ, ਜੋ ਕਿ ਹਰੇਕ ਚੀਜ਼ ਵੇਖਣੀ ਚਾਹੁੰਦੇ ਹਨ।\n\n\nਯਾਦ ਰੱਖੋ ਕਿ ਇਸ ਦਾ ਕੋਈ ਫ਼ਰਕ ਨਹੀਂ ਪੈਂਦਾ ਹੈ ਕਿ ਤੁਸੀਂ ਕੀ ਚੋਣ ਕੀਤੀ ਹੈ, ਬਲਕਿ ਤੁਸੀਂ dpkg-reconfigureਨਾਲ ਇੱਕ ਪੈਕੇਜ ਨੂੰ ਮੁੜ-ਸੰਰਚਿਤ ਕਰਨ ਕੀਤਾ ਤਾਂ ਹਰੇਕ ਸਵਾਲ ਵੇਖੋਗੇ।
-Extended_description-pl.utf-8: Debconf używa priorytetów dla zadawanych pytań. Wybierz najniższy priorytet pytań jakie chcesz zobaczyć:\n  - 'krytyczny' zadaje pytania tylko jeśli istnieje niebezpieczeństwo\nuszkodzenia systemu. Zalecane dla początkujących\n  - 'wysoki' dla raczej istotnych pytań\n  - 'średni' dla zwyczajnych pytań\n  - 'niski' dla tych, którzy chcą kontrolować każdy szczegół\n\n\nPamiętaj, że bez względu na to jaki poziom wybierzesz, istnieje możliwość ujrzenia wszystkich pytań po przekonfigurowaniu pakietu z użyciem dpkg-reconfigure.
-Extended_description-pt.utf-8: O debconf atribui prioridades às questões que lhe coloca. Escolha a prioridade mais baixa da questão que deseja ver:\n  - 'crítica' apenas faz perguntas se o sistema se pode estragar.\n    Escolha-a se for um novato, ou se estiver com pressa.\n  - 'alta' é para questões importantes\n  - 'média' é para questões normais\n  - 'baixa' é para maníacos do controle que querem ver tudo\n\n\nNote que qualquer que seja o nível que escolher aqui, poderá ver todas as questões se reconfigurar o pacote com dpkg-reconfigure.
-Extended_description-pt_br.utf-8: O debconf dá prioridade para as perguntas que faz. Escolha a menor prioridade das questões que você deseja ver:\n  - 'crítica' somente pergunta algo caso o sistema possa sofrer danos.\n    Escolha essa opção caso você seja iniciante ou esteja com pressa.\n  - 'alta' é para perguntas importantes\n  - 'média' é para perguntas normais\n  - 'baixa' é para malucos por controle que desejam ver tudo\n\n\nNote que, independentemente do que você escolher aqui, você poderá ver todas as perguntas caso você reconfigure um pacote com o comando dpkg-reconfigure.
-Extended_description-ro.utf-8: «debconf» prioritizează întrebările pe care vi le adresează. Alegeți cea mai mică priorita
+Extended_description-ml.utf-8: ഡെബ്കോണ്‍ഫ് നിങ്ങളോട് ചോദിക്കുന്ന ചോദ്യങ്ങള്‍ക്ക് അത് മുന്‍ഗണനാ ക്രമം നിശ്ചയിക്കും. നിങ്ങള്‍ കാണാനാഗ്രഹിക്കുന്ന ചോദ്യങ്ങളുടെ ഏറ്റവും താഴ്ന്ന മുന്‍ഗണന തിരഞ്ഞെടുക്കുക:\n  - 'ഗുരുതരം' സിസ്റ്റം കുഴപ്പത്തിലാക്കാന്‍ സാധ്യതയുള്ള ചോദ്യങ്ങള്‍ മാത്രം.\n    നിങ്ങള്‍ പുതുമുഖമാണെങ്കില്‍, അല്ലെങ്കില്‍ തിരക്കിലാണെങ്കില്‍ ഇത് തിരഞ്ഞെടുക്കുക.\n  - 'ഉയര്‍ന്ന' എന്നത് പ്രാധാന്യമുള്ള ചോദ്യങ്ങള്‍ക്കാണ്\n  - 'ഇടയ്കുള്ള' എന്നത് സാധാരണ ചോദ്യങ്ങള്‍ക്കാണ്\n  - 'താഴ്ന്ന' എന്നത് എല്ലാം കാണണം എന്നാഗ്രഹിക്കുന്നവര്‍ക്കാണ്\n\n\nഇവിടെ നിങ്ങള്‍ ഏത്  ലെവ

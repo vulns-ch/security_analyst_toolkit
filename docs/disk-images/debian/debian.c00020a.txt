@@ -1,4 +1,372 @@
- Jun 24
+1 p +01 1943 Au 28 22s
+-1 p -01/+00 1944 Ap 22 22s
+-1 p +01 1944 Au 26 22s
+-1 p -01/+00 1945 Ap 21 22s
+-1 p +01 1945 Au 25 22s
+-1 p -01/+00 1966 Ap 3 2
+0 p WE%sT 1983 S 25 1s
+0 E WE%sT
+Z Atlantic/South_Georgia -2:26:8 - LMT 1890
+-2 - -02
+Z Atlantic/Stanley -3:51:24 - LMT 1890
+-3:51:24 - SMT 1912 Mar 12
+-4 FK -04/-03 1983 May
+-3 FK -03/-02 1985 S 15
+-4 FK -04/-03 2010 S 5 2
+-3 - -03
+Z Australia/Adelaide 9:14:20 - LMT 1895 F
+9 - ACST 1899 May
+9:30 AU AC%sT 1971
+9:30 AS AC%sT
+Z Australia/Brisbane 10:12:8 - LMT 1895
+10 AU AE%sT 1971
+10 AQ AE%sT
+Z Australia/Broken_Hill 9:25:48 - LMT 1895 F
+10 - AEST 1896 Au 23
+9 - ACST 1899 May
+9:30 AU AC%sT 1971
+9:30 AN AC%sT 2000
+9:30 AS AC%sT
+Z Australia/Darwin 8:43:20 - LMT 1895 F
+9 - ACST 1899 May
+9:30 AU AC%sT
+Z Australia/Eucla 8:35:28 - LMT 1895 D
+8:45 AU +0845/+0945 1943 Jul
+8:45 AW +0845/+0945
+Z Australia/Hobart 9:49:16 - LMT 1895 S
+10 AT AE%sT 1919 O 24
+10 AU AE%sT 1967
+10 AT AE%sT
+Z Australia/Lindeman 9:55:56 - LMT 1895
+10 AU AE%sT 1971
+10 AQ AE%sT 1992 Jul
+10 Ho AE%sT
+Z Australia/Lord_Howe 10:36:20 - LMT 1895 F
+10 - AEST 1981 Mar
+10:30 LH +1030/+1130 1985 Jul
+10:30 LH +1030/+11
+Z Australia/Melbourne 9:39:52 - LMT 1895 F
+10 AU AE%sT 1971
+10 AV AE%sT
+Z Australia/Perth 7:43:24 - LMT 1895 D
+8 AU AW%sT 1943 Jul
+8 AW AW%sT
+Z Australia/Sydney 10:4:52 - LMT 1895 F
+10 AU AE%sT 1971
+10 AN AE%sT
+Z CET 1 c CE%sT
+Z CST6CDT -6 u C%sT
+Z EET 2 E EE%sT
+Z EST -5 - EST
+Z EST5EDT -5 u E%sT
+Z Etc/GMT 0 - GMT
+Z Etc/GMT+1 -1 - -01
+Z Etc/GMT+10 -10 - -10
+Z Etc/GMT+11 -11 - -11
+Z Etc/GMT+12 -12 - -12
+Z Etc/GMT+2 -2 - -02
+Z Etc/GMT+3 -3 - -03
+Z Etc/GMT+4 -4 - -04
+Z Etc/GMT+5 -5 - -05
+Z Etc/GMT+6 -6 - -06
+Z Etc/GMT+7 -7 - -07
+Z Etc/GMT+8 -8 - -08
+Z Etc/GMT+9 -9 - -09
+Z Etc/GMT-1 1 - +01
+Z Etc/GMT-10 10 - +10
+Z Etc/GMT-11 11 - +11
+Z Etc/GMT-12 12 - +12
+Z Etc/GMT-13 13 - +13
+Z Etc/GMT-14 14 - +14
+Z Etc/GMT-2 2 - +02
+Z Etc/GMT-3 3 - +03
+Z Etc/GMT-4 4 - +04
+Z Etc/GMT-5 5 - +05
+Z Etc/GMT-6 6 - +06
+Z Etc/GMT-7 7 - +07
+Z Etc/GMT-8 8 - +08
+Z Etc/GMT-9 9 - +09
+Z Etc/UTC 0 - UTC
+Z Europe/Andorra 0:6:4 - LMT 1901
+0 - WET 1946 S 30
+1 - CET 1985 Mar 31 2
+1 E CE%sT
+Z Europe/Astrakhan 3:12:12 - LMT 1924 May
+3 - +03 1930 Jun 21
+4 R +04/+05 1989 Mar 26 2s
+3 R +03/+04 1991 Mar 31 2s
+4 - +04 1992 Mar 29 2s
+3 R +03/+04 2011 Mar 27 2s
+4 - +04 2014 O 26 2s
+3 - +03 2016 Mar 27 2s
+4 - +04
+Z Europe/Athens 1:34:52 - LMT 1895 S 14
+1:34:52 - AMT 1916 Jul 28 0:1
+2 g EE%sT 1941 Ap 30
+1 g CE%sT 1944 Ap 4
+2 g EE%sT 1981
+2 E EE%sT
+Z Europe/Belgrade 1:22 - LMT 1884
+1 - CET 1941 Ap 18 23
+1 c CE%sT 1945
+1 - CET 1945 May 8 2s
+1 1 CEST 1945 S 16 2s
+1 - CET 1982 N 27
+1 E CE%sT
+Z Europe/Berlin 0:53:28 - LMT 1893 Ap
+1 c CE%sT 1945 May 24 2
+1 So CE%sT 1946
+1 DE CE%sT 1980
+1 E CE%sT
+Z Europe/Brussels 0:17:30 - LMT 1880
+0:17:30 - BMT 1892 May 1 0:17:30
+0 - WET 1914 N 8
+1 - CET 1916 May
+1 c CE%sT 1918 N 11 11u
+0 b WE%sT 1940 May 20 2s
+1 c CE%sT 1944 S 3
+1 b CE%sT 1977
+1 E CE%sT
+Z Europe/Bucharest 1:44:24 - LMT 1891 O
+1:44:24 - BMT 1931 Jul 24
+2 z EE%sT 1981 Mar 29 2s
+2 c EE%sT 1991
+2 z EE%sT 1994
+2 e EE%sT 1997
+2 E EE%sT
+Z Europe/Budapest 1:16:20 - LMT 1890 N
+1 c CE%sT 1918
+1 h CE%sT 1941 Ap 7 23
+1 c CE%sT 1945
+1 h CE%sT 1984
+1 E CE%sT
+Z Europe/Chisinau 1:55:20 - LMT 1880
+1:55 - CMT 1918 F 15
+1:44:24 - BMT 1931 Jul 24
+2 z EE%sT 1940 Au 15
+2 1 EEST 1941 Jul 17
+1 c CE%sT 1944 Au 24
+3 R MSK/MSD 1990 May 6 2
+2 R EE%sT 1992
+2 e EE%sT 1997
+2 MD EE%sT
+Z Europe/Dublin -0:25:21 - LMT 1880 Au 2
+-0:25:21 - DMT 1916 May 21 2s
+-0:25:21 1 IST 1916 O 1 2s
+0 G %s 1921 D 6
+0 G GMT/IST 1940 F 25 2s
+0 1 IST 1946 O 6 2s
+0 - GMT 1947 Mar 16 2s
+0 1 IST 1947 N 2 2s
+0 - GMT 1948 Ap 18 2s
+0 G GMT/IST 1968 O 27
+1 IE IST/GMT
+Z Europe/Gibraltar -0:21:24 - LMT 1880 Au 2
+0 G %s 1957 Ap 14 2
+1 - CET 1982
+1 E CE%sT
+Z Europe/Helsinki 1:39:49 - LMT 1878 May 31
+1:39:49 - HMT 1921 May
+2 FI EE%sT 1983
+2 E EE%sT
+Z Europe/Istanbul 1:55:52 - LMT 1880
+1:56:56 - IMT 1910 O
+2 T EE%sT 1978 Jun 29
+3 T +03/+04 1984 N 1 2
+2 T EE%sT 2007
+2 E EE%sT 2011 Mar 27 1u
+2 - EET 2011 Mar 28 1u
+2 E EE%sT 2014 Mar 30 1u
+2 - EET 2014 Mar 31 1u
+2 E EE%sT 2015 O 25 1u
+2 1 EEST 2015 N 8 1u
+2 E EE%sT 2016 S 7
+3 - +03
+Z Europe/Kaliningrad 1:22 - LMT 1893 Ap
+1 c CE%sT 1945 Ap 10
+2 O EE%sT 1946 Ap 7
+3 R MSK/MSD 1989 Mar 26 2s
+2 R EE%sT 2011 Mar 27 2s
+3 - +03 2014 O 26 2s
+2 - EET
+Z Europe/Kirov 3:18:48 - LMT 1919 Jul 1 0u
+3 - +03 1930 Jun 21
+4 R +04/+05 1989 Mar 26 2s
+3 R MSK/MSD 1991 Mar 31 2s
+4 - +04 1992 Mar 29 2s
+3 R MSK/MSD 2011 Mar 27 2s
+4 - MSK 2014 O 26 2s
+3 - MSK
+Z Europe/Kyiv 2:2:4 - LMT 1880
+2:2:4 - KMT 1924 May 2
+2 - EET 1930 Jun 21
+3 - MSK 1941 S 20
+1 c CE%sT 1943 N 6
+3 R MSK/MSD 1990 Jul 1 2
+2 1 EEST 1991 S 29 3
+2 c EE%sT 1996 May 13
+2 E EE%sT
+Z Europe/Lisbon -0:36:45 - LMT 1884
+-0:36:45 - LMT 1912 Ja 1 0u
+0 p WE%sT 1966 Ap 3 2
+1 - CET 1976 S 26 1
+0 p WE%sT 1983 S 25 1s
+0 W- WE%sT 1992 S 27 1s
+1 E CE%sT 1996 Mar 31 1u
+0 E WE%sT
+Z Europe/London -0:1:15 - LMT 1847 D
+0 G %s 1968 O 27
+1 - BST 1971 O 31 2u
+0 G %s 1996
+0 E GMT/BST
+Z Europe/Madrid -0:14:44 - LMT 1901 Ja 1 0u
+0 s WE%sT 1940 Mar 16 23
+1 s CE%sT 1979
+1 E CE%sT
+Z Europe/Malta 0:58:4 - LMT 1893 N 2
+1 I CE%sT 1973 Mar 31
+1 MT CE%sT 1981
+1 E CE%sT
+Z Europe/Minsk 1:50:16 - LMT 1880
+1:50 - MMT 1924 May 2
+2 - EET 1930 Jun 21
+3 - MSK 1941 Jun 28
+1 c CE%sT 1944 Jul 3
+3 R MSK/MSD 1990
+3 - MSK 1991 Mar 31 2s
+2 R EE%sT 2011 Mar 27 2s
+3 - +03
+Z Europe/Moscow 2:30:17 - LMT 1880
+2:30:17 - MMT 1916 Jul 3
+2:31:19 R %s 1919 Jul 1 0u
+3 R %s 1921 O
+3 R MSK/MSD 1922 O
+2 - EET 1930 Jun 21
+3 R MSK/MSD 1991 Mar 31 2s
+2 R EE%sT 1992 Ja 19 2s
+3 R MSK/MSD 2011 Mar 27 2s
+4 - MSK 2014 O 26 2s
+3 - MSK
+Z Europe/Paris 0:9:21 - LMT 1891 Mar 16
+0:9:21 - PMT 1911 Mar 11
+0 F WE%sT 1940 Jun 14 23
+1 c CE%sT 1944 Au 25
+0 F WE%sT 1945 S 16 3
+1 F CE%sT 1977
+1 E CE%sT
+Z Europe/Prague 0:57:44 - LMT 1850
+0:57:44 - PMT 1891 O
+1 c CE%sT 1945 May 9
+1 CZ CE%sT 1946 D 1 3
+1 -1 GMT 1947 F 23 2
+1 CZ CE%sT 1979
+1 E CE%sT
+Z Europe/Riga 1:36:34 - LMT 1880
+1:36:34 - RMT 1918 Ap 15 2
+1:36:34 1 LST 1918 S 16 3
+1:36:34 - RMT 1919 Ap 1 2
+1:36:34 1 LST 1919 May 22 3
+1:36:34 - RMT 1926 May 11
+2 - EET 1940 Au 5
+3 - MSK 1941 Jul
+1 c CE%sT 1944 O 13
+3 R MSK/MSD 1989 Mar lastSu 2s
+2 1 EEST 1989 S lastSu 2s
+2 LV EE%sT 1997 Ja 21
+2 E EE%sT 2000 F 29
+2 - EET 2001 Ja 2
+2 E EE%sT
+Z Europe/Rome 0:49:56 - LMT 1866 D 12
+0:49:56 - RMT 1893 O 31 23u
+1 I CE%sT 1943 S 10
+1 c CE%sT 1944 Jun 4
+1 I CE%sT 1980
+1 E CE%sT
+Z Europe/Samara 3:20:20 - LMT 1919 Jul 1 0u
+3 - +03 1930 Jun 21
+4 - +04 1935 Ja 27
+4 R +04/+05 1989 Mar 26 2s
+3 R +03/+04 1991 Mar 31 2s
+2 R +02/+03 1991 S 29 2s
+3 - +03 1991 O 20 3
+4 R +04/+05 2010 Mar 28 2s
+3 R +03/+04 2011 Mar 27 2s
+4 - +04
+Z Europe/Saratov 3:4:18 - LMT 1919 Jul 1 0u
+3 - +03 1930 Jun 21
+4 R +04/+05 1988 Mar 27 2s
+3 R +03/+04 1991 Mar 31 2s
+4 - +04 1992 Mar 29 2s
+3 R +03/+04 2011 Mar 27 2s
+4 - +04 2014 O 26 2s
+3 - +03 2016 D 4 2s
+4 - +04
+Z Europe/Simferopol 2:16:24 - LMT 1880
+2:16 - SMT 1924 May 2
+2 - EET 1930 Jun 21
+3 - MSK 1941 N
+1 c CE%sT 1944 Ap 13
+3 R MSK/MSD 1990
+3 - MSK 1990 Jul 1 2
+2 - EET 1992 Mar 20
+2 c EE%sT 1994 May
+3 c MSK/MSD 1996 Mar 31 0s
+3 1 MSD 1996 O 27 3s
+3 - MSK 1997 Mar lastSu 1u
+2 E EE%sT 2014 Mar 30 2
+4 - MSK 2014 O 26 2s
+3 - MSK
+Z Europe/Sofia 1:33:16 - LMT 1880
+1:56:56 - IMT 1894 N 30
+2 - EET 1942 N 2 3
+1 c CE%sT 1945
+1 - CET 1945 Ap 2 3
+2 - EET 1979 Mar 31 23
+2 BG EE%sT 1982 S 26 3
+2 c EE%sT 1991
+2 e EE%sT 1997
+2 E EE%sT
+Z Europe/Tallinn 1:39 - LMT 1880
+1:39 - TMT 1918 F
+1 c CE%sT 1919 Jul
+1:39 - TMT 1921 May
+2 - EET 1940 Au 6
+3 - MSK 1941 S 15
+1 c CE%sT 1944 S 22
+3 R MSK/MSD 1989 Mar 26 2s
+2 1 EEST 1989 S 24 2s
+2 c EE%sT 1998 S 22
+2 E EE%sT 1999 O 31 4
+2 - EET 2002 F 21
+2 E EE%sT
+Z Europe/Tirane 1:19:20 - LMT 1914
+1 - CET 1940 Jun 16
+1 q CE%sT 1984 Jul
+1 E CE%sT
+Z Europe/Ulyanovsk 3:13:36 - LMT 1919 Jul 1 0u
+3 - +03 1930 Jun 21
+4 R +04/+05 1989 Mar 26 2s
+3 R +03/+04 1991 Mar 31 2s
+2 R +02/+03 1992 Ja 19 2s
+3 R +03/+04 2011 Mar 27 2s
+4 - +04 2014 O 26 2s
+3 - +03 2016 Mar 27 2s
+4 - +04
+Z Europe/Vienna 1:5:21 - LMT 1893 Ap
+1 c CE%sT 1920
+1 a CE%sT 1940 Ap 1 2s
+1 c CE%sT 1945 Ap 2 2s
+1 1 CEST 1945 Ap 12 2s
+1 - CET 1946
+1 a CE%sT 1981
+1 E CE%sT
+Z Europe/Vilnius 1:41:16 - LMT 1880
+1:24 - WMT 1917
+1:35:36 - KMT 1919 O 10
+1 - CET 1920 Jul 12
+2 - EET 1920 O 9
+1 - CET 1940 Au 3
+3 - MSK 1941 Jun 24
 1 c CE%sT 1944 Au
 3 R MSK/MSD 1989 Mar 26 2s
 2 R EE%sT 1991 S 29 2s
@@ -1124,58 +1492,4 @@ n ÉÖÜá   |á  ÙÿÈˇ           êá  ÿÈˇ!    AÉNH HA√ 4   ¥Ö  ¸ÿ
 C√AHC√      8 É«Êˇx    KÖGBáÜSÉ   ,   \ ‘ Íˇõ    AÖBCáÜÉä
 √A∆A«A≈A h   å DÀÍˇ;   KÖAáAÜAÉC0£
 4A8A<A@IP4F8I<A@L0n
-A√A∆A«A≈BO4A8A<A@      ¯ ÃÍˇ           $ÃÍˇ            0ÃÍˇ       0   4 <ÃÍˇ∫    LÜAÉA
-√A∆IY
-√A∆F     h »ÃÍˇ       8   | ‘ÃÍˇB    AÉC O$F(A,A0C,I L
-A√DHA√   ∏ ËÃÍˇ          Ã ÙÃÍˇ          ‡ ÃÍˇ       4   Ù ÏÃÍˇ√   Wı KÖBAáJÜÉt.j
-√A∆A«A≈C    , ∆Êˇ   (ı ÉÖÜá    L dÕÍˇ)    AÉNP HA√ (   p pÕÍˇ(    AÜAÉNE PA√A∆4   ú tÕÍˇf   ¿Ù AÖBAáSÜÉ^.d
-√A∆A«A≈C     ‘ t≈Êˇ   îÙ ÉÖÜá<   Ù åÕÍˇœ    LáAÜAÉN
-√C∆A«Hd
-√D∆A«G $   4 )≈Êˇ¬   <Ù AÖBBáÜOÉj.   \ ÙÕÍˇ           p ÕÍˇ&    AÉNM HA√ (   î ¸ÕÍˇ0    AÜAÉNM PA√A∆    ¿  ŒÍˇ&    AÉNM HA√ (   ‰ ŒÍˇ0    AÜAÉNM PA√A∆(    ŒÍˇ(    AÜAÉNE PA√A∆   < ŒÍˇ          P  ŒÍˇ       (   d ,ŒÍˇ!    AÉCOAA CEA√<   ê ‡°ÁˇG    AÜAÉNMAG HGAG HA√A∆  4   – ÕÍˇ9   ≥Ú AÖBAáPÜÉF.T
-√A∆A«A≈A      ƒÊˇ   ÉÚ ÉÖÜá4   ( ÿÕÍˇ·   kÚ AÖBAáPÜÉW.i
-√A∆A«A≈I     ` “√Êˇ   <Ú ÉÖÜá   Ä pŒÍˇ       (   î lŒÍˇ(    AÜAÉNE PA√A∆4   ¿ pŒÍˇA    AÜAÉNQBA HM
-A√A∆A   ¯ Z√Êˇ    ÉÜHA    4    hŒÍˇ?    AÜAÉNQA HM
-A√A∆A      P √Êˇ    ÉÜHA    4   p PŒÍˇ?    AÜAÉNLABD HQA√A∆   ® ∆¬Êˇ	    ÉÜCA    x   » 8ŒÍˇ)   AÖAáLÜAÉC0D4C8B<D@H0K
-A√A∆A«A≈J@<A@F0\<A@E0E<A@E0]<A@L0C<C@   4   D ÏŒÍˇ   ` AÖBBáÜOÉf.l
-√A∆A«A≈G     | ¸¡Êˇ    1 ÉÖÜá   ú ÑœÍˇ     AÉNOA√@   º ÑœÍˇP    AÜAÉN W(A,A0H H
-A√A∆EMA√A∆ H     êœÍˇ  µÔ AÖBBáÜOÉG.`. s.í. s.î
-√A∆A«A≈F     L L¡Êˇ∞   ¶Ô ÉÖÜá4   l 4◊Íˇï  èÔ AÖBBáÜOÉo.
-√A∆A«A≈D   § §¡Êˇﬁ   ≥Ô ÉÖÜáH   ƒ |ﬁÍˇâ  úÔ AÖBAáPÜÉÄ.N
-√A∆A«A≈K¶. N
-√A∆A«A≈C      ¬ÊˇP   [Ô ÉÖÜá0   0 †·Íˇ2    AÉNDD D$D(G,B0HA√  L   d ¨·ÍˇK    AÜAÉNFDD D$D(D,D0D4G8B<A@E<EA√A∆   L   ¥ ¨·ÍˇK    AÜAÉNFDD D$D(D,D0D4G8B<A@E<EA√A∆   L    ¨·ÍˇK    AÜAÉNFDD D$D(D,D0D4G8B<A@E<EA√A∆   L   T ¨·ÍˇK    AÜAÉNFDD D$D(D,D0D4G8B<A@E<EA√A∆   L   § ¨·ÍˇK    AÜAÉNFDD D$D(D,D0D4G8B<A@E<EA√A∆   $   Ù ¨·Íˇ"    AÉNGB HA√  `    ¥·Íˇù    AÜAÉN@RDEHELDPFTDXD\D`DdGhBlApElO@V
-C√A∆JNC√A∆   L   Ä ·ÍˇS    AÜAÉNFDDD F$D(F,D0D4G8B<A@E<EA√A∆(   –  ‚Íˇ&    AÉNDGB HA√   ,   ¸ ‚Íˇ0    AÉNJ C$A(G,B0HA√ 0   , ‚Íˇ2    AÉNDD D$D(G,B0HA√  L   ` ‚ÍˇK    AÜAÉNFDD D$D(D,D0D4G8B<A@E<EA√A∆   L   ∞ ‚ÍˇK    AÜAÉNFDD D$D(D,D0D4G8B<A@E<EA√A∆   L     ‚ÍˇK    AÜAÉNFDD D$D(D,D0D4G8B<A@E<EA√A∆   L   P ‚ÍˇK    AÜAÉNFDD D$D(D,D0D4G8B<A@E<EA√A∆   L   † ‚ÍˇK    AÜAÉNFDD D$D(D,D0D4G8B<A@E<EA√A∆   $    ‚Íˇ"    AÉNGB HA√  `    ‚Íˇù    AÜAÉN@RDEHELDPFTDXD\D`DdGhBlApElO@V
-C√A∆JNC√A∆   L   | T‚ÍˇQ    AÜAÉNFDDD D$D(F,D0D4G8B<A@E<EA√A∆(   Ã d‚Íˇ&    AÉNDGB HA√   ,   ¯ h‚Íˇ0    AÉNJ C$A(G,B0HA√ p   (  h‚Íˇ∞    AÖAáAÜAÉN0S4J8B<A@H0Q4A8A<A@P0K
-C√A∆A«A≈AY
-A√A∆D«A≈H      ú  ⁄ªÊˇ    0ÉÖÜáC<G@   p   ¿  Ä‚Íˇô    AÖAáAÜAÉN0S4C8B<A@H0M4A8A<A@P0K
-C√A∆A«A≈DQ
-A√A∆D«A≈H      4! RªÊˇ    0ÉÖÜáC<G@   4   X! >ªÊˇS    AÜDÉN k$A(E,A0H CA√A∆4   ê! ZªÊˇS    AÜDÉN k$A(E,A0H CA√A∆8   » ‚Íˇ{   ´Á KÖBBáÜDÉa. _. ]
-√A∆A«A≈C         :ªÊˇ0   wÁ ÉÖÜáM. 8   (  8‚ÍˇÜ   _Á AÖBBáÜDÉv. _. ]
-√A∆A«A≈C       d  
-ªÊˇ0   ,Á ÉÖÜáM. 8   à  h‚Íˇz   Á KÖBBáÜDÉa. ^. ]
-√A∆A«A≈C       ƒ  ⁄∫Êˇ0   ‡Ê ÉÖÜáM. 8   Ë  à‚ÍˇÖ   »Ê AÖBBáÜDÉv. ^. ]
-√A∆A«A≈C       $! ™∫Êˇ0   ïÊ ÉÖÜáM. 8   H! ∏‚ÍˇÛ   }Ê AÖBBáÜOÉh.0a
-√A∆A«A≈HL.     Ñ! z∫Êˇ   PÊ ÉÖÜá8   §! \„Íˇ˚   8Ê AÖBBáÜOÉp.0b
-√A∆A«A≈GL.     ‡! <∫Êˇ   Ê ÉÖÜá4    $  ‰Íˇl    AÜAÉN T
-A√A∆J[(E,A0H 4   8$ 8‰Íˇl    AÜAÉN T
-A√A∆J[(E,A0H <   p$ p‰Íˇd    AÜAÉNkC FCA HA√A∆FÉÜ <   ∞$ †‰Íˇd    AÜAÉNkC FCA HA√A∆FÉÜ <   $ –‰Íˇl    AÜAÉNkC FIF HA√A∆CÉÜ <   0%  ÂÍˇl    AÜAÉNkC FIF HA√A∆CÉÜ <   p% 0ÂÍˇl    AÜAÉNkC FIF HA√A∆CÉÜ <   ∞% `ÂÍˇl    AÜAÉNkC FIF HA√A∆CÉÜ <   % êÂÍˇl    AÜAÉNkC FIF HA√A∆CÉÜ <   0& ¿ÂÍˇl    AÜAÉNkC FIF HA√A∆CÉÜ <   p& ÂÍˇl    AÜAÉNkC FCA PA√A∆FÉÜ <   ∞&  ÊÍˇl    AÜAÉNkC FCA PA√A∆FÉÜ <   & PÊÍˇl    AÜLÉCuC FCA JA√A∆BÉÜ <   0' ÄÊÍˇl    AÜLÉCuC FCA JA√A∆BÉÜ <   p' ∞ÊÍˇ|    AÜAÉNkC FIF PA√A∆KÉÜ <   ∞' ÊÍˇ|    AÜAÉNkC FIF PA√A∆KÉÜ <   ' 0ÁÍˇ|    AÜAÉNkC FIF PA√A∆KÉÜ <   0( pÁÍˇ|    AÜAÉNkC FIF PA√A∆KÉÜ <   p( ∞ÁÍˇ|    AÜAÉNkC FIF PA√A∆KÉÜ <   ∞( ÁÍˇ|    AÜAÉNkC FIF PA√A∆KÉÜ @   & 0ËÍˇ|   · AÜAÉNkC FII PA√A∆HÉÜ @   4' lËÍˇ|   ƒ‡ AÜAÉNkC FII PA√A∆HÉÜ <   x) ®ËÍˇt    AÜAÉNuC FCA PA√A∆DÉÜ <   ∏) ËËÍˇt    AÜAÉNuC FCA PA√A∆DÉÜ @   ¯' (ÈÍˇÑ   ‡ AÜAÉNkC FII XA√A∆HÉÜ @   <( tÈÍˇÑ   ƒﬂ AÜAÉNkC FII XA√A∆HÉÜ <   Ä* ¿ÈÍˇÑ    AÜLÉCJC FCA JA√A∆EÉÜ<   ¿* ÍÍˇÑ    AÜLÉCJC FCA JA√A∆EÉÜ<    + `ÍÍˇÑ    AÜLÉCJC FCA JA√A∆EÉÜ<   @+ ∞ÍÍˇÑ    AÜLÉCJC FCA JA√A∆EÉÜ<   Ä+  ÎÍˇå    AÜAÉNJC FCA PA√A∆GÉÜ<   ¿+ PÎÍˇå    AÜAÉNJC FCA PA√A∆GÉÜ<    , †ÎÍˇå    AÜAÉNJC FCA PA√A∆GÉÜ<   @, ÎÍˇå    AÜAÉNJC FCA PA√A∆GÉÜ8   Ä* @ÏÍˇ)  Ñ› AÖBEáÜUÉq.0E
-√A∆A«A≈JZ.       º* ~±Êˇ,   W› ÉÖÜáJ. 8   ‡* ÌÍˇ)  ?› AÖBEáÜUÉq.0E
-√A∆A«A≈JY.       + J±Êˇ,   › ÉÖÜáJ.    @- ‡ÌÍˇL       4   T+ ÓÍˇç  Ê‹ AÖBCáÜÉb.
-
-√A∆A«A≈K8   å+ tÍˇ„  ÷‹ AÖBCáÜÉe.9
-√A∆A«A≈IÚ. (   »- (ÛÍˇ5    AáAÜAÉk√D∆A«(   Ù- <ÛÍˇ5    AáAÜAÉk√D∆A«4    , PÛÍˇ  v‹ AÖBAáSÜÉa.A
-√A∆A«A≈D 4   X, 8ÙÍˇ  P‹ AÖBAáSÜÉa.A
-√A∆A«A≈D 4   ê,  ıÍˇÅ  *‹ AÖBCáÜÉt.ô
-√A∆A«A≈J4   », x¯ÍˇÅ  &‹ AÖBCáÜÉt.ô
-√A∆A«A≈J<    - –˚ÍˇÌ  "‹ AÖBCáÜÉt.‚
-√A∆A«A≈AF.    <   @- ÄˇÍˇÌ  ,‹ AÖBCáÜÉt.‚
-√A∆A«A≈AF.    4   Ä- 0Îˇπ   6‹ AÖBBáÜLÉh.[
-√A∆A«A≈I  4   ∏- ∏Îˇπ   ‹ AÖBBáÜLÉh.[
-√A∆A«A≈I  8   - @Îˇò  Í€ AÖBAáSÜÉm. Q.U
-√A∆A«A≈C  8   ,. §Îˇò  ≈€ AÖBAáSÜÉn. Q.U
-√A∆A«A≈B     h0 Îˇ          |0 Îˇ          ê0  Îˇ          §0 Îˇ       ¯   ∏0 ÎˇB   LÉCfD D$D(D,D0D4D8A<A@C<EC
-A√IED D$D(D,D0D4D8A<A@C<EC
-A√IED D$D(D,D0D4D8A<A@C<EC
-A√IED D$D(D,D0D4D8A<A@C<EC
-A√IED D$D(D,D0D4D8A<A@C<ECA√¯   ¥1 lÎˇB   LÉCfD D$D(D,D0D4D8A<A@C<EC
-A√IED D$D(D,D0D4D8A<A@C<EC
-A√IED D$D(D,
+A√A∆A«A≈BO4A8A<A@      ¯ ÃÍˇ           $ÃÍˇ            0ÃÍˇ       0   
