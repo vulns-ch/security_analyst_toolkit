@@ -25,6 +25,10 @@
       await idbDevice.reset();
       await idbDevice2.reset();
 
+      // webdevice for script content
+      const webDevice = await CheerpX.WebDevice.create("/scripts");
+
+
       // Convenient access to JavaScript binary data and strings
       const dataDevice = await CheerpX.DataDevice.create();
       self.dataDevice=dataDevice
@@ -43,6 +47,7 @@
           { type: "ext2", path: "/", dev: overlayDevice },
           { type: "dir", path: "/data", dev: dataDevice },
           { type: "dir", path: "/home/user/output", dev: idbDevice2 },
+          { type: "dir", path: "/home/user/scripts", dev: webDevice },
           { type: "devs", path: "/dev" },
         ],
       });
