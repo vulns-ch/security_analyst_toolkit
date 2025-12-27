@@ -21,12 +21,14 @@
       // Read-write local storage for disk blocks, it is used both as a cache and as persisteny writable storage
       const idbDevice = await CheerpX.IDBDevice.create("block1");
       const idbDevice2 = await CheerpX.IDBDevice.create("block2");
+      const idbDevice3 = await CheerpX.IDBDevice.create("block3");
 
       await idbDevice.reset();
       await idbDevice2.reset();
+      await idbDevice3.reset();
 
       // webdevice for script content
-      const webDevice = await CheerpX.WebDevice.create("/scripts");
+      const scriptsDevice = await CheerpX.HttpBytesDevice.create("/disk-images/scripts.ext2");
 
 
       // Convenient access to JavaScript binary data and strings
@@ -41,13 +43,18 @@
         idbDevice
       );
 
+      const overlayDevice2 = await CheerpX.OverlayDevice.create(
+        scriptsDevice,
+        idbDevice3
+      );
+
 
       const cx = await CheerpX.Linux.create({
         mounts: [
           { type: "ext2", path: "/", dev: overlayDevice },
           { type: "dir", path: "/data", dev: dataDevice },
           { type: "dir", path: "/home/user/output", dev: idbDevice2 },
-          { type: "dir", path: "/home/user/scripts", dev: webDevice },
+          { type: "ext2", path: "/home/user/scripts", dev: overlayDevice2 },
           { type: "devs", path: "/dev" },
         ],
       });
