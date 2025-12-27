@@ -1,0 +1,2089 @@
+ers must not be used in
+   advertising or otherwise to promote the sale, use or other dealing
+   in this Software without specific, written prior permission.  Title
+   to copyright in this Software shall at all times remain with
+   copyright holders.
+
+   OpenLDAP is a registered trademark of the OpenLDAP Foundation.
+
+   Copyright 1999-2003 The OpenLDAP Foundation, Redwood City,
+   California, USA.  All Rights Reserved.  Permission to copy and
+   distribute verbatim copies of this document is granted.
+
+======================================================================
+
+Marked test programs in src/lib/krb5/krb have the following copyright:
+
+   Copyright (C) 2006 Kungliga Tekniska H√∂gskola
+   (Royal Institute of Technology, Stockholm, Sweden).
+   All rights reserved.
+
+   Redistribution and use in source and binary forms, with or without
+   modification, are permitted provided that the following conditions
+   are met:
+
+   1. Redistributions of source code must retain the above
+      copyright notice, this list of conditions and the following
+      disclaimer.
+
+   2. Redistributions in binary form must reproduce the above
+      copyright notice, this list of conditions and the following
+      disclaimer in the documentation and/or other materials provided
+      with the distribution.
+
+   3. Neither the name of KTH nor the names of its contributors may
+      be used to endorse or promote products derived from this
+      software without specific prior written permission.
+
+   THIS SOFTWARE IS PROVIDED BY KTH AND ITS CONTRIBUTORS "AS IS" AND
+   ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+   THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+   PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL KTH OR ITS
+   CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+   SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+   LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
+   USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+   ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+   OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
+   OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+   SUCH DAMAGE.
+
+======================================================================
+
+The KCM Mach RPC definition file used on macOS has the following
+copyright:
+
+      Copyright (C) 2009 Kungliga Tekniska H√∂gskola
+      (Royal Institute of Technology, Stockholm, Sweden).
+      All rights reserved.
+
+   Portions Copyright (C) 2009 Apple Inc. All rights reserved.
+
+   Redistribution and use in source and binary forms, with or without
+   modification, are permitted provided that the following conditions
+   are met:
+
+   1. Redistributions of source code must retain the above
+      copyright notice, this list of conditions and the following
+      disclaimer.
+
+   2. Redistributions in binary form must reproduce the above
+      copyright notice, this list of conditions and the following
+      disclaimer in the documentation and/or other materials provided
+      with the distribution.
+
+   3. Neither the name of the Institute nor the names of its
+      contributors may be used to endorse or promote products derived
+      from this software without specific prior written permission.
+
+   THIS SOFTWARE IS PROVIDED BY THE INSTITUTE AND CONTRIBUTORS "AS IS"
+   AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
+   TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+   PARTICULAR PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL THE INSTITUTE
+   OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+   SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+   LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
+   USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+   ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+   OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
+   OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+   SUCH DAMAGE.
+
+======================================================================
+
+Portions of the RPC implementation in src/lib/rpc and
+src/include/gssrpc have the following copyright and permission notice:
+
+   Copyright (C) 2010, Oracle America, Inc.
+
+   All rights reserved.
+
+   Redistribution and use in source and binary forms, with or without
+   modification, are permitted provided that the following conditions
+   are met:
+
+   1. Redistributions of source code must retain the above
+      copyright notice, this list of conditions and the following
+      disclaimer.
+
+   2. Redistributions in binary form must reproduce the above
+      copyright notice, this list of conditions and the following
+      disclaimer in the documentation and/or other materials provided
+      with the distribution.
+
+   3. Neither the name of the "Oracle America, Inc." nor the names
+      of its contributors may be used to endorse or promote products
+      derived from this software without specific prior written
+      permission.
+
+   THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+   "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+   LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+   FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+   COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+   INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+   (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+   SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+   HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+   STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+   ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
+   OF THE POSSIBILITY OF SUCH DAMAGE.
+
+======================================================================
+
+   Copyright (C) 2006,2007,2009 NTT (Nippon Telegraph and Telephone
+   Corporation).  All rights reserved.
+
+   Redistribution and use in source and binary forms, with or without
+   modification, are permitted provided that the following conditions
+   are met:
+
+   1. Redistributions of source code must retain the above
+      copyright notice, this list of conditions and the following
+      disclaimer as the first lines of this file unmodified.
+
+   2. Redistributions in binary form must reproduce the above
+      copyright notice, this list of conditions and the following
+      disclaimer in the documentation and/or other materials provided
+      with the distribution.
+
+   THIS SOFTWARE IS PROVIDED BY NTT "AS IS" AND ANY EXPRESS OR IMPLIED
+   WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
+   OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+   DISCLAIMED. IN NO EVENT SHALL NTT BE LIABLE FOR ANY DIRECT,
+   INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+   (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+   SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+   HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+   STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+   ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
+   OF THE POSSIBILITY OF SUCH DAMAGE.
+
+======================================================================
+
+   Copyright 2000 by Carnegie Mellon University
+
+   All Rights Reserved
+
+   Permission to use, copy, modify, and distribute this software and
+   its documentation for any purpose and without fee is hereby
+   granted, provided that the above copyright notice appear in all
+   copies and that both that copyright notice and this permission
+   notice appear in supporting documentation, and that the name of
+   Carnegie Mellon University not be used in advertising or publicity
+   pertaining to distribution of the software without specific,
+   written prior permission.
+
+   CARNEGIE MELLON UNIVERSITY DISCLAIMS ALL WARRANTIES WITH REGARD TO
+   THIS SOFTWARE, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
+   AND FITNESS, IN NO EVENT SHALL CARNEGIE MELLON UNIVERSITY BE LIABLE
+   FOR ANY SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+   WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN
+   AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING
+   OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
+   SOFTWARE.
+
+======================================================================
+
+   Copyright (C) 2002 Naval Research Laboratory (NRL/CCS)
+
+   Permission to use, copy, modify and distribute this software and
+   its documentation is hereby granted, provided that both the
+   copyright notice and this permission notice appear in all copies of
+   the software, derivative works or modified versions, and any
+   portions thereof.
+
+   NRL ALLOWS FREE USE OF THIS SOFTWARE IN ITS "AS IS" CONDITION AND
+   DISCLAIMS ANY LIABILITY OF ANY KIND FOR ANY DAMAGES WHATSOEVER
+   RESULTING FROM THE USE OF THIS SOFTWARE.
+
+======================================================================
+
+   Copyright (C) 1991, 1992, 1994 by Cygnus Support.
+
+   Permission to use, copy, modify, and distribute this software and
+   its documentation for any purpose and without fee is hereby
+   granted, provided that the above copyright notice appear in all
+   copies and that both that copyright notice and this permission
+   notice appear in supporting documentation. Cygnus Support makes no
+   representations about the suitability of this software for any
+   purpose.  It is provided "as is" without express or implied
+   warranty.
+
+======================================================================
+
+   Copyright (C) 2006 Secure Endpoints Inc.
+
+   Permission is hereby granted, free of charge, to any person
+   obtaining a copy of this software and associated documentation
+   files (the "Software"), to deal in the Software without
+   restriction, including without limitation the rights to use, copy,
+   modify, merge, publish, distribute, sublicense, and/or sell copies
+   of the Software, and to permit persons to whom the Software is
+   furnished to do so, subject to the following conditions:
+
+   The above copyright notice and this permission notice shall be
+   included in all copies or substantial portions of the Software.
+
+   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+   EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+   MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+   NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+   BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+   ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+   CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+   SOFTWARE.
+
+======================================================================
+
+Portions of the implementation of the Fortuna-like PRNG are subject to
+the following notice:
+
+   Copyright (C) 2005 Marko Kreen
+   All rights reserved.
+
+   Redistribution and use in source and binary forms, with or without
+   modification, are permitted provided that the following conditions
+   are met:
+
+   1. Redistributions of source code must retain the above
+      copyright notice, this list of conditions and the following
+      disclaimer.
+
+   2. Redistributions in binary form must reproduce the above
+      copyright notice, this list of conditions and the following
+      disclaimer in the documentation and/or other materials provided
+      with the distribution.
+
+   THIS SOFTWARE IS PROVIDED BY THE AUTHOR AND CONTRIBUTORS "AS IS"
+   AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
+   TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+   PARTICULAR PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHOR OR
+   CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+   SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+   LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
+   USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+   ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+   OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
+   OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+   SUCH DAMAGE.
+
+   Copyright (C) 1994 by the University of Southern California
+
+      EXPORT OF THIS SOFTWARE from the United States of America may
+      require a specific license from the United States Government. It
+      is the responsibility of any person or organization
+      contemplating export to obtain such a license before exporting.
+
+   WITHIN THAT CONSTRAINT, permission to copy, modify, and distribute
+   this software and its documentation in source and binary forms is
+   hereby granted, provided that any documentation or other materials
+   related to such distribution or use acknowledge that the software
+   was developed by the University of Southern California.
+
+   DISCLAIMER OF WARRANTY.  THIS SOFTWARE IS PROVIDED "AS IS".  The
+   University of Southern California MAKES NO REPRESENTATIONS OR
+   WARRANTIES, EXPRESS OR IMPLIED.  By way of example, but not
+   limitation, the University of Southern California MAKES NO
+   REPRESENTATIONS OR WARRANTIES OF MERCHANTABILITY OR FITNESS FOR ANY
+   PARTICULAR PURPOSE. The University of Southern California shall not
+   be held liable for any liability nor for any direct, indirect, or
+   consequential damages with respect to any claim by the user or
+   distributor of the ksu software.
+
+======================================================================
+
+   Copyright (C) 1995
+   The President and Fellows of Harvard University
+
+   This code is derived from software contributed to Harvard by Jeremy
+   Rassen.
+
+   Redistribution and use in source and binary forms, with or without
+   modification, are permitted provided that the following conditions
+   are met:
+
+   1. Redistributions of source code must retain the above
+      copyright notice, this list of conditions and the following
+      disclaimer.
+
+   2. Redistributions in binary form must reproduce the above
+      copyright notice, this list of conditions and the following
+      disclaimer in the documentation and/or other materials provided
+      with the distribution.
+
+   3. All advertising materials mentioning features or use of this
+      software must display the following acknowledgement:
+
+         This product includes software developed by the University of
+         California, Berkeley and its contributors.
+
+   4. Neither the name of the University nor the names of its
+      contributors may be used to endorse or promote products derived
+      from this software without specific prior written permission.
+
+   THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS "AS IS"
+   AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
+   TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+   PARTICULAR PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS
+   OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+   SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+   LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
+   USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+   ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+   OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
+   OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+   SUCH DAMAGE.
+
+======================================================================
+
+   Copyright (C) 2008 by the Massachusetts Institute of Technology.
+   Copyright 1995 by Richard P. Basch.  All Rights Reserved.
+   Copyright 1995 by Lehman Brothers, Inc.  All Rights Reserved.
+
+      Export of this software from the United States of America may
+      require a specific license from the United States Government. It
+      is the responsibility of any person or organization
+      contemplating export to obtain such a license before exporting.
+
+   WITHIN THAT CONSTRAINT, permission to use, copy, modify, and
+   distribute this software and its documentation for any purpose and
+   without fee is hereby granted, provided that the above copyright
+   notice appear in all copies and that both that copyright notice and
+   this permission notice appear in supporting documentation, and that
+   the name of Richard P. Basch, Lehman Brothers and M.I.T. not be
+   used in advertising or publicity pertaining to distribution of the
+   software without specific, written prior permission.  Richard P.
+   Basch, Lehman Brothers and M.I.T. make no representations about the
+   suitability of this software for any purpose.  It is provided "as
+   is" without express or implied warranty.
+
+======================================================================
+
+The following notice applies to "src/lib/krb5/krb/strptime.c" and
+"src/include/k5-queue.h".
+
+   Copyright (C) 1997, 1998 The NetBSD Foundation, Inc.
+   All rights reserved.
+
+   This code was contributed to The NetBSD Foundation by Klaus Klein.
+
+   Redistribution and use in source and binary forms, with or without
+   modification, are permitted provided that the following conditions
+   are met:
+
+   1. Redistributions of source code must retain the above
+      copyright notice, this list of conditions and the following
+      disclaimer.
+
+   2. Redistributions in binary form must reproduce the above
+      copyright notice, this list of conditions and the following
+      disclaimer in the documentation and/or other materials provided
+      with the distribution.
+
+   3. All advertising materials mentioning features or use of this
+      software must display the following acknowledgement:
+
+         This product includes software developed by the NetBSD
+         Foundation, Inc. and its contributors.
+
+   4. Neither the name of The NetBSD Foundation nor the names of
+      its contributors may be used to endorse or promote products
+      derived from this software without specific prior written
+      permission.
+
+   THIS SOFTWARE IS PROVIDED BY THE NETBSD FOUNDATION, INC. AND
+   CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES,
+   INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+   MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+   DISCLAIMED.  IN NO EVENT SHALL THE FOUNDATION OR CONTRIBUTORS BE
+   LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+   CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT
+   OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR
+   BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+   LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+   (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
+   USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
+   DAMAGE.
+
+======================================================================
+
+The following notice applies to Unicode library files in
+"src/lib/krb5/unicode":
+
+   Copyright 1997, 1998, 1999 Computing Research Labs,
+   New Mexico State University
+
+   Permission is hereby granted, free of charge, to any person
+   obtaining a copy of this software and associated documentation
+   files (the "Software"), to deal in the Software without
+   restriction, including without limitation the rights to use, copy,
+   modify, merge, publish, distribute, sublicense, and/or sell copies
+   of the Software, and to permit persons to whom the Software is
+   furnished to do so, subject to the following conditions:
+
+   The above copyright notice and this permission notice shall be
+   included in all copies or substantial portions of the Software.
+
+   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+   EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+   MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+   NONINFRINGEMENT.  IN NO EVENT SHALL THE COMPUTING RESEARCH LAB OR
+   NEW MEXICO STATE UNIVERSITY BE LIABLE FOR ANY CLAIM, DAMAGES OR
+   OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+   OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
+   OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+======================================================================
+
+The following notice applies to "src/util/support/strlcpy.c":
+
+   Copyright (C) 1998 Todd C. Miller "Todd.Miller@courtesan.com"
+
+   Permission to use, copy, modify, and distribute this software for
+   any purpose with or without fee is hereby granted, provided that
+   the above copyright notice and this permission notice appear in all
+   copies.
+
+   THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL
+   WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED
+   WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE
+   AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, OR
+   CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS
+   OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT,
+   NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
+   CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+
+======================================================================
+
+The following notice applies to "src/util/profile/argv_parse.c" and
+"src/util/profile/argv_parse.h":
+
+   Copyright 1999 by Theodore Ts'o.
+
+   Permission to use, copy, modify, and distribute this software for
+   any purpose with or without fee is hereby granted, provided that
+   the above copyright notice and this permission notice appear in all
+   copies.  THE SOFTWARE IS PROVIDED "AS IS" AND THEODORE TS'O (THE
+   AUTHOR) DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE,
+   INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN
+   NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT,
+   INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER
+   RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION
+   OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR
+   IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.  (Isn't
+   it sick that the U.S. culture of lawsuit-happy lawyers requires
+   this kind of disclaimer?)
+
+======================================================================
+
+The following notice applies to SWIG-generated code in
+"src/util/profile/profile_tcl.c":
+
+   Copyright (C) 1999-2000, The University of Chicago
+
+   This file may be freely redistributed without license or fee
+   provided this copyright message remains intact.
+
+======================================================================
+
+The following notice applies to portiions of "src/lib/rpc" and
+"src/include/gssrpc":
+
+   Copyright (C) 2000 The Regents of the University of Michigan. All
+   rights reserved.
+
+   Copyright (C) 2000 Dug Song "dugsong@UMICH.EDU". All rights
+   reserved, all wrongs reversed.
+
+   Redistribution and use in source and binary forms, with or without
+   modification, are permitted provided that the following conditions
+   are met:
+
+   1. Redistributions of source code must retain the above
+      copyright notice, this list of conditions and the following
+      disclaimer.
+
+   2. Redistributions in binary form must reproduce the above
+      copyright notice, this list of conditions and the following
+      disclaimer in the documentation and/or other materials provided
+      with the distribution.
+
+   3. Neither the name of the University nor the names of its
+      contributors may be used to endorse or promote products derived
+      from this software without specific prior written permission.
+
+   THIS SOFTWARE IS PROVIDED "AS IS" AND ANY EXPRESS OR IMPLIED
+   WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
+   OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+   DISCLAIMED. IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
+   FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+   CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT
+   OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR
+   BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+   LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+   (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
+   USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
+   DAMAGE.
+
+============================================================áØ  àØ  âØ  äØ                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  ==========
+
+Implementations of the MD4 algorithm are subject to the following
+notice:
+
+   Copyright (C) 1990, RSA Data Security, Inc. All rights reserved.
+
+   License to copy and use this software is granted provided that it
+   is identified as the "RSA Data Security, Inc. MD4 Message Digest
+   Algorithm" in all material mentioning or referencing this software
+   or this function.
+
+   License is also granted to make and use derivative works provided
+   that such works are identified as "derived from the RSA Data
+   Security, Inc. MD4 Message Digest Algorithm" in all material
+   mentioning or referencing the derived work.
+
+   RSA Data Security, Inc. makes no representations concerning either
+   the merchantability of this software or the suitability of this
+   software for any particular purpose.  It is provided "as is"
+   without express or implied warranty of any kind.
+
+   These notices must be retained in any copies of any part of this
+   documentation and/or software.
+
+======================================================================
+
+Implementations of the MD5 algorithm are subject to the following
+notice:
+
+   Copyright (C) 1990, RSA Data Security, Inc. All rights reserved.
+
+   License to copy and use this software is granted provided that it
+   is identified as the "RSA Data Security, Inc. MD5 Message- Digest
+   Algorithm" in all material mentioning or referencing this software
+   or this function.
+
+   License is also granted to make and use derivative works provided
+   that such works are identified as "derived from the RSA Data
+   Security, Inc. MD5 Message-Digest Algorithm" in all material
+   mentioning or referencing the derived work.
+
+   RSA Data Security, Inc. makes no representations concerning either
+   the merchantability of this software or the suitability of this
+   software for any particular purpose.  It is provided "as is"
+   without express or implied warranty of any kind.
+
+   These notices must be retained in any copies of any part of this
+   documentation and/or software.
+
+======================================================================
+
+The following notice applies to
+"src/lib/crypto/crypto_tests/t_mddriver.c":
+
+   Copyright (C) 1990-2, RSA Data Security, Inc. Created 1990. All
+   rights reserved.
+
+   RSA Data Security, Inc. makes no representations concerning either
+   the merchantability of this software or the suitability of this
+   software for any particular purpose. It is provided "as is" without
+   express or implied warranty of any kind.
+
+   These notices must be retained in any copies of any part of this
+   documentation and/or software.
+
+======================================================================
+
+Portions of "src/lib/krb5" are subject to the following notice:
+
+   Copyright (C) 1994 CyberSAFE Corporation.
+   Copyright 1990,1991,2007,2008 by the Massachusetts Institute of Technology.
+   All Rights Reserved.
+
+      Export of this software from the United States of America may
+      require a specific license from the United States Government. It
+      is the responsibility of any person or organization
+      contemplating export to obtain such a license before exporting.
+
+   WITHIN THAT CONSTRAINT, permission to use, copy, modify, and
+   distribute this software and its documentation for any purpose and
+   without fee is hereby granted, provided that the above copyright
+   notice appear in all copies and that both that copyright notice and
+   this permission notice appear in supporting documentation, and that
+   the name of M.I.T. not be used in advertising or publicity
+   pertaining to distribution of the software without specific,
+   written prior permission.  Furthermore if you modify this software
+   you must label your software as modified software and not
+   distribute it in such a fashion that it might be confused with the
+   original M.I.T. software. Neither M.I.T., the Open Computing
+   Security Group, nor CyberSAFE Corporation make any representations
+   about the suitability of this software for any purpose.  It is
+   provided "as is" without express or implied warranty.
+
+======================================================================
+
+Portions contributed by PADL Software are subject to the following
+license:
+
+   Copyright (c) 2011, PADL Software Pty Ltd. All rights reserved.
+
+   Redistribution and use in source and binary forms, with or without
+   modification, are permitted provided that the following conditions
+   are met:
+
+   1. Redistributions of source code must retain the above
+      copyright notice, this list of conditions and the following
+      disclaimer.
+
+   2. Redistributions in binary form must reproduce the above
+      copyright notice, this list of conditions and the following
+      disclaimer in the documentation and/or other materials provided
+      with the distribution.
+
+   3. Neither the name of PADL Software nor the names of its
+      contributors may be used to endorse or promote products derived
+      from this software without specific prior written permission.
+
+   THIS SOFTWARE IS PROVIDED BY PADL SOFTWARE AND CONTRIBUTORS "AS IS"
+   AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
+   TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+   PARTICULAR PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL PADL SOFTWARE
+   OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+   SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+   LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
+   USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+   ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+   OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
+   OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+   SUCH DAMAGE.
+
+======================================================================
+
+The bundled libev source code is subject to the following license:
+
+   All files in libev are Copyright (C)2007,2008,2009 Marc Alexander
+   Lehmann.
+
+   Redistribution and use in source and binary forms, with or without
+   modification, are permitted provided that the following conditions
+   are met:
+
+   * Redistributions of source code must retain the above copyright
+     notice, this list of conditions and the following disclaimer.
+
+   * Redistributions in binary form must reproduce the above
+     copyright notice, this list of conditions and the following
+     disclaimer in the documentation and/or other materials provided
+     with the distribution.
+
+   THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+   "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+   LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+   FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+   COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+   INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+   (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+   SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+   HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+   STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+   ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
+   OF THE POSSIBILITY OF SUCH DAMAGE.
+
+   Alternatively, the contents of this package may be used under the
+   terms of the GNU General Public License ("GPL") version 2 or any
+   later version, in which case the provisions of the GPL are
+   applicable instead of the above. If you wish to allow the use of
+   your version of this package only under the terms of the GPL and
+   not to allow others to use your version of this file under the BSD
+   license, indicate your decision by deleting the provisions above
+   and replace them with the notice and other provisions required by
+   the GPL in this and the other files of this package. If you do not
+   delete the provisions above, a recipient may use your version of
+   this file under either the BSD or the GPL.
+
+   On Debian systems, the complete text of the GNU General Public License
+   version 2 can be found in `/usr/share/common-licenses/GPL-2'.
+
+======================================================================
+
+Files copied from the Intel AESNI Sample Library are subject to the
+following license:
+
+   Copyright (C) 2010, Intel Corporation
+   All rights reserved.
+
+   Redistribution and use in source and binary forms, with or without
+   modification, are permitted provided that the following conditions
+   are met:
+
+      * Redistributions of source code must retain the above
+        copyright notice, this list of conditions and the following
+        disclaimer.
+
+      * Redistributions in binary form must reproduce the above
+        copyright notice, this list of conditions and the following
+        disclaimer in the documentation and/or other materials
+        provided with the distribution.
+
+      * Neither the name of Intel Corporation nor the names of its
+        contributors may be used to endorse or promote products
+        derived from this software without specific prior written
+        permission.
+
+   THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+   "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+   LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+   FOR A PARTICULAR PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL THE
+   COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+   INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+   (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+   SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+   HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+   STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+   ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
+   OF THE POSSIBILITY OF SUCH DAMAGE.
+
+======================================================================
+
+The following notice applies to
+"src/ccapi/common/win/OldCC/autolock.hxx":
+
+   Copyright (C) 1998 by Danilo Almeida.  All rights reserved.
+
+   Redistribution and use in source and binary forms, with or without
+   modification, are permitted provided that the following conditions
+   are met:
+
+   * Redistributions of source code must retain the above copyright
+     notice, this list of conditions and the following disclaimer.
+
+   * Redistributions in binary form must reproduce the above
+     copyright notice, this list of conditions and the following
+     disclaimer in the documentation and/or other materials provided
+     with the distribution.
+
+   THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+   "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+   LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+   FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+   COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+   INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+   (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+   SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+   HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+   STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+   ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
+   OF THE POSSIBILITY OF SUCH DAMAGE.
+
+======================================================================
+
+The following notice applies to portions of
+"src/plugins/preauth/spake/edwards25519.c" and
+"src/plugins/preauth/spake/edwards25519_tables.h":
+
+The MIT License (MIT)
+
+Copyright (c) 2015-2016 the fiat-crypto authors (see the AUTHORS
+file).
+
+Permission is hereby granted, free of charge, to any person obtaining
+a copy of this software and associated documentation files (the
+"Software"), to deal in the Software without restriction, including
+without limitation the rights to use, copy, modify, merge, publish,
+distribute, sublicense, and/or sell copies of the Software, and to
+permit persons to whom the Software is furnished to do so, subject to
+the following conditions:
+
+The above copyright notice and this permission notice shall be
+included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+======================================================================
+
+The following notice applies to portions of
+"src/plugins/preauth/spake/edwards25519.c":
+
+Copyright (c) 2015-2016, Google Inc.
+
+Permission to use, copy, modify, and/or distribute this software for
+any purpose with or without fee is hereby granted, provided that the
+above copyright notice and this permission notice appear in all
+copies.
+
+THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL
+WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED
+WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE
+AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL
+DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR
+PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER
+TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+PERFORMANCE OF THIS SOFTWARE.
+
+======================================================================
+
+The Debian Packaging is licensed under the same terms as MIT Kerberos.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         ø   .   Î   ..  ¿   changelog.Debian.gz ¡  Ã	copyright                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           ã     ùVmo€6˛û_q@?4n#Wî_k›∞4qöæd-∑¿6-%ù-÷©íTZ˜◊ÔHŸâ›≈u3 Äcì<ﬁsœÛ‹qéã∆	iaüuá›^4Ï@£¨„ôƒ_†13T˘‚◊
+—T{{ è‡§DcQ-Ú9∏“ BÕ]^¢Ö©—4µuyÁ„„”.ù ò–"7H˚¥í®ê+°f”FB^r5£”V®!$q \¥psmëË|±≤ —Z»uUKësá≠qÂ7(x<x]ÕÛ≤í>.hZùjπ»†\DÙﬂ€„Á„W/˛GSm¢ä-–ÊëD5se7¿Ç˝©-⁄0'#v‘°2Dï¡Î›˘ä[ß–¿”|>ˇΩ¿å~Îj3˚‡™Q¿zp\H‚d ,Iì^¡„8â„ΩΩ˘w≈Ï*˛Ñ@Œ-8«ÅHÑLB≈^Í‹„',°“µ¡k°"F|E€m#\b-yæ$-l%ÿˆs£©ıº©A(*¨r\*ªb~π)™m—\„C{K∏PïZáå»}·Ã‡5Â$¶ \àUh¥Í°£kÁUC¡ÙîNb:EÉ^tmxÓDé-{ºq∫ûœ<Å)\6tÅîÅNÇm¡hÌËêu»ÏScâ∞Mf—µ∆ ◊Æ∏¥N^@CjõAÅSﬁHG°HF$¢ügˆÃàà˚Ãˆ”¡`≥˝ùÃ˙6µ‘ºhS>5∫^±‰çıÄ≈áqÃívQÿ ®Ê3$Á|CÔ2d—Ã◊¶≥îƒUm»FhJ*œ”O∂˝∂	iR6êÙ·MÓ<§>∞~öå“ÑmÉ‘Î≤]†˛ èU§£VKéÎö˙¿æï†·%7J{âìl!kÑ,à‹ ∫¨ÙmdÕìmM÷=	ÁzJ9a·§ßÓñ¸W&Ò–Q ‚¥øïªﬁèa˛Á(´∆¡s£KÖO¿w°ØëPõÚPû4÷≥ùéﬂ≤√ÓÇ¡Ëà;m§ˇjØçV<Òé4Z¶p±4ôw8eö;	>[·ê-@Òj≥>√Î˜Ô—≥&í≤ápÜY[ùxî“_®ª´:….<k™Æ5(n
+Ωß¶Ú◊–ß 	Ï€´!†,:ﬂc>	ÀƒlÖAÒtñƒ¨P˙§É	n∫|%l∂]Tôñ°¯è∫´/ûè€úr]/åòïÓæ˝N1˜’I IR6HG€™≥€"‘VoZ(9 π≈M}∞d;¡ QÄx¡Õ<
+”Ã‡ÁFx«Gæ	F‹Fñj;πñBAUE#3"¢∑/∆{.qJ˝º\Úê◊ª∫†éH$|i«†˝"¸ÁªÀ◊ùü`ïmeuw≠•ﬂ∑˙#xI# TüıRvDÊΩ€πlósw°à∑¢Á(∑eM©˙ww"kmHßYÔ∂áÁbjWè	ùY-—aÁ˛£ÜX_Çf)·ÓıÔñ€m»%Î¶Ä˝ﬁÕw^‹¿Ùjõ¯9ﬁGØ∆ûL^∏xÛ~ºTF≠£Iùvå∫^ãµ}˙]"·Ω¶‚q8õ<;ª¢◊ﬂ≤•ó⁄èoUIkm»êÆAtìü/œÖˆöàW˝*vËﬂXΩ·∂Ú¸?G˛¿)?“–`ãÜÓ'˘xt/aæ·ƒá+x‡ç,Ë(M#ËÜí”‹…êÊ®¡äÿ(⁄ÈÍJöåmRœ∫tl¢i/¬	ÔhíÂÌz!!|‰µ[˚IälULˆ±ª˜/âùÉ:                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: keyutils
+Upstream-Contact: David Howells <dhowells@redhat.com>
+Source: http://people.redhat.com/~dhowells/keyutils/
+
+Files: *
+Copyright: 2005-2018, Red Hat <http://www.redhat.com/>
+License: GPL-2+
+
+Files: keyutils.*
+Copyright: 2005-2018, Red Hat <http://www.redhat.com/>
+License: LGPL-2+
+
+Files: debian/*
+Copyright: 2006-2013, Daniel Baumann <mail@daniel-baumann.ch>
+           2013, Luk Claes <luk@debian.org>
+	   2014-2024, Christian Kastner <ckk@debian.org>
+	   2024, Helmut Grohne <helmut@subdivi.de>
+License: LGPL-2+
+
+License: GPL-2+
+ This program is free software: you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation, either version 2 of the License, or
+ (at your option) any later version.
+ .
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ GNU General Public License for more details.
+ .
+ You should have received a copy of the GNU General Public License
+ along with this program. If not, see <http://www.gnu.org/licenses/>.
+ .
+ The complete text of the GNU General Public License
+ can be found in /usr/share/common-licenses/GPL-2 file.
+
+License: LGPL-2+
+ This program is free software: you can redistribute it and/or modify
+ it under the terms of the GNU Lesser General Public License as published by
+ the Free Software Foundation, either version 2 of the License, or
+ (at your option) any later version.
+ .
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ GNU Lesser General Public License for more details.
+ .
+ You should have received a copy of the GNU Lesser General Public License
+ along with this program. If not, see <http://www.gnu.org/licenses/>.
+ .
+ The complete text of the GNU Lesser General Public License
+ can be found in /usr/share/common-licenses/LGPL-2 file.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            ¬   .   Î   ..  √   README.Debian   ƒ   	README.gz   ≈   changelog.Debian.gz ∆  †	copyright                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        MIT Kerberos for Debian
+
+Kerberos Package Roadmap
+
+  Most systems using Kerberos should install at least krb5-user, which
+  contains the basic kinit, klist, and kdestroy binaries to manage user
+  Kerberos credentials, as well as other basic utilities.  In order to
+  use Kerberos passwords for local authentication and obtain Kerberos
+  credentials automatically when logging in, install and configure
+  libpam-krb5.
+
+  To log on to other systems using Kerberos authentication, most sites
+  will find a Kerberos-enabled sshd the most convenient. See the ssh documentation for information on enabling GSSAPI
+  authentication (which is how Kerberos authentication is done over the
+  ssh protocol).
+
+  Some sites will instead prefer to use Kerberos-enabled versions of the
+  standard Unix login utilities (rsh, rlogin, telnet, ftp).  The clients
+  are available in the krb5-clients package and the servers are available
+  in the krb5-rsh-server, krb5-telnetd, and krb5-ftpd packages.  Please
+  note that the telnetd and ftpd included in those packages do not use PAM
+  (this is not supported upstream and may or may not ever be supported);
+  they only support Kerberos and will not run other PAM modules.  For more
+  flexible login support, use Kerberos-enabled ssh instead.
+
+  The krb5-kdc and krb5-admin-server packages are only needed and used on
+  Kerberos KDCs, only one set of which is needed for each independently
+  managed Kerberos realm.  For more information on how to set up a
+  Kerberos realm using the Debian packages, install krb5-kdc and then read
+  /usr/share/doc/krb5-kdc/README.KDC.
+
+Documentation
+
+  All Kerberos binaries and most configuration files have manual pages.
+  For the info pages and reference manual, install krb5-doc.  If you need
+  additional information, see <http://web.mit.edu/kerberos/>.
+
+Debian-Specific Information
+
+  MIT distributes the Kerberos sources as a tarball and a PGP signature,
+  tarred up into a single .tar file.  In order to create the Debian
+  original upstream source (.orig.tar.gz), I untarred the parent tarball,
+  checked the PGP signature, and used the contained tarball as the
+  upstream source.  Since krb5-1.7, a separate "krb5-appl" tarball contains
+  the kerberized client utilities (rlogin, rsh, etc.) with a similar
+  nested-tarball scheme.
+
+  MIT Kerberos is built against the libcom_err and libss provided by the
+  e2fsprogs source package.  It is built against the version of db
+  included in src/util/db2 in the Kerberos sources.  In the future,
+  krb5-kdc may change to use db4, although doing so will make upgrades
+  somewhat difficult.
+
+  None of the sample clients and servers are installed.  As a general
+  rule, these are not useful unless you are doing development, and in such
+  a situation you probably want to build them from source.
+
+  Note that by default, no unencrypted services are enabled.  That means,
+  if you are using krb5-clients and the supporting server packages, you
+  need to use rlogin -x to connect to a Debian system and if you use rsh
+  or rcp without the -x option you will get an error that encryption is
+  required.  In this day and age, not encrypting network traffic is a good
+  way to get attacked.
+
+  If installed, krb5-rsh-server by default allows any user in the local
+  realm whose principal matches a local account name to log on to that
+  account.  See the klogind and kshd man pages.  If this isn't the
+  behavior you want, one option is to create an empty .k5login file in the
+  home directory of every user and then add principals to those files
+  where it's appropriate.  One way to do this for all newly created users
+  is:
+
+      touch /etc/skel/.k5login
+
+  This will cause an empty .k5login file to be put in the home directory
+  of newly created users.
+
+ -- Sam Hartman <hartmans@debian.org>, Wed,  2 Nov 2016 23:18:47 -0400
+                                                                                                                                                                                                                                     ã     ≠[Àr…ï›„+2ÏÖ%ëî(JûÕÄ ER|öÄƒÓv8â™DUUô’ôU ¡›Lƒ|√ƒÏg5‡ò≈ÃJ„ˇösÛQ(êÕÓ∂√ä∞ÕJ‰„>œ=7´Ãÿ≥ß¬ÃÑ—ñ}∆J≠ÿﬁªÖ‡V∞ù¡ÓNØ«~Ê_úy°ka_ú9Õ;?ôÆœö
+^ˆz#]≠åÃÚöqï≤À:Ü6í	∂Íø¸Øª’Ë5€˘¯aØøªΩ˚éÕV¨¶£∏µ<…+Í⁄≤ekY7µ`zéÉì\ÈBg´ù)Ò{¢Um‰¨©µ±∆ÜE¡‹ﬁñaÖYät–Î]y5≠ÓÑπ,Sº)ª∏úûåŸ\∆”T÷0!/òÚj`ÂX'M)TÕÈóﬁEæ(9óÿ$ÌNr{≠›≤«§e|…e¡g8U*6”uŒéßÁgd∑ﬁ’¯≠(yM‚ì©k7⁄íjÿ’“ﬂ$∂[„ÁnŸ£#‹ÿõº.ã7R•‚a@n9ﬂ–‚ı9Oƒ≈ZÖ)=Z_•sñJ#ÿs˝á≠Qä’[ÈÜï|b◊DWR¸
+·¥*§–«b^◊ï˝√õ7˜b6(e=iÛfÃıfaf{˝Ç#Î7$NØG÷§˝Kmk∏4¡∂Ã6U•MÀ¿[å¸˜´H≈ROˆ;±∂3ÃÕ–)#úkCûÛ⁄ëÕ¯L7ı⁄…dí¬JcÒØ£Á‚¶™üÊ÷H+›dS2¨dV÷bsø∏«@õ˚4≤H• ú£)Y‡)zl7‹˚πdlCŸmÛìë—F’å¶tb6è!„‡/XãbXzA¸>Y#SÒt7ûñRΩ	ÛûÌ«˝é'sy‹P’¢¨j“∞÷Ã\v…ÙΩ›b’F≤˜¨Iﬁ‹˚ﬂﬁ\«Áá.ˇ±Ìµ†(¢≠öÏ)fµ†a‹,òw≈*£ëö•Ö∫ô}ìË≤tÈ	‹≤B9'àâ…z.Œh⁄?ﬂ„ºÔCˆ,•∏áËYÿ⁄m∞î4vËıZ?õ¢∞Sá†i¨SF˛ÕQÉ<ag:ìÍ7ÿ∞ÆµÜπÅadÄcà•ûúò9OôN7∆…êr‡ÕóÑò<Ì#]W√2⁄›Æ§2≤‰f’ªá
+ÿ¿Ì∆ìö›K‡ŸOm∑î‹Ñx8bµ· :4yV ÄZ(RÕÌg÷5l{À:·'¿ªTI— †?®`ÿöB´»^à⁄∫ÿÉ"L√qrrtq8æNèoÍú‰Éç&Ôæ‡àùÜÏ¸ZÎDΩµÑNk ∞≈–©Å2œØYŸ¿ÏJﬂ;Ñ∆œl…ôÆq	ÄpéÚR·Ãó5‹ŸbT™$y∆MÔπ≠ú∂ÒŒ¢Üåê‰"YX‡√¨ôœÖŸ"g J$§C~∞ú€ºe
+È¯ Ü'∆3Nvqñ‘»ôÓFêÊ¸nuÈ,Ìrï˜Eâó¯&k™Ã÷‡	†ˆ§√:7{eËê8µÁvs™qá∫≤i˚†^«Rlnt	Î™˛Ê‰g":îŒâTÔè'Ó∑Î—ªüã∞_
+8íŸ%-©∞Æ+ëáîB\€&∫…ˆ¸“µ 0…aÖu∆_àï<xd‚°*d"kXJœe÷≤ŸEπêßÔoSaﬂ:ï¸£Iﬁ!¿å$Z‡¸ÚßBÊº)j˚g"∫á¨ñÖ¨yÌ	éåG_§AWú'*ÅkÒNÙp\åC8Ü+8^•†"\ÿ›Ω˜}õÛùü‘å6Îz 	ï»
+iâ8D4Ü˘∑B%ı™¬æH(W≠jœ⁄á_ˆƒŒ«µ'8ªÁ&ÃÇ†3·]8≤¡È83ÅI…¯”˙jë¸ÿ»÷Ãng2n?ô%^àeVï£)$ﬁÛ,}!,ûÉÛPåD/H97	8ÅÈÁ%O:G±p‘	∏bS#‚ævã"òdÆmUN••0H©dÑpë∫¢ÍÜHr∂‘ûı˛å]?tT!Ø{BÂ'K˘hÓ=É|ÍÄ`}»9ø√¢°í˘Ë$Cﬁ≤WDÈ˚€Ô˚ªÔ_ˇ
+B9Õâ#P‘P%ôÀá($é˘=˚ÑÁeS(ù≈∫Ù«M&¨DêÒå ⁄BÑ®%≠ˇ4˙zË:ã˛€˝∑˚€[†Q#;n7Ê¨“µè6CÌ®¥+o¿"·8;ŸÌ6I ´∑ÑÜ∑ëöøz›Ÿ¢ÑQÃäA‰E†‘(˜…ÂÑ%	˙·›ﬁÎµ·4ÿmÌF≠èÉv2Ó˝≤•>ÓlÔ'<,$äeΩïÂmRHb«±>"Ò3QÎ™‰¥‡--∞"ÛASõU‡PNEŒ2nfd√†9≠xG+n¥Aı0é⁄éı√*‰‚èÉ˝ ;M‹ßâàÊ´”ìãìÈñ/,.òTÉË∫:Mˆ”éRSzHQ§ñ~§Ö]≥!“`2M?ÓÏ—èdŸhP≠ãÒ5eá&∂ÖIª~í#Êé…	cp¨§EÈ∫ıH;0∂¶…‚éSΩ„ª.∆ﬂˆ∑?Ùwﬁ˝„b<’2º#èîûMà{&Ñ•ù∏~€˚Ò„˛ﬁüˇa1µÌÛã2ºdìùhì˝˛Œˆ?Œ&Î‰lT¿z˘(~"M—UÏ±Ô#7NN÷µ÷˚ÌΩwõ÷⁄˘ª≠µ˝—Ô°≤‡‹NuΩA˛kî††*Y≠e∫æΩ`≥h±˜˝ÌΩ◊ø™W˚ÇbKtB‰{"˛@VBüN¥¨SŸt»qKÈ∞“
+º¿E˛j]N¡X;;p"¡˜ûnDw!æ)~~8¯à◊“ï©∆ä–/–°ê É'!ÊCÕÙÃë@ u82í!œV¿§A∑∫$ípó€t›£Ô’†£ØbMç`ê“ù‹Ÿa,ûZr u0IDÕI‡ˇ(£∫hHß÷tì˚±B√ofìzÁ£öø&Ç·TÛÀ∞ı¬öÁC;Ã∫åpÕç∞å7´¡3I;îé˝îÓâ®R«~%©#q;¥Ó˜l“°‘ Œ©t;è£‡Œ°≠âÑfaÓy†Ê[.—∑ûÖMx∏Z›Mk_ÄX(Ñﬁ)˙ÖZZ™q%›„î:FAá⁄Q„ˆ*it>qˆŒ¥Å?J∫¸a*˚¥
+π‚"‚⁄”ÿAN˝aÍ`á‚1æˇõv.ﬂú\ÿá7Ö7Œπì√¡Xd‰n?2VÏ	wc∑‰π{úÖÌ"A◊?©h)⁄©◊ıK»¯--¢ı≠hÿÑ*7ËÌõ.gzÜ&∏¨thäi©˛§§Ï¢”mRãó‚d·wr‘ûæ˘Â›fƒ1BæZΩÕ©π¥1∏Â™”HDÔ9í£–s±óé8ítŒ` êÆb§êÛH⁄îïª7≤¨‡Ü` ˘•ÿª£ZˆŒ_¶W·PÈö„ê’Htßwf≠©œ§âímÔ9Ú4gì„a˘ÿE=⁄Òô„ÉÒ	˙+‘¥‘QÆK‰
+;:"H∂9ìyha˝>º
+ƒlÍ™qk˝pÆ±ß≈Øch(àØ˝vÚ¡J+?FA#ä√8ÓùñµËøÅ‰Xˆ˛Ω3ø†{[nµrµ	}¶<d$é¥ƒüT• ûÀ9¨†`§≥.+°&ì32∆-ÚZŒWX¥øÛ˜càH{ÎÍ™…´◊,EEåv{ﬂ≈√p©e l…›ïY;ôÜJ	˚2˝ÙP:	Çıÿ’G, `Oö´§O≈F%˛ S˜#Ö‚I°SÉÚ≥+UÛá†é{”–PπQs∂;ÿﬂ•U-1çvM∑πc√!{rﬁÿ(œ«ıtAóZ??˝√vúû…‰¿PÛŸ/¨ÿm–®W+6>`sòkF7I^çñcˆ€8€ÂLˆvÒﬂ(#ùyò”U‹ˇ]tX[⁄ä@?∑ÃøÎ(ì´ã√£Àñ›aÓ˚µ® Lä∞.yMw€p
+<çÁ∑^*C©‰æøuI*jäΩ≈’á›∞7‡scñ5‹†â)xF¬µ≥øäv“å Lo©jŸ•â•ÚŸıIÁüëF¥Úmã{7e©&®]Œ√>iˇèm¥∏oG∑'ºΩån'áì……Â≈ÌÈ·˜4≠ıa…•ªc¶Oµ/\öSŒ§€),‚Ì>≠yªˆKˇ˙p|<úˆØÜì	vÑ2TNúùzΩa≤P˙æi&‹xÔ9˙^qÖIÂﬁf¥/â^x”ÒˇÜcXÅ=πøF‹(ëI,‡?.’‹UcΩÚ?zÁ7_a0ÒnıF,ör&˘≥˚! ûeSMZêêc1 ä(/Ê5ò–≈öSbHìpˆj¨«Ø{ﬁ¬©p\˙˛≥µ7˝p§u‘9—˜‹oÚTÇs«
+ø2…¡z‘≥$U=Ø„öÎ√g™ükÉı}¨[´w¡√+Õ!lÆJ2ÒW©ìäj’êﬁ¬H∫‰n7¢ø®˛≈p2Ù˙_à⁄Ir	{æ¬û¬œpØÿ]ïkzà≥È)3º 1w:ıøL`1(≠ú+.Ás"ûAéVâë÷&•è §«»ñ:o≈>Èº¢[ø*fØ./F˛êKXˆ>πJŸU±‰Jæ‡õk®~ÃΩÕ…¨ÿ;}AÇóüv∂pr2hmæû„lVpª‡/¸˝˛¬œ]!CJë˝*zµ+ªëJmvmºüßóãàîêZcÏPh»R
+ôza>ã9 rÖ±∫|¶
+†ÿêﬁßŸ◊êêÓÄ€$—X'9;ƒÇ¸2¥æx\Ö∂“€[43K„ÓD«Ãä´hSÍ‘ödˆ≥H˝‚ë£è´Éî:W˛§séHCíá«Ûò/•O∏	7<«≥ﬂkXàÿ pvX˜ZßX
+ËSW—0ÏHE.8ıÏG≤à"üß
+’…ÈÀ1‘∫”JásKh≠x≈é°l9a«⁄h‘√G7r∏‰0Y¢gçˆÑœ
+æÑ˘ç¥2Ò∆Ç +L≥U¥ûPwº§Àû6è0B{û˙ÊãæY“<Âåw™s/…1◊îÏLÜüêEƒ`œdêZ–E ô¨ÔQ‰Ω^âÜˆÁ…]°w<v’Ç9¸y. D–wT»˘®–lò„
+éÛ ?¬#WB“~~•ŸuÍëìû¢∏Êb÷•e◊–™Æ¶ÿÖ|˘ZíœX1≈,§ÆF"†¸»b±Ω	ΩØ5sQ§qÖísË≠®8˙Öº *MÓe∞¡Å!ßW1éùc¶ñ{;˛ *égY/Ù2§9Äcjß£ˇ—e„¯Ø< œîØ
+`◊˜çU>◊‘‚ªªÀ∏Ä`Æ˚Mã˚÷ﬁ•¯Ê≠‚dqÙÉ≥&ÎÖ∑»[†÷µDE}Gó)ét/tc–l88Å„á≥¸€¢É@â(M¢ﬁ†5ä>ß¡X0jÉ^≠(6∆ëß.¨¢qlv@ÛD≠Ô80Aõ»cf.˘Ω]·Ñ«˛0H‡vÍÂ#P[j4 vç ∞9›∞ô =LCc!ø(ÛÒÿÑç/‰qB˘#"ÇÖ!£∫â}@0>@Ü)õ,à2PI–`–ﬂ‚AAÏ o£—¢‚y!B8•>µt™ª∞Ñ∞;–Ì∑ô4‘…hÎóñHûÜå®¡’äy'ñÛÑÜ&§¡óáP02mIk˛˙‚5“AuYaíæW¨h„üîäèy„Næ9F *¿ECW*HV◊q˘p FcòdºB˜Á¶©4`)›£‚K~á<bM@ÇÂˆXõE„œÑ&€k Y◊:lÅ<Ø1®6˜“LÑÄÅ‹XìÊ<¯‚,Öjî7:HÉ˛BÆ±¶÷}©6 ™–ÚÑıH6†F‹ö»R”]x˙*ƒníâ_ÀQç`€:÷á°q˙7È¢Ù"(∫P√ÊËr9„ﬂU&
+™*Ã W|ñxq·N·*b>P‰wäûˆ±»`ÅBC4lDùugÑm–ÙË€ˇ(˜≠ﬁòÚ!ü+c°÷p0h~ìÎ6ÜÉCà_S˘•wA˜©∞˜QCBÏ1í:Ê§v¿0n‡hß¸*D‹∆Õ"◊KÃ@ÏçD¢Af÷3
+û»˘=™Ã yqg¨õºäbê.eÎN;4ra#\nr0 ≥X»‚€z˝©h`•≠ê$6d‹ÑÿÃä})*ı2Ë	Sc§HÎu˘D˝»}(B#<ö¨iôí(i>E@∫Æ|®m∞ 'éﬁDiÍæ˝óJ§w–',X`¨uÉs$¬Âà } 2çn Ÿ'Ë”eAL´…Ëeh∑YÄﬂ|2∫ıÏDÃ¿…GúzI"Ñ≥yÄ¶Ò™†Ië]ÄJ„)ÜçgGF>>FÄ<Œ≈÷!G¶ôÕ∫s‘’¶»yÖÖêÑ jÜt]Ü8Gü°˝√hK›\Ñs∫˚eÑ/ ?«ºôãñ¨ÂR44T—êm@lGwN9`@E«ùJt&FÙ:3è5B“>Cçc…˙;˛ˆ£ÄU‡Âﬂ˛ç∫®‡y pæNÂ¿q†tÆeÍ¨YàÄYQùÍ˝(ˇ B†„Æﬂ®õ«M˝(ZéB˜‡±Z¯ ∏Y≈ä>ùÕà«sÎÇÆ-OÄx(ﬂû/N*zác(æ—Hıåj%õp¢mI*§˝,pp∑÷|ñƒ∞;L N÷[∂H N_8ﬂ≈˝œ ΩÎ4"qÃœAk—∏ÂOj‰)x:ÍÑ
+)ÈåZ°É‡…x&˝Å>]4X√≥–Æ4àˇ\“¥GÈeΩ∞©K˙N72Á+∆µ¿sK3®:EEó úRÕà©5•°Gv˙◊’…„BØ£êæ‘2MïD Î-`åºπF\∏∂Í8v;vLë‚Åx˘iS,ËìıA"∆Ó≈ï¿¡Œ∏Àm—)xÉ)W´N≈Ceç|ˆ´.DÛ,ôíÚôﬁ¢ÇÙ_X∞ª›≠NSåUIp]Äú3Ω¡›œÙF˜Aèsìt√†Ãﬂ 2¶µ
+MﬂED<Cïµù3õY»õÎı(+N<ˇB)‡mm’ËÖŸ«¿ïáfÄC∫K˝N;©¯⁄Zí>6ß-Â"ÑX$C‰F©o∏p≠Q‰Û,©hJ/åçÓ,Ùó%›≥†¯Uó˛*+@Œπ»CKK·çÑ=≈˙ÿì%—Ë¡Ê†3]±¢›‡Æ«^qK’ˇ˜Ô(`m≈öü#◊⁄÷lﬁ>#…'≥ükZ9ÉÎ«S!©ﬁ“-í‹¥Í°⁄h™0b⁄éªÏ>˛0[Y∞ıs√C£õ:Bv¨è4·≥∂y√©=Ã—Ü‘CGÕ¢ˇÜ2”ÀôP‡ﬁïD∞KpØl≥”∏¥≤ZÑwÏ2XzVm$tç< –#GÌÁ»Ç"å∆ö«∞≤Õ5¨¡í‡â≥◊™KS©âEGı”M-\|Gó£&xÓM‘ä.–Bèä:ÄπÄ•v€qÂñ˛ò{Nqê.≈ìJ€Jõ˘k¡K˚tH§]˜]ãb%Bü
+œ=t!ÔZ<D@d◊R–µ¸™€\K” s∑kù≈Æ—]ótû/ËVÌZS≈â93A9Z—Xß¨‡	ËŸ2„#Íy8Ω¬æ÷M$h!p&d.˙ÍıI°¿∏±ªTñûA‰>ˆı‰dñ2≠7¿rBùµYg≈D¨ÊëQR(˝Ù;KzàÙùÆTµ˜é|N–í·8^ùMdÿåÛFp˜d!≤Ã∂mÅVAºŒ…-∞-ŸV$ìä§mGjÛÌ/Q¯ÉªoˇmDFaò4Åâ\™˝‡Ã∑ˇçñt«·>oØ›¶53áêkR!1™Áêo)#¸‚a!ÿEﬂ¢LÔdÌı¨Ù%ãç(Dù¿F'ÇöÒ‰]®P2CiΩ·Ÿ∫1ÙùŸœãñ'Ä[Œ1Rƒ∂ˇú?∞W7Bﬁ5Í5∆ÉeKº°ÇØ≤®ﬂ”ïﬂ…ı¸ÅDcüi@väÿuf}h2∫ì|>L˙Qo7ÇÍeTtöHPz∫¿‚\»Dnñ#˙ëZ7õÕaì˘Àÿ]ÃO2.Ò1–r?ëqäå∞GNm”ørÑˆ∆∑]ﬂ5Ïèr≠/~¯. rÆ}ﬂ«ßòv'9Fd+*@ôK0´"]á¡Å@6—ÕWhÄPÙÈ&Pı»®§˝ Ôl.+M}G#®	ıäΩª¸‚3¢—˙¥ø∆◊ê,¿™ˇâïÙˇª–‘<Ñõ∞ˆnåæ¸U=zÅ’Ÿ=_πfœﬁ2u˛ü<»A–k7@hÏ†˜ˇn›„ΩW7                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           ã     ≠Z€r€Hí}˜W‘F?¥5+–∏ÒjuGÀío›æ(,€Û0±·)EMÖ≠Dsˆk˙aˇ£lOf$!—íŸ≥€¢†*Ø'Ofai¶}Ò8ËÖA/Ú˙'¢.l%ßπz*j3WE≤˘i•“¨^=z$ƒﬂƒ;]x+ô˛)#Í2◊2Î¨ZàΩØÂ‹(µRE’„á^d_≈≈ÁÁ^Ëá}/å˚·h"Æå∫¡Bﬂ(3ÀıZ¨™âÃì:óUVÃÒ§uÆÁböÎd)lˆ/%_‰⁄*;?˛8F˛	ƒÚ<ÒL⁄*√ÛtùHì˝˘øVú˙¸K™¶ô,z⁄Ã‚∫.NEâj*H'A8	bÒü>˛<z¥‹7F|ø1˛!^»i¶≈ïJç™™L¸+;É≤”z.H
+5Ñ›¿*_›◊r%^IS≠d—‹}©E°+a,±ÜÈÏ"+EV'ˆSÁ 
+´≈Z¡6ÖXk≥dkÎ∫3πTFÎÍ+}\»bi≈À:ÀsµøíY≈LQ *YY§Ó7ëTÙ|µêºsùπãK[c•5V∞&˛ß›N≈æ…√h≥‹ü TV
+˜aeiRÎa?õÈBTZƒΩaœè-H5W'¸ƒ¢•^™JYpcπú'∫ò±˙¯Ï—/Ÿ‹πsﬂNg˜¡v]˘qQüä` ~≈-Œï¡$L¸@x˛é+£á‚öB‘n,	ëfÜ<ÄPÃI'Wm‘©òΩDê·bâËÕtmõËiÿ—wÎÒ¬dß¬Ôã_ÎúÙàYè>TÅÉ;zÑáÙXdÛÖ”‚yAWDæJß˛ëSi’-ŸÜaƒ∑÷˜e”¬ZoµYh[r•Hﬂy-ç,*•(ÊÚF	)∂◊)Lÿë∂≥Ï ƒ£ÔV˘Ô
+Û£=ï£IåDÙ™‹ØÚ;µF0⁄ (l‹!CáGˇµ∞{—0˙$Vìu∞©≤!ú
+YU2A&qÇ≠töÕ6H≈ã®ØïëÅH∑„Ü/.DÑÅxy}s!NÒ`Õ©éß‹WdGYñJ^•2u¡{ı…:R,UG
+ZPa√ô#7Wj•ÕF@√‘äÈÜ◊∞»"⁄R€€∂›Ÿ%ƒÉª¥+ÂJ.≈MùoÄ`yVmƒZZ8∑.R~Vê≤O»O¨Iû,”‰Iëö^“Î  ˙.π/ç.E™øn‡R“–j~&då<É≠Î∆S€úª⁄ À
+ıÇPT VXŸ®2ó	∞≈ÊΩµëÂ¯WU7‡ÜÉ¿?+¬!ÆÿÊX?∆ﬂ∏}ÿø‰µ	y≤
+˘‡Ä¸Lã\Z@C™Ñ¿Ü¢Pâ≤V¬‰à®4≠m?÷H ﬁ‡ƒ≠¯æB¿¸¶ñ˛ëˇ˘*h[>@‡…`÷≥⁄T?ÓÃ≠ßVÁ
+ Ï0ïƒd\E…9í€N= ~‡-J≈ˆ ™eàÉb7Æen•wÒ⁄	u±0ôØÙ¢™¥ U´™xMÊ°*±Å:+xÜ‡Bn≤Â
+ÀkÒ§∂·r˘¸*ä∑·IØC·8Ë´$ h·|”≈2–Ÿ/Fõ’TÁñã›O/-„ƒQ¶êπ8øzm]—[+£g‰±îW8œâÇ,Kÿ5•‰ùfXÉä»f0jéú—∫ú¬Ä6ŸñÑ[¿é˚!/wΩD_™çaT†∞¶u⁄/òœ ¶ï$zUW-@Wvë<òD„I8∫…~/ﬂSıÍíÍ Ï\È‡oﬁœªœ’ ÓÊ\Ëáﬂ-)S-@˙[iI«ì¬F%Ì˜Çøƒ<{MÓqqÇË‰O9∑boä∞¨≤ï˙Ç®i6´J=—Q*±SÍMΩæ˝ÛìRvúŸ|£ãï∆n¯#îÍS±éÜw¯#+ıêºR˘
+<Ï•—ãB5—^ÄQ4SÿÏRõ¥:˚èB'ï,Ó‚p?é¡…∑“â|å»´¡Ë,á6™®øR6NÒÆg˛ı[O”Ï&Î•ä¥èÄæÔìäèÑèz=úÑ§xxGÒÉƒ	÷àX!±ƒ0C†”≤ëæ£%l]ñ@9ü™¿◊ô!Üi2läÑ$›É:®í*d5˜s<üà∞ç:!G¡(Ê]ÖRàöœ@≠≥ﬂ›¶¥£áJk&‚Í≠Ã(™Ï¶	°e`;À<≥Ù√b´dAPNñ•¥vùûrΩ\ˆ*£7¯Z¶+&
+©XVdÛ™ C¿42r ™e)ïû+–„‘X®lï ‹KP,QAˆ03¢(úäÜ˝ Ù£o9ªr«µ)Ù˙ú∂˝¡9 ∏BîøÇÈ†Y«Z¡p8p‰Ô{º≠ÍéÀ;¸l–5’â€jª˛K£\„ˆ™N≠.:À˜É~¯˝º¯-=‚Zï.‚P≥˝¡§?<à—˝$9 ó6|›¿ 9C|àk rÌB»TÃ9ô]ÀÂaÜˆ÷QIäêÙÎ_xéõ+Ö™∑+_SOR8πçxùDß
+ƒR%5W∂åàBû-Uæπªà^q§Ωbqé÷”Ÿ+f{∆€!¥˝€U™Ë§Ωïß=·¬{&—‘V"¡dK„¥≠ÀπëPxf4ÃQÁπUÓ3¶Z/¡W¢P*›"*#8Eâ^à¯v,⁄∫\¡Ú?Z±¶]2€"D∑ìk˚∏˚HªıQß6ç›Üì8ûƒ¡Aª›€å¸√ç!∞◊Ke∞Sõî◊õ"i˙Dó ∞≠K¯wÔ?ææxÓå≥Â∆ﬂ&ôM∂¢RŒ±^d»n∞:Â ‡5†≤Ñ|µ≠Åã≥LÂ©†Àt/Ô∞ï° XÂÓ!>∞êÒÈ√k‚˝ØÙJïƒyw◊[]∑ÇÕŒZuwÂ ˆˆyò·rúRôakTr.ËÇøÌó[∫ÿ;8Oùy¬†úäÌ<¡r»®mÒg‚Ì‘ΩV	A+EjS1Z“ÀX?G∑kÂ™§°
+EáU
+*¡ôOÉñ⁄¥÷§∫Èerë 1Ìﬁd¶1¢x¸˘‚⁄{f Ó åü~ü€˛Íj]âHnÆ·„IÔ>Íª5≤Q‡Áˆx‡‹ïöcãv^∆≤\ù_@ACÕÁS¿OEyáÚ≤â…Õr.cQHLà◊˘ÌÚilöaõ—∞ˆ WB&‡®+ YBcç|ÛT\æø¶-4W'hõ2{≤OÌµ’°á£q∑ÊÜq8v0§ueKöÍíòM	;Í∂ÄX«è√∏[¶a¢ÀXŸ/Y0x±@Æî¸ˆ‡{?o±IﬁË,u"@ Ω’0◊{4‚p®É&Hã‡l„wÿ´¡≥ΩÑ‘W◊\¿Êp#≠G~GŒ¥Ü†∫7ÑE!¨0âb«Óª3-ﬂ{ò/Ô∑Qü∑Éë›»±T	ç:Ví{RJÂjS24≥≈–$…e„üÆN„q8<ÆcÅ*Õ∞'‰é%úD:ñˇô™J2∆™Ø•‘!úe˛⁄µcü£ÏÏ≈yiôb≥∑d
+∆Ω·Zy}¥±¸ß;ƒraÃ›%ò-z79#õ™¢YIØíXu¿1éG£–ﬂˇ2M&-–=πAG≈p~ï•/ æ˚œ·)|\ÌÉ∂ù	iÁ££Òo«€·Ø˚Ö.º.íºNU3èFêmGŸ‚=≤Ò˙˙çàz˛æ.c"å.b∑C„J}ıÊ”—y<å˝·q√Gx∫ÈdÊI®˜·ﬂèzë7¸û†*
+0‡äQ3¸£QOb§]ê»/ŒØ?2W°~éıEX Ãx@OıÂtQAeá√~◊·¿n7€·eÔæ†¨}…
+fC_í.#èÉ vëtû¶‚wy#-äCY›ÍñAÂ—%T›.·zM‚1ù„h7Ñ⁄üÍ∑ÄJce
+<–«ï‚)p˘B⁄‚G¥
+¡’o7»‰¡G9	yŸLf:€¡ 8tÜ-Ñ?öê˘†ì˜7W‰Zòz[ò∑!<€ùk¡oÉÙòÇ·›ß7oˆÉ·§qÒûS¢Aø9πR≈ÔíZ∆ﬂdZ/≈Ÿí~¸≤ ™ûJÎmº-~‹Ò˜NééæÁ¸Æ·YM◊˙æC˘:≠©>∫öøùõÌ"e™vÌêûµ~⁄›ŸL‡:éÎ£ÒqS#‘ªfj—@‰Nu‚;⁄ﬁ{@Á†^<*cÖh¶~ˆìÀAÍR4∏]ãÿp@;Ûá∫¨q°ºïN=j=4É”Ω—.1®≥≥›B@ØY§„Ï'^Ê–Ub»˛π÷)n|Å“oItr$äG-kπö¡fÑh˝;6ãéã¬Ü≠A¬[)Ù∫ùß‚gV,˜éåêMÎ ÅÛ‹6 î· 	æ™Û*Û§°£qıoËÍs6÷ı¡ ˝åî¸¶~O”
+!<ÏGq,‡∞˜”«éI[Îú	æ(‹Ä≤™Ê…é„ëØÅeà‚S·µ•ˇ+äBc≈rkªÈ¶ù
+π#$¨ J|”Í|@Ks≠A˘s≤;ÅP„HåÙ˜Lâ*8ò¯˛AS~›¨ü√QŸB≥◊∂óœØEöYZ™ÒQéG€:.™Ó5‡ä&Ë0$√Ú∂Ü]eH¥è⁄&≤–ù]P_è<9
+∆ù‹¢Z28`§ˇ/ÜdæòñFyMËt£RMºœπd“X˜Sa‘<c_-Ëåê©<,w}ıÓ˘À˜àãÇÊSªë#GñÎ/ê53¸=z`>ôxsy~%hÆ˛àœOœπpgõoﬁ^>™∏…å.H=ÙU‹?B,m≥∞;F!:R|tóÈõ«'T*Í¢î)jæ¯pªSJªYQ÷î≈@»#n⁄rß√ÂÛ®ßâN€˜Bú4-JıöOMÜúSmc´¯ßœoóœZÒ¿ÄÕ:ãÛUñÓ¸˙]/¿v©ö—<O5íXÒ∏©ÓæéÇÒ‡vF£ë“L!ú£ä˝4@ÍÔ«√q(ÁÔG› M‡§ÂÜ^‡?îôÁ‹œ:s°∑•√z≈¡‹®®Q7•
+tÁÄ<˚aÿ	“ﬂuM?©¿zÎUÈìƒB´“úxÌﬁZqáe¸Œ…z±eŸﬁ"MSh‡¨ﬁøkû∞¿<„{é"–8KŒ/ª*«G‡Ñi‘ûÀπ∫∫iu|K§—Ω"1¶¡z∂_&≈mT6Ô0Ò˛x‹ºås°:≥#ó∫dMp8:pO”?0vÕ¿‰i≥7øÙë°h◊p7¨	OÏÇç›ãBJ\æjßoGªè⁄—*%
+&a|¿(6Z4ß,˘eÅh˜
+ÎäŒÂ©(â§;bﬁ¶v¥G[M5* “£>∆¡ÈèË˝Óí¯Ì+Óds›√Ω àƒ„7MNõ^…—ƒ\4Ò#M´€–E·hp‰¿#h˙!‘3‘˙†èñËÄ.˝˚ª°O∫ :7€æÜÇ˚iéd3ÀoRY:Í"àÂI´#»¨Íˆv`q;tÎ≤:X›õ[9&AaôÕØ(vê+3.QS‰ £_ö≈∑ÎÒæ¥fÖ«MÇa”Å¡x˛x˙nZt€xÒΩπ›LpúÄÃÉçõª¬Ëî]õåÄAπ‚3)
+y…‚ıjJs‡ôÿ–…5"^Êö_ZKÆ˝LHÙ-ù——Yƒ”ÕBãM3À”–x’P´∑Ÿ‹∑‚<ögïóñ+á¯® ◊ÙV	Zô\8#i+w’æñEo;sêªnÂ—ı{6ÿIæo§∂rOd∏∑·íùá˙ˆ/‡s„√0§©O4n}¯Éxü£c'GpßÀ];°mrŸLœÊ%ÎPL~1ãÂ%" o‰lÔ‡ûÛü≤¨ˆæjé–ºËüΩGˇ@yﬁ}+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    This package was debianized by Sam Hartman <hartmans@permabit.com> on
+Thu, 19 Oct 2000 16:05:06 -0400.
+
+It was downloaded from:
+
+    <http://web.mit.edu/kerberos/>
+
+Upstream Maintainers:
+
+    MIT Kerberos Team <krbdev@mit.edu>
+
+Copyright:
+
+Copyright (C) 1985-2022 by the Massachusetts Institute of Technology.
+
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are
+met:
+
+* Redistributions of source code must retain the above copyright
+  notice, this list of conditions and the following disclaimer.
+
+* Redistributions in binary form must reproduce the above copyright
+  notice, this list of conditions and the following disclaimer in the
+  documentation and/or other materials provided with the distribution.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+Downloading of this software may constitute an export of cryptographic
+software from the United States of America that is subject to the
+United States Export Administration Regulations (EAR), 15 CFR 730-774.
+Additional laws or regulations may apply.  It is the responsibility of
+the person or entity contemplating export to comply with all
+applicable export laws and regulations, including obtaining any
+required license from the U.S. government.
+
+The U.S. government prohibits export of encryption source code to
+certain countries and individuals, including, but not limited to, the
+countries of Cuba, Iran, North Korea, Sudan, Syria, and residents and
+nationals of those countries.
+
+Documentation components of this software distribution are licensed
+under a Creative Commons Attribution-ShareAlike 3.0 Unported License.
+(https://creativecommons.org/licenses/by-sa/3.0/)
+
+Individual source code files are copyright MIT, Cygnus Support,
+Novell, OpenVision Technologies, Oracle, Red Hat, Sun Microsystems,
+FundsXpress, and others.
+
+Project Athena, Athena, Athena MUSE, Discuss, Hesiod, Kerberos, Moira,
+and Zephyr are trademarks of the Massachusetts Institute of Technology
+(MIT).  No commercial use of these trademarks may be made without
+prior written permission of MIT.
+
+"Commercial use" means use of a name in a product or other for-profit
+manner.  It does NOT prevent a commercial firm from referring to the
+MIT trademarks in order to convey information (although in doing so,
+recognition of their trademark status should be given).
+
+======================================================================
+
+The following copyright and permission notice applies to the
+OpenVision Kerberos Administration system located in "kadmin/create",
+"kadmin/dbutil", "kadmin/passwd", "kadmin/server", "lib/kadm5", and
+portions of "lib/rpc":
+
+   Copyright, OpenVision Technologies, Inc., 1993-1996, All Rights
+   Reserved
+
+   WARNING:  Retrieving the OpenVision Kerberos Administration system
+   source code, as described below, indicates your acceptance of the
+   following terms.  If you do not agree to the following terms, do
+   not retrieve the OpenVision Kerberos administration system.
+
+   You may freely use and distribute the Source Code and Object Code
+   compiled from it, with or without modification, but this Source
+   Code is provided to you "AS IS" EXCLUSIVE OF ANY WARRANTY,
+   INCLUDING, WITHOUT LIMITATION, ANY WARRANTIES OF MERCHANTABILITY OR
+   FITNESS FOR A PARTICULAR PURPOSE, OR ANY OTHER WARRANTY, WHETHER
+   EXPRESS OR IMPLIED. IN NO EVENT WILL OPENVISION HAVE ANY LIABILITY
+   FOR ANY LOST PROFITS, LOSS OF DATA OR COSTS OF PROCUREMENT OF
+   SUBSTITUTE GOODS OR SERVICES, OR FOR ANY SPECIAL, INDIRECT, OR
+   CONSEQUENTIAL DAMAGES ARISING OUT OF THIS AGREEMENT, INCLUDING,
+   WITHOUT LIMITATION, THOSE RESULTING FROM THE USE OF THE SOURCE
+   CODE, OR THE FAILURE OF THE SOURCE CODE TO PERFORM, OR FOR ANY
+   OTHER REASON.
+
+   OpenVision retains all copyrights in the donated Source Code.
+   OpenVision also retains copyright to derivative works of the Source
+   Code, whether created by OpenVision or by a third party. The
+   OpenVision copyright notice must be preserved if derivative works
+   are made based on the donated Source Code.
+
+   OpenVision Technologies, Inc. has donated this Kerberos
+   Administration system to MIT for inclusion in the standard Kerberos
+   5 distribution. This donation underscores our commitment to
+   continuing Kerberos technology development and our gratitude for
+   the valuable work which has been performed by MIT and the Kerberos
+   community.
+
+======================================================================
+
+   Portions contributed by Matt Crawford "crawdad@fnal.gov" were work
+   performed at Fermi National Accelerator Laboratory, which is
+   operated by Universities Research Association, Inc., under contract
+   DE-AC02-76CHO3000 with the U.S. Department of Energy.
+
+======================================================================
+
+Portions of "src/lib/crypto" have the following copyright:
+
+   Copyright (C) 1998 by the FundsXpress, INC.
+
+   All rights reserved.
+
+      Export of this software from the United States of America may
+      require a specific license from the United States Government.
+      It is the responsibility of any person or organization
+      contemplating export to obtain such a license before exporting.
+
+   WITHIN THAT CONSTRAINT, permission to use, copy, modify, and
+   distribute this software and its documentation for any purpose and
+   without fee is hereby granted, provided that the above copyright
+   notice appear in all copies and that both that copyright notice and
+   this permission notice appear in supporting documentation, and that
+   the name of FundsXpress. not be used in advertising or publicity
+   pertaining to distribution of the software without specific,
+   written prior permission.  FundsXpress makes no representations
+   about the suitability of this software for any purpose.  It is
+   provided "as is" without express or implied warranty.
+
+   THIS SOFTWARE IS PROVIDED "AS IS" AND WITHOUT ANY EXPRESS OR
+   IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
+   WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+
+======================================================================
+
+The implementation of the AES encryption algorithm in
+"src/lib/crypto/builtin/aes" has the following copyright:
+
+   Copyright (C) 1998-2013, Brian Gladman, Worcester, UK.
+   All rights reserved.
+
+   The redistribution and use of this software (with or without
+   changes) is allowed without the payment of fees or royalties
+   provided that:
+
+      source code distributions include the above copyright notice,
+      this list of conditions and the following disclaimer;
+
+      binary distributions include the above copyright notice, this
+      list of conditions and the following disclaimer in their
+      documentation.
+
+   This software is provided 'as is' with no explicit or implied
+   warranties in respect of its operation, including, but not limited
+   to, correctness and fitness for purpose.
+
+======================================================================
+
+Portions contributed by Red Hat, including the pre-authentication
+plug-in framework and the NSS crypto implementation, contain the
+following copyright:
+
+   Copyright (C) 2006 Red Hat, Inc.
+   Portions copyright (C) 2006 Massachusetts Institute of Technology
+   All Rights Reserved.
+
+   Redistribution and use in source and binary forms, with or without
+   modification, are permitted provided that the following conditions
+   are met:
+
+   * Redistributions of source code must retain the above copyright
+     notice, this list of conditions and the following disclaimer.
+
+   * Redistributions in binary form must reproduce the above
+     copyright notice, this list of conditions and the following
+     disclaimer in the documentation and/or other materials provided
+     with the distribution.
+
+   * Neither the name of Red Hat, Inc., nor the names of its
+     contributors may be used to endorse or promote products derived
+     from this software without specific prior written permission.
+
+   THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+   "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+   LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+   FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+   COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+   INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+   (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+   SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+   HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+   STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+   ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
+   OF THE POSSIBILITY OF SUCH DAMAGE.
+
+======================================================================
+
+The bundled verto source code is subject to the following license:
+
+   Copyright 2011 Red Hat, Inc.
+
+   Permission is hereby granted, free of charge, to any person
+   obtaining a copy of this software and associated documentation
+   files (the "Software"), to deal in the Software without
+   restriction, including without limitation the rights to use, copy,
+   modify, merge, publish, distribute, sublicense, and/or sell copies
+   of the Software, and to permit persons to whom the Software is
+   furnished to do so, subject to the following conditions:
+
+   The above copyright notice and this permission notice shall be
+   included in all copies or substantial portions of the Software.
+
+   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+   EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+   MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+   NONINFRINGEMENT.  IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+   HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+   WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+   DEALINGS IN THE SOFTWARE.
+
+======================================================================
+
+The MS-KKDCP client implementation has the following copyright:
+
+   Copyright 2013,2014 Red Hat, Inc.
+
+   Redistribution and use in source and binary forms, with or without
+   modification, are permitted provided that the following conditions
+   are met:
+
+      1. Redistributions of source code must retain the above
+         copyright notice, this list of conditions and the following
+         disclaimer.
+
+      2. Redistributions in binary form must reproduce the above
+         copyright notice, this list of conditions and the following
+         disclaimer in the documentation and/or other materials
+         provided with the distribution.
+
+   THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+   "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+   LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+   FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+   COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+   INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+   (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+   SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+   HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+   STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+   ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
+   OF THE POSSIBILITY OF SUCH DAMAGE.
+
+======================================================================
+
+The implementations of GSSAPI mechglue in GSSAPI-SPNEGO in
+"src/lib/gssapi", including the following files:
+
+   lib/gssapi/generic/gssapi_err_generic.et
+   lib/gssapi/mechglue/g_accept_sec_context.c
+   lib/gssapi/mechglue/g_acquire_cred.c
+   lib/gssapi/mechglue/g_canon_name.c
+   lib/gssapi/mechglue/g_compare_name.c
+   lib/gssapi/mechglue/g_context_time.c
+   lib/gssapi/mechglue/g_delete_sec_context.c
+   lib/gssapi/mechglue/g_dsp_name.c
+   lib/gssapi/mechglue/g_dsp_status.c
+   lib/gssapi/mechglue/g_dup_name.c
+   lib/gssapi/mechglue/g_exp_sec_context.c
+   lib/gssapi/mechglue/g_export_name.c
+   lib/gssapi/mechglue/g_glue.c
+   lib/gssapi/mechglue/g_imp_name.c
+   lib/gssapi/mechglue/g_imp_sec_context.c
+   lib/gssapi/mechglue/g_init_sec_context.c
+   lib/gssapi/mechglue/g_initialize.c
+   lib/gssapi/mechglue/g_inquire_context.c
+   lib/gssapi/mechglue/g_inquire_cred.c
+   lib/gssapi/mechglue/g_inquire_names.c
+   lib/gssapi/mechglue/g_process_context.c
+   lib/gssapi/mechglue/g_rel_buffer.c
+   lib/gssapi/mechglue/g_rel_cred.c
+   lib/gssapi/mechglue/g_rel_name.c
+   lib/gssapi/mechglue/g_rel_oid_set.c
+   lib/gssapi/mechglue/g_seal.c
+   lib/gssapi/mechglue/g_sign.c
+   lib/gssapi/mechglue/g_store_cred.c
+   lib/gssapi/mechglue/g_unseal.c
+   lib/gssapi/mechglue/g_userok.c
+   lib/gssapi/mechglue/g_utils.c
+   lib/gssapi/mechglue/g_verify.c
+   lib/gssapi/mechglue/gssd_pname_to_uid.c
+   lib/gssapi/mechglue/mglueP.h
+   lib/gssapi/mechglue/oid_ops.c
+   lib/gssapi/spnego/gssapiP_spnego.h
+   lib/gssapi/spnego/spnego_mech.c
+
+and the initial implementation of incremental propagation, including
+the following new or changed files:
+
+   include/iprop_hdr.h
+   kadmin/server/ipropd_svc.c
+   lib/kdb/iprop.x
+   lib/kdb/kdb_convert.c
+   lib/kdb/kdb_log.c
+   lib/kdb/kdb_log.h
+   lib/krb5/error_tables/kdb5_err.et
+   kprop/kpropd_rpc.c
+   kprop/kproplog.c
+
+are subject to the following license:
+
+   Copyright (C) 2004 Sun Microsystems, Inc.
+
+   Permission is hereby granted, free of charge, to any person
+   obtaining a copy of this software and associated documentation
+   files (the "Software"), to deal in the Software without
+   restriction, including without limitation the rights to use, copy,
+   modify, merge, publish, distribute, sublicense, and/or sell copies
+   of the Software, and to permit persons to whom the Software is
+   furnished to do so, subject to the following conditions:
+
+   The above copyright notice and this permission notice shall be
+   included in all copies or substantial portions of the Software.
+
+   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+   EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+   MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+   NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+   BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+   ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+   CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+   SOFTWARE.
+
+======================================================================
+
+Kerberos V5 includes documentation and software developed at the
+University of California at Berkeley, which includes this copyright
+notice:
+
+   Copyright (C) 1983 Regents of the University of California.
+   All rights reserved.
+
+   Redistribution and use in source and binary forms, with or without
+   modification, are permitted provided that the following conditions
+   are met:
+
+   1. Redistributions of source code must retain the above
+      copyright notice, this list of conditions and the following
+      disclaimer.
+
+   2. Redistributions in binary form must reproduce the above
+      copyright notice, this list of conditions and the following
+      disclaimer in the documentation and/or other materials provided
+      with the distribution.
+
+   3. Neither the name of the University nor the names of its
+      contributors may be used to endorse or promote products derived
+      from this software without specific prior written permission.
+
+   THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS "AS IS"
+   AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
+   TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+   PARTICULAR PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS
+   OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+   SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+   LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
+   USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+   ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+   OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
+   OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+   SUCH DAMAGE.
+
+======================================================================
+
+Portions contributed by Novell, Inc., including the LDAP database
+backend, are subject to the following license:
+
+   Copyright (C) 2004-2005, Novell, Inc.
+   All rights reserved.
+
+   Redistribution and use in source and binary forms, with or without
+   modification, are permitted provided that the following conditions
+   are met:
+
+   * Redistributions of source code must retain the above copyright
+     notice, this list of conditions and the following disclaimer.
+
+   * Redistributions in binary form must reproduce the above
+     copyright notice, this list of conditions and the following
+     disclaimer in the documentation and/or other materials provided
+     with the distribution.
+
+   * The copyright holder's name is not used to endorse or promote
+     products derived from this software without specific prior
+     written permission.
+
+   THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+   "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+   LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+   FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+   COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+   INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+   (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+   SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+   HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+   STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+   ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
+   OF THE POSSIBILITY OF SUCH DAMAGE.
+
+======================================================================
+
+Portions funded by Sandia National Laboratory and developed by the
+University of Michigan's Center for Information Technology
+Integration, including the PKINIT implementation, are subject to the
+following license:
+
+   COPYRIGHT (C) 2006-2007
+   THE REGENTS OF THE UNIVERSITY OF MICHIGAN
+   ALL RIGHTS RESERVED
+
+   Permission is granted to use, copy, create derivative works and
+   redistribute this software and such derivative works for any
+   purpose, so long as the name of The University of Michigan is not
+   used in any advertising or publicity pertaining to the use of
+   distribution of this software without specific, written prior
+   authorization.  If the above copyright notice or any other
+   identification of the University of Michigan is included in any
+   copy of any portion of this software, then the disclaimer below
+   must also be included.
+
+   THIS SOFTWARE IS PROVIDED AS IS, WITHOUT REPRESENTATION FROM THE
+   UNIVERSITY OF MICHIGAN AS TO ITS FITNESS FOR ANY PURPOSE, AND
+   WITHOUT WARRANTY BY THE UNIVERSITY OF MICHIGAN OF ANY KIND, EITHER
+   EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION THE IMPLIED
+   WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+   THE REGENTS OF THE UNIVERSITY OF MICHIGAN SHALL NOT BE LIABLE FOR
+   ANY DAMAGES, INCLUDING SPECIAL, INDIRECT, INCIDENTAL, OR
+   CONSEQUENTIAL DAMAGES, WITH RESPECT TO ANY CLAIM ARISING OUT OF OR
+   IN CONNECTION WITH THE USE OF THE SOFTWARE, EVEN IF IT HAS BEEN OR
+   IS HEREAFTER ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
+
+======================================================================
+
+The pkcs11.h file included in the PKINIT code has the following
+license:
+
+   Copyright 2006 g10 Code GmbH
+   Copyright 2006 Andreas Jellinghaus
+
+   This file is free software; as a special exception the author gives
+   unlimited permission to copy and/or distribute it, with or without
+   modifications, as long as this notice is preserved.
+
+   This file is distributed in the hope that it will be useful, but
+   WITHOUT ANY WARRANTY, to the extent permitted by law; without even
+   the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+   PURPOSE.
+
+======================================================================
+
+Portions contributed by Apple Inc. are subject to the following
+license:
+
+   Copyright 2004-2008 Apple Inc.  All Rights Reserved.
+
+      Export of this software from the United States of America may
+      require a specific license from the United States Government.
+      It is the responsibility of any person or organization
+      contemplating export to obtain such a license before exporting.
+
+   WITHIN THAT CONSTRAINT, permission to use, copy, modify, and
+   distribute this software and its documentation for any purpose and
+   without fee is hereby granted, provided that the above copyright
+   notice appear in all copies and that both that copyright notice and
+   this permission notice appear in supporting documentation, and that
+   the name of Apple Inc. not be used in advertising or publicity
+   pertaining to distribution of the software without specific,
+   written prior permission.  Apple Inc. makes no representations
+   about the suitability of this software for any purpose.  It is
+   provided "as is" without express or implied warranty.
+
+   THIS SOFTWARE IS PROVIDED "AS IS" AND WITHOUT ANY EXPRESS OR
+   IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
+   WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+
+======================================================================
+
+The implementations of UTF-8 string handling in src/util/support and
+src/lib/krb5/unicode are subject to the following copyright and
+permission notice:
+
+   The OpenLDAP Public License
+   Version 2.8, 17 August 2003
+
+   Redistribution and use of this software and associated
+   documentation ("Software"), with or without modification, are
+   permitted provided that the following conditions are met:
+
+   1. Redistributions in source form must retain copyright
+      statements and notices,
+
+   2. Redistributions in binary form must reproduce applicable
+      copyright statements and notices, this list of conditions, and
+      the following disclaimer in the documentation and/or other
+      materials provided with the distribution, and
+
+   3. Redistributions must contain a verbatim copy of this
+      document.
+
+   The OpenLDAP Foundation may revise this license from time to time.
+   Each revision is distinguished by a version number.  You may use
+   this Software under terms of this license revision or under the
+   terms of any subsequent revision of the license.
+
+   THIS SOFTWARE IS PROVIDED BY THE OPENLDAP FOUNDATION AND ITS
+   CONTRIBUTORS "AS IS" AND ANY EXPRESSED OR IMPLIED WARRANTIES,
+   INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+   MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+   DISCLAIMED.  IN NO EVENT SHALL THE OPENLDAP FOUNDATION, ITS
+   CONTRIBUTORS, OR THE AUTHOR(S) OR OWNER(S) OF THE SOFTWARE BE
+   LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+   CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT
+   OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR
+   BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+   LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+   (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
+   USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
+   DAMAGE.
+
+   The names of the authors and copyright holders must not be used in
+   advertising or otherwise to promote the sale, use or other dealing
+   in this Software without specific, written prior permission.  Title
+   to copyright in this Software shall at all times remain with
+   copyright holders.
+
+   OpenLDAP is a registered trademark of the OpenLDAP Foundation.
+
+   Copyright 1999-2003 The OpenLDAP Foundation, Redwood City,
+   California, USA.  All Rights Reserved.  Permission to copy and
+   distribute verbatim copies of this document is granted.
+
+======================================================================
+
+Marked test programs in src/lib/krb5/krb have the following copyright:
+
+   Copyright (C) 2006 Kungliga Tekniska H√∂gskola
+   (Royal Institute of Technology, Stockholm, Sweden).
+   All rights reserved.
+
+   Redistribution and use in source and binary forms, with or without
+   modification, are permitted provided that the following conditions
+   are met:
+
+   1. Redistributions of source code must retain the above
+      copyright notice, this list of conditions and the following
+      disclaimer.
+
+   2. Redistributions in binary form must reproduce the above
+      copyright notice, this list of conditions and the following
+      disclaimer in the documentation and/or other materials provided
+      with the distribution.
+
+   3. Neither the name of KTH nor the names of its contributors may
+      be used to endorse or promote products derived from this
+      software without specific prior written permission.
+
+   THIS SOFTWARE IS PROVIDED BY KTH AND ITS CONTRIBUTORS "AS IS" AND
+   ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+   THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+   PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL KTH OR ITS
+   CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+   SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+   LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
+   USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+   ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+   OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
+   OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+   SUCH DAMAGE.
+
+======================================================================
+
+The KCM Mach RPC definition file used on macOS has the following
+copyright:
+
+      Copyright (C) 2009 Kungliga Tekniska H√∂gskola
+      (Royal Institute of Technology, Stockholm, Sweden).
+      All rights reserved.
+
+   Portions Copyright (C) 2009 Apple Inc. All rights reserved.
+
+   Redistribution and use in source and binary forms, with or without
+   modification, are permitted provided that the following conditions
+   are met:
+
+   1. Redistributions of source code must retain the above
+      copyright notice, this list of conditions and the following
+      disclaimer.
+
+   2. Redistributions in binary form must reproduce the above
+      copyright notice, this list of conditions and the following
+      disclaimer in the documentation and/or other materials provided
+      with the distribution.
+
+   3. Neither the name of the Institute nor the names of its
+      contributors may be used to endorse or promote products derived
+      from this software without specific prior written permission.
+
+   THIS SOFTWARE IS PROVIDED BY THE INSTITUTE AND CONTRIBUTORS "AS IS"
+   AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
+   TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+   PARTICULAR PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL THE INSTITUTE
+   OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+   SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+   LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
+   USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+   ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+   OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
+   OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+   SUCH DAMAGE.
+
+======================================================================
+
+Portions of the RPC implementation in src/lib/rpc and
+src/include/gssrpc have the following copyright and permission notice:
+
+   Copyright (C) 2010, Oracle America, Inc.
+
+   All rights reserved.
+
+   Redistribution and use in source and binary forms, with or without
+   modification, are permitted provided that the following conditions
+   are met:
+
+   1. Redistributions of source code must retain the above
+      copyright notice, this list of conditions and the following
+      disclaimer.
+
+   2. Redistributions in binary form must reproduce the above
+      copyright notice, this list of conditions and the following
+      disclaimer in the documentation and/or other materials provided
+      with the distribution.
+
+   3. Neither the name of the "Oracle America, Inc." nor the names
+      of its contributors may be used to endorse or promote products
+      derived from this software without specific prior written
+      permission.
+
+   THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+   "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+   LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+   FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+   COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+   INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+   (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+   SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+   HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+   STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+   ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
+   OF THE POSSIBILITY OF SUCH DAMAGE.
+
+======================================================================
+
+   Copyright (C) 2006,2007,2009 NTT (Nippon Telegraph and Telephone
+   Corporation).  All rights reserved.
+
+   Redistribution and use in source and binary forms, with or without
+   modification, are permitted provided that the following conditions
+   are met:
+
+   1. Redistributions of source code must retain the above
+      copyright notice, this list of conditions and the following
+      disclaimer as the first lines of this file unmodified.
+
+   2. Redistributions in binary form must reproduce the above
+      copyright notice, this list of conditions and the following
+      disclaimer in the documentation and/or other materials provided
+      with the distribution.
+
+   THIS SOFTWARE IS PROVIDED BY NTT "AS IS" AND ANY EXPRESS OR IMPLIED
+   WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
+   OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+   DISCLAIMED. IN NO EVENT SHALL NTT BE LIABLE FOR ANY DIRECT,
+   INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+   (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+   SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+   HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+   STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+   ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
+   OF THE POSSIBILITY OF SUCH DAMAGE.
+
+======================================================================
+
+   Copyright 2000 by Carnegie Mellon University
+
+   All Rights Reserved
+
+   Permission to use, copy, modify, and distribute this software and
+   its documentation for any purpose and without fee is hereby
+   granted, provided that the above copyright notice appear in all
+   copies and that both that copyright notice and this permission
+   notice appear in supporting documentation, and that the name of
+   Carnegie Mellon University not be used in advertising or publicity
+   pertaining to distribution of the software without specific,
+   written prior permission.
+
+   CARNEGIE MELLON UNIVERSITY DISCLAIMS ALL WARRANTIES WITH REGARD TO
+   THIS SOFTWARE, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
+   AND FITNESS, IN NO EVENT SHALL CARNEGIE MELLON UNIVERSITY BE LIABLE
+   FOR ANY SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+   WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN
+   AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING
+   OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
+   SOFTWARE.
+
+======================================================================
+
+   Copyright (C) 2002 Naval Research Laboratory (NRL/CCS)
+
+   Permission to use, copy, modify and distribute this software and
+   its documentation is hereby granted, provided that both the
+   copyright notice and this permission notice appear in all copies of
+   the software, derivative works or modified versions, and any
+   portions thereof.
+
+   NRL ALLOWS FREE USE OF THIS SOFTWARE IN ITS "AS IS" CONDITION AND
+   DISCLAIMS ANY LIABILITY OF ANY KIND FOR ANY DAMAGES WHATSOEVER
+   RESULTING FROM THE USE OF THIS SOFTWARE.
+
+======================================================================
+
+   Copyright (C) 1991, 1992, 1994 by Cygnus Support.
+
+   Permission to use, copy, modify, and distribute this software and
+   its documentation for any purpose and without fee is hereby
+   granted, provided that the above copyright notice appear in all
+   copies and that both that copyright notice and this permission
+   notice appear in supporting documentation. Cygnus Support makes no
+   representations about the suitability of this software for any
+   purpose.  It is provided "as is" without express or implied
+   warranty.
+
+======================================================================
+
+   Copyright (C) 2006 Secure Endpoints Inc.
+
+   Permission is hereby granted, free of charge, to any person
+   obtaining a copy of this software and associated documentation
+   files (the "Software"), to deal in the Software without
+   restriction, including without limitation the rights to use, copy,
+   modify, merge, publish, distribute, sublicense, and/or sell copies
+   of the Software, and to permit persons to whom the Software is
+   furnished to do so, subject to the following conditions:
+
+   The above copyright notice and this permission notice shall be
+   included in all copies or substantial portions of the Software.
+
+   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+   EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+   MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+   NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+   BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+   ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+   CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+   SOFTWARE.
+
+======================================================================
+
+Portions of the implementation of the Fortuna-like PRNG are subject to
+the following notice:
+
+   Copyright (C) 2005 Marko Kreen
+   All rights reserved.
+
+   Redistribution and use in source and binary forms, with or without
+   modification, are permitted provided that the following conditions
+   are met:
+
+   1. Redistributions of source code must retain the above
+      copyright notice, this list of conditions and the following
+      disclaimer.
+
+   2. Redistributions in binary form must reproduce the above
+      copyright notice, this list of conditions and the following
+      disclaimer in the documentation and/or other materials provided
+      with the distribution.
+
+   THIS SOFTWARE IS PROVIDED BY THE AUTHOR AND CONTRIBUTORS "AS IS"
+   AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
+   TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+   PARTICULAR PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHOR OR
+   CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+   SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+   LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
+   USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+   ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+   OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
+   OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+   SUCH DAMAGE.
+
+   Copyright (C) 1994 by the University of Southern California
+
+      EXPORT OF THIS SOFTWARE from the United States of America may
+      require a specific license from the United States Government. It
+      is the responsibility of any person or organization
+      contemplating export to obtain such a license before exporting.
+
+   WITHIN THAT CONSTRAINT, permission to copy, modify, and distribute
+   this software and its documentation in source and binary forms is
+   hereby granted, provided that any documentation or other materials
+   related to such distribution or use acknowledge that the software
+   was developed by the University of Southern California.
+
+   DISCLAIMER OF WARRANTY.  THIS SOFTWARE IS PROVIDED "AS IS".  The
+   University of Southern California MAKES NO REPRESENTATIONS OR
+   WARRANTIES, EXPRESS OR IMPLIED.  By way of example, but not
+   limitation, the University of Southern California MAKES NO
+   REPRESENTATIONS OR WARRANTIES OF MERCHANTABILITY OR FITNESS FOR ANY
+   PARTICULAR PURPOSE. The University of Southern California shall not
+   be held liable for any liability nor for any direct, indirect, or
+   consequential damages with respect to any claim by the user or
+   distributor of the ksu software.
+
+======================================================================
+
+   Copyright (C) 1995
+   The President and Fellows of Harvard University
+
+   This code is derived from software contributed to Harvard by Jeremy
+   Rassen.
+
+   Redistribution and use in source and binary forms, with or without
+   modification, are permitted provided that the following conditions
+   are met:
+
+   1. Redistributions of source code must retain the above
+      copyright notice, this list of conditions and the following
+      disclaimer.
+
+   2. Redistributions in binary form must reproduce the above
+      copyright notice, this list of conditions and the following
+      disclaimer in the documentation and/or other materials provided
+      with the distribution.
+
+   3. All advertising materials mentioning features or use of this
+      software must display the following acknowledgement:
+
+         This product includes software developed by the University of
+         California, Berkeley and its contributors.
+
+   4. Neither the name of the University nor the names of its
+      contributors may be used to endorse or promote products derived
+      from this software without specific prior written permission.
+
+   THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS "AS IS"
+   AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
+   TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+   PARTICULAR PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS
+   OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+   SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+   LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
+   USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+   ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+   OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
+   OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+   SUCH DAMAGE.
+
+======================================================================
+
+   Copyright (C) 2008 by the Massachusetts Institute of Technology.
+   Copyright 1995 by Richard P. Basch.  All Rights Reserved.
+   Copyright 1995 by Lehman Brothers, Inc.  All Rights Reserved.
+
+      Export of this software from the United States of America may
+      require a specific license from the United States Government. It
+      is the responsibility of any person or organization
+      contemplating export to obtain such a license before exporting.
+
+   WITHIN THAT CONSTRAINT, permission to use, copy, modify, and
+   distribute this software and its documentation for any purpose and
+   without fee is hereby granted, provided that the above copyright
+   notice appear in all copies and that both that copyright notice and
+   this permission notice appear in supporting documentation, and that
+   the name of Richard P. Basch, Lehman Brothers and M.I.T. not be
+   used in advertising or publicity pertaining to distribution of the
+   software without specific, written prior permission.  Richard P.
+   Basch, Lehman Brothers and M.I.T. make no representations about the
+   suitability of this software for any purpose.  It is provided "as
+   is" without express or implied warranty.
+
+======================================================================
+
+The following notice applies to "src/lib/krb5/krb/strptime.c" and
+"src/include/k5-queue.h".
+
+   Copyright (C) 1997, 1998 The NetBSD Foundation, Inc.
+   All rights reserved.
+
+   This code was contributed to The NetBSD Foundation by Klaus Klein.
+
+   Redistribution and use in source and binary forms, with or without
+   modification, are permitted provided that the following conditions
+   are met:
+
+   1. Redistributions of source code must retain the above
+      copyright notice, this list of conditions and the following
+      disclaimer.
+
+   2. Redistributions in binary form must reproduce the above
+      copyright notice, this list of conditions and the following
+      disclaimer in the documentation and/or other materials provided
+      with the distribution.
+
+   3. All advertising materials mentioning features or use of this
+      software must display the following acknowledgement:
+
+         This product includes software developed by the NetBSD
+         Foundation, Inc. and its contributors.
+
+   4. Neither the name of The NetBSD Foundation nor the names of
+      its contributors may be used to endorse or promote products
+      derived from this software without specific prior written
+      permission.
+
+   THIS SOFTWARE IS PROVIDED BY THE NETBSD FOUNDATION, INC. AND
+   CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES,
+   INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+   MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+   DISCLAIMED.  IN NO EVENT SHALL THE FOUNDATION OR CONTRIBUTORS BE
+   LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+   CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT
+   OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR
+   BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+   LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+   (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
+   USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
+   DAMAGE.
+
+======================================================================
+
+The following notice applies to Unicode library files in
+"src/lib/krb5/unicode":
+
+   Copyright 1997, 1998, 1999 Computing Research Labs,
+   New Mexico State University
+
+   Permission is hereby granted, free of charge, to any person
+   obtaining a copy of this software and associated documentation
+   files (the "Software"), to deal in the Software without
+   restriction, including without limitation the rights to use, copy,
+   modify, merge, publish, distribute, sublicense, and/or sell copies
+   of the Software, and to permit persons to whom the Software is
+   furnished to do so, subject to the following conditions:
+
+   The above copyright notice and this permission notice shall be
+   included in all copies or substantial portions of the Software.
+
+   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+   EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+   MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+   NONINFRINGEMENT.  IN NO EVENT SHALL THE COMPUTING RESEARCH LAB OR
+   NEW MEXICO STATE UNIVERSITY BE LIABLE FOR ANY CLAIM, DAMAGES OR
+   OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+   OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
+   OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+======================================================================
+
+The following notice applies to "src/util/support/strlcpy.c":
+
+   Copyright (C) 1998 Todd C. Miller "Todd.Miller@courtesan.com"
+
+   Permission to use, copy, modify, and distribute this software for
+   any purpose with or without fee is hereby granted, provided that
+   the above copyright notice and this permission notice appear in all
+   copies.
+
+   THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL
+   WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED
+   WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE
+   AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, OR
+   CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS
+   OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT,
+   NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
+   CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+
+======================================================================
+
+The following notice applies to "src/util/profile/argv_parse.c" and
+"src/util/profile/argv_parse.h":
+
+   Copyright 1999 by Theodore Ts'o.
+
+   Permission to use, copy, modify, and distribute this software for
+   any purpose with or without fee is hereby granted, provided that
+   the above copyright notice and this permission notice appear in all
+   copies.  THE SOFTWARE IS PROVIDED "AS IS" AND THEODORE TS'O (THE
+   AUTHOR) DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE,
+   INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN
+   NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT,
+   INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER
+   RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION
+   OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR
+   IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.  (Isn't
+   it sick that the U.S. culture of lawsuit-happy lawyers requires
+   this kind of disclaimer?)
+
+======================================================================
+
+The following notice applies to SWIG-generated code in
+"src/util/profile/profile_tcl.c":
+
+   Copyright (C) 1999-2000, The University of Chicago
+
+   This file may be freely redistributed without license or fee
+   provided this copyright message remains intact.
+
+======================================================================
+
+The following notice applies to portiions of "src/lib/rpc" and
+"src/include/gssrpc":
+
+   Copyright (C) 2000 The Regents of the University of Michigan. All
+   rights reserved.
+
+   Copyright (C) 2000 Dug Song "dugsong@UMICH.EDU". All rights
+   reserved, all wrongs reversed.
+
+   Redistribution and use in source and binary forms, with or without
+   modification, are permitted provided that the following conditions
+   are met:
+
+   1. Redistributions of source code must retain the above
+      copyright notice, this list of conditions and the following
+      disclaimer.
+
+   2. Redistributions in binary form must reproduce the above
+      copyright notice, this list of conditions and the following
+      disclaimer in the documentation and/or other materials provided
+      with the distribution.
+
+   3. Neither the name of the University nor the names of its
+      contributors may be used to endorse or promote products derived
+      from this software without specific prior written permission.
+
+   THIS SOFTWARE IS PROVIDED "AS IS" AND ANY EXPRESS OR IMPLIED
+   WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
+   OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+   DISCLAIMED. IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
+   FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+   CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT
+   OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR
+   BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+   LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+   (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
+   USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
+   DAMAGE.
+
+============================================================

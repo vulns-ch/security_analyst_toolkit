@@ -1,0 +1,3857 @@
+   """),
+
+    I(name='STACK_GLOBAL',
+      code='\x93',
+      arg=None,
+      stack_before=[pyunicode, pyunicode],
+      stack_after=[anyobject],
+      proto=4,
+      doc="""Push a global object (module.attr) on the stack.
+      """),
+
+    # Ways to build objects of classes pickle doesn't know about directly
+    # (user-defined classes).  I despair of documenting this accurately
+    # and comprehensibly -- you really have to read the pickle code to
+    # find all the special cases.
+
+    I(name='REDUCE',
+      code='R',
+      arg=None,
+      stack_before=[anyobject, anyobject],
+      stack_after=[anyobject],
+      proto=0,
+      doc="""Push an object built from a callable and an argument tuple.
+
+      The opcode is named to remind of the __reduce__() method.
+
+      Stack before: ... callable pytuple
+      Stack after:  ... callable(*pytuple)
+
+      The callable and the argument tuple are the first two items returned
+      by a __reduce__ method.  Applying the callable to the argtuple is
+      supposed to reproduce the original object, or at least get it started.
+      If the __reduce__ method returns a 3-tuple, the last component is an
+      argument to be passed to the object's __setstate__, and then the REDUCE
+      opcode is followed by code to create setstate's argument, and then a
+      BUILD opcode to apply  __setstate__ to that argument.
+
+      If not isinstance(callable, type), REDUCE complains unless the
+      callable has been registered with the copyreg module's
+      safe_constructors dict, or the callable has a magic
+      '__safe_for_unpickling__' attribute with a true value.  I'm not sure
+      why it does this, but I've sure seen this complaint often enough when
+      I didn't want to <wink>.
+      """),
+
+    I(name='BUILD',
+      code='b',
+      arg=None,
+      stack_before=[anyobject, anyobject],
+      stack_after=[anyobject],
+      proto=0,
+      doc="""Finish building an object, via __setstate__ or dict update.
+
+      Stack before: ... anyobject argument
+      Stack after:  ... anyobject
+
+      where anyobject may have been mutated, as follows:
+
+      If the object has a __setstate__ method,
+
+          anyobject.__setstate__(argument)
+
+      is called.
+
+      Else the argument must be a dict, the object must have a __dict__, and
+      the object is updated via
+
+          anyobject.__dict__.update(argument)
+      """),
+
+    I(name='INST',
+      code='i',
+      arg=stringnl_noescape_pair,
+      stack_before=[markobject, stackslice],
+      stack_after=[anyobject],
+      proto=0,
+      doc="""Build a class instance.
+
+      This is the protocol 0 version of protocol 1's OBJ opcode.
+      INST is followed by two newline-terminated strings, giving a
+      module and class name, just as for the GLOBAL opcode (and see
+      GLOBAL for more details about that).  self.find_class(module, name)
+      is used to get a class object.
+
+      In addition, all the objects on the stack following the topmost
+      markobject are gathered into a tuple and popped (along with the
+      topmost markobject), just as for the TUPLE opcode.
+
+      Now it gets complicated.  If all of these are true:
+
+        + The argtuple is empty (markobject was at the top of the stack
+          at the start).
+
+        + The class object does not have a __getinitargs__ attribute.
+
+      then we want to create an old-style class instance without invoking
+      its __init__() method (pickle has waffled on this over the years; not
+      calling __init__() is current wisdom).  In this case, an instance of
+      an old-style dummy class is created, and then we try to rebind its
+      __class__ attribute to the desired class object.  If this succeeds,
+      the new instance object is pushed on the stack, and we're done.
+
+      Else (the argtuple is not empty, it's not an old-style class object,
+      or the class object does have a __getinitargs__ attribute), the code
+      first insists that the class object have a __safe_for_unpickling__
+      attribute.  Unlike as for the __safe_for_unpickling__ check in REDUCE,
+      it doesn't matter whether this attribute has a true or false value, it
+      only matters whether it exists (XXX this is a bug).  If
+      __safe_for_unpickling__ doesn't exist, UnpicklingError is raised.
+
+      Else (the class object does have a __safe_for_unpickling__ attr),
+      the class object obtained from INST's arguments is applied to the
+      argtuple obtained from the stack, and the resulting instance object
+      is pushed on the stack.
+
+      NOTE:  checks for __safe_for_unpickling__ went away in Python 2.3.
+      NOTE:  the distinction between old-style and new-style classes does
+             not make sense in Python 3.
+      """),
+
+    I(name='OBJ',
+      code='o',
+      arg=None,
+      stack_before=[markobject, anyobject, stackslice],
+      stack_after=[anyobject],
+      proto=1,
+      doc="""Build a class instance.
+
+      This is the protocol 1 version of protocol 0's INST opcode, and is
+      very much like it.  The major difference is that the class object
+      is taken off the stack, allowing it to be retrieved from the memo
+      repeatedly if several instances of the same class are created.  This
+      can be much more efficient (in both time and space) than repeatedly
+      embedding the module and class names in INST opcodes.
+
+      Unlike INST, OBJ takes no arguments from the opcode stream.  Instead
+      the class object is taken off the stack, immediately above the
+      topmost markobject:
+
+      Stack before: ... markobject classobject stackslice
+      Stack after:  ... new_instance_object
+
+      As for INST, the remainder of the stack above the markobject is
+      gathered into an argument tuple, and then the logic seems identical,
+      except that no __safe_for_unpickling__ check is done (XXX this is
+      a bug).  See INST for the gory details.
+
+      NOTE:  In Python 2.3, INST and OBJ are identical except for how they
+      get the class object.  That was always the intent; the implementations
+      had diverged for accidental reasons.
+      """),
+
+    I(name='NEWOBJ',
+      code='\x81',
+      arg=None,
+      stack_before=[anyobject, anyobject],
+      stack_after=[anyobject],
+      proto=2,
+      doc="""Build an object instance.
+
+      The stack before should be thought of as containing a class
+      object followed by an argument tuple (the tuple being the stack
+      top).  Call these cls and args.  They are popped off the stack,
+      and the value returned by cls.__new__(cls, *args) is pushed back
+      onto the stack.
+      """),
+
+    I(name='NEWOBJ_EX',
+      code='\x92',
+      arg=None,
+      stack_before=[anyobject, anyobject, anyobject],
+      stack_after=[anyobject],
+      proto=4,
+      doc="""Build an object instance.
+
+      The stack before should be thought of as containing a class
+      object followed by an argument tuple and by a keyword argument dict
+      (the dict being the stack top).  Call these cls and args.  They are
+      popped off the stack, and the value returned by
+      cls.__new__(cls, *args, *kwargs) is  pushed back  onto the stack.
+      """),
+
+    # Machine control.
+
+    I(name='PROTO',
+      code='\x80',
+      arg=uint1,
+      stack_before=[],
+      stack_after=[],
+      proto=2,
+      doc="""Protocol version indicator.
+
+      For protocol 2 and above, a pickle must start with this opcode.
+      The argument is the protocol version, an int in range(2, 256).
+      """),
+
+    I(name='STOP',
+      code='.',
+      arg=None,
+      stack_before=[anyobject],
+      stack_after=[],
+      proto=0,
+      doc="""Stop the unpickling machine.
+
+      Every pickle ends with this opcode.  The object at the top of the stack
+      is popped, and that's the result of unpickling.  The stack should be
+      empty then.
+      """),
+
+    # Framing support.
+
+    I(name='FRAME',
+      code='\x95',
+      arg=uint8,
+      stack_before=[],
+      stack_after=[],
+      proto=4,
+      doc="""Indicate the beginning of a new frame.
+
+      The unpickler may use this opcode to safely prefetch data from its
+      underlying stream.
+      """),
+
+    # Ways to deal with persistent IDs.
+
+    I(name='PERSID',
+      code='P',
+      arg=stringnl_noescape,
+      stack_before=[],
+      stack_after=[anyobject],
+      proto=0,
+      doc="""Push an object identified by a persistent ID.
+
+      The pickle module doesn't define what a persistent ID means.  PERSID's
+      argument is a newline-terminated str-style (no embedded escapes, no
+      bracketing quote characters) string, which *is* "the persistent ID".
+      The unpickler passes this string to self.persistent_load().  Whatever
+      object that returns is pushed on the stack.  There is no implementation
+      of persistent_load() in Python's unpickler:  it must be supplied by an
+      unpickler subclass.
+      """),
+
+    I(name='BINPERSID',
+      code='Q',
+      arg=None,
+      stack_before=[anyobject],
+      stack_after=[anyobject],
+      proto=1,
+      doc="""Push an object identified by a persistent ID.
+
+      Like PERSID, except the persistent ID is popped off the stack (instead
+      of being a string embedded in the opcode bytestream).  The persistent
+      ID is passed to self.persistent_load(), and whatever object that
+      returns is pushed on the stack.  See PERSID for more detail.
+      """),
+]
+del I
+
+# Verify uniqueness of .name and .code members.
+name2i = {}
+code2i = {}
+
+for i, d in enumerate(opcodes):
+    if d.name in name2i:
+        raise ValueError("repeated name %r at indices %d and %d" %
+                         (d.name, name2i[d.name], i))
+    if d.code in code2i:
+        raise ValueError("repeated code %r at indices %d and %d" %
+                         (d.code, code2i[d.code], i))
+
+    name2i[d.name] = i
+    code2i[d.code] = i
+
+del name2i, code2i, i, d
+
+##############################################################################
+# Build a code2op dict, mapping opcode characters to OpcodeInfo records.
+# Also ensure we've got the same stuff as pickle.py, although the
+# introspection here is dicey.
+
+code2op = {}
+for d in opcodes:
+    code2op[d.code] = d
+del d
+
+def assure_pickle_consistency(verbose=False):
+
+    copy = code2op.copy()
+    for name in pickle.__all__:
+        if not re.match("[A-Z][A-Z0-9_]+$", name):
+            if verbose:
+                print("skipping %r: it doesn't look like an opcode name" % name)
+            continue
+        picklecode = getattr(pickle, name)
+        if not isinstance(picklecode, bytes) or len(picklecode) != 1:
+            if verbose:
+                print(("skipping %r: value %r doesn't look like a pickle "
+                       "code" % (name, picklecode)))
+            continue
+        picklecode = picklecode.decode("latin-1")
+        if picklecode in copy:
+            if verbose:
+                print("checking name %r w/ code %r for consistency" % (
+                      name, picklecode))
+            d = copy[picklecode]
+            if d.name != name:
+                raise ValueError("for pickle code %r, pickle.py uses name %r "
+                                 "but we're using name %r" % (picklecode,
+                                                              name,
+                                                              d.name))
+            # Forget this one.  Any left over in copy at the end are a problem
+            # of a different kind.
+            del copy[picklecode]
+        else:
+            raise ValueError("pickle.py appears to have a pickle opcode with "
+                             "name %r and code %r, but we don't" %
+                             (name, picklecode))
+    if copy:
+        msg = ["we appear to have pickle opcodes that pickle.py doesn't have:"]
+        for code, d in copy.items():
+            msg.append("    name %r with code %r" % (d.name, code))
+        raise ValueError("\n".join(msg))
+
+assure_pickle_consistency()
+del assure_pickle_consistency
+
+##############################################################################
+# A pickle opcode generator.
+
+def _genops(data, yield_end_pos=False):
+    if isinstance(data, bytes_types):
+        data = io.BytesIO(data)
+
+    if hasattr(data, "tell"):
+        getpos = data.tell
+    else:
+        getpos = lambda: None
+
+    while True:
+        pos = getpos()
+        code = data.read(1)
+        opcode = code2op.get(code.decode("latin-1"))
+        if opcode is None:
+            if code == b"":
+                raise ValueError("pickle exhausted before seeing STOP")
+            else:
+                raise ValueError("at position %s, opcode %r unknown" % (
+                                 "<unknown>" if pos is None else pos,
+                                 code))
+        if opcode.arg is None:
+            arg = None
+        else:
+            arg = opcode.arg.reader(data)
+        if yield_end_pos:
+            yield opcode, arg, pos, getpos()
+        else:
+            yield opcode, arg, pos
+        if code == b'.':
+            assert opcode.name == 'STOP'
+            break
+
+def genops(pickle):
+    """Generate all the opcodes in a pickle.
+
+    'pickle' is a file-like object, or string, containing the pickle.
+
+    Each opcode in the pickle is generated, from the current pickle position,
+    stopping after a STOP opcode is delivered.  A triple is generated for
+    each opcode:
+
+        opcode, arg, pos
+
+    opcode is an OpcodeInfo record, describing the current opcode.
+
+    If the opcode has an argument embedded in the pickle, arg is its decoded
+    value, as a Python object.  If the opcode doesn't have an argument, arg
+    is None.
+
+    If the pickle has a tell() method, pos was the value of pickle.tell()
+    before reading the current opcode.  If the pickle is a bytes object,
+    it's wrapped in a BytesIO object, and the latter's tell() result is
+    used.  Else (the pickle doesn't have a tell(), and it's not obvious how
+    to query its current position) pos is None.
+    """
+    return _genops(pickle)
+
+##############################################################################
+# A pickle optimizer.
+
+def optimize(p):
+    'Optimize a pickle string by removing unused PUT opcodes'
+    put = 'PUT'
+    get = 'GET'
+    oldids = set()          # set of all PUT ids
+    newids = {}             # set of ids used by a GET opcode
+    opcodes = []            # (op, idx) or (pos, end_pos)
+    proto = 0
+    protoheader = b''
+    for opcode, arg, pos, end_pos in _genops(p, yield_end_pos=True):
+        if 'PUT' in opcode.name:
+            oldids.add(arg)
+            opcodes.append((put, arg))
+        elif opcode.name == 'MEMOIZE':
+            idx = len(oldids)
+            oldids.add(idx)
+            opcodes.append((put, idx))
+        elif 'FRAME' in opcode.name:
+            pass
+        elif 'GET' in opcode.name:
+            if opcode.proto > proto:
+                proto = opcode.proto
+            newids[arg] = None
+            opcodes.append((get, arg))
+        elif opcode.name == 'PROTO':
+            if arg > proto:
+                proto = arg
+            if pos == 0:
+                protoheader = p[pos:end_pos]
+            else:
+                opcodes.append((pos, end_pos))
+        else:
+            opcodes.append((pos, end_pos))
+    del oldids
+
+    # Copy the opcodes except for PUTS without a corresponding GET
+    out = io.BytesIO()
+    # Write the PROTO header before any framing
+    out.write(protoheader)
+    pickler = pickle._Pickler(out, proto)
+    if proto >= 4:
+        pickler.framer.start_framing()
+    idx = 0
+    for op, arg in opcodes:
+        frameless = False
+        if op is put:
+            if arg not in newids:
+                continue
+            data = pickler.put(idx)
+            newids[arg] = idx
+            idx += 1
+        elif op is get:
+            data = pickler.get(newids[arg])
+        else:
+            data = p[op:arg]
+            frameless = len(data) > pickler.framer._FRAME_SIZE_TARGET
+        pickler.framer.commit_frame(force=frameless)
+        if frameless:
+            pickler.framer.file_write(data)
+        else:
+            pickler.write(data)
+    pickler.framer.end_framing()
+    return out.getvalue()
+
+##############################################################################
+# A symbolic pickle disassembler.
+
+def dis(pickle, out=None, memo=None, indentlevel=4, annotate=0):
+    """Produce a symbolic disassembly of a pickle.
+
+    'pickle' is a file-like object, or string, containing a (at least one)
+    pickle.  The pickle is disassembled from the current position, through
+    the first STOP opcode encountered.
+
+    Optional arg 'out' is a file-like object to which the disassembly is
+    printed.  It defaults to sys.stdout.
+
+    Optional arg 'memo' is a Python dict, used as the pickle's memo.  It
+    may be mutated by dis(), if the pickle contains PUT or BINPUT opcodes.
+    Passing the same memo object to another dis() call then allows disassembly
+    to proceed across multiple pickles that were all created by the same
+    pickler with the same memo.  Ordinarily you don't need to worry about this.
+
+    Optional arg 'indentlevel' is the number of blanks by which to indent
+    a new MARK level.  It defaults to 4.
+
+    Optional arg 'annotate' if nonzero instructs dis() to add short
+    description of the opcode on each line of disassembled output.
+    The value given to 'annotate' must be an integer and is used as a
+    hint for the column where annotation should start.  The default
+    value is 0, meaning no annotations.
+
+    In addition to printing the disassembly, some sanity checks are made:
+
+    + All embedded opcode arguments "make sense".
+
+    + Explicit and implicit pop operations have enough items on the stack.
+
+    + When an opcode implicitly refers to a markobject, a markobject is
+      actually on the stack.
+
+    + A memo entry isn't referenced before it's defined.
+
+    + The markobject isn't stored in the memo.
+
+    + A memo entry isn't redefined.
+    """
+
+    # Most of the hair here is for sanity checks, but most of it is needed
+    # anyway to detect when a protocol 0 POP takes a MARK off the stack
+    # (which in turn is needed to indent MARK blocks correctly).
+
+    stack = []          # crude emulation of unpickler stack
+    if memo is None:
+        memo = {}       # crude emulation of unpickler memo
+    maxproto = -1       # max protocol number seen
+    markstack = []      # bytecode positions of MARK opcodes
+    indentchunk = ' ' * indentlevel
+    errormsg = None
+    annocol = annotate  # column hint for annotations
+    for opcode, arg, pos in genops(pickle):
+        if pos is not None:
+            print("%5d:" % pos, end=' ', file=out)
+
+        line = "%-4s %s%s" % (repr(opcode.code)[1:-1],
+                              indentchunk * len(markstack),
+                              opcode.name)
+
+        maxproto = max(maxproto, opcode.proto)
+        before = opcode.stack_before    # don't mutate
+        after = opcode.stack_after      # don't mutate
+        numtopop = len(before)
+
+        # See whether a MARK should be popped.
+        markmsg = None
+        if markobject in before or (opcode.name == "POP" and
+                                    stack and
+                                    stack[-1] is markobject):
+            assert markobject not in after
+            if __debug__:
+                if markobject in before:
+                    assert before[-1] is stackslice
+            if markstack:
+                markpos = markstack.pop()
+                if markpos is None:
+                    markmsg = "(MARK at unknown opcode offset)"
+                else:
+                    markmsg = "(MARK at %d)" % markpos
+                # Pop everything at and after the topmost markobject.
+                while stack[-1] is not markobject:
+                    stack.pop()
+                stack.pop()
+                # Stop later code from popping too much.
+                try:
+                    numtopop = before.index(markobject)
+                except ValueError:
+                    assert opcode.name == "POP"
+                    numtopop = 0
+            else:
+                errormsg = markmsg = "no MARK exists on stack"
+
+        # Check for correct memo usage.
+        if opcode.name in ("PUT", "BINPUT", "LONG_BINPUT", "MEMOIZE"):
+            if opcode.name == "MEMOIZE":
+                memo_idx = len(memo)
+                markmsg = "(as %d)" % memo_idx
+            else:
+                assert arg is not None
+                memo_idx = arg
+            if memo_idx in memo:
+                errormsg = "memo key %r already defined" % arg
+            elif not stack:
+                errormsg = "stack is empty -- can't store into memo"
+            elif stack[-1] is markobject:
+                errormsg = "can't store markobject in the memo"
+            else:
+                memo[memo_idx] = stack[-1]
+        elif opcode.name in ("GET", "BINGET", "LONG_BINGET"):
+            if arg in memo:
+                assert len(after) == 1
+                after = [memo[arg]]     # for better stack emulation
+            else:
+                errormsg = "memo key %r has never been stored into" % arg
+
+        if arg is not None or markmsg:
+            # make a mild effort to align arguments
+            line += ' ' * (10 - len(opcode.name))
+            if arg is not None:
+                if opcode.name in ("STRING", "BINSTRING", "SHORT_BINSTRING"):
+                    line += ' ' + ascii(arg)
+                else:
+                    line += ' ' + repr(arg)
+            if markmsg:
+                line += ' ' + markmsg
+        if annotate:
+            line += ' ' * (annocol - len(line))
+            # make a mild effort to align annotations
+            annocol = len(line)
+            if annocol > 50:
+                annocol = annotate
+            line += ' ' + opcode.doc.split('\n', 1)[0]
+        print(line, file=out)
+
+        if errormsg:
+            # Note that we delayed complaining until the offending opcode
+            # was printed.
+            raise ValueError(errormsg)
+
+        # Emulate the stack effects.
+        if len(stack) < numtopop:
+            raise ValueError("tries to pop %d items from stack with "
+                             "only %d items" % (numtopop, len(stack)))
+        if numtopop:
+            del stack[-numtopop:]
+        if markobject in after:
+            assert markobject not in before
+            markstack.append(pos)
+
+        stack.extend(after)
+
+    print("highest protocol among opcodes =", maxproto, file=out)
+    if stack:
+        raise ValueError("stack not empty after STOP: %r" % stack)
+
+# For use in the doctest, simply as an example of a class to pickle.
+class _Example:
+    def __init__(self, value):
+        self.value = value
+
+_dis_test = r"""
+>>> import pickle
+>>> x = [1, 2, (3, 4), {b'abc': "def"}]
+>>> pkl0 = pickle.dumps(x, 0)
+>>> dis(pkl0)
+    0: (    MARK
+    1: l        LIST       (MARK at 0)
+    2: p    PUT        0
+    5: I    INT        1
+    8: a    APPEND
+    9: I    INT        2
+   12: a    APPEND
+   13: (    MARK
+   14: I        INT        3
+   17: I        INT        4
+   20: t        TUPLE      (MARK at 13)
+   21: p    PUT        1
+   24: a    APPEND
+   25: (    MARK
+   26: d        DICT       (MARK at 25)
+   27: p    PUT        2
+   30: c    GLOBAL     '_codecs encode'
+   46: p    PUT        3
+   49: (    MARK
+   50: V        UNICODE    'abc'
+   55: p        PUT        4
+   58: V        UNICODE    'latin1'
+   66: p        PUT        5
+   69: t        TUPLE      (MARK at 49)
+   70: p    PUT        6
+   73: R    REDUCE
+   74: p    PUT        7
+   77: V    UNICODE    'def'
+   82: p    PUT        8
+   85: s    SETITEM
+   86: a    APPEND
+   87: .    STOP
+highest protocol among opcodes = 0
+
+Try again with a "binary" pickle.
+
+>>> pkl1 = pickle.dumps(x, 1)
+>>> dis(pkl1)
+    0: ]    EMPTY_LIST
+    1: q    BINPUT     0
+    3: (    MARK
+    4: K        BININT1    1
+    6: K        BININT1    2
+    8: (        MARK
+    9: K            BININT1    3
+   11: K            BININT1    4
+   13: t            TUPLE      (MARK at 8)
+   14: q        BINPUT     1
+   16: }        EMPTY_DICT
+   17: q        BINPUT     2
+   19: c        GLOBAL     '_codecs encode'
+   35: q        BINPUT     3
+   37: (        MARK
+   38: X            BINUNICODE 'abc'
+   46: q            BINPUT     4
+   48: X            BINUNICODE 'latin1'
+   59: q            BINPUT     5
+   61: t            TUPLE      (MARK at 37)
+   62: q        BINPUT     6
+   64: R        REDUCE
+   65: q        BINPUT     7
+   67: X        BINUNICODE 'def'
+   75: q        BINPUT     8
+   77: s        SETITEM
+   78: e        APPENDS    (MARK at 3)
+   79: .    STOP
+highest protocol among opcodes = 1
+
+Exercise the INST/OBJ/BUILD family.
+
+>>> import pickletools
+>>> dis(pickle.dumps(pickletools.dis, 0))
+    0: c    GLOBAL     'pickletools dis'
+   17: p    PUT        0
+   20: .    STOP
+highest protocol among opcodes = 0
+
+>>> from pickletools import _Example
+>>> x = [_Example(42)] * 2
+>>> dis(pickle.dumps(x, 0))
+    0: (    MARK
+    1: l        LIST       (MARK at 0)
+    2: p    PUT        0
+    5: c    GLOBAL     'copy_reg _reconstructor'
+   30: p    PUT        1
+   33: (    MARK
+   34: c        GLOBAL     'pickletools _Example'
+   56: p        PUT        2
+   59: c        GLOBAL     '__builtin__ object'
+   79: p        PUT        3
+   82: N        NONE
+   83: t        TUPLE      (MARK at 33)
+   84: p    PUT        4
+   87: R    REDUCE
+   88: p    PUT        5
+   91: (    MARK
+   92: d        DICT       (MARK at 91)
+   93: p    PUT        6
+   96: V    UNICODE    'value'
+  103: p    PUT        7
+  106: I    INT        42
+  110: s    SETITEM
+  111: b    BUILD
+  112: a    APPEND
+  113: g    GET        5
+  116: a    APPEND
+  117: .    STOP
+highest protocol among opcodes = 0
+
+>>> dis(pickle.dumps(x, 1))
+    0: ]    EMPTY_LIST
+    1: q    BINPUT     0
+    3: (    MARK
+    4: c        GLOBAL     'copy_reg _reconstructor'
+   29: q        BINPUT     1
+   31: (        MARK
+   32: c            GLOBAL     'pickletools _Example'
+   54: q            BINPUT     2
+   56: c            GLOBAL     '__builtin__ object'
+   76: q            BINPUT     3
+   78: N            NONE
+   79: t            TUPLE      (MARK at 31)
+   80: q        BINPUT     4
+   82: R        REDUCE
+   83: q        BINPUT     5
+   85: }        EMPTY_DICT
+   86: q        BINPUT     6
+   88: X        BINUNICODE 'value'
+   98: q        BINPUT     7
+  100: K        BININT1    42
+  102: s        SETITEM
+  103: b        BUILD
+  104: h        BINGET     5
+  106: e        APPENDS    (MARK at 3)
+  107: .    STOP
+highest protocol among opcodes = 1
+
+Try "the canonical" recursive-object test.
+
+>>> L = []
+>>> T = L,
+>>> L.append(T)
+>>> L[0] is T
+True
+>>> T[0] is L
+True
+>>> L[0][0] is L
+True
+>>> T[0][0] is T
+True
+>>> dis(pickle.dumps(L, 0))
+    0: (    MARK
+    1: l        LIST       (MARK at 0)
+    2: p    PUT        0
+    5: (    MARK
+    6: g        GET        0
+    9: t        TUPLE      (MARK at 5)
+   10: p    PUT        1
+   13: a    APPEND
+   14: .    STOP
+highest protocol among opcodes = 0
+
+>>> dis(pickle.dumps(L, 1))
+    0: ]    EMPTY_LIST
+    1: q    BINPUT     0
+    3: (    MARK
+    4: h        BINGET     0
+    6: t        TUPLE      (MARK at 3)
+    7: q    BINPUT     1
+    9: a    APPEND
+   10: .    STOP
+highest protocol among opcodes = 1
+
+Note that, in the protocol 0 pickle of the recursive tuple, the disassembler
+has to emulate the stack in order to realize that the POP opcode at 16 gets
+rid of the MARK at 0.
+
+>>> dis(pickle.dumps(T, 0))
+    0: (    MARK
+    1: (        MARK
+    2: l            LIST       (MARK at 1)
+    3: p        PUT        0
+    6: (        MARK
+    7: g            GET        0
+   10: t            TUPLE      (MARK at 6)
+   11: p        PUT        1
+   14: a        APPEND
+   15: 0        POP
+   16: 0        POP        (MARK at 0)
+   17: g    GET        1
+   20: .    STOP
+highest protocol among opcodes = 0
+
+>>> dis(pickle.dumps(T, 1))
+    0: (    MARK
+    1: ]        EMPTY_LIST
+    2: q        BINPUT     0
+    4: (        MARK
+    5: h            BINGET     0
+    7: t            TUPLE      (MARK at 4)
+    8: q        BINPUT     1
+   10: a        APPEND
+   11: 1        POP_MARK   (MARK at 0)
+   12: h    BINGET     1
+   14: .    STOP
+highest protocol among opcodes = 1
+
+Try protocol 2.
+
+>>> dis(pickle.dumps(L, 2))
+    0: \x80 PROTO      2
+    2: ]    EMPTY_LIST
+    3: q    BINPUT     0
+    5: h    BINGET     0
+    7: \x85 TUPLE1
+    8: q    BINPUT     1
+   10: a    APPEND
+   11: .    STOP
+highest protocol among opcodes = 2
+
+>>> dis(pickle.dumps(T, 2))
+    0: \x80 PROTO      2
+    2: ]    EMPTY_LIST
+    3: q    BINPUT     0
+    5: h    BINGET     0
+    7: \x85 TUPLE1
+    8: q    BINPUT     1
+   10: a    APPEND
+   11: 0    POP
+   12: h    BINGET     1
+   14: .    STOP
+highest protocol among opcodes = 2
+
+Try protocol 3 with annotations:
+
+>>> dis(pickle.dumps(T, 3), annotate=1)
+    0: \x80 PROTO      3 Protocol version indicator.
+    2: ]    EMPTY_LIST   Push an empty list.
+    3: q    BINPUT     0 Store the stack top into the memo.  The stack is not popped.
+    5: h    BINGET     0 Read an object from the memo and push it on the stack.
+    7: \x85 TUPLE1       Build a one-tuple out of the topmost item on the stack.
+    8: q    BINPUT     1 Store the stack top into the memo.  The stack is not popped.
+   10: a    APPEND       Append an object to a list.
+   11: 0    POP          Discard the top stack item, shrinking the stack by one item.
+   12: h    BINGET     1 Read an object from the memo and push it on the stack.
+   14: .    STOP         Stop the unpickling machine.
+highest protocol among opcodes = 2
+
+"""
+
+_memo_test = r"""
+>>> import pickle
+>>> import io
+>>> f = io.BytesIO()
+>>> p = pickle.Pickler(f, 2)
+>>> x = [1, 2, 3]
+>>> p.dump(x)
+>>> p.dump(x)
+>>> f.seek(0)
+0
+>>> memo = {}
+>>> dis(f, memo=memo)
+    0: \x80 PROTO      2
+    2: ]    EMPTY_LIST
+    3: q    BINPUT     0
+    5: (    MARK
+    6: K        BININT1    1
+    8: K        BININT1    2
+   10: K        BININT1    3
+   12: e        APPENDS    (MARK at 5)
+   13: .    STOP
+highest protocol among opcodes = 2
+>>> dis(f, memo=memo)
+   14: \x80 PROTO      2
+   16: h    BINGET     0
+   18: .    STOP
+highest protocol among opcodes = 2
+"""
+
+__test__ = {'disassembler_test': _dis_test,
+            'disassembler_memo_test': _memo_test,
+           }
+
+def _test():
+    import doctest
+    return doctest.testmod()
+
+if __name__ == "__main__":
+    import argparse
+    parser = argparse.ArgumentParser(
+        description='disassemble one or more pickle files')
+    parser.add_argument(
+        'pickle_file',
+        nargs='*', help='the pickle file')
+    parser.add_argument(
+        '-o', '--output',
+        help='the file where the output should be written')
+    parser.add_argument(
+        '-m', '--memo', action='store_true',
+        help='preserve memo between disassemblies')
+    parser.add_argument(
+        '-l', '--indentlevel', default=4, type=int,
+        help='the number of blanks by which to indent a new MARK level')
+    parser.add_argument(
+        '-a', '--annotate',  action='store_true',
+        help='annotate each line with a short opcode description')
+    parser.add_argument(
+        '-p', '--preamble', default="==> {name} <==",
+        help='if more than one pickle file is specified, print this before'
+        ' each disassembly')
+    parser.add_argument(
+        '-t', '--test', action='store_true',
+        help='run self-test suite')
+    parser.add_argument(
+        '-v', action='store_true',
+        help='run verbosely; only affects self-test run')
+    args = parser.parse_args()
+    if args.test:
+        _test()
+    else:
+        if not args.pickle_file:
+            parser.print_help()
+        else:
+            annotate = 30 if args.annotate else 0
+            memo = {} if args.memo else None
+            if args.output is None:
+                output = sys.stdout
+            else:
+                output = open(args.output, 'w')
+            try:
+                for arg in args.pickle_file:
+                    if len(args.pickle_file) > 1:
+                        name = '<stdin>' if arg == '-' else arg
+                        preamble = args.preamble.format(name=name)
+                        output.write(preamble + '\n')
+                    if arg == '-':
+                        dis(sys.stdin.buffer, output, memo, args.indentlevel, annotate)
+                    else:
+                        with open(arg, 'rb') as f:
+                            dis(f, output, memo, args.indentlevel, annotate)
+            finally:
+                if output is not sys.stdout:
+                    output.close()
+                                                                                                                                                            """Utilities to support packages."""
+
+from collections import namedtuple
+from functools import singledispatch as simplegeneric
+import importlib
+import importlib.util
+import importlib.machinery
+import os
+import os.path
+import sys
+from types import ModuleType
+import warnings
+
+__all__ = [
+    'get_importer', 'iter_importers', 'get_loader', 'find_loader',
+    'walk_packages', 'iter_modules', 'get_data',
+    'read_code', 'extend_path',
+    'ModuleInfo',
+]
+
+
+ModuleInfo = namedtuple('ModuleInfo', 'module_finder name ispkg')
+ModuleInfo.__doc__ = 'A namedtuple with minimal info about a module.'
+
+
+def read_code(stream):
+    # This helper is needed in order for the PEP 302 emulation to
+    # correctly handle compiled files
+    import marshal
+
+    magic = stream.read(4)
+    if magic != importlib.util.MAGIC_NUMBER:
+        return None
+
+    stream.read(12) # Skip rest of the header
+    return marshal.load(stream)
+
+
+def walk_packages(path=None, prefix='', onerror=None):
+    """Yields ModuleInfo for all modules recursively
+    on path, or, if path is None, all accessible modules.
+
+    'path' should be either None or a list of paths to look for
+    modules in.
+
+    'prefix' is a string to output on the front of every module name
+    on output.
+
+    Note that this function must import all *packages* (NOT all
+    modules!) on the given path, in order to access the __path__
+    attribute to find submodules.
+
+    'onerror' is a function which gets called with one argument (the
+    name of the package which was being imported) if any exception
+    occurs while trying to import a package.  If no onerror function is
+    supplied, ImportErrors are caught and ignored, while all other
+    exceptions are propagated, terminating the search.
+
+    Examples:
+
+    # list all modules python can access
+    walk_packages()
+
+    # list all submodules of ctypes
+    walk_packages(ctypes.__path__, ctypes.__name__+'.')
+    """
+
+    def seen(p, m={}):
+        if p in m:
+            return True
+        m[p] = True
+
+    for info in iter_modules(path, prefix):
+        yield info
+
+        if info.ispkg:
+            try:
+                __import__(info.name)
+            except ImportError:
+                if onerror is not None:
+                    onerror(info.name)
+            except Exception:
+                if onerror is not None:
+                    onerror(info.name)
+                else:
+                    raise
+            else:
+                path = getattr(sys.modules[info.name], '__path__', None) or []
+
+                # don't traverse path items we've seen before
+                path = [p for p in path if not seen(p)]
+
+                yield from walk_packages(path, info.name+'.', onerror)
+
+
+def iter_modules(path=None, prefix=''):
+    """Yields ModuleInfo for all submodules on path,
+    or, if path is None, all top-level modules on sys.path.
+
+    'path' should be either None or a list of paths to look for
+    modules in.
+
+    'prefix' is a string to output on the front of every module name
+    on output.
+    """
+    if path is None:
+        importers = iter_importers()
+    elif isinstance(path, str):
+        raise ValueError("path must be None or list of paths to look for "
+                        "modules in")
+    else:
+        importers = map(get_importer, path)
+
+    yielded = {}
+    for i in importers:
+        for name, ispkg in iter_importer_modules(i, prefix):
+            if name not in yielded:
+                yielded[name] = 1
+                yield ModuleInfo(i, name, ispkg)
+
+
+@simplegeneric
+def iter_importer_modules(importer, prefix=''):
+    if not hasattr(importer, 'iter_modules'):
+        return []
+    return importer.iter_modules(prefix)
+
+
+# Implement a file walker for the normal importlib path hook
+def _iter_file_finder_modules(importer, prefix=''):
+    if importer.path is None or not os.path.isdir(importer.path):
+        return
+
+    yielded = {}
+    import inspect
+    try:
+        filenames = os.listdir(importer.path)
+    except OSError:
+        # ignore unreadable directories like import does
+        filenames = []
+    filenames.sort()  # handle packages before same-named modules
+
+    for fn in filenames:
+        modname = inspect.getmodulename(fn)
+        if modname=='__init__' or modname in yielded:
+            continue
+
+        path = os.path.join(importer.path, fn)
+        ispkg = False
+
+        if not modname and os.path.isdir(path) and '.' not in fn:
+            modname = fn
+            try:
+                dircontents = os.listdir(path)
+            except OSError:
+                # ignore unreadable directories like import does
+                dircontents = []
+            for fn in dircontents:
+                subname = inspect.getmodulename(fn)
+                if subname=='__init__':
+                    ispkg = True
+                    break
+            else:
+                continue    # not a package
+
+        if modname and '.' not in modname:
+            yielded[modname] = 1
+            yield prefix + modname, ispkg
+
+iter_importer_modules.register(
+    importlib.machinery.FileFinder, _iter_file_finder_modules)
+
+
+try:
+    import zipimport
+    from zipimport import zipimporter
+
+    def iter_zipimport_modules(importer, prefix=''):
+        dirlist = sorted(zipimport._zip_directory_cache[importer.archive])
+        _prefix = importer.prefix
+        plen = len(_prefix)
+        yielded = {}
+        import inspect
+        for fn in dirlist:
+            if not fn.startswith(_prefix):
+                continue
+
+            fn = fn[plen:].split(os.sep)
+
+            if len(fn)==2 and fn[1].startswith('__init__.py'):
+                if fn[0] not in yielded:
+                    yielded[fn[0]] = 1
+                    yield prefix + fn[0], True
+
+            if len(fn)!=1:
+                continue
+
+            modname = inspect.getmodulename(fn[0])
+            if modname=='__init__':
+                continue
+
+            if modname and '.' not in modname and modname not in yielded:
+                yielded[modname] = 1
+                yield prefix + modname, False
+
+    iter_importer_modules.register(zipimporter, iter_zipimport_modules)
+
+except ImportError:
+    pass
+
+
+def get_importer(path_item):
+    """Retrieve a finder for the given path item
+
+    The returned finder is cached in sys.path_importer_cache
+    if it was newly created by a path hook.
+
+    The cache (or part of it) can be cleared manually if a
+    rescan of sys.path_hooks is necessary.
+    """
+    path_item = os.fsdecode(path_item)
+    try:
+        importer = sys.path_importer_cache[path_item]
+    except KeyError:
+        for path_hook in sys.path_hooks:
+            try:
+                importer = path_hook(path_item)
+                sys.path_importer_cache.setdefault(path_item, importer)
+                break
+            except ImportError:
+                pass
+        else:
+            importer = None
+    return importer
+
+
+def iter_importers(fullname=""):
+    """Yield finders for the given module name
+
+    If fullname contains a '.', the finders will be for the package
+    containing fullname, otherwise they will be all registered top level
+    finders (i.e. those on both sys.meta_path and sys.path_hooks).
+
+    If the named module is in a package, that package is imported as a side
+    effect of invoking this function.
+
+    If no module name is specified, all top level finders are produced.
+    """
+    if fullname.startswith('.'):
+        msg = "Relative module name {!r} not supported".format(fullname)
+        raise ImportError(msg)
+    if '.' in fullname:
+        # Get the containing package's __path__
+        pkg_name = fullname.rpartition(".")[0]
+        pkg = importlib.import_module(pkg_name)
+        path = getattr(pkg, '__path__', None)
+        if path is None:
+            return
+    else:
+        yield from sys.meta_path
+        path = sys.path
+    for item in path:
+        yield get_importer(item)
+
+
+def get_loader(module_or_name):
+    """Get a "loader" object for module_or_name
+
+    Returns None if the module cannot be found or imported.
+    If the named module is not already imported, its containing package
+    (if any) is imported, in order to establish the package __path__.
+    """
+    warnings._deprecated("pkgutil.get_loader",
+                         f"{warnings._DEPRECATED_MSG}; "
+                         "use importlib.util.find_spec() instead",
+                         remove=(3, 14))
+    if module_or_name in sys.modules:
+        module_or_name = sys.modules[module_or_name]
+        if module_or_name is None:
+            return None
+    if isinstance(module_or_name, ModuleType):
+        module = module_or_name
+        loader = getattr(module, '__loader__', None)
+        if loader is not None:
+            return loader
+        if getattr(module, '__spec__', None) is None:
+            return None
+        fullname = module.__name__
+    else:
+        fullname = module_or_name
+    return find_loader(fullname)
+
+
+def find_loader(fullname):
+    """Find a "loader" object for fullname
+
+    This is a backwards compatibility wrapper around
+    importlib.util.find_spec that converts most failures to ImportError
+    and only returns the loader rather than the full spec
+    """
+    warnings._deprecated("pkgutil.find_loader",
+                         f"{warnings._DEPRECATED_MSG}; "
+                         "use importlib.util.find_spec() instead",
+                         remove=(3, 14))
+    if fullname.startswith('.'):
+        msg = "Relative module name {!r} not supported".format(fullname)
+        raise ImportError(msg)
+    try:
+        spec = importlib.util.find_spec(fullname)
+    except (ImportError, AttributeError, TypeError, ValueError) as ex:
+        # This hack fixes an impedance mismatch between pkgutil and
+        # importlib, where the latter raises other errors for cases where
+        # pkgutil previously raised ImportError
+        msg = "Error while finding loader for {!r} ({}: {})"
+        raise ImportError(msg.format(fullname, type(ex), ex)) from ex
+    return spec.loader if spec is not None else None
+
+
+def extend_path(path, name):
+    """Extend a package's path.
+
+    Intended use is to place the following code in a package's __init__.py:
+
+        from pkgutil import extend_path
+        __path__ = extend_path(__path__, __name__)
+
+    For each directory on sys.path that has a subdirectory that
+    matches the package name, add the subdirectory to the package's
+    __path__.  This is useful if one wants to distribute different
+    parts of a single logical package as multiple directories.
+
+    It also looks for *.pkg files beginning where * matches the name
+    argument.  This feature is similar to *.pth files (see site.py),
+    except that it doesn't special-case lines starting with 'import'.
+    A *.pkg file is trusted at face value: apart from checking for
+    duplicates, all entries found in a *.pkg file are added to the
+    path, regardless of whether they are exist the filesystem.  (This
+    is a feature.)
+
+    If the input path is not a list (as is the case for frozen
+    packages) it is returned unchanged.  The input path is not
+    modified; an extended copy is returned.  Items are only appended
+    to the copy at the end.
+
+    It is assumed that sys.path is a sequence.  Items of sys.path that
+    are not (unicode or 8-bit) strings referring to existing
+    directories are ignored.  Unicode items of sys.path that cause
+    errors when used as filenames may cause this function to raise an
+    exception (in line with os.path.isdir() behavior).
+    """
+
+    if not isinstance(path, list):
+        # This could happen e.g. when this is called from inside a
+        # frozen package.  Return the path unchanged in that case.
+        return path
+
+    sname_pkg = name + ".pkg"
+
+    path = path[:] # Start with a copy of the existing path
+
+    parent_package, _, final_name = name.rpartition('.')
+    if parent_package:
+        try:
+            search_path = sys.modules[parent_package].__path__
+        except (KeyError, AttributeError):
+            # We can't do anything: find_loader() returns None when
+            # passed a dotted name.
+            return path
+    else:
+        search_path = sys.path
+
+    for dir in search_path:
+        if not isinstance(dir, str):
+            continue
+
+        finder = get_importer(dir)
+        if finder is not None:
+            portions = []
+            if hasattr(finder, 'find_spec'):
+                spec = finder.find_spec(final_name)
+                if spec is not None:
+                    portions = spec.submodule_search_locations or []
+            # Is this finder PEP 420 compliant?
+            elif hasattr(finder, 'find_loader'):
+                _, portions = finder.find_loader(final_name)
+
+            for portion in portions:
+                # XXX This may still add duplicate entries to path on
+                # case-insensitive filesystems
+                if portion not in path:
+                    path.append(portion)
+
+        # XXX Is this the right thing for subpackages like zope.app?
+        # It looks for a file named "zope.app.pkg"
+        pkgfile = os.path.join(dir, sname_pkg)
+        if os.path.isfile(pkgfile):
+            try:
+                f = open(pkgfile)
+            except OSError as msg:
+                sys.stderr.write("Can't open %s: %s\n" %
+                                 (pkgfile, msg))
+            else:
+                with f:
+                    for line in f:
+                        line = line.rstrip('\n')
+                        if not line or line.startswith('#'):
+                            continue
+                        path.append(line) # Don't check for existence!
+
+    return path
+
+
+def get_data(package, resource):
+    """Get a resource from a package.
+
+    This is a wrapper round the PEP 302 loader get_data API. The package
+    argument should be the name of a package, in standard module format
+    (foo.bar). The resource argument should be in the form of a relative
+    filename, using '/' as the path separator. The parent directory name '..'
+    is not allowed, and nor is a rooted name (starting with a '/').
+
+    The function returns a binary string, which is the contents of the
+    specified resource.
+
+    For packages located in the filesystem, which have already been imported,
+    this is the rough equivalent of
+
+        d = os.path.dirname(sys.modules[package].__file__)
+        data = open(os.path.join(d, resource), 'rb').read()
+
+    If the package cannot be located or loaded, or it uses a PEP 302 loader
+    which does not support get_data(), then None is returned.
+    """
+
+    spec = importlib.util.find_spec(package)
+    if spec is None:
+        return None
+    loader = spec.loader
+    if loader is None or not hasattr(loader, 'get_data'):
+        return None
+    # XXX needs test
+    mod = (sys.modules.get(package) or
+           importlib._bootstrap._load(spec))
+    if mod is None or not hasattr(mod, '__file__'):
+        return None
+
+    # Modify the resource name to be compatible with the loader.get_data
+    # signature - an os.path format "filename" starting with the dirname of
+    # the package's __file__
+    parts = resource.split('/')
+    parts.insert(0, os.path.dirname(mod.__file__))
+    resource_name = os.path.join(*parts)
+    return loader.get_data(resource_name)
+
+
+_NAME_PATTERN = None
+
+def resolve_name(name):
+    """
+    Resolve a name to an object.
+
+    It is expected that `name` will be a string in one of the following
+    formats, where W is shorthand for a valid Python identifier and dot stands
+    for a literal period in these pseudo-regexes:
+
+    W(.W)*
+    W(.W)*:(W(.W)*)?
+
+    The first form is intended for backward compatibility only. It assumes that
+    some part of the dotted name is a package, and the rest is an object
+    somewhere within that package, possibly nested inside other objects.
+    Because the place where the package stops and the object hierarchy starts
+    can't be inferred by inspection, repeated attempts to import must be done
+    with this form.
+
+    In the second form, the caller makes the division point clear through the
+    provision of a single colon: the dotted name to the left of the colon is a
+    package to be imported, and the dotted name to the right is the object
+    hierarchy within that package. Only one import is needed in this form. If
+    it ends with the colon, then a module object is returned.
+
+    The function will return an object (which might be a module), or raise one
+    of the following exceptions:
+
+    ValueError - if `name` isn't in a recognised format
+    ImportError - if an import failed when it shouldn't have
+    AttributeError - if a failure occurred when traversing the object hierarchy
+                     within the imported package to get to the desired object.
+    """
+    global _NAME_PATTERN
+    if _NAME_PATTERN is None:
+        # Lazy import to speedup Python startup time
+        import re
+        dotted_words = r'(?!\d)(\w+)(\.(?!\d)(\w+))*'
+        _NAME_PATTERN = re.compile(f'^(?P<pkg>{dotted_words})'
+                                   f'(?P<cln>:(?P<obj>{dotted_words})?)?$',
+                                   re.UNICODE)
+
+    m = _NAME_PATTERN.match(name)
+    if not m:
+        raise ValueError(f'invalid format: {name!r}')
+    gd = m.groupdict()
+    if gd.get('cln'):
+        # there is a colon - a one-step import is all that's needed
+        mod = importlib.import_module(gd['pkg'])
+        parts = gd.get('obj')
+        parts = parts.split('.') if parts else []
+    else:
+        # no colon - have to iterate to find the package boundary
+        parts = name.split('.')
+        modname = parts.pop(0)
+        # first part *must* be a module/package.
+        mod = importlib.import_module(modname)
+        while parts:
+            p = parts[0]
+            s = f'{modname}.{p}'
+            try:
+                mod = importlib.import_module(s)
+                parts.pop(0)
+                modname = s
+            except ImportError:
+                break
+    # if we reach this point, mod is the module, already imported, and
+    # parts is the list of parts in the object hierarchy to be traversed, or
+    # an empty list if just the module is wanted.
+    result = mod
+    for p in parts:
+        result = getattr(result, p)
+    return result
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       #! /usr/bin/python3.13
+
+""" This module tries to retrieve as much platform-identifying data as
+    possible. It makes this information available via function APIs.
+
+    If called from the command line, it prints the platform
+    information concatenated as single string to stdout. The output
+    format is usable as part of a filename.
+
+"""
+#    This module is maintained by Marc-Andre Lemburg <mal@egenix.com>.
+#    If you find problems, please submit bug reports/patches via the
+#    Python issue tracker (https://github.com/python/cpython/issues) and
+#    mention "@malemburg".
+#
+#    Still needed:
+#    * support for MS-DOS (PythonDX ?)
+#    * support for Amiga and other still unsupported platforms running Python
+#    * support for additional Linux distributions
+#
+#    Many thanks to all those who helped adding platform-specific
+#    checks (in no particular order):
+#
+#      Charles G Waldman, David Arnold, Gordon McMillan, Ben Darnell,
+#      Jeff Bauer, Cliff Crawford, Ivan Van Laningham, Josef
+#      Betancourt, Randall Hopper, Karl Putland, John Farrell, Greg
+#      Andruk, Just van Rossum, Thomas Heller, Mark R. Levinson, Mark
+#      Hammond, Bill Tutt, Hans Nowak, Uwe Zessin (OpenVMS support),
+#      Colin Kong, Trent Mick, Guido van Rossum, Anthony Baxter, Steve
+#      Dower
+#
+#    History:
+#
+#    <see CVS and SVN checkin messages for history>
+#
+#    1.0.8 - changed Windows support to read version from kernel32.dll
+#    1.0.7 - added DEV_NULL
+#    1.0.6 - added linux_distribution()
+#    1.0.5 - fixed Java support to allow running the module on Jython
+#    1.0.4 - added IronPython support
+#    1.0.3 - added normalization of Windows system name
+#    1.0.2 - added more Windows support
+#    1.0.1 - reformatted to make doc.py happy
+#    1.0.0 - reformatted a bit and checked into Python CVS
+#    0.8.0 - added sys.version parser and various new access
+#            APIs (python_version(), python_compiler(), etc.)
+#    0.7.2 - fixed architecture() to use sizeof(pointer) where available
+#    0.7.1 - added support for Caldera OpenLinux
+#    0.7.0 - some fixes for WinCE; untabified the source file
+#    0.6.2 - support for OpenVMS - requires version 1.5.2-V006 or higher and
+#            vms_lib.getsyi() configured
+#    0.6.1 - added code to prevent 'uname -p' on platforms which are
+#            known not to support it
+#    0.6.0 - fixed win32_ver() to hopefully work on Win95,98,NT and Win2k;
+#            did some cleanup of the interfaces - some APIs have changed
+#    0.5.5 - fixed another type in the MacOS code... should have
+#            used more coffee today ;-)
+#    0.5.4 - fixed a few typos in the MacOS code
+#    0.5.3 - added experimental MacOS support; added better popen()
+#            workarounds in _syscmd_ver() -- still not 100% elegant
+#            though
+#    0.5.2 - fixed uname() to return '' instead of 'unknown' in all
+#            return values (the system uname command tends to return
+#            'unknown' instead of just leaving the field empty)
+#    0.5.1 - included code for slackware dist; added exception handlers
+#            to cover up situations where platforms don't have os.popen
+#            (e.g. Mac) or fail on socket.gethostname(); fixed libc
+#            detection RE
+#    0.5.0 - changed the API names referring to system commands to *syscmd*;
+#            added java_ver(); made syscmd_ver() a private
+#            API (was system_ver() in previous versions) -- use uname()
+#            instead; extended the win32_ver() to also return processor
+#            type information
+#    0.4.0 - added win32_ver() and modified the platform() output for WinXX
+#    0.3.4 - fixed a bug in _follow_symlinks()
+#    0.3.3 - fixed popen() and "file" command invocation bugs
+#    0.3.2 - added architecture() API and support for it in platform()
+#    0.3.1 - fixed syscmd_ver() RE to support Windows NT
+#    0.3.0 - added system alias support
+#    0.2.3 - removed 'wince' again... oh well.
+#    0.2.2 - added 'wince' to syscmd_ver() supported platforms
+#    0.2.1 - added cache logic and changed the platform string format
+#    0.2.0 - changed the API to use functions instead of module globals
+#            since some action take too long to be run on module import
+#    0.1.0 - first release
+#
+#    You can always get the latest version of this module at:
+#
+#             http://www.egenix.com/files/python/platform.py
+#
+#    If that URL should fail, try contacting the author.
+
+__copyright__ = """
+    Copyright (c) 1999-2000, Marc-Andre Lemburg; mailto:mal@lemburg.com
+    Copyright (c) 2000-2010, eGenix.com Software GmbH; mailto:info@egenix.com
+
+    Permission to use, copy, modify, and distribute this software and its
+    documentation for any purpose and without fee or royalty is hereby granted,
+    provided that the above copyright notice appear in all copies and that
+    both that copyright notice and this permission notice appear in
+    supporting documentation or portions thereof, including modifications,
+    that you make.
+
+    EGENIX.COM SOFTWARE GMBH DISCLAIMS ALL WARRANTIES WITH REGARD TO
+    THIS SOFTWARE, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND
+    FITNESS, IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL,
+    INDIRECT OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING
+    FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT,
+    NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
+    WITH THE USE OR PERFORMANCE OF THIS SOFTWARE !
+
+"""
+
+__version__ = '1.0.8'
+
+import collections
+import os
+import re
+import sys
+import functools
+import itertools
+try:
+    import _wmi
+except ImportError:
+    _wmi = None
+
+### Globals & Constants
+
+# Helper for comparing two version number strings.
+# Based on the description of the PHP's version_compare():
+# http://php.net/manual/en/function.version-compare.php
+
+_ver_stages = {
+    # any string not found in this dict, will get 0 assigned
+    'dev': 10,
+    'alpha': 20, 'a': 20,
+    'beta': 30, 'b': 30,
+    'c': 40,
+    'RC': 50, 'rc': 50,
+    # number, will get 100 assigned
+    'pl': 200, 'p': 200,
+}
+
+
+def _comparable_version(version):
+    component_re = re.compile(r'([0-9]+|[._+-])')
+    result = []
+    for v in component_re.split(version):
+        if v not in '._+-':
+            try:
+                v = int(v, 10)
+                t = 100
+            except ValueError:
+                t = _ver_stages.get(v, 0)
+            result.extend((t, v))
+    return result
+
+### Platform specific APIs
+
+
+def libc_ver(executable=None, lib='', version='', chunksize=16384):
+
+    """ Tries to determine the libc version that the file executable
+        (which defaults to the Python interpreter) is linked against.
+
+        Returns a tuple of strings (lib,version) which default to the
+        given parameters in case the lookup fails.
+
+        Note that the function has intimate knowledge of how different
+        libc versions add symbols to the executable and thus is probably
+        only usable for executables compiled using gcc.
+
+        The file is read and scanned in chunks of chunksize bytes.
+
+    """
+    if not executable:
+        try:
+            ver = os.confstr('CS_GNU_LIBC_VERSION')
+            # parse 'glibc 2.28' as ('glibc', '2.28')
+            parts = ver.split(maxsplit=1)
+            if len(parts) == 2:
+                return tuple(parts)
+        except (AttributeError, ValueError, OSError):
+            # os.confstr() or CS_GNU_LIBC_VERSION value not available
+            pass
+
+        executable = sys.executable
+
+        if not executable:
+            # sys.executable is not set.
+            return lib, version
+
+    libc_search = re.compile(b'(__libc_init)'
+                          b'|'
+                          b'(GLIBC_([0-9.]+))'
+                          b'|'
+                          br'(libc(_\w+)?\.so(?:\.(\d[0-9.]*))?)', re.ASCII)
+
+    V = _comparable_version
+    # We use os.path.realpath()
+    # here to work around problems with Cygwin not being
+    # able to open symlinks for reading
+    executable = os.path.realpath(executable)
+    with open(executable, 'rb') as f:
+        binary = f.read(chunksize)
+        pos = 0
+        while pos < len(binary):
+            if b'libc' in binary or b'GLIBC' in binary:
+                m = libc_search.search(binary, pos)
+            else:
+                m = None
+            if not m or m.end() == len(binary):
+                chunk = f.read(chunksize)
+                if chunk:
+                    binary = binary[max(pos, len(binary) - 1000):] + chunk
+                    pos = 0
+                    continue
+                if not m:
+                    break
+            libcinit, glibc, glibcversion, so, threads, soversion = [
+                s.decode('latin1') if s is not None else s
+                for s in m.groups()]
+            if libcinit and not lib:
+                lib = 'libc'
+            elif glibc:
+                if lib != 'glibc':
+                    lib = 'glibc'
+                    version = glibcversion
+                elif V(glibcversion) > V(version):
+                    version = glibcversion
+            elif so:
+                if lib != 'glibc':
+                    lib = 'libc'
+                    if soversion and (not version or V(soversion) > V(version)):
+                        version = soversion
+                    if threads and version[-len(threads):] != threads:
+                        version = version + threads
+            pos = m.end()
+    return lib, version
+
+def _norm_version(version, build=''):
+
+    """ Normalize the version and build strings and return a single
+        version string using the format major.minor.build (or patchlevel).
+    """
+    l = version.split('.')
+    if build:
+        l.append(build)
+    try:
+        strings = list(map(str, map(int, l)))
+    except ValueError:
+        strings = l
+    version = '.'.join(strings[:3])
+    return version
+
+
+# Examples of VER command output:
+#
+#   Windows 2000:  Microsoft Windows 2000 [Version 5.00.2195]
+#   Windows XP:    Microsoft Windows XP [Version 5.1.2600]
+#   Windows Vista: Microsoft Windows [Version 6.0.6002]
+#
+# Note that the "Version" string gets localized on different
+# Windows versions.
+
+def _syscmd_ver(system='', release='', version='',
+
+               supported_platforms=('win32', 'win16', 'dos')):
+
+    """ Tries to figure out the OS version used and returns
+        a tuple (system, release, version).
+
+        It uses the "ver" shell command for this which is known
+        to exists on Windows, DOS. XXX Others too ?
+
+        In case this fails, the given parameters are used as
+        defaults.
+
+    """
+    if sys.platform not in supported_platforms:
+        return system, release, version
+
+    # Try some common cmd strings
+    import subprocess
+    for cmd in ('ver', 'command /c ver', 'cmd /c ver'):
+        try:
+            info = subprocess.check_output(cmd,
+                                           stdin=subprocess.DEVNULL,
+                                           stderr=subprocess.DEVNULL,
+                                           text=True,
+                                           encoding="locale",
+                                           shell=True)
+        except (OSError, subprocess.CalledProcessError) as why:
+            #print('Command %s failed: %s' % (cmd, why))
+            continue
+        else:
+            break
+    else:
+        return system, release, version
+
+    ver_output = re.compile(r'(?:([\w ]+) ([\w.]+) '
+                         r'.*'
+                         r'\[.* ([\d.]+)\])')
+
+    # Parse the output
+    info = info.strip()
+    m = ver_output.match(info)
+    if m is not None:
+        system, release, version = m.groups()
+        # Strip trailing dots from version and release
+        if release[-1] == '.':
+            release = release[:-1]
+        if version[-1] == '.':
+            version = version[:-1]
+        # Normalize the version and build strings (eliminating additional
+        # zeros)
+        version = _norm_version(version)
+    return system, release, version
+
+
+def _wmi_query(table, *keys):
+    global _wmi
+    if not _wmi:
+        raise OSError("not supported")
+    table = {
+        "OS": "Win32_OperatingSystem",
+        "CPU": "Win32_Processor",
+    }[table]
+    try:
+        data = _wmi.exec_query("SELECT {} FROM {}".format(
+            ",".join(keys),
+            table,
+        )).split("\0")
+    except OSError:
+        _wmi = None
+        raise OSError("not supported")
+    split_data = (i.partition("=") for i in data)
+    dict_data = {i[0]: i[2] for i in split_data}
+    return (dict_data[k] for k in keys)
+
+
+_WIN32_CLIENT_RELEASES = [
+    ((10, 1, 0), "post11"),
+    ((10, 0, 22000), "11"),
+    ((6, 4, 0), "10"),
+    ((6, 3, 0), "8.1"),
+    ((6, 2, 0), "8"),
+    ((6, 1, 0), "7"),
+    ((6, 0, 0), "Vista"),
+    ((5, 2, 3790), "XP64"),
+    ((5, 2, 0), "XPMedia"),
+    ((5, 1, 0), "XP"),
+    ((5, 0, 0), "2000"),
+]
+
+_WIN32_SERVER_RELEASES = [
+    ((10, 1, 0), "post2025Server"),
+    ((10, 0, 26100), "2025Server"),
+    ((10, 0, 20348), "2022Server"),
+    ((10, 0, 17763), "2019Server"),
+    ((6, 4, 0), "2016Server"),
+    ((6, 3, 0), "2012ServerR2"),
+    ((6, 2, 0), "2012Server"),
+    ((6, 1, 0), "2008ServerR2"),
+    ((6, 0, 0), "2008Server"),
+    ((5, 2, 0), "2003Server"),
+    ((5, 0, 0), "2000Server"),
+]
+
+def win32_is_iot():
+    return win32_edition() in ('IoTUAP', 'NanoServer', 'WindowsCoreHeadless', 'IoTEdgeOS')
+
+def win32_edition():
+    try:
+        import winreg
+    except ImportError:
+        pass
+    else:
+        try:
+            cvkey = r'SOFTWARE\Microsoft\Windows NT\CurrentVersion'
+            with winreg.OpenKeyEx(winreg.HKEY_LOCAL_MACHINE, cvkey) as key:
+                return winreg.QueryValueEx(key, 'EditionId')[0]
+        except OSError:
+            pass
+
+    return None
+
+def _win32_ver(version, csd, ptype):
+    # Try using WMI first, as this is the canonical source of data
+    try:
+        (version, product_type, ptype, spmajor, spminor)  = _wmi_query(
+            'OS',
+            'Version',
+            'ProductType',
+            'BuildType',
+            'ServicePackMajorVersion',
+            'ServicePackMinorVersion',
+        )
+        is_client = (int(product_type) == 1)
+        if spminor and spminor != '0':
+            csd = f'SP{spmajor}.{spminor}'
+        else:
+            csd = f'SP{spmajor}'
+        return version, csd, ptype, is_client
+    except OSError:
+        pass
+
+    # Fall back to a combination of sys.getwindowsversion and "ver"
+    try:
+        from sys import getwindowsversion
+    except ImportError:
+        return version, csd, ptype, True
+
+    winver = getwindowsversion()
+    is_client = (getattr(winver, 'product_type', 1) == 1)
+    try:
+        version = _syscmd_ver()[2]
+        major, minor, build = map(int, version.split('.'))
+    except ValueError:
+        major, minor, build = winver.platform_version or winver[:3]
+        version = '{0}.{1}.{2}'.format(major, minor, build)
+
+    # getwindowsversion() reflect the compatibility mode Python is
+    # running under, and so the service pack value is only going to be
+    # valid if the versions match.
+    if winver[:2] == (major, minor):
+        try:
+            csd = 'SP{}'.format(winver.service_pack_major)
+        except AttributeError:
+            if csd[:13] == 'Service Pack ':
+                csd = 'SP' + csd[13:]
+
+    try:
+        import winreg
+    except ImportError:
+        pass
+    else:
+        try:
+            cvkey = r'SOFTWARE\Microsoft\Windows NT\CurrentVersion'
+            with winreg.OpenKeyEx(winreg.HKEY_LOCAL_MACHINE, cvkey) as key:
+                ptype = winreg.QueryValueEx(key, 'CurrentType')[0]
+        except OSError:
+            pass
+
+    return version, csd, ptype, is_client
+
+def win32_ver(release='', version='', csd='', ptype=''):
+    is_client = False
+
+    version, csd, ptype, is_client = _win32_ver(version, csd, ptype)
+
+    if version:
+        intversion = tuple(map(int, version.split('.')))
+        releases = _WIN32_CLIENT_RELEASES if is_client else _WIN32_SERVER_RELEASES
+        release = next((r for v, r in releases if v <= intversion), release)
+
+    return release, version, csd, ptype
+
+
+def _mac_ver_xml():
+    fn = '/System/Library/CoreServices/SystemVersion.plist'
+    if not os.path.exists(fn):
+        return None
+
+    try:
+        import plistlib
+    except ImportError:
+        return None
+
+    with open(fn, 'rb') as f:
+        pl = plistlib.load(f)
+    release = pl['ProductVersion']
+    versioninfo = ('', '', '')
+    machine = os.uname().machine
+    if machine in ('ppc', 'Power Macintosh'):
+        # Canonical name
+        machine = 'PowerPC'
+
+    return release, versioninfo, machine
+
+
+def mac_ver(release='', versioninfo=('', '', ''), machine=''):
+
+    """ Get macOS version information and return it as tuple (release,
+        versioninfo, machine) with versioninfo being a tuple (version,
+        dev_stage, non_release_version).
+
+        Entries which cannot be determined are set to the parameter values
+        which default to ''. All tuple entries are strings.
+    """
+
+    # First try reading the information from an XML file which should
+    # always be present
+    info = _mac_ver_xml()
+    if info is not None:
+        return info
+
+    # If that also doesn't work return the default values
+    return release, versioninfo, machine
+
+
+# A namedtuple for iOS version information.
+IOSVersionInfo = collections.namedtuple(
+    "IOSVersionInfo",
+    ["system", "release", "model", "is_simulator"]
+)
+
+
+def ios_ver(system="", release="", model="", is_simulator=False):
+    """Get iOS version information, and return it as a namedtuple:
+        (system, release, model, is_simulator).
+
+    If values can't be determined, they are set to values provided as
+    parameters.
+    """
+    if sys.platform == "ios":
+        import _ios_support
+        result = _ios_support.get_platform_ios()
+        if result is not None:
+            return IOSVersionInfo(*result)
+
+    return IOSVersionInfo(system, release, model, is_simulator)
+
+
+def _java_getprop(name, default):
+    """This private helper is deprecated in 3.13 and will be removed in 3.15"""
+    from java.lang import System
+    try:
+        value = System.getProperty(name)
+        if value is None:
+            return default
+        return value
+    except AttributeError:
+        return default
+
+def java_ver(release='', vendor='', vminfo=('', '', ''), osinfo=('', '', '')):
+
+    """ Version interface for Jython.
+
+        Returns a tuple (release, vendor, vminfo, osinfo) with vminfo being
+        a tuple (vm_name, vm_release, vm_vendor) and osinfo being a
+        tuple (os_name, os_version, os_arch).
+
+        Values which cannot be determined are set to the defaults
+        given as parameters (which all default to '').
+
+    """
+    import warnings
+    warnings._deprecated('java_ver', remove=(3, 15))
+    # Import the needed APIs
+    try:
+        import java.lang
+    except ImportError:
+        return release, vendor, vminfo, osinfo
+
+    vendor = _java_getprop('java.vendor', vendor)
+    release = _java_getprop('java.version', release)
+    vm_name, vm_release, vm_vendor = vminfo
+    vm_name = _java_getprop('java.vm.name', vm_name)
+    vm_vendor = _java_getprop('java.vm.vendor', vm_vendor)
+    vm_release = _java_getprop('java.vm.version', vm_release)
+    vminfo = vm_name, vm_release, vm_vendor
+    os_name, os_version, os_arch = osinfo
+    os_arch = _java_getprop('java.os.arch', os_arch)
+    os_name = _java_getprop('java.os.name', os_name)
+    os_version = _java_getprop('java.os.version', os_version)
+    osinfo = os_name, os_version, os_arch
+
+    return release, vendor, vminfo, osinfo
+
+
+AndroidVer = collections.namedtuple(
+    "AndroidVer", "release api_level manufacturer model device is_emulator")
+
+def android_ver(release="", api_level=0, manufacturer="", model="", device="",
+                is_emulator=False):
+    if sys.platform == "android":
+        try:
+            from ctypes import CDLL, c_char_p, create_string_buffer
+        except ImportError:
+            pass
+        else:
+            # An NDK developer confirmed that this is an officially-supported
+            # API (https://stackoverflow.com/a/28416743). Use `getattr` to avoid
+            # private name mangling.
+            system_property_get = getattr(CDLL("libc.so"), "__system_property_get")
+            system_property_get.argtypes = (c_char_p, c_char_p)
+
+            def getprop(name, default):
+                # https://android.googlesource.com/platform/bionic/+/refs/tags/android-5.0.0_r1/libc/include/sys/system_properties.h#39
+                PROP_VALUE_MAX = 92
+                buffer = create_string_buffer(PROP_VALUE_MAX)
+                length = system_property_get(name.encode("UTF-8"), buffer)
+                if length == 0:
+                    # This API doesn’t distinguish between an empty property and
+                    # a missing one.
+                    return default
+                else:
+                    return buffer.value.decode("UTF-8", "backslashreplace")
+
+            release = getprop("ro.build.version.release", release)
+            api_level = int(getprop("ro.build.version.sdk", api_level))
+            manufacturer = getprop("ro.product.manufacturer", manufacturer)
+            model = getprop("ro.product.model", model)
+            device = getprop("ro.product.device", device)
+            is_emulator = getprop("ro.kernel.qemu", "0") == "1"
+
+    return AndroidVer(
+        release, api_level, manufacturer, model, device, is_emulator)
+
+
+### System name aliasing
+
+def system_alias(system, release, version):
+
+    """ Returns (system, release, version) aliased to common
+        marketing names used for some systems.
+
+        It also does some reordering of the information in some cases
+        where it would otherwise cause confusion.
+
+    """
+    if system == 'SunOS':
+        # Sun's OS
+        if release < '5':
+            # These releases use the old name SunOS
+            return system, release, version
+        # Modify release (marketing release = SunOS release - 3)
+        l = release.split('.')
+        if l:
+            try:
+                major = int(l[0])
+            except ValueError:
+                pass
+            else:
+                major = major - 3
+                l[0] = str(major)
+                release = '.'.join(l)
+        if release < '6':
+            system = 'Solaris'
+        else:
+            # XXX Whatever the new SunOS marketing name is...
+            system = 'Solaris'
+
+    elif system in ('win32', 'win16'):
+        # In case one of the other tricks
+        system = 'Windows'
+
+    # bpo-35516: Don't replace Darwin with macOS since input release and
+    # version arguments can be different than the currently running version.
+
+    return system, release, version
+
+### Various internal helpers
+
+def _platform(*args):
+
+    """ Helper to format the platform string in a filename
+        compatible format e.g. "system-version-machine".
+    """
+    # Format the platform string
+    platform = '-'.join(x.strip() for x in filter(len, args))
+
+    # Cleanup some possible filename obstacles...
+    platform = platform.replace(' ', '_')
+    platform = platform.replace('/', '-')
+    platform = platform.replace('\\', '-')
+    platform = platform.replace(':', '-')
+    platform = platform.replace(';', '-')
+    platform = platform.replace('"', '-')
+    platform = platform.replace('(', '-')
+    platform = platform.replace(')', '-')
+
+    # No need to report 'unknown' information...
+    platform = platform.replace('unknown', '')
+
+    # Fold '--'s and remove trailing '-'
+    while True:
+        cleaned = platform.replace('--', '-')
+        if cleaned == platform:
+            break
+        platform = cleaned
+    while platform and platform[-1] == '-':
+        platform = platform[:-1]
+
+    return platform
+
+def _node(default=''):
+
+    """ Helper to determine the node name of this machine.
+    """
+    try:
+        import socket
+    except ImportError:
+        # No sockets...
+        return default
+    try:
+        return socket.gethostname()
+    except OSError:
+        # Still not working...
+        return default
+
+def _follow_symlinks(filepath):
+
+    """ In case filepath is a symlink, follow it until a
+        real file is reached.
+    """
+    filepath = os.path.abspath(filepath)
+    while os.path.islink(filepath):
+        filepath = os.path.normpath(
+            os.path.join(os.path.dirname(filepath), os.readlink(filepath)))
+    return filepath
+
+
+def _syscmd_file(target, default=''):
+
+    """ Interface to the system's file command.
+
+        The function uses the -b option of the file command to have it
+        omit the filename in its output. Follow the symlinks. It returns
+        default in case the command should fail.
+
+    """
+    if sys.platform in {'dos', 'win32', 'win16', 'ios', 'tvos', 'watchos'}:
+        # XXX Others too ?
+        return default
+
+    try:
+        import subprocess
+    except ImportError:
+        return default
+    target = _follow_symlinks(target)
+    # "file" output is locale dependent: force the usage of the C locale
+    # to get deterministic behavior.
+    env = dict(os.environ, LC_ALL='C')
+    try:
+        # -b: do not prepend filenames to output lines (brief mode)
+        output = subprocess.check_output(['file', '-b', target],
+                                         stderr=subprocess.DEVNULL,
+                                         env=env)
+    except (OSError, subprocess.CalledProcessError):
+        return default
+    if not output:
+        return default
+    # With the C locale, the output should be mostly ASCII-compatible.
+    # Decode from Latin-1 to prevent Unicode decode error.
+    return output.decode('latin-1')
+
+### Information about the used architecture
+
+# Default values for architecture; non-empty strings override the
+# defaults given as parameters
+_default_architecture = {
+    'win32': ('', 'WindowsPE'),
+    'win16': ('', 'Windows'),
+    'dos': ('', 'MSDOS'),
+}
+
+def architecture(executable=sys.executable, bits='', linkage=''):
+
+    """ Queries the given executable (defaults to the Python interpreter
+        binary) for various architecture information.
+
+        Returns a tuple (bits, linkage) which contains information about
+        the bit architecture and the linkage format used for the
+        executable. Both values are returned as strings.
+
+        Values that cannot be determined are returned as given by the
+        parameter presets. If bits is given as '', the sizeof(pointer)
+        (or sizeof(long) on Python version < 1.5.2) is used as
+        indicator for the supported pointer size.
+
+        The function relies on the system's "file" command to do the
+        actual work. This is available on most if not all Unix
+        platforms. On some non-Unix platforms where the "file" command
+        does not exist and the executable is set to the Python interpreter
+        binary defaults from _default_architecture are used.
+
+    """
+    # Use the sizeof(pointer) as default number of bits if nothing
+    # else is given as default.
+    if not bits:
+        import struct
+        size = struct.calcsize('P')
+        bits = str(size * 8) + 'bit'
+
+    # Get data from the 'file' system command
+    if executable:
+        fileout = _syscmd_file(executable, '')
+    else:
+        fileout = ''
+
+    if not fileout and \
+       executable == sys.executable:
+        # "file" command did not return anything; we'll try to provide
+        # some sensible defaults then...
+        if sys.platform in _default_architecture:
+            b, l = _default_architecture[sys.platform]
+            if b:
+                bits = b
+            if l:
+                linkage = l
+        return bits, linkage
+
+    if 'executable' not in fileout and 'shared object' not in fileout:
+        # Format not supported
+        return bits, linkage
+
+    # Bits
+    if '32-bit' in fileout:
+        bits = '32bit'
+    elif '64-bit' in fileout:
+        bits = '64bit'
+
+    # Linkage
+    if 'ELF' in fileout:
+        linkage = 'ELF'
+    elif 'Mach-O' in fileout:
+        linkage = "Mach-O"
+    elif 'PE' in fileout:
+        # E.g. Windows uses this format
+        if 'Windows' in fileout:
+            linkage = 'WindowsPE'
+        else:
+            linkage = 'PE'
+    elif 'COFF' in fileout:
+        linkage = 'COFF'
+    elif 'MS-DOS' in fileout:
+        linkage = 'MSDOS'
+    else:
+        # XXX the A.OUT format also falls under this class...
+        pass
+
+    return bits, linkage
+
+
+def _get_machine_win32():
+    # Try to use the PROCESSOR_* environment variables
+    # available on Win XP and later; see
+    # http://support.microsoft.com/kb/888731 and
+    # http://www.geocities.com/rick_lively/MANUALS/ENV/MSWIN/PROCESSI.HTM
+
+    # WOW64 processes mask the native architecture
+    try:
+        [arch, *_] = _wmi_query('CPU', 'Architecture')
+    except OSError:
+        pass
+    else:
+        try:
+            arch = ['x86', 'MIPS', 'Alpha', 'PowerPC', None,
+                    'ARM', 'ia64', None, None,
+                    'AMD64', None, None, 'ARM64',
+            ][int(arch)]
+        except (ValueError, IndexError):
+            pass
+        else:
+            if arch:
+                return arch
+    return (
+        os.environ.get('PROCESSOR_ARCHITEW6432', '') or
+        os.environ.get('PROCESSOR_ARCHITECTURE', '')
+    )
+
+
+class _Processor:
+    @classmethod
+    def get(cls):
+        func = getattr(cls, f'get_{sys.platform}', cls.from_subprocess)
+        return func() or ''
+
+    def get_win32():
+        try:
+            manufacturer, caption = _wmi_query('CPU', 'Manufacturer', 'Caption')
+        except OSError:
+            return os.environ.get('PROCESSOR_IDENTIFIER', _get_machine_win32())
+        else:
+            return f'{caption}, {manufacturer}'
+
+    def get_OpenVMS():
+        try:
+            import vms_lib
+        except ImportError:
+            pass
+        else:
+            csid, cpu_number = vms_lib.getsyi('SYI$_CPU', 0)
+            return 'Alpha' if cpu_number >= 128 else 'VAX'
+
+    # On the iOS simulator, os.uname returns the architecture as uname.machine.
+    # On device it returns the model name for some reason; but there's only one
+    # CPU architecture for iOS devices, so we know the right answer.
+    def get_ios():
+        if sys.implementation._multiarch.endswith("simulator"):
+            return os.uname().machine
+        return 'arm64'
+
+    def from_subprocess():
+        """
+        Fall back to `uname -p`
+        """
+        try:
+            import subprocess
+        except ImportError:
+            return None
+        try:
+            return subprocess.check_output(
+                ['uname', '-p'],
+                stderr=subprocess.DEVNULL,
+                text=True,
+                encoding="utf8",
+            ).strip()
+        except (OSError, subprocess.CalledProcessError):
+            pass
+
+
+def _unknown_as_blank(val):
+    return '' if val == 'unknown' else val
+
+
+### Portable uname() interface
+
+class uname_result(
+    collections.namedtuple(
+        "uname_result_base",
+        "system node release version machine")
+        ):
+    """
+    A uname_result that's largely compatible with a
+    simple namedtuple except that 'processor' is
+    resolved late and cached to avoid calling "uname"
+    except when needed.
+    """
+
+    _fields = ('system', 'node', 'release', 'version', 'machine', 'processor')
+
+    @functools.cached_property
+    def processor(self):
+        return _unknown_as_blank(_Processor.get())
+
+    def __iter__(self):
+        return itertools.chain(
+            super().__iter__(),
+            (self.processor,)
+        )
+
+    @classmethod
+    def _make(cls, iterable):
+        # override factory to affect length check
+        num_fields = len(cls._fields) - 1
+        result = cls.__new__(cls, *iterable)
+        if len(result) != num_fields + 1:
+            msg = f'Expected {num_fields} arguments, got {len(result)}'
+            raise TypeError(msg)
+        return result
+
+    def __getitem__(self, key):
+        return tuple(self)[key]
+
+    def __len__(self):
+        return len(tuple(iter(self)))
+
+    def __reduce__(self):
+        return uname_result, tuple(self)[:len(self._fields) - 1]
+
+
+_uname_cache = None
+
+
+def uname():
+
+    """ Fairly portable uname interface. Returns a tuple
+        of strings (system, node, release, version, machine, processor)
+        identifying the underlying platform.
+
+        Note that unlike the os.uname function this also returns
+        possible processor information as an additional tuple entry.
+
+        Entries which cannot be determined are set to ''.
+
+    """
+    global _uname_cache
+
+    if _uname_cache is not None:
+        return _uname_cache
+
+    # Get some infos from the builtin os.uname API...
+    try:
+        system, node, release, version, machine = infos = os.uname()
+    except AttributeError:
+        system = sys.platform
+        node = _node()
+        release = version = machine = ''
+        infos = ()
+
+    if not any(infos):
+        # uname is not available
+
+        # Try win32_ver() on win32 platforms
+        if system == 'win32':
+            release, version, csd, ptype = win32_ver()
+            machine = machine or _get_machine_win32()
+
+        # Try the 'ver' system command available on some
+        # platforms
+        if not (release and version):
+            system, release, version = _syscmd_ver(system)
+            # Normalize system to what win32_ver() normally returns
+            # (_syscmd_ver() tends to return the vendor name as well)
+            if system == 'Microsoft Windows':
+                system = 'Windows'
+            elif system == 'Microsoft' and release == 'Windows':
+                # Under Windows Vista and Windows Server 2008,
+                # Microsoft changed the output of the ver command. The
+                # release is no longer printed.  This causes the
+                # system and release to be misidentified.
+                system = 'Windows'
+                if '6.0' == version[:3]:
+                    release = 'Vista'
+                else:
+                    release = ''
+
+        # In case we still don't know anything useful, we'll try to
+        # help ourselves
+        if system in ('win32', 'win16'):
+            if not version:
+                if system == 'win32':
+                    version = '32bit'
+                else:
+                    version = '16bit'
+            system = 'Windows'
+
+        elif system[:4] == 'java':
+            release, vendor, vminfo, osinfo = java_ver()
+            system = 'Java'
+            version = ', '.join(vminfo)
+            if not version:
+                version = vendor
+
+    # System specific extensions
+    if system == 'OpenVMS':
+        # OpenVMS seems to have release and version mixed up
+        if not release or release == '0':
+            release = version
+            version = ''
+
+    #  normalize name
+    if system == 'Microsoft' and release == 'Windows':
+        system = 'Windows'
+        release = 'Vista'
+
+    # On Android, return the name and version of the OS rather than the kernel.
+    if sys.platform == 'android':
+        system = 'Android'
+        release = android_ver().release
+
+    # Normalize responses on iOS
+    if sys.platform == 'ios':
+        system, release, _, _ = ios_ver()
+
+    vals = system, node, release, version, machine
+    # Replace 'unknown' values with the more portable ''
+    _uname_cache = uname_result(*map(_unknown_as_blank, vals))
+    return _uname_cache
+
+### Direct interfaces to some of the uname() return values
+
+def system():
+
+    """ Returns the system/OS name, e.g. 'Linux', 'Windows' or 'Java'.
+
+        An empty string is returned if the value cannot be determined.
+
+    """
+    return uname().system
+
+def node():
+
+    """ Returns the computer's network name (which may not be fully
+        qualified)
+
+        An empty string is returned if the value cannot be determined.
+
+    """
+    return uname().node
+
+def release():
+
+    """ Returns the system's release, e.g. '2.2.0' or 'NT'
+
+        An empty string is returned if the value cannot be determined.
+
+    """
+    return uname().release
+
+def version():
+
+    """ Returns the system's release version, e.g. '#3 on degas'
+
+        An empty string is returned if the value cannot be determined.
+
+    """
+    return uname().version
+
+def machine():
+
+    """ Returns the machine type, e.g. 'i386'
+
+        An empty string is returned if the value cannot be determined.
+
+    """
+    return uname().machine
+
+def processor():
+
+    """ Returns the (true) processor name, e.g. 'amdk6'
+
+        An empty string is returned if the value cannot be
+        determined. Note that many platforms do not provide this
+        information or simply return the same value as for machine(),
+        e.g.  NetBSD does this.
+
+    """
+    return uname().processor
+
+### Various APIs for extracting information from sys.version
+
+_sys_version_cache = {}
+
+def _sys_version(sys_version=None):
+
+    """ Returns a parsed version of Python's sys.version as tuple
+        (name, version, branch, revision, buildno, builddate, compiler)
+        referring to the Python implementation name, version, branch,
+        revision, build number, build date/time as string and the compiler
+        identification string.
+
+        Note that unlike the Python sys.version, the returned value
+        for the Python version will always include the patchlevel (it
+        defaults to '.0').
+
+        The function returns empty strings for tuple entries that
+        cannot be determined.
+
+        sys_version may be given to parse an alternative version
+        string, e.g. if the version was read from a different Python
+        interpreter.
+
+    """
+    # Get the Python version
+    if sys_version is None:
+        sys_version = sys.version
+
+    # Try the cache first
+    result = _sys_version_cache.get(sys_version, None)
+    if result is not None:
+        return result
+
+    if sys.platform.startswith('java'):
+        # Jython
+        jython_sys_version_parser = re.compile(
+            r'([\w.+]+)\s*'  # "version<space>"
+            r'\(#?([^,]+)'  # "(#buildno"
+            r'(?:,\s*([\w ]*)'  # ", builddate"
+            r'(?:,\s*([\w :]*))?)?\)\s*'  # ", buildtime)<space>"
+            r'\[([^\]]+)\]?', re.ASCII)  # "[compiler]"
+        name = 'Jython'
+        match = jython_sys_version_parser.match(sys_version)
+        if match is None:
+            raise ValueError(
+                'failed to parse Jython sys.version: %s' %
+                repr(sys_version))
+        version, buildno, builddate, buildtime, _ = match.groups()
+        if builddate is None:
+            builddate = ''
+        compiler = sys.platform
+
+    elif "PyPy" in sys_version:
+        # PyPy
+        pypy_sys_version_parser = re.compile(
+            r'([\w.+]+)\s*'
+            r'\(#?([^,]+),\s*([\w ]+),\s*([\w :]+)\)\s*'
+            r'\[PyPy [^\]]+\]?')
+
+        name = "PyPy"
+        match = pypy_sys_version_parser.match(sys_version)
+        if match is None:
+            raise ValueError("failed to parse PyPy sys.version: %s" %
+                             repr(sys_version))
+        version, buildno, builddate, buildtime = match.groups()
+        compiler = ""
+
+    else:
+        # CPython
+        cpython_sys_version_parser = re.compile(
+            r'([\w.+]+)\s*'  # "version<space>"
+            r'(?:experimental free-threading build\s+)?' # "free-threading-build<space>"
+            r'\(#?([^,]+)'  # "(#buildno"
+            r'(?:,\s*([\w ]*)'  # ", builddate"
+            r'(?:,\s*([\w :]*))?)?\)\s*'  # ", buildtime)<space>"
+            r'\[([^\]]+)\]?', re.ASCII)  # "[compiler]"
+        match = cpython_sys_version_parser.match(sys_version)
+        if match is None:
+            raise ValueError(
+                'failed to parse CPython sys.version: %s' %
+                repr(sys_version))
+        version, buildno, builddate, buildtime, compiler = \
+              match.groups()
+        name = 'CPython'
+        if builddate is None:
+            builddate = ''
+        elif buildtime:
+            builddate = builddate + ' ' + buildtime
+
+    if hasattr(sys, '_git'):
+        _, branch, revision = sys._git
+    elif hasattr(sys, '_mercurial'):
+        _, branch, revision = sys._mercurial
+    else:
+        branch = ''
+        revision = ''
+
+    # Add the patchlevel version if missing
+    l = version.split('.')
+    if len(l) == 2:
+        l.append('0')
+        version = '.'.join(l)
+
+    # Build and cache the result
+    result = (name, version, branch, revision, buildno, builddate, compiler)
+    _sys_version_cache[sys_version] = result
+    return result
+
+def python_implementation():
+
+    """ Returns a string identifying the Python implementation.
+
+        Currently, the following implementations are identified:
+          'CPython' (C implementation of Python),
+          'Jython' (Java implementation of Python),
+          'PyPy' (Python implementation of Python).
+
+    """
+    return _sys_version()[0]
+
+def python_version():
+
+    """ Returns the Python version as string 'major.minor.patchlevel'
+
+        Note that unlike the Python sys.version, the returned value
+        will always include the patchlevel (it defaults to 0).
+
+    """
+    return _sys_version()[1]
+
+def python_version_tuple():
+
+    """ Returns the Python version as tuple (major, minor, patchlevel)
+        of strings.
+
+        Note that unlike the Python sys.version, the returned value
+        will always include the patchlevel (it defaults to 0).
+
+    """
+    return tuple(_sys_version()[1].split('.'))
+
+def python_branch():
+
+    """ Returns a string identifying the Python implementation
+        branch.
+
+        For CPython this is the SCM branch from which the
+        Python binary was built.
+
+        If not available, an empty string is returned.
+
+    """
+
+    return _sys_version()[2]
+
+def python_revision():
+
+    """ Returns a string identifying the Python implementation
+        revision.
+
+        For CPython this is the SCM revision from which the
+        Python binary was built.
+
+        If not available, an empty string is returned.
+
+    """
+    return _sys_version()[3]
+
+def python_build():
+
+    """ Returns a tuple (buildno, builddate) stating the Python
+        build number and date as strings.
+
+    """
+    return _sys_version()[4:6]
+
+def python_compiler():
+
+    """ Returns a string identifying the compiler used for compiling
+        Python.
+
+    """
+    return _sys_version()[6]
+
+### The Opus Magnum of platform strings :-)
+
+_platform_cache = {}
+
+def platform(aliased=False, terse=False):
+
+    """ Returns a single string identifying the underlying platform
+        with as much useful information as possible (but no more :).
+
+        The output is intended to be human readable rather than
+        machine parseable. It may look different on different
+        platforms and this is intended.
+
+        If "aliased" is true, the function will use aliases for
+        various platforms that report system names which differ from
+        their common names, e.g. SunOS will be reported as
+        Solaris. The system_alias() function is used to implement
+        this.
+
+        Setting terse to true causes the function to return only the
+        absolute minimum information needed to identify the platform.
+
+    """
+    result = _platform_cache.get((aliased, terse), None)
+    if result is not None:
+        return result
+
+    # Get uname information and then apply platform specific cosmetics
+    # to it...
+    system, node, release, version, machine, processor = uname()
+    if machine == processor:
+        processor = ''
+    if aliased:
+        system, release, version = system_alias(system, release, version)
+
+    if system == 'Darwin':
+        # macOS and iOS both report as a "Darwin" kernel
+        if sys.platform == "ios":
+            system, release, _, _ = ios_ver()
+        else:
+            macos_release = mac_ver()[0]
+            if macos_release:
+                system = 'macOS'
+                release = macos_release
+
+    if system == 'Windows':
+        # MS platforms
+        rel, vers, csd, ptype = win32_ver(version)
+        if terse:
+            platform = _platform(system, release)
+        else:
+            platform = _platform(system, release, version, csd)
+
+    elif system == 'Linux':
+        # check for libc vs. glibc
+        libcname, libcversion = libc_ver()
+        platform = _platform(system, release, machine, processor,
+                             'with',
+                             libcname+libcversion)
+    elif system == 'Java':
+        # Java platforms
+        r, v, vminfo, (os_name, os_version, os_arch) = java_ver()
+        if terse or not os_name:
+            platform = _platform(system, release, version)
+        else:
+            platform = _platform(system, release, version,
+                                 'on',
+                                 os_name, os_version, os_arch)
+
+    else:
+        # Generic handler
+        if terse:
+            platform = _platform(system, release)
+        else:
+            bits, linkage = architecture(sys.executable)
+            platform = _platform(system, release, machine,
+                                 processor, bits, linkage)
+
+    _platform_cache[(aliased, terse)] = platform
+    return platform
+
+### freedesktop.org os-release standard
+# https://www.freedesktop.org/software/systemd/man/os-release.html
+
+# /etc takes precedence over /usr/lib
+_os_release_candidates = ("/etc/os-release", "/usr/lib/os-release")
+_os_release_cache = None
+
+
+def _parse_os_release(lines):
+    # These fields are mandatory fields with well-known defaults
+    # in practice all Linux distributions override NAME, ID, and PRETTY_NAME.
+    info = {
+        "NAME": "Linux",
+        "ID": "linux",
+        "PRETTY_NAME": "Linux",
+    }
+
+    # NAME=value with optional quotes (' or "). The regular expression is less
+    # strict than shell lexer, but that's ok.
+    os_release_line = re.compile(
+        "^(?P<name>[a-zA-Z0-9_]+)=(?P<quote>[\"\']?)(?P<value>.*)(?P=quote)$"
+    )
+    # unescape five special characters mentioned in the standard
+    os_release_unescape = re.compile(r"\\([\\\$\"\'`])")
+
+    for line in lines:
+        mo = os_release_line.match(line)
+        if mo is not None:
+            info[mo.group('name')] = os_release_unescape.sub(
+                r"\1", mo.group('value')
+            )
+
+    return info
+
+
+def freedesktop_os_release():
+    """Return operation system identification from freedesktop.org os-release
+    """
+    global _os_release_cache
+
+    if _os_release_cache is None:
+        errno = None
+        for candidate in _os_release_candidates:
+            try:
+                with open(candidate, encoding="utf-8") as f:
+                    _os_release_cache = _parse_os_release(f)
+                break
+            except OSError as e:
+                errno = e.errno
+        else:
+            raise OSError(
+                errno,
+                f"Unable to read files {', '.join(_os_release_candidates)}"
+            )
+
+    return _os_release_cache.copy()
+
+
+### Command line interface
+
+if __name__ == '__main__':
+    # Default is to print the aliased verbose platform string
+    terse = ('terse' in sys.argv or '--terse' in sys.argv)
+    aliased = (not 'nonaliased' in sys.argv and not '--nonaliased' in sys.argv)
+    print(platform(aliased, terse))
+    sys.exit(0)
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               r"""plistlib.py -- a tool to generate and parse MacOSX .plist files.
+
+The property list (.plist) file format is a simple XML pickle supporting
+basic object types, like dictionaries, lists, numbers and strings.
+Usually the top level object is a dictionary.
+
+To write out a plist file, use the dump(value, file)
+function. 'value' is the top level object, 'file' is
+a (writable) file object.
+
+To parse a plist from a file, use the load(file) function,
+with a (readable) file object as the only argument. It
+returns the top level object (again, usually a dictionary).
+
+To work with plist data in bytes objects, you can use loads()
+and dumps().
+
+Values can be strings, integers, floats, booleans, tuples, lists,
+dictionaries (but only with string keys), Data, bytes, bytearray, or
+datetime.datetime objects.
+
+Generate Plist example:
+
+    import datetime
+    import plistlib
+
+    pl = dict(
+        aString = "Doodah",
+        aList = ["A", "B", 12, 32.1, [1, 2, 3]],
+        aFloat = 0.1,
+        anInt = 728,
+        aDict = dict(
+            anotherString = "<hello & hi there!>",
+            aThirdString = "M\xe4ssig, Ma\xdf",
+            aTrueValue = True,
+            aFalseValue = False,
+        ),
+        someData = b"<binary gunk>",
+        someMoreData = b"<lots of binary gunk>" * 10,
+        aDate = datetime.datetime.now()
+    )
+    print(plistlib.dumps(pl).decode())
+
+Parse Plist example:
+
+    import plistlib
+
+    plist = b'''<plist version="1.0">
+    <dict>
+        <key>foo</key>
+        <string>bar</string>
+    </dict>
+    </plist>'''
+    pl = plistlib.loads(plist)
+    print(pl["foo"])
+"""
+__all__ = [
+    "InvalidFileException", "FMT_XML", "FMT_BINARY", "load", "dump", "loads", "dumps", "UID"
+]
+
+import binascii
+import codecs
+import datetime
+import enum
+from io import BytesIO
+import itertools
+import os
+import re
+import struct
+from xml.parsers.expat import ParserCreate
+
+
+PlistFormat = enum.Enum('PlistFormat', 'FMT_XML FMT_BINARY', module=__name__)
+globals().update(PlistFormat.__members__)
+
+
+class UID:
+    def __init__(self, data):
+        if not isinstance(data, int):
+            raise TypeError("data must be an int")
+        if data >= 1 << 64:
+            raise ValueError("UIDs cannot be >= 2**64")
+        if data < 0:
+            raise ValueError("UIDs must be positive")
+        self.data = data
+
+    def __index__(self):
+        return self.data
+
+    def __repr__(self):
+        return "%s(%s)" % (self.__class__.__name__, repr(self.data))
+
+    def __reduce__(self):
+        return self.__class__, (self.data,)
+
+    def __eq__(self, other):
+        if not isinstance(other, UID):
+            return NotImplemented
+        return self.data == other.data
+
+    def __hash__(self):
+        return hash(self.data)
+
+#
+# XML support
+#
+
+
+# XML 'header'
+PLISTHEADER = b"""\
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+"""
+
+
+# Regex to find any control chars, except for \t \n and \r
+_controlCharPat = re.compile(
+    r"[\x00\x01\x02\x03\x04\x05\x06\x07\x08\x0b\x0c\x0e\x0f"
+    r"\x10\x11\x12\x13\x14\x15\x16\x17\x18\x19\x1a\x1b\x1c\x1d\x1e\x1f]")
+
+def _encode_base64(s, maxlinelength=76):
+    # copied from base64.encodebytes(), with added maxlinelength argument
+    maxbinsize = (maxlinelength//4)*3
+    pieces = []
+    for i in range(0, len(s), maxbinsize):
+        chunk = s[i : i + maxbinsize]
+        pieces.append(binascii.b2a_base64(chunk))
+    return b''.join(pieces)
+
+def _decode_base64(s):
+    if isinstance(s, str):
+        return binascii.a2b_base64(s.encode("utf-8"))
+
+    else:
+        return binascii.a2b_base64(s)
+
+# Contents should conform to a subset of ISO 8601
+# (in particular, YYYY '-' MM '-' DD 'T' HH ':' MM ':' SS 'Z'.  Smaller units
+# may be omitted with #  a loss of precision)
+_dateParser = re.compile(r"(?P<year>\d\d\d\d)(?:-(?P<month>\d\d)(?:-(?P<day>\d\d)(?:T(?P<hour>\d\d)(?::(?P<minute>\d\d)(?::(?P<second>\d\d))?)?)?)?)?Z", re.ASCII)
+
+
+def _date_from_string(s, aware_datetime):
+    order = ('year', 'month', 'day', 'hour', 'minute', 'second')
+    gd = _dateParser.match(s).groupdict()
+    lst = []
+    for key in order:
+        val = gd[key]
+        if val is None:
+            break
+        lst.append(int(val))
+    if aware_datetime:
+        return datetime.datetime(*lst, tzinfo=datetime.UTC)
+    return datetime.datetime(*lst)
+
+
+def _date_to_string(d, aware_datetime):
+    if aware_datetime:
+        d = d.astimezone(datetime.UTC)
+    return '%04d-%02d-%02dT%02d:%02d:%02dZ' % (
+        d.year, d.month, d.day,
+        d.hour, d.minute, d.second
+    )
+
+def _escape(text):
+    m = _controlCharPat.search(text)
+    if m is not None:
+        raise ValueError("strings can't contain control characters; "
+                         "use bytes instead")
+    text = text.replace("\r\n", "\n")       # convert DOS line endings
+    text = text.replace("\r", "\n")         # convert Mac line endings
+    text = text.replace("&", "&amp;")       # escape '&'
+    text = text.replace("<", "&lt;")        # escape '<'
+    text = text.replace(">", "&gt;")        # escape '>'
+    return text
+
+class _PlistParser:
+    def __init__(self, dict_type, aware_datetime=False):
+        self.stack = []
+        self.current_key = None
+        self.root = None
+        self._dict_type = dict_type
+        self._aware_datetime = aware_datetime
+
+    def parse(self, fileobj):
+        self.parser = ParserCreate()
+        self.parser.StartElementHandler = self.handle_begin_element
+        self.parser.EndElementHandler = self.handle_end_element
+        self.parser.CharacterDataHandler = self.handle_data
+        self.parser.EntityDeclHandler = self.handle_entity_decl
+        self.parser.ParseFile(fileobj)
+        return self.root
+
+    def handle_entity_decl(self, entity_name, is_parameter_entity, value, base, system_id, public_id, notation_name):
+        # Reject plist files with entity declarations to avoid XML vulnerabilities in expat.
+        # Regular plist files don't contain those declarations, and Apple's plutil tool does not
+        # accept them either.
+        raise InvalidFileException("XML entity declarations are not supported in plist files")
+
+    def handle_begin_element(self, element, attrs):
+        self.data = []
+        handler = getattr(self, "begin_" + element, None)
+        if handler is not None:
+            handler(attrs)
+
+    def handle_end_element(self, element):
+        handler = getattr(self, "end_" + element, None)
+        if handler is not None:
+            handler()
+
+    def handle_data(self, data):
+        self.data.append(data)
+
+    def add_object(self, value):
+        if self.current_key is not None:
+            if not isinstance(self.stack[-1], dict):
+                raise ValueError("unexpected element at line %d" %
+                                 self.parser.CurrentLineNumber)
+            self.stack[-1][self.current_key] = value
+            self.current_key = None
+        elif not self.stack:
+            # this is the root object
+            self.root = value
+        else:
+            if not isinstance(self.stack[-1], list):
+                raise ValueError("unexpected element at line %d" %
+                                 self.parser.CurrentLineNumber)
+            self.stack[-1].append(value)
+
+    def get_data(self):
+        data = ''.join(self.data)
+        self.data = []
+        return data
+
+    # element handlers
+
+    def begin_dict(self, attrs):
+        d = self._dict_type()
+        self.add_object(d)
+        self.stack.append(d)
+
+    def end_dict(self):
+        if self.current_key:
+            raise ValueError("missing value for key '%s' at line %d" %
+                             (self.current_key,self.parser.CurrentLineNumber))
+        self.stack.pop()
+
+    def end_key(self):
+        if self.current_key or not isinstance(self.stack[-1], dict):
+            raise ValueError("unexpected key at line %d" %
+                             self.parser.CurrentLineNumber)
+        self.current_key = self.get_data()
+
+    def begin_array(self, attrs):
+        a = []
+        self.add_object(a)
+        self.stack.append(a)
+
+    def end_array(self):
+        self.stack.pop()
+
+    def end_true(self):
+        self.add_object(True)
+
+    def end_false(self):
+        self.add_object(False)
+
+    def end_integer(self):
+        raw = self.get_data()
+        if raw.startswith('0x') or raw.startswith('0X'):
+            self.add_object(int(raw, 16))
+        else:
+            self.add_object(int(raw))
+
+    def end_real(self):
+        self.add_object(float(self.get_data()))
+
+    def end_string(self):
+        self.add_object(self.get_data())
+
+    def end_data(self):
+        self.add_object(_decode_base64(self.get_data()))
+
+    def end_date(self):
+        self.add_object(_date_from_string(self.get_data(),
+                                          aware_datetime=self._aware_datetime))
+
+
+class _DumbXMLWriter:
+    def __init__(self, file, indent_level=0, indent="\t"):
+        self.file = file
+        self.stack = []
+        self._indent_level = indent_level
+        self.indent = indent
+
+    def begin_element(self, element):
+        self.stack.append(element)
+        self.writeln("<%s>" % element)
+        self._indent_level += 1
+
+    def end_element(self, element):
+        assert self._indent_level > 0
+        assert self.stack.pop() == element
+        self._indent_level -= 1
+        self.writeln("</%s>" % element)
+
+    def simple_element(self, element, value=None):
+        if value is not None:
+            value = _escape(value)
+            self.writeln("<%s>%s</%s>" % (element, value, element))
+
+        else:
+            self.writeln("<%s/>" % element)
+
+    def writeln(self, line):
+        if line:
+            # plist has fixed encoding of utf-8
+
+            # XXX: is this test needed?
+            if isinstance(line, str):
+                line = line.encode('utf-8')
+            self.file.write(self._indent_level * self.indent)
+            self.file.write(line)
+        self.file.write(b'\n')
+
+
+class _PlistWriter(_DumbXMLWriter):
+    def __init__(
+            self, file, indent_level=0, indent=b"\t", writeHeader=1,
+            sort_keys=True, skipkeys=False, aware_datetime=False):
+
+        if writeHeader:
+            file.write(PLISTHEADER)
+        _DumbXMLWriter.__init__(self, file, indent_level, indent)
+        self._sort_keys = sort_keys
+        self._skipkeys = skipkeys
+        self._aware_datetime = aware_datetime
+
+    def write(self, value):
+        self.writeln("<plist version=\"1.0\">")
+        self.write_value(value)
+        self.writeln("</plist>")
+
+    def write_value(self, value):
+        if isinstance(value, str):
+            self.simple_element("string", value)
+
+        elif value is True:
+            self.simple_element("true")
+
+        elif value is False:
+            self.simple_element("false")
+
+        elif isinstance(value, int):
+            if -1 << 63 <= value < 1 << 64:
+                self.simple_element("integer", "%d" % value)
+            else:
+                raise OverflowError(value)
+
+        elif isinstance(value, float):
+            self.simple_element("real", repr(value))
+
+        elif isinstance(value, dict):
+            self.write_dict(value)
+
+        elif isinstance(value, (bytes, bytearray)):
+            self.write_bytes(value)
+
+        elif isinstance(value, datetime.datetime):
+            self.simple_element("date",
+                                _date_to_string(value, self._aware_datetime))
+
+        elif isinstance(value, (tuple, list)):
+            self.write_array(value)
+
+        else:
+            raise TypeError("unsupported type: %s" % type(value))
+
+    def write_bytes(self, data):
+        self.begin_element("data")
+        self._indent_level -= 1
+        maxlinelength = max(
+            16,
+            76 - len(self.indent.replace(b"\t", b" " * 8) * self._indent_level))
+
+        for line in _encode_base64(data, maxlinelength).split(b"\n"):
+            if line:
+                self.writeln(line)
+        self._indent_level += 1
+        self.end_element("data")
+
+    def write_dict(self, d):
+        if d:
+            self.begin_element("dict")
+            if self._sort_keys:
+                items = sorted(d.items())
+            else:
+                items = d.items()
+
+            for key, value in items:
+                if not isinstance(key, str):
+                    if self._skipkeys:
+                        continue
+                    raise TypeError("keys must be strings")
+                self.simple_element("key", key)
+                self.write_value(value)
+            self.end_element("dict")
+
+        else:
+            self.simple_element("dict")
+
+    def write_array(self, array):
+        if array:
+            self.begin_element("array")
+            for value in array:
+                self.write_value(value)
+            self.end_element("array")
+
+        else:
+            self.simple_element("array")
+
+
+def _is_fmt_xml(header):
+    prefixes = (b'<?xml', b'<plist')
+
+    for pfx in prefixes:
+        if header.startswith(pfx):
+            return True
+
+    # Also check for alternative XML encodings, this is slightly
+    # overkill because the Apple tools (and plistlib) will not
+    # generate files with these encodings.
+    for bom, encoding in (
+                (codecs.BOM_UTF8, "utf-8"),
+                (codecs.BOM_UTF16_BE, "utf-16-be"),
+                (codecs.BOM_UTF16_LE, "utf-16-le"),
+                # expat does not support utf-32
+                #(codecs.BOM_UTF32_BE, "utf-32-be"),
+                #(codecs.BOM_UTF32_LE, "utf-32-le"),
+            ):
+        if not header.startswith(bom):
+            continue
+
+        for start in prefixes:
+            prefix = bom + start.decode('ascii').encode(encoding)
+            if header[:len(prefix)] == prefix:
+                return True
+
+    return False
+
+#
+# Binary Plist
+#
+
+
+class InvalidFileException (ValueError):
+    def __init__(self, message="Invalid file"):
+        ValueError.__init__(self, message)
+
+_BINARY_FORMAT = {1: 'B', 2: 'H', 4: 'L', 8: 'Q'}
+
+_undefined = object()
+
+class _BinaryPlistParser:
+    """
+    Read or write a binary plist file, following the description of the binary
+    format.  Raise InvalidFileException in case of error, otherwise return the
+    root object.
+
+    see also: http://opensource.apple.com/source/CF/CF-744.18/CFBinaryPList.c
+    """
+    def __init__(self, dict_type, aware_datetime=False):
+        self._dict_type = dict_type
+        self._aware_datime = aware_datetime
+
+    def parse(self, fp):
+        try:
+            # The basic file format:
+            # HEADER
+            # object...
+            # refid->offset...
+            # TRAILER
+            self._fp = fp
+            self._fp.seek(-32, os.SEEK_END)
+            trailer = self._fp.read(32)
+            if len(trailer) != 32:
+                raise InvalidFileException()
+            (
+                offset_size, self._ref_size, num_objects, top_object,
+                offset_table_offset
+            ) = struct.unpack('>6xBBQQQ', trailer)
+            self._fp.seek(offset_table_offset)
+            self._object_offsets = self._read_ints(num_objects, offset_size)
+            self._objects = [_undefined] * num_objects
+            return self._read_object(top_object)
+
+        except (OSError, IndexError, struct.error, OverflowError,
+                ValueError):
+            raise InvalidFileException()
+
+    def _get_size(self, tokenL):
+        """ return the size of the next object."""
+        if tokenL == 0xF:
+            m = self._fp.read(1)[0] & 0x3
+            s = 1 << m
+            f = '>' + _BINARY_FORMAT[s]
+            return struct.unpack(f, self._fp.read(s))[0]
+
+        return tokenL
+
+    def _read_ints(self, n, size):
+        data = self._fp.read(size * n)
+        if size in _BINARY_FORMAT:
+            return struct.unpack(f'>{n}{_BINARY_FORMAT[size]}', data)
+        else:
+            if not size or len(data) != size * n:
+                raise InvalidFileException()
+            return tuple(int.from_bytes(data[i: i + size], 'big')
+                         for i in range(0, size * n, size))
+
+    def _read_refs(self, n):
+        return self._read_ints(n, self._ref_size)
+
+    def _read_object(self, ref):
+        """
+        read the object by reference.
+
+        May recursively read sub-objects (content of an array/dict/set)
+        """
+        result = self._objects[ref]
+        if result is not _undefined:
+            return result
+
+        offset = self._object_offsets[ref]
+        self._fp.seek(offset)
+        token = self._fp.read(1)[0]
+        tokenH, tokenL = token & 0xF0, token & 0x0F
+
+        if token == 0x00:
+            result = None
+
+        elif token == 0x08:
+            result = False
+
+        elif token == 0x09:
+            result = True
+
+        # The referenced source code also mentions URL (0x0c, 0x0d) and
+        # UUID (0x0e), but neither can be generated using the Cocoa libraries.
+
+        elif token == 0x0f:
+            result = b''
+
+        elif tokenH == 0x10:  # int
+            result = int.from_bytes(self._fp.read(1 << tokenL),
+                                    'big', signed=tokenL >= 3)
+
+        elif token == 0x22: # real
+            result = struct.unpack('>f', self._fp.read(4))[0]
+
+        elif token == 0x23: # real
+            result = struct.unpack('>d', self._fp.read(8))[0]
+
+        elif token == 0x33:  # date
+            f = struct.unpack('>d', self._fp.read(8))[0]
+            # timestamp 0 of binary plists corresponds to 1/1/2001
+            # (year of Mac OS X 10.0), instead of 1/1/1970.
+            if self._aware_datime:
+                epoch = datetime.datetime(2001, 1, 1, tzinfo=datetime.UTC)
+            else:
+                epoch = datetime.datetime(2001, 1, 1)
+            result = epoch + datetime.timedelta(seconds=f)
+
+        elif tokenH == 0x40:  # data
+            s = self._get_size(tokenL)
+            result = self._fp.read(s)
+            if len(result) != s:
+                raise InvalidFileException()
+
+        elif tokenH == 0x50:  # ascii string
+            s = self._get_size(tokenL)
+            data = self._fp.read(s)
+            if len(data) != s:
+                raise InvalidFileException()
+            result = data.decode('ascii')
+
+        elif tokenH == 0x60:  # unicode string
+            s = self._get_size(tokenL) * 2
+            data = self._fp.read(s)
+            if len(data) != s:
+                raise InvalidFileException()
+            result = data.decode('utf-16be')
+
+        elif tokenH == 0x80:  # UID
+            # used by Key-Archiver plist files
+            result = UID(int.from_bytes(self._fp.read(1 + tokenL), 'big'))
+
+        elif tokenH == 0xA0:  # array
+            s = self._get_size(tokenL)
+            obj_refs = self._read_refs(s)
+            result = []
+            self._objects[ref] = result
+            for x in obj_refs:
+                result.append(self._read_object(x))
+
+        # tokenH == 0xB0 is documented as 'ordset', but is not actually
+        # implemented in the Apple reference code.
+
+        # tokenH == 0xC0 is documented as 'set', but sets cannot be used in
+        # plists.
+
+        elif tokenH == 0xD0:  # dict
+            s = self._get_size(tokenL)
+            key_refs = self._read_refs(s)
+            obj_refs = self._read_refs(s)
+            result = self._dict_type()
+            self._objects[ref] = result
+            try:
+                for k, o in zip(key_refs, obj_refs):
+                    result[self._read_object(k)] = self._read_object(o)
+            except TypeError:
+                raise InvalidFileException()
+        else:
+            raise InvalidFileException()
+
+        self._objects[ref] = result
+        return result
+
+def _count_to_size(count):
+    if count < 1 << 8:
+        return 1
+
+    elif count < 1 << 16:
+        return 2
+
+    elif count < 1 << 32:
+        return 4
+
+    else:
+        return 8
+
+_scalars = (str, int, float, datetime.datetime, bytes)
+
+class _BinaryPlistWriter (object):
+    def __init__(self, fp, sort_keys, skipkeys, aware_datetime=False):
+        self._fp = fp
+        self._sort_keys = sort_keys
+        self._skipkeys = skipkeys
+        self._aware_datetime = aware_datetime
+
+    def write(self, value):
+
+        # Flattened object list:
+        self._objlist = []
+
+        # Mappings from object->objectid
+        # First dict has (type(object), object) as the key,
+        # second dict is used when object is not hashable and
+        # has id(object) as the key.
+        self._objtable = {}
+        self._objidtable = {}
+
+        # Create list of all objects in the plist
+        self._flatten(value)
+
+        # Size of object references in serialized containers
+        # depends on the number of objects in the plist.
+        num_objects = len(self._objlist)
+        self._object_offsets = [0]*num_objects
+        self._ref_size = _count_to_size(num_objects)
+
+        self._ref_format = _BINARY_FORMAT[self._ref_size]
+
+        # Write file header
+        self._fp.write(b'bplist00')
+
+        # Write object list
+        for obj in self._objlist:
+            self._write_object(obj)
+
+        # Write refnum->object offset table
+        top_object = self._getrefnum(value)
+        offset_table_offset = self._fp.tell()
+        offset_size = _count_to_size(offset_table_offset)
+        offset_format = '>' + _BINARY_FORMAT[offset_size] * num_objects
+        self._fp.write(struct.pack(offset_format, *self._object_offsets))
+
+        # Write trailer
+        sort_version = 0
+        trailer = (
+            sort_version, offset_size, self._ref_size, num_objects,
+            top_object, offset_table_offset
+        )
+        self._fp.write(struct.pack('>5xBBBQQQ', *trailer))
+
+    def _flatten(self, value):
+        # First check if the object is in the object table, not used for
+        # containers to ensure that two subcontainers with the same contents
+        # will be serialized as distinct values.
+        if isinstance(value, _scalars):
+            if (type(value), value) in self._objtable:
+                return
+
+        elif id(value) in self._objidtable:
+            return
+
+        # Add to objectreference map
+        refnum = len(self._objlist)
+        self._objlist.append(value)
+        if isinstance(value, _scalars):
+            self._objtable[(type(value), value)] = refnum
+        else:
+            self._objidtable[id(value)] = refnum
+
+        # And finally recurse into containers
+        if isinstance(value, dict):
+            keys = []
+            values = []
+            items = value.items()
+            if self._sort_keys:
+                items = sorted(items)
+
+            for k, v in items:
+                if not isinstance(k, str):
+                    if self._skipkeys:
+                        continue
+                    raise TypeError("keys must be strings")
+                keys.append(k)
+                values.append(v)
+
+            for o in itertools.chain(keys, values):
+                self._flatten(o)
+
+        elif isinstance(value, (list, tuple)):
+            for o in value:
+                self._flatten(o)
+
+    def _getrefnum(self, value):
+        if isinstance(value, _scalars):
+            return self._objtable[(type(value), value)]
+        else:
+            return self._objidtable[id(value)]
+
+    def _write_size(self, token, size):
+        if size < 15:
+            self._fp.write(struct.pack('>B', token | size))
+
+        elif size < 1 << 8:
+            self._fp.write(struct.pack('>BBB', token | 0xF, 0x10, size))
+
+        elif size < 1 << 16:
+            self._fp.write(struct.pack('>BBH', token | 0xF, 0x11, size))
+
+        elif size < 1 << 32:
+            self._fp.write(struct.pack('>BBL', token | 0xF, 0x12, size))
+
+        else:
+            self._fp.write(struct.pack('>BBQ', token | 0xF, 0x13, size))
+
+    def _write_object(self, value):
+        ref = self._getrefnum(value)
+        self._object_offsets[ref] = self._fp.tell()
+        if value is None:
+            self._fp.write(b'\x00')
+
+        elif value is False:
+            self._fp.write(b'\x08')
+
+        elif value is True:
+            self._fp.write(b'\x09')
+
+        elif isinstance(value, int):
+            if value < 0:
+                try:
+                    self._fp.write(struct.pack('>Bq', 0x13, value))
+                except struct.error:
+                    raise OverflowError(value) from None
+            elif value < 1 << 8:
+                self._fp.write(struct.pack('>BB', 0x10, value))
+            elif value < 1 << 16:
+                self._fp.write(struct.pack('>BH', 0x11, value))
+            elif value < 1 << 32:
+                self._fp.write(struct.pack('>BL', 0x12, value))
+            elif value < 1 << 63:
+                self._fp.write(struct.pack('>BQ', 0x13, value))
+            elif value < 1 << 64:
+                self._fp.write(b'\x14' + value.to_bytes(16, 'big', signed=True))
+            else:
+                raise OverflowError(value)
+
+        elif isinstance(value, float):
+            self._fp.write(struct.pack('>Bd', 0x23, value))
+
+        elif isinstance(value, datetime.datetime):
+            if self._aware_datetime:
+                dt = value.astimezone(datetime.UTC)
+                offset = dt - datetime.datetime(2001, 1, 1, tzinfo=datetime.UTC)
+                f = offset.total_seconds()
+            else:
+                f = (value - datetime.datetime(2001, 1, 1)).total_seconds()
+            self._fp.write(struct.pack('>Bd', 0x33, f))
+
+        elif isinstance(value, (bytes, bytearray)):
+            self._write_size(0x40, len(value))
+            self._fp.write(value)
+
+        elif isinstance(value, str):
+            try:
+                t = value.encode('ascii')
+                self._write_size(0x50, len(value))
+            except UnicodeEncodeError:
+                t = value.encode('utf-16be')
+                self._write_size(0x60, len(t) // 2)
+
+            self._fp.write(t)
+
+        elif isinstance(value, UID):
+            if value.data < 0:
+                raise ValueError("UIDs must be positive")
+            elif value.data < 1 << 8:
+                self._fp.write(struct.pack('>BB', 0x80, value))
+            elif value.data < 1 << 16:
+                self._fp.write(struct.pack('>BH', 0x81, value))
+            elif value.data < 1 << 32:
+                self._fp.write(struct.pack('>BL', 0x83, value))
+            elif value.data < 1 << 64:
+                self._fp.write(struct.pack('>BQ', 0x87, value))
+            else:
+                raise OverflowError(value)
+
+        elif isinstance(value, (list, tuple)):
+            refs = [self._getrefnum(o) for o in value]
+            s = len(refs)
+            self._write_size(0xA0, s)
+            self._fp.write(struct.pack('>' + self._ref_format * s, *refs))
+
+        elif isinstance(value, dict):
+            keyRefs, valRefs = [], []
+
+            if self._sort_keys:
+                rootItems = sorted(value.items())
+            else:
+                rootItems = value.items()
+
+            for k, v in rootItems:
+                if not isinstance(k, str):
+                    if self._skipkeys:
+                        continue
+                    raise TypeError("keys must be strings")
+                keyRefs.append(self._getrefnum(k))
+                valRefs.append(self._getrefnum(v))
+
+            s = len(keyRefs)
+            self._write_size(0xD0, s)
+            self._fp.write(struct.pack('>' + self._ref_format * s, *keyRefs))
+            self._fp.write(struct.pack('>' + self._ref_format * s, *valRefs))
+
+        else:
+            raise TypeError(value)
+
+
+def _is_fmt_binary(header):
+    return header[:8] == b'bplist00'
+
+
+#
+# Generic bits
+#
+
+_FORMATS={
+    FMT_XML: dict(
+        detect=_is_fmt_xml,
+        parser=_PlistParser,
+        writer=_PlistWriter,
+    ),
+    FMT_BINARY: dict(
+        detect=_is_fmt_binary,
+        parser=_BinaryPlistParser,
+        writer=_BinaryPlistWriter,
+    )
+}
+
+
+def load(fp, *, fmt=None, dict_type=dict, aware_datetime=False):
+    """Read a .plist file. 'fp' should be a readable and binary file object.
+    Return the unpacked root object (which usually is a dictionary).
+    """
+    if fmt is None:
+        header = fp.read(32)
+        fp.seek(0)
+        for info in _FORMATS.values():
+            if info['detect'](header):
+                P = info['parser']
+                break
+
+        else:
+            raise InvalidFileException()
+
+    else:
+        P = _FORMATS[fmt]['parser']
+
+    p = P(dict_type=dict_type, aware_datetime=aware_datetime)
+    return p.parse(fp)
+
+
+def loads(value, *, fmt=None, dict_type=dict, aware_datetime=False):
+    """Read a .plist file from a bytes object.
+    Return the unpacked root object (which usually is a 

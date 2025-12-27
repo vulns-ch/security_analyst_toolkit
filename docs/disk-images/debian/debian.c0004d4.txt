@@ -1,0 +1,2567 @@
+  self._wait(timeout=self._sigint_wait_secs)
+                    except TimeoutExpired:
+                        pass
+                self._sigint_wait_secs = 0  # Note that this has been done.
+                return  # resume the KeyboardInterrupt
+
+            # Wait for the process to terminate, to avoid zombies.
+            self.wait()
+
+    def __del__(self, _maxsize=sys.maxsize, _warn=warnings.warn):
+        if not self._child_created:
+            # We didn't get to successfully create a child process.
+            return
+        if self.returncode is None:
+            # Not reading subprocess exit status creates a zombie process which
+            # is only destroyed at the parent python process exit
+            _warn("subprocess %s is still running" % self.pid,
+                  ResourceWarning, source=self)
+        # In case the child hasn't been waited on, check if it's done.
+        self._internal_poll(_deadstate=_maxsize)
+        if self.returncode is None and _active is not None:
+            # Child is still running, keep us alive until we can wait on it.
+            _active.append(self)
+
+    def _get_devnull(self):
+        if not hasattr(self, '_devnull'):
+            self._devnull = os.open(os.devnull, os.O_RDWR)
+        return self._devnull
+
+    def _stdin_write(self, input):
+        if input:
+            try:
+                self.stdin.write(input)
+            except BrokenPipeError:
+                pass  # communicate() must ignore broken pipe errors.
+            except OSError as exc:
+                if exc.errno == errno.EINVAL:
+                    # bpo-19612, bpo-30418: On Windows, stdin.write() fails
+                    # with EINVAL if the child process exited or if the child
+                    # process is still running but closed the pipe.
+                    pass
+                else:
+                    raise
+
+        try:
+            self.stdin.close()
+        except BrokenPipeError:
+            pass  # communicate() must ignore broken pipe errors.
+        except OSError as exc:
+            if exc.errno == errno.EINVAL:
+                pass
+            else:
+                raise
+
+    def communicate(self, input=None, timeout=None):
+        """Interact with process: Send data to stdin and close it.
+        Read data from stdout and stderr, until end-of-file is
+        reached.  Wait for process to terminate.
+
+        The optional "input" argument should be data to be sent to the
+        child process, or None, if no data should be sent to the child.
+        communicate() returns a tuple (stdout, stderr).
+
+        By default, all communication is in bytes, and therefore any
+        "input" should be bytes, and the (stdout, stderr) will be bytes.
+        If in text mode (indicated by self.text_mode), any "input" should
+        be a string, and (stdout, stderr) will be strings decoded
+        according to locale encoding, or by "encoding" if set. Text mode
+        is triggered by setting any of text, encoding, errors or
+        universal_newlines.
+        """
+
+        if self._communication_started and input:
+            raise ValueError("Cannot send input after starting communication")
+
+        # Optimization: If we are not worried about timeouts, we haven't
+        # started communicating, and we have one or zero pipes, using select()
+        # or threads is unnecessary.
+        if (timeout is None and not self._communication_started and
+            [self.stdin, self.stdout, self.stderr].count(None) >= 2):
+            stdout = None
+            stderr = None
+            if self.stdin:
+                self._stdin_write(input)
+            elif self.stdout:
+                stdout = self.stdout.read()
+                self.stdout.close()
+            elif self.stderr:
+                stderr = self.stderr.read()
+                self.stderr.close()
+            self.wait()
+        else:
+            if timeout is not None:
+                endtime = _time() + timeout
+            else:
+                endtime = None
+
+            try:
+                stdout, stderr = self._communicate(input, endtime, timeout)
+            except KeyboardInterrupt:
+                # https://bugs.python.org/issue25942
+                # See the detailed comment in .wait().
+                if timeout is not None:
+                    sigint_timeout = min(self._sigint_wait_secs,
+                                         self._remaining_time(endtime))
+                else:
+                    sigint_timeout = self._sigint_wait_secs
+                self._sigint_wait_secs = 0  # nothing else should wait.
+                try:
+                    self._wait(timeout=sigint_timeout)
+                except TimeoutExpired:
+                    pass
+                raise  # resume the KeyboardInterrupt
+
+            finally:
+                self._communication_started = True
+            try:
+                sts = self.wait(timeout=self._remaining_time(endtime))
+            except TimeoutExpired as exc:
+                exc.timeout = timeout
+                raise
+
+        return (stdout, stderr)
+
+
+    def poll(self):
+        """Check if child process has terminated. Set and return returncode
+        attribute."""
+        return self._internal_poll()
+
+
+    def _remaining_time(self, endtime):
+        """Convenience for _communicate when computing timeouts."""
+        if endtime is None:
+            return None
+        else:
+            return endtime - _time()
+
+
+    def _check_timeout(self, endtime, orig_timeout, stdout_seq, stderr_seq,
+                       skip_check_and_raise=False):
+        """Convenience for checking if a timeout has expired."""
+        if endtime is None:
+            return
+        if skip_check_and_raise or _time() > endtime:
+            raise TimeoutExpired(
+                    self.args, orig_timeout,
+                    output=b''.join(stdout_seq) if stdout_seq else None,
+                    stderr=b''.join(stderr_seq) if stderr_seq else None)
+
+
+    def wait(self, timeout=None):
+        """Wait for child process to terminate; returns self.returncode."""
+        if timeout is not None:
+            endtime = _time() + timeout
+        try:
+            return self._wait(timeout=timeout)
+        except KeyboardInterrupt:
+            # https://bugs.python.org/issue25942
+            # The first keyboard interrupt waits briefly for the child to
+            # exit under the common assumption that it also received the ^C
+            # generated SIGINT and will exit rapidly.
+            if timeout is not None:
+                sigint_timeout = min(self._sigint_wait_secs,
+                                     self._remaining_time(endtime))
+            else:
+                sigint_timeout = self._sigint_wait_secs
+            self._sigint_wait_secs = 0  # nothing else should wait.
+            try:
+                self._wait(timeout=sigint_timeout)
+            except TimeoutExpired:
+                pass
+            raise  # resume the KeyboardInterrupt
+
+    def _close_pipe_fds(self,
+                        p2cread, p2cwrite,
+                        c2pread, c2pwrite,
+                        errread, errwrite):
+        # self._devnull is not always defined.
+        devnull_fd = getattr(self, '_devnull', None)
+
+        with contextlib.ExitStack() as stack:
+            if _mswindows:
+                if p2cread != -1:
+                    stack.callback(p2cread.Close)
+                if c2pwrite != -1:
+                    stack.callback(c2pwrite.Close)
+                if errwrite != -1:
+                    stack.callback(errwrite.Close)
+            else:
+                if p2cread != -1 and p2cwrite != -1 and p2cread != devnull_fd:
+                    stack.callback(os.close, p2cread)
+                if c2pwrite != -1 and c2pread != -1 and c2pwrite != devnull_fd:
+                    stack.callback(os.close, c2pwrite)
+                if errwrite != -1 and errread != -1 and errwrite != devnull_fd:
+                    stack.callback(os.close, errwrite)
+
+            if devnull_fd is not None:
+                stack.callback(os.close, devnull_fd)
+
+        # Prevent a double close of these handles/fds from __init__ on error.
+        self._closed_child_pipe_fds = True
+Éö  Ñö  Öö  Üö  áö  àö  âö  äö  ãö  åö                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          
+    @contextlib.contextmanager
+    def _on_error_fd_closer(self):
+        """Helper to ensure file descriptors opened in _get_handles are closed"""
+        to_close = []
+        try:
+            yield to_close
+        except:
+            if hasattr(self, '_devnull'):
+                to_close.append(self._devnull)
+                del self._devnull
+            for fd in to_close:
+                try:
+                    if _mswindows and isinstance(fd, Handle):
+                        fd.Close()
+                    else:
+                        os.close(fd)
+                except OSError:
+                    pass
+            raise
+
+    if _mswindows:
+        #
+        # Windows methods
+        #
+        def _get_handles(self, stdin, stdout, stderr):
+            """Construct and return tuple with IO objects:
+            p2cread, p2cwrite, c2pread, c2pwrite, errread, errwrite
+            """
+            if stdin is None and stdout is None and stderr is None:
+                return (-1, -1, -1, -1, -1, -1)
+
+            p2cread, p2cwrite = -1, -1
+            c2pread, c2pwrite = -1, -1
+            errread, errwrite = -1, -1
+
+            with self._on_error_fd_closer() as err_close_fds:
+                if stdin is None:
+                    p2cread = _winapi.GetStdHandle(_winapi.STD_INPUT_HANDLE)
+                    if p2cread is None:
+                        p2cread, _ = _winapi.CreatePipe(None, 0)
+                        p2cread = Handle(p2cread)
+                        err_close_fds.append(p2cread)
+                        _winapi.CloseHandle(_)
+                elif stdin == PIPE:
+                    p2cread, p2cwrite = _winapi.CreatePipe(None, 0)
+                    p2cread, p2cwrite = Handle(p2cread), Handle(p2cwrite)
+                    err_close_fds.extend((p2cread, p2cwrite))
+                elif stdin == DEVNULL:
+                    p2cread = msvcrt.get_osfhandle(self._get_devnull())
+                elif isinstance(stdin, int):
+                    p2cread = msvcrt.get_osfhandle(stdin)
+                else:
+                    # Assuming file-like object
+                    p2cread = msvcrt.get_osfhandle(stdin.fileno())
+                p2cread = self._make_inheritable(p2cread)
+
+                if stdout is None:
+                    c2pwrite = _winapi.GetStdHandle(_winapi.STD_OUTPUT_HANDLE)
+                    if c2pwrite is None:
+                        _, c2pwrite = _winapi.CreatePipe(None, 0)
+                        c2pwrite = Handle(c2pwrite)
+                        err_close_fds.append(c2pwrite)
+                        _winapi.CloseHandle(_)
+                elif stdout == PIPE:
+                    c2pread, c2pwrite = _winapi.CreatePipe(None, 0)
+                    c2pread, c2pwrite = Handle(c2pread), Handle(c2pwrite)
+                    err_close_fds.extend((c2pread, c2pwrite))
+                elif stdout == DEVNULL:
+                    c2pwrite = msvcrt.get_osfhandle(self._get_devnull())
+                elif isinstance(stdout, int):
+                    c2pwrite = msvcrt.get_osfhandle(stdout)
+                else:
+                    # Assuming file-like object
+                    c2pwrite = msvcrt.get_osfhandle(stdout.fileno())
+                c2pwrite = self._make_inheritable(c2pwrite)
+
+                if stderr is None:
+                    errwrite = _winapi.GetStdHandle(_winapi.STD_ERROR_HANDLE)
+                    if errwrite is None:
+                        _, errwrite = _winapi.CreatePipe(None, 0)
+                        errwrite = Handle(errwrite)
+                        err_close_fds.append(errwrite)
+                        _winapi.CloseHandle(_)
+                elif stderr == PIPE:
+                    errread, errwrite = _winapi.CreatePipe(None, 0)
+                    errread, errwrite = Handle(errread), Handle(errwrite)
+                    err_close_fds.extend((errread, errwrite))
+                elif stderr == STDOUT:
+                    errwrite = c2pwrite
+                elif stderr == DEVNULL:
+                    errwrite = msvcrt.get_osfhandle(self._get_devnull())
+                elif isinstance(stderr, int):
+                    errwrite = msvcrt.get_osfhandle(stderr)
+                else:
+                    # Assuming file-like object
+                    errwrite = msvcrt.get_osfhandle(stderr.fileno())
+                errwrite = self._make_inheritable(errwrite)
+
+            return (p2cread, p2cwrite,
+                    c2pread, c2pwrite,
+                    errread, errwrite)
+
+
+        def _make_inheritable(self, handle):
+            """Return a duplicate of handle, which is inheritable"""
+            h = _winapi.DuplicateHandle(
+                _winapi.GetCurrentProcess(), handle,
+                _winapi.GetCurrentProcess(), 0, 1,
+                _winapi.DUPLICATE_SAME_ACCESS)
+            return Handle(h)
+
+
+        def _filter_handle_list(self, handle_list):
+            """Filter out console handles that can't be used
+            in lpAttributeList["handle_list"] and make sure the list
+            isn't empty. This also removes duplicate handles."""
+            # An handle with it's lowest two bits set might be a special console
+            # handle that if passed in lpAttributeList["handle_list"], will
+            # cause it to fail.
+            return list({handle for handle in handle_list
+                         if handle & 0x3 != 0x3
+                         or _winapi.GetFileType(handle) !=
+                            _winapi.FILE_TYPE_CHAR})
+
+
+        def _execute_child(self, args, executable, preexec_fn, close_fds,
+                           pass_fds, cwd, env,
+                           startupinfo, creationflags, shell,
+                           p2cread, p2cwrite,
+                           c2pread, c2pwrite,
+                           errread, errwrite,
+                           unused_restore_signals,
+                           unused_gid, unused_gids, unused_uid,
+                           unused_umask,
+                           unused_start_new_session, unused_process_group):
+            """Execute program (MS Windows version)"""
+
+            assert not pass_fds, "pass_fds not supported on Windows."
+
+            if isinstance(args, str):
+                pass
+            elif isinstance(args, bytes):
+                if shell:
+                    raise TypeError('bytes args is not allowed on Windows')
+                args = list2cmdline([args])
+            elif isinstance(args, os.PathLike):
+                if shell:
+                    raise TypeError('path-like args is not allowed when '
+                                    'shell is true')
+                args = list2cmdline([args])
+            else:
+                args = list2cmdline(args)
+
+            if executable is not None:
+                executable = os.fsdecode(executable)
+
+            # Process startup details
+            if startupinfo is None:
+                startupinfo = STARTUPINFO()
+            else:
+                # bpo-34044: Copy STARTUPINFO since it is modified above,
+                # so the caller can reuse it multiple times.
+                startupinfo = startupinfo.copy()
+
+            use_std_handles = -1 not in (p2cread, c2pwrite, errwrite)
+            if use_std_handles:
+                startupinfo.dwFlags |= _winapi.STARTF_USESTDHANDLES
+                startupinfo.hStdInput = p2cread
+                startupinfo.hStdOutput = c2pwrite
+                startupinfo.hStdError = errwrite
+
+            attribute_list = startupinfo.lpAttributeList
+            have_handle_list = bool(attribute_list and
+                                    "handle_list" in attribute_list and
+                                    attribute_list["handle_list"])
+
+            # If we were given an handle_list or need to create one
+            if have_handle_list or (use_std_handles and close_fds):
+                if attribute_list is None:
+                    attribute_list = startupinfo.lpAttributeList = {}
+                handle_list = attribute_list["handle_list"] = \
+                    list(attribute_list.get("handle_list", []))
+
+                if use_std_handles:
+                    handle_list += [int(p2cread), int(c2pwrite), int(errwrite)]
+
+                handle_list[:] = self._filter_handle_list(handle_list)
+
+                if handle_list:
+                    if not close_fds:
+                        warnings.warn("startupinfo.lpAttributeList['handle_list'] "
+                                      "overriding close_fds", RuntimeWarning)
+
+                    # When using the handle_list we always request to inherit
+                    # handles but the only handles that will be inherited are
+                    # the ones in the handle_list
+                    close_fds = False
+
+            if shell:
+                startupinfo.dwFlags |= _winapi.STARTF_USESHOWWINDOW
+                startupinfo.wShowWindow = _winapi.SW_HIDE
+                if not executable:
+                    # gh-101283: without a fully-qualified path, before Windows
+                    # checks the system directories, it first looks in the
+                    # application directory, and also the current directory if
+                    # NeedCurrentDirectoryForExePathW(ExeName) is true, so try
+                    # to avoid executing unqualified "cmd.exe".
+                    comspec = os.environ.get('ComSpec')
+                    if not comspec:
+                        system_root = os.environ.get('SystemRoot', '')
+                        comspec = os.path.join(system_root, 'System32', 'cmd.exe')
+                        if not os.path.isabs(comspec):
+                            raise FileNotFoundError('shell not found: neither %ComSpec% nor %SystemRoot% is set')
+                    if os.path.isabs(comspec):
+                        executable = comspec
+                else:
+                    comspec = executable
+
+                args = '{} /c "{}"'.format (comspec, args)
+
+            if cwd is not None:
+                cwd = os.fsdecode(cwd)
+
+            sys.audit("subprocess.Popen", executable, args, cwd, env)
+
+            # Start the process
+            try:
+                hp, ht, pid, tid = _winapi.CreateProcess(executable, args,
+                                         # no special security
+                                         None, None,
+                                         int(not close_fds),
+                                         creationflags,
+                                         env,
+                                         cwd,
+                                         startupinfo)
+            finally:
+                # Child is launched. Close the parent's copy of those pipe
+                # handles that only the child should have open.  You need
+                # to make sure that no handles to the write end of the
+                # output pipe are maintained in this process or else the
+                # pipe will not close when the child process exits and the
+                # ReadFile will hang.
+                self._close_pipe_fds(p2cread, p2cwrite,
+                                     c2pread, c2pwrite,
+                                     errread, errwrite)
+
+            # Retain the process handle, but close the thread handle
+            self._child_created = True
+            self._handle = Handle(hp)
+            self.pid = pid
+            _winapi.CloseHandle(ht)
+
+        def _internal_poll(self, _deadstate=None,
+                _WaitForSingleObject=_winapi.WaitForSingleObject,
+                _WAIT_OBJECT_0=_winapi.WAIT_OBJECT_0,
+                _GetExitCodeProcess=_winapi.GetExitCodeProcess):
+            """Check if child process has terminated.  Returns returncode
+            attribute.
+
+            This method is called by __del__, so it can only refer to objects
+            in its local scope.
+
+            """
+            if self.returncode is None:
+                if _WaitForSingleObject(self._handle, 0) == _WAIT_OBJECT_0:
+                    self.returncode = _GetExitCodeProcess(self._handle)
+            return self.returncode
+
+
+        def _wait(self, timeout):
+            """Internal implementation of wait() on Windows."""
+            if timeout is None:
+                timeout_millis = _winapi.INFINITE
+            elif timeout <= 0:
+                timeout_millis = 0
+            else:
+                timeout_millis = int(timeout * 1000)
+            if self.returncode is None:
+                # API note: Returns immediately if timeout_millis == 0.
+                result = _winapi.WaitForSingleObject(self._handle,
+                                                     timeout_millis)
+                if result == _winapi.WAIT_TIMEOUT:
+                    raise TimeoutExpired(self.args, timeout)
+                self.returncode = _winapi.GetExitCodeProcess(self._handle)
+            return self.returncode
+
+
+        def _readerthread(self, fh, buffer):
+            buffer.append(fh.read())
+            fh.close()
+
+
+        def _communicate(self, input, endtime, orig_timeout):
+            # Start reader threads feeding into a list hanging off of this
+            # object, unless they've already been started.
+            if self.stdout and not hasattr(self, "_stdout_buff"):
+                self._stdout_buff = []
+                self.stdout_thread = \
+                        threading.Thread(target=self._readerthread,
+                                         args=(self.stdout, self._stdout_buff))
+                self.stdout_thread.daemon = True
+                self.stdout_thread.start()
+            if self.stderr and not hasattr(self, "_stderr_buff"):
+                self._stderr_buff = []
+                self.stderr_thread = \
+                        threading.Thread(target=self._readerthread,
+                                         args=(self.stderr, self._stderr_buff))
+                self.stderr_thread.daemon = True
+                self.stderr_thread.start()
+
+            if self.stdin:
+                self._stdin_write(input)
+
+            # Wait for the reader threads, or time out.  If we time out, the
+            # threads remain reading and the fds left open in case the user
+            # calls communicate again.
+            if self.stdout is not None:
+                self.stdout_thread.join(self._remaining_time(endtime))
+                if self.stdout_thread.is_alive():
+                    raise TimeoutExpired(self.args, orig_timeout)
+            if self.stderr is not None:
+                self.stderr_thread.join(self._remaining_time(endtime))
+                if self.stderr_thread.is_alive():
+                    raise TimeoutExpired(self.args, orig_timeout)
+
+            # Collect the output from and close both pipes, now that we know
+            # both have been read successfully.
+            stdout = None
+            stderr = None
+            if self.stdout:
+                stdout = self._stdout_buff
+                self.stdout.close()
+            if self.stderr:
+                stderr = self._stderr_buff
+                self.stderr.close()
+
+            # All data exchanged.  Translate lists into strings.
+            stdout = stdout[0] if stdout else None
+            stderr = stderr[0] if stderr else None
+
+            return (stdout, stderr)
+
+        def send_signal(self, sig):
+            """Send a signal to the process."""
+            # Don't signal a process that we know has already died.
+            if self.returncode is not None:
+                return
+            if sig == signal.SIGTERM:
+                self.terminate()
+            elif sig == signal.CTRL_C_EVENT:
+                os.kill(self.pid, signal.CTRL_C_EVENT)
+            elif sig == signal.CTRL_BREAK_EVENT:
+                os.kill(self.pid, signal.CTRL_BREAK_EVENT)
+            else:
+                raise ValueError("Unsupported signal: {}".format(sig))
+
+        def terminate(self):
+            """Terminates the process."""
+            # Don't terminate a process that we know has already died.
+            if self.returncode is not None:
+                return
+            try:
+                _winapi.TerminateProcess(self._handle, 1)
+            except PermissionError:
+                # ERROR_ACCESS_DENIED (winerror 5) is received when the
+                # process already died.
+                rc = _winapi.GetExitCodeProcess(self._handle)
+                if rc == _winapi.STILL_ACTIVE:
+                    raise
+                self.returncode = rc
+
+        kill = terminate
+
+    else:
+        #
+        # POSIX methods
+        #
+        def _get_handles(self, stdin, stdout, stderr):
+            """Construct and return tuple with IO objects:
+            p2cread, p2cwrite, c2pread, c2pwrite, errread, errwrite
+            """
+            p2cread, p2cwrite = -1, -1
+            c2pread, c2pwrite = -1, -1
+            errread, errwrite = -1, -1
+
+            with self._on_error_fd_closer() as err_close_fds:
+                if stdin is None:
+                    pass
+                elif stdin == PIPE:
+                    p2cread, p2cwrite = os.pipe()
+                    err_close_fds.extend((p2cread, p2cwrite))
+                    if self.pipesize > 0 and hasattr(fcntl, "F_SETPIPE_SZ"):
+                        fcntl.fcntl(p2cwrite, fcntl.F_SETPIPE_SZ, self.pipesize)
+                elif stdin == DEVNULL:
+                    p2cread = self._get_devnull()
+                elif isinstance(stdin, int):
+                    p2cread = stdin
+                else:
+                    # Assuming file-like object
+                    p2cread = stdin.fileno()
+
+                if stdout is None:
+                    pass
+                elif stdout == PIPE:
+                    c2pread, c2pwrite = os.pipe()
+                    err_close_fds.extend((c2pread, c2pwrite))
+                    if self.pipesize > 0 and hasattr(fcntl, "F_SETPIPE_SZ"):
+                        fcntl.fcntl(c2pwrite, fcntl.F_SETPIPE_SZ, self.pipesize)
+                elif stdout == DEVNULL:
+                    c2pwrite = self._get_devnull()
+                elif isinstance(stdout, int):
+                    c2pwrite = stdout
+                else:
+                    # Assuming file-like object
+                    c2pwrite = stdout.fileno()
+
+                if stderr is None:
+                    pass
+                elif stderr == PIPE:
+                    errread, errwrite = os.pipe()
+                    err_close_fds.extend((errread, errwrite))
+                    if self.pipesize > 0 and hasattr(fcntl, "F_SETPIPE_SZ"):
+                        fcntl.fcntl(errwrite, fcntl.F_SETPIPE_SZ, self.pipesize)
+                elif stderr == STDOUT:
+                    if c2pwrite != -1:
+                        errwrite = c2pwrite
+                    else: # child's stdout is not set, use parent's stdout
+                        errwrite = sys.__stdout__.fileno()
+                elif stderr == DEVNULL:
+                    errwrite = self._get_devnull()
+                elif isinstance(stderr, int):
+                    errwrite = stderr
+                else:
+                    # Assuming file-like object
+                    errwrite = stderr.fileno()
+
+            return (p2cread, p2cwrite,
+                    c2pread, c2pwrite,
+                    errread, errwrite)
+
+
+        def _posix_spawn(self, args, executable, env, restore_signals, close_fds,
+                         p2cread, p2cwrite,
+                         c2pread, c2pwrite,
+                         errread, errwrite):
+            """Execute program using os.posix_spawn()."""
+            kwargs = {}
+            if restore_signals:
+                # See _Py_RestoreSignals() in Python/pylifecycle.c
+                sigset = []
+                for signame in ('SIGPIPE', 'SIGXFZ', 'SIGXFSZ'):
+                    signum = getattr(signal, signame, None)
+                    if signum is not None:
+                        sigset.append(signum)
+                kwargs['setsigdef'] = sigset
+
+            file_actions = []
+            for fd in (p2cwrite, c2pread, errread):
+                if fd != -1:
+                    file_actions.append((os.POSIX_SPAWN_CLOSE, fd))
+            for fd, fd2 in (
+                (p2cread, 0),
+                (c2pwrite, 1),
+                (errwrite, 2),
+            ):
+                if fd != -1:
+                    file_actions.append((os.POSIX_SPAWN_DUP2, fd, fd2))
+
+            if close_fds:
+                file_actions.append((os.POSIX_SPAWN_CLOSEFROM, 3))
+
+            if file_actions:
+                kwargs['file_actions'] = file_actions
+
+            self.pid = os.posix_spawn(executable, args, env, **kwargs)
+            self._child_created = True
+
+            self._close_pipe_fds(p2cread, p2cwrite,
+                                 c2pread, c2pwrite,
+                                 errread, errwrite)
+
+        def _execute_child(self, args, executable, preexec_fn, close_fds,
+                           pass_fds, cwd, env,
+                           startupinfo, creationflags, shell,
+                           p2cread, p2cwrite,
+                           c2pread, c2pwrite,
+                           errread, errwrite,
+                           restore_signals,
+                           gid, gids, uid, umask,
+                           start_new_session, process_group):
+            """Execute program (POSIX version)"""
+
+            if isinstance(args, (str, bytes)):
+                args = [args]
+            elif isinstance(args, os.PathLike):
+                if shell:
+                    raise TypeError('path-like args is not allowed when '
+                                    'shell is true')
+                args = [args]
+            else:
+                args = list(args)
+
+            if shell:
+                # On Android the default shell is at '/system/bin/sh'.
+                unix_shell = ('/system/bin/sh' if
+                          hasattr(sys, 'getandroidapilevel') else '/bin/sh')
+                args = [unix_shell, "-c"] + args
+                if executable:
+                    args[0] = executable
+
+            if executable is None:
+                executable = args[0]
+
+            sys.audit("subprocess.Popen", executable, args, cwd, env)
+
+            if (_USE_POSIX_SPAWN
+                    and os.path.dirname(executable)
+                    and preexec_fn is None
+                    and (not close_fds or _HAVE_POSIX_SPAWN_CLOSEFROM)
+                    and not pass_fds
+                    and cwd is None
+                    and (p2cread == -1 or p2cread > 2)
+                    and (c2pwrite == -1 or c2pwrite > 2)
+                    and (errwrite == -1 or errwrite > 2)
+                    and not start_new_session
+                    and process_group == -1
+                    and gid is None
+                    and gids is None
+                    and uid is None
+                    and umask < 0):
+                self._posix_spawn(args, executable, env, restore_signals, close_fds,
+                                  p2cread, p2cwrite,
+                                  c2pread, c2pwrite,
+                                  errread, errwrite)
+                return
+
+            orig_executable = executable
+
+            # For transferring possible exec failure from child to parent.
+            # Data format: "exception name:hex errno:description"
+            # Pickle is not used; it is complex and involves memory allocation.
+            errpipe_read, errpipe_write = os.pipe()
+            # errpipe_write must not be in the standard io 0, 1, or 2 fd range.
+            low_fds_to_close = []
+            while errpipe_write < 3:
+                low_fds_to_close.append(errpipe_write)
+                errpipe_write = os.dup(errpipe_write)
+            for low_fd in low_fds_to_close:
+                os.close(low_fd)
+            try:
+                try:
+                    # We must avoid complex work that could involve
+                    # malloc or free in the child process to avoid
+                    # potential deadlocks, thus we do all this here.
+                    # and pass it to fork_exec()
+
+                    if env is not None:
+                        env_list = []
+                        for k, v in env.items():
+                            k = os.fsencode(k)
+                            if b'=' in k:
+                                raise ValueError("illegal environment variable name")
+                            env_list.append(k + b'=' + os.fsencode(v))
+                    else:
+                        env_list = None  # Use execv instead of execve.
+                    executable = os.fsencode(executable)
+                    if os.path.dirname(executable):
+                        executable_list = (executable,)
+                    else:
+                        # This matches the behavior of os._execvpe().
+                        executable_list = tuple(
+                            os.path.join(os.fsencode(dir), executable)
+                            for dir in os.get_exec_path(env))
+                    fds_to_keep = set(pass_fds)
+                    fds_to_keep.add(errpipe_write)
+                    self.pid = _fork_exec(
+                            args, executable_list,
+                            close_fds, tuple(sorted(map(int, fds_to_keep))),
+                            cwd, env_list,
+                            p2cread, p2cwrite, c2pread, c2pwrite,
+                            errread, errwrite,
+                            errpipe_read, errpipe_write,
+                            restore_signals, start_new_session,
+                            process_group, gid, gids, uid, umask,
+                            preexec_fn, _USE_VFORK)
+                    self._child_created = True
+                finally:
+                    # be sure the FD is closed no matter what
+                    os.close(errpipe_write)
+
+                self._close_pipe_fds(p2cread, p2cwrite,
+                                     c2pread, c2pwrite,
+                                     errread, errwrite)
+
+                # Wait for exec to fail or succeed; possibly raising an
+                # exception (limited in size)
+                errpipe_data = bytearray()
+                while True:
+                    part = os.read(errpipe_read, 50000)
+                    errpipe_data += part
+                    if not part or len(errpipe_data) > 50000:
+                        break
+            finally:
+                # be sure the FD is closed no matter what
+                os.close(errpipe_read)
+
+            if errpipe_data:
+                try:
+                    pid, sts = os.waitpid(self.pid, 0)
+                    if pid == self.pid:
+                        self._handle_exitstatus(sts)
+                    else:
+                        self.returncode = sys.maxsize
+                except ChildProcessError:
+                    pass
+
+                try:
+                    exception_name, hex_errno, err_msg = (
+                            errpipe_data.split(b':', 2))
+                    # The encoding here should match the encoding
+                    # written in by the subprocess implementations
+                    # like _posixsubprocess
+                    err_msg = err_msg.decode()
+                except ValueError:
+                    exception_name = b'SubprocessError'
+                    hex_errno = b'0'
+                    err_msg = 'Bad exception data from child: {!r}'.format(
+                                  bytes(errpipe_data))
+                child_exception_type = getattr(
+                        builtins, exception_name.decode('ascii'),
+                        SubprocessError)
+                if issubclass(child_exception_type, OSError) and hex_errno:
+                    errno_num = int(hex_errno, 16)
+                    if err_msg == "noexec:chdir":
+                        err_msg = ""
+                        # The error must be from chdir(cwd).
+                        err_filename = cwd
+                    elif err_msg == "noexec":
+                        err_msg = ""
+                        err_filename = None
+                    else:
+                        err_filename = orig_executable
+                    if errno_num != 0:
+                        err_msg = os.strerror(errno_num)
+                    if err_filename is not None:
+                        raise child_exception_type(errno_num, err_msg, err_filename)
+                    else:
+                        raise child_exception_type(errno_num, err_msg)
+                raise child_exception_type(err_msg)
+
+
+        def _handle_exitstatus(self, sts, _del_safe=_del_safe):
+            """All callers to this function MUST hold self._waitpid_lock."""
+            # This method is called (indirectly) by __del__, so it cannot
+            # refer to anything outside of its local scope.
+            if _del_safe.WIFSTOPPED(sts):
+                self.returncode = -_del_safe.WSTOPSIG(sts)
+            else:
+                self.returncode = _del_safe.waitstatus_to_exitcode(sts)
+
+        def _internal_poll(self, _deadstate=None, _del_safe=_del_safe):
+            """Check if child process has terminated.  Returns returncode
+            attribute.
+
+            This method is called by __del__, so it cannot reference anything
+            outside of the local scope (nor can any methods it calls).
+
+            """
+            if self.returncode is None:
+                if not self._waitpid_lock.acquire(False):
+                    # Something else is busy calling waitpid.  Don't allow two
+                    # at once.  We know nothing yet.
+                    return None
+                try:
+                    if self.returncode is not None:
+                        return self.returncode  # Another thread waited.
+                    pid, sts = _del_safe.waitpid(self.pid, _del_safe.WNOHANG)
+                    if pid == self.pid:
+                        self._handle_exitstatus(sts)
+                except OSError as e:
+                    if _deadstate is not None:
+                        self.returncode = _deadstate
+                    elif e.errno == _del_safe.ECHILD:
+                        # This happens if SIGCLD is set to be ignored or
+                        # waiting for child processes has otherwise been
+                        # disabled for our process.  This child is dead, we
+                        # can't get the status.
+                        # http://bugs.python.org/issue15756
+                        self.returncode = 0
+                finally:
+                    self._waitpid_lock.release()
+            return self.returncode
+
+
+        def _try_wait(self, wait_flags):
+            """All callers to this function MUST hold self._waitpid_lock."""
+            try:
+                (pid, sts) = os.waitpid(self.pid, wait_flags)
+            except ChildProcessError:
+                # This happens if SIGCLD is set to be ignored or waiting
+                # for child processes has otherwise been disabled for our
+                # process.  This child is dead, we can't get the status.
+                pid = self.pid
+                sts = 0
+            return (pid, sts)
+
+
+        def _wait(self, timeout):
+            """Internal implementation of wait() on POSIX."""
+            if self.returncode is not None:
+                return self.returncode
+
+            if timeout is not None:
+                endtime = _time() + timeout
+                # Enter a busy loop if we have a timeout.  This busy loop was
+                # cribbed from Lib/threading.py in Thread.wait() at r71065.
+                delay = 0.0005 # 500 us -> initial delay of 1 ms
+                while True:
+                    if self._waitpid_lock.acquire(False):
+                        try:
+                            if self.returncode is not None:
+                                break  # Another thread waited.
+                            (pid, sts) = self._try_wait(os.WNOHANG)
+                            assert pid == self.pid or pid == 0
+                            if pid == self.pid:
+                                self._handle_exitstatus(sts)
+                                break
+                        finally:
+                            self._waitpid_lock.release()
+                    remaining = self._remaining_time(endtime)
+                    if remaining <= 0:
+                        raise TimeoutExpired(self.args, timeout)
+                    delay = min(delay * 2, remaining, .05)
+                    time.sleep(delay)
+            else:
+                while self.returncode is None:
+                    with self._waitpid_lock:
+                        if self.returncode is not None:
+                            break  # Another thread waited.
+                        (pid, sts) = self._try_wait(0)
+                        # Check the pid and loop as waitpid has been known to
+                        # return 0 even without WNOHANG in odd situations.
+                        # http://bugs.python.org/issue14396.
+                        if pid == self.pid:
+                            self._handle_exitstatus(sts)
+            return self.returncode
+
+
+        def _communicate(self, input, endtime, orig_timeout):
+            if self.stdin and not self._communication_started:
+                # Flush stdio buffer.  This might block, if the user has
+                # been writing to .stdin in an uncontrolled fashion.
+                try:
+                    self.stdin.flush()
+                except BrokenPipeError:
+                    pass  # communicate() must ignore BrokenPipeError.
+                if not input:
+                    try:
+                        self.stdin.close()
+                    except BrokenPipeError:
+                        pass  # communicate() must ignore BrokenPipeError.
+
+            stdout = None
+            stderr = None
+
+            # Only create this mapping if we haven't already.
+            if not self._communication_started:
+                self._fileobj2output = {}
+                if self.stdout:
+                    self._fileobj2output[self.stdout] = []
+                if self.stderr:
+                    self._fileobj2output[self.stderr] = []
+
+            if self.stdout:
+                stdout = self._fileobj2output[self.stdout]
+            if self.stderr:
+                stderr = self._fileobj2output[self.stderr]
+
+            self._save_input(input)
+
+            if self._input:
+                input_view = memoryview(self._input)
+
+            with _PopenSelector() as selector:
+                if self.stdin and input:
+                    selector.register(self.stdin, selectors.EVENT_WRITE)
+                if self.stdout and not self.stdout.closed:
+                    selector.register(self.stdout, selectors.EVENT_READ)
+                if self.stderr and not self.stderr.closed:
+                    selector.register(self.stderr, selectors.EVENT_READ)
+
+                while selector.get_map():
+                    timeout = self._remaining_time(endtime)
+                    if timeout is not None and timeout < 0:
+                        self._check_timeout(endtime, orig_timeout,
+                                            stdout, stderr,
+                                            skip_check_and_raise=True)
+                        raise RuntimeError(  # Impossible :)
+                            '_check_timeout(..., skip_check_and_raise=True) '
+                            'failed to raise TimeoutExpired.')
+
+                    ready = selector.select(timeout)
+                    self._check_timeout(endtime, orig_timeout, stdout, stderr)
+
+                    # XXX Rewrite these to use non-blocking I/O on the file
+                    # objects; they are no longer using C stdio!
+
+                    for key, events in ready:
+                        if key.fileobj is self.stdin:
+                            chunk = input_view[self._input_offset :
+                                               self._input_offset + _PIPE_BUF]
+                            try:
+                                self._input_offset += os.write(key.fd, chunk)
+                            except BrokenPipeError:
+                                selector.unregister(key.fileobj)
+                                key.fileobj.close()
+                            else:
+                                if self._input_offset >= len(self._input):
+                                    selector.unregister(key.fileobj)
+                                    key.fileobj.close()
+                        elif key.fileobj in (self.stdout, self.stderr):
+                            data = os.read(key.fd, 32768)
+                            if not data:
+                                selector.unregister(key.fileobj)
+                                key.fileobj.close()
+                            self._fileobj2output[key.fileobj].append(data)
+            try:
+                self.wait(timeout=self._remaining_time(endtime))
+            except TimeoutExpired as exc:
+                exc.timeout = orig_timeout
+                raise
+
+            # All data exchanged.  Translate lists into strings.
+            if stdout is not None:
+                stdout = b''.join(stdout)
+            if stderr is not None:
+                stderr = b''.join(stderr)
+
+            # Translate newlines, if requested.
+            # This also turns bytes into strings.
+            if self.text_mode:
+                if stdout is not None:
+                    stdout = self._translate_newlines(stdout,
+                                                      self.stdout.encoding,
+                                                      self.stdout.errors)
+                if stderr is not None:
+                    stderr = self._translate_newlines(stderr,
+                                                      self.stderr.encoding,
+                                                      self.stderr.errors)
+
+            return (stdout, stderr)
+
+
+        def _save_input(self, input):
+            # This method is called from the _communicate_with_*() methods
+            # so that if we time out while communicating, we can continue
+            # sending input if we retry.
+            if self.stdin and self._input is None:
+                self._input_offset = 0
+                self._input = input
+                if input is not None and self.text_mode:
+                    self._input = self._input.encode(self.stdin.encoding,
+                                                     self.stdin.errors)
+
+
+        def send_signal(self, sig):
+            """Send a signal to the process."""
+            # bpo-38630: Polling reduces the risk of sending a signal to the
+            # wrong process if the process completed, the Popen.returncode
+            # attribute is still None, and the pid has been reassigned
+            # (recycled) to a new different process. This race condition can
+            # happens in two cases.
+            #
+            # Case 1. Thread A calls Popen.poll(), thread B calls
+            # Popen.send_signal(). In thread A, waitpid() succeed and returns
+            # the exit status. Thread B calls kill() because poll() in thread A
+            # did not set returncode yet. Calling poll() in thread B prevents
+            # the race condition thanks to Popen._waitpid_lock.
+            #
+            # Case 2. waitpid(pid, 0) has been called directly, without
+            # using Popen methods: returncode is still None is this case.
+            # Calling Popen.poll() will set returncode to a default value,
+            # since waitpid() fails with ProcessLookupError.
+            self.poll()
+            if self.returncode is not None:
+                # Skip signalling a process that we know has already died.
+                return
+
+            # The race condition can still happen if the race condition
+            # described above happens between the returncode test
+            # and the kill() call.
+            try:
+                os.kill(self.pid, sig)
+            except ProcessLookupError:
+                # Suppress the race condition error; bpo-40550.
+                pass
+
+        def terminate(self):
+            """Terminate the process with SIGTERM
+            """
+            self.send_signal(signal.SIGTERM)
+
+        def kill(self):
+            """Kill the process with SIGKILL
+            """
+            self.send_signal(signal.SIGKILL)
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  """Interface to the compiler's internal symbol tables"""
+
+import _symtable
+from _symtable import (USE, DEF_GLOBAL, DEF_NONLOCAL, DEF_LOCAL, DEF_PARAM,
+     DEF_IMPORT, DEF_BOUND, DEF_ANNOT, SCOPE_OFF, SCOPE_MASK, FREE,
+     LOCAL, GLOBAL_IMPLICIT, GLOBAL_EXPLICIT, CELL)
+
+import weakref
+from enum import StrEnum
+
+__all__ = ["symtable", "SymbolTableType", "SymbolTable", "Class", "Function", "Symbol"]
+
+def symtable(code, filename, compile_type):
+    """ Return the toplevel *SymbolTable* for the source code.
+
+    *filename* is the name of the file with the code
+    and *compile_type* is the *compile()* mode argument.
+    """
+    top = _symtable.symtable(code, filename, compile_type)
+    return _newSymbolTable(top, filename)
+
+class SymbolTableFactory:
+    def __init__(self):
+        self.__memo = weakref.WeakValueDictionary()
+
+    def new(self, table, filename):
+        if table.type == _symtable.TYPE_FUNCTION:
+            return Function(table, filename)
+        if table.type == _symtable.TYPE_CLASS:
+            return Class(table, filename)
+        return SymbolTable(table, filename)
+
+    def __call__(self, table, filename):
+        key = table, filename
+        obj = self.__memo.get(key, None)
+        if obj is None:
+            obj = self.__memo[key] = self.new(table, filename)
+        return obj
+
+_newSymbolTable = SymbolTableFactory()
+
+
+class SymbolTableType(StrEnum):
+    MODULE = "module"
+    FUNCTION = "function"
+    CLASS = "class"
+    ANNOTATION = "annotation"
+    TYPE_ALIAS = "type alias"
+    TYPE_PARAMETERS = "type parameters"
+    TYPE_VARIABLE = "type variable"
+
+
+class SymbolTable:
+
+    def __init__(self, raw_table, filename):
+        self._table = raw_table
+        self._filename = filename
+        self._symbols = {}
+
+    def __repr__(self):
+        if self.__class__ == SymbolTable:
+            kind = ""
+        else:
+            kind = "%s " % self.__class__.__name__
+
+        if self._table.name == "top":
+            return "<{0}SymbolTable for module {1}>".format(kind, self._filename)
+        else:
+            return "<{0}SymbolTable for {1} in {2}>".format(kind,
+                                                            self._table.name,
+                                                            self._filename)
+
+    def get_type(self):
+        """Return the type of the symbol table.
+
+        The value returned is one of the values in
+        the ``SymbolTableType`` enumeration.
+        """
+        if self._table.type == _symtable.TYPE_MODULE:
+            return SymbolTableType.MODULE
+        if self._table.type == _symtable.TYPE_FUNCTION:
+            return SymbolTableType.FUNCTION
+        if self._table.type == _symtable.TYPE_CLASS:
+            return SymbolTableType.CLASS
+        if self._table.type == _symtable.TYPE_ANNOTATION:
+            return SymbolTableType.ANNOTATION
+        if self._table.type == _symtable.TYPE_TYPE_ALIAS:
+            return SymbolTableType.TYPE_ALIAS
+        if self._table.type == _symtable.TYPE_TYPE_PARAMETERS:
+            return SymbolTableType.TYPE_PARAMETERS
+        if self._table.type == _symtable.TYPE_TYPE_VARIABLE:
+            return SymbolTableType.TYPE_VARIABLE
+        assert False, f"unexpected type: {self._table.type}"
+
+    def get_id(self):
+        """Return an identifier for the table.
+        """
+        return self._table.id
+
+    def get_name(self):
+        """Return the table's name.
+
+        This corresponds to the name of the class, function
+        or 'top' if the table is for a class, function or
+        global respectively.
+        """
+        return self._table.name
+
+    def get_lineno(self):
+        """Return the number of the first line in the
+        block for the table.
+        """
+        return self._table.lineno
+
+    def is_optimized(self):
+        """Return *True* if the locals in the table
+        are optimizable.
+        """
+        return bool(self._table.type == _symtable.TYPE_FUNCTION)
+
+    def is_nested(self):
+        """Return *True* if the block is a nested class
+        or function."""
+        return bool(self._table.nested)
+
+    def has_children(self):
+        """Return *True* if the block has nested namespaces.
+        """
+        return bool(self._table.children)
+
+    def get_identifiers(self):
+        """Return a view object containing the names of symbols in the table.
+        """
+        return self._table.symbols.keys()
+
+    def lookup(self, name):
+        """Lookup a *name* in the table.
+
+        Returns a *Symbol* instance.
+        """
+        sym = self._symbols.get(name)
+        if sym is None:
+            flags = self._table.symbols[name]
+            namespaces = self.__check_children(name)
+            module_scope = (self._table.name == "top")
+            sym = self._symbols[name] = Symbol(name, flags, namespaces,
+                                               module_scope=module_scope)
+        return sym
+
+    def get_symbols(self):
+        """Return a list of *Symbol* instances for
+        names in the table.
+        """
+        return [self.lookup(ident) for ident in self.get_identifiers()]
+
+    def __check_children(self, name):
+        return [_newSymbolTable(st, self._filename)
+                for st in self._table.children
+                if st.name == name]
+
+    def get_children(self):
+        """Return a list of the nested symbol tables.
+        """
+        return [_newSymbolTable(st, self._filename)
+                for st in self._table.children]
+
+
+class Function(SymbolTable):
+
+    # Default values for instance variables
+    __params = None
+    __locals = None
+    __frees = None
+    __globals = None
+    __nonlocals = None
+
+    def __idents_matching(self, test_func):
+        return tuple(ident for ident in self.get_identifiers()
+                     if test_func(self._table.symbols[ident]))
+
+    def get_parameters(self):
+        """Return a tuple of parameters to the function.
+        """
+        if self.__params is None:
+            self.__params = self.__idents_matching(lambda x:x & DEF_PARAM)
+        return self.__params
+
+    def get_locals(self):
+        """Return a tuple of locals in the function.
+        """
+        if self.__locals is None:
+            locs = (LOCAL, CELL)
+            test = lambda x: ((x >> SCOPE_OFF) & SCOPE_MASK) in locs
+            self.__locals = self.__idents_matching(test)
+        return self.__locals
+
+    def get_globals(self):
+        """Return a tuple of globals in the function.
+        """
+        if self.__globals is None:
+            glob = (GLOBAL_IMPLICIT, GLOBAL_EXPLICIT)
+            test = lambda x:((x >> SCOPE_OFF) & SCOPE_MASK) in glob
+            self.__globals = self.__idents_matching(test)
+        return self.__globals
+
+    def get_nonlocals(self):
+        """Return a tuple of nonlocals in the function.
+        """
+        if self.__nonlocals is None:
+            self.__nonlocals = self.__idents_matching(lambda x:x & DEF_NONLOCAL)
+        return self.__nonlocals
+
+    def get_frees(self):
+        """Return a tuple of free variables in the function.
+        """
+        if self.__frees is None:
+            is_free = lambda x:((x >> SCOPE_OFF) & SCOPE_MASK) == FREE
+            self.__frees = self.__idents_matching(is_free)
+        return self.__frees
+
+
+class Class(SymbolTable):
+
+    __methods = None
+
+    def get_methods(self):
+        """Return a tuple of methods declared in the class.
+        """
+        if self.__methods is None:
+            d = {}
+
+            def is_local_symbol(ident):
+                flags = self._table.symbols.get(ident, 0)
+                return ((flags >> SCOPE_OFF) & SCOPE_MASK) == LOCAL
+
+            for st in self._table.children:
+                # pick the function-like symbols that are local identifiers
+                if is_local_symbol(st.name):
+                    match st.type:
+                        case _symtable.TYPE_FUNCTION:
+                            # generators are of type TYPE_FUNCTION with a ".0"
+                            # parameter as a first parameter (which makes them
+                            # distinguishable from a function named 'genexpr')
+                            if st.name == 'genexpr' and '.0' in st.varnames:
+                                continue
+                            d[st.name] = 1
+                        case _symtable.TYPE_TYPE_PARAMETERS:
+                            # Get the function-def block in the annotation
+                            # scope 'st' with the same identifier, if any.
+                            scope_name = st.name
+                            for c in st.children:
+                                if c.name == scope_name and c.type == _symtable.TYPE_FUNCTION:
+                                    # A generic generator of type TYPE_FUNCTION
+                                    # cannot be a direct child of 'st' (but it
+                                    # can be a descendant), e.g.:
+                                    #
+                                    # class A:
+                                    #   type genexpr[genexpr] = (x for x in [])
+                                    assert scope_name != 'genexpr' or '.0' not in c.varnames
+                                    d[scope_name] = 1
+                                    break
+            self.__methods = tuple(d)
+        return self.__methods
+
+
+class Symbol:
+
+    def __init__(self, name, flags, namespaces=None, *, module_scope=False):
+        self.__name = name
+        self.__flags = flags
+        self.__scope = (flags >> SCOPE_OFF) & SCOPE_MASK # like PyST_GetScope()
+        self.__namespaces = namespaces or ()
+        self.__module_scope = module_scope
+
+    def __repr__(self):
+        flags_str = '|'.join(self._flags_str())
+        return f'<symbol {self.__name!r}: {self._scope_str()}, {flags_str}>'
+
+    def _scope_str(self):
+        return _scopes_value_to_name.get(self.__scope) or str(self.__scope)
+
+    def _flags_str(self):
+        for flagname, flagvalue in _flags:
+            if self.__flags & flagvalue == flagvalue:
+                yield flagname
+
+    def get_name(self):
+        """Return a name of a symbol.
+        """
+        return self.__name
+
+    def is_referenced(self):
+        """Return *True* if the symbol is used in
+        its block.
+        """
+        return bool(self.__flags & _symtable.USE)
+
+    def is_parameter(self):
+        """Return *True* if the symbol is a parameter.
+        """
+        return bool(self.__flags & DEF_PARAM)
+
+    def is_global(self):
+        """Return *True* if the symbol is global.
+        """
+        return bool(self.__scope in (GLOBAL_IMPLICIT, GLOBAL_EXPLICIT)
+                    or (self.__module_scope and self.__flags & DEF_BOUND))
+
+    def is_nonlocal(self):
+        """Return *True* if the symbol is nonlocal."""
+        return bool(self.__flags & DEF_NONLOCAL)
+
+    def is_declared_global(self):
+        """Return *True* if the symbol is declared global
+        with a global statement."""
+        return bool(self.__scope == GLOBAL_EXPLICIT)
+
+    def is_local(self):
+        """Return *True* if the symbol is local.
+        """
+        return bool(self.__scope in (LOCAL, CELL)
+                    or (self.__module_scope and self.__flags & DEF_BOUND))
+
+    def is_annotated(self):
+        """Return *True* if the symbol is annotated.
+        """
+        return bool(self.__flags & DEF_ANNOT)
+
+    def is_free(self):
+        """Return *True* if a referenced symbol is
+        not assigned to.
+        """
+        return bool(self.__scope == FREE)
+
+    def is_imported(self):
+        """Return *True* if the symbol is created from
+        an import statement.
+        """
+        return bool(self.__flags & DEF_IMPORT)
+
+    def is_assigned(self):
+        """Return *True* if a symbol is assigned to."""
+        return bool(self.__flags & DEF_LOCAL)
+
+    def is_namespace(self):
+        """Returns *True* if name binding introduces new namespace.
+
+        If the name is used as the target of a function or class
+        statement, this will be true.
+
+        Note that a single name can be bound to multiple objects.  If
+        is_namespace() is true, the name may also be bound to other
+        objects, like an int or list, that does not introduce a new
+        namespace.
+        """
+        return bool(self.__namespaces)
+
+    def get_namespaces(self):
+        """Return a list of namespaces bound to this name"""
+        return self.__namespaces
+
+    def get_namespace(self):
+        """Return the single namespace bound to this name.
+
+        Raises ValueError if the name is bound to multiple namespaces
+        or no namespace.
+        """
+        if len(self.__namespaces) == 0:
+            raise ValueError("name is not bound to any namespaces")
+        elif len(self.__namespaces) > 1:
+            raise ValueError("name is bound to multiple namespaces")
+        else:
+            return self.__namespaces[0]
+
+
+_flags = [('USE', USE)]
+_flags.extend(kv for kv in globals().items() if kv[0].startswith('DEF_'))
+_scopes_names = ('FREE', 'LOCAL', 'GLOBAL_IMPLICIT', 'GLOBAL_EXPLICIT', 'CELL')
+_scopes_value_to_name = {globals()[n]: n for n in _scopes_names}
+
+
+def main(args):
+    import sys
+    def print_symbols(table, level=0):
+        indent = '    ' * level
+        nested = "nested " if table.is_nested() else ""
+        if table.get_type() == 'module':
+            what = f'from file {table._filename!r}'
+        else:
+            what = f'{table.get_name()!r}'
+        print(f'{indent}symbol table for {nested}{table.get_type()} {what}:')
+        for ident in table.get_identifiers():
+            symbol = table.lookup(ident)
+            flags = ', '.join(symbol._flags_str()).lower()
+            print(f'    {indent}{symbol._scope_str().lower()} symbol {symbol.get_name()!r}: {flags}')
+        print()
+
+        for table2 in table.get_children():
+            print_symbols(table2, level + 1)
+
+    for filename in args or ['-']:
+        if filename == '-':
+            src = sys.stdin.read()
+            filename = '<stdin>'
+        else:
+            with open(filename, 'rb') as f:
+                src = f.read()
+        mod = symtable(src, filename, 'exec')
+        print_symbols(mod)
+
+
+if __name__ == "__main__":
+    import sys
+    main(sys.argv[1:])
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    .   ˙   ..  Ò   __init__.py Ú   __main__.py Û  ¿__pycache__                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             """Access to Python's configuration information."""
+
+import os
+import sys
+import threading
+from os.path import realpath
+
+__all__ = [
+    'get_config_h_filename',
+    'get_config_var',
+    'get_config_vars',
+    'get_makefile_filename',
+    'get_path',
+    'get_path_names',
+    'get_paths',
+    'get_platform',
+    'get_python_version',
+    'get_scheme_names',
+    'parse_config_h',
+]
+
+# Keys for get_config_var() that are never converted to Python integers.
+_ALWAYS_STR = {
+    'IPHONEOS_DEPLOYMENT_TARGET',
+    'MACOSX_DEPLOYMENT_TARGET',
+}
+
+_INSTALL_SCHEMES = {
+    'posix_prefix': {
+        'stdlib': '{installed_base}/{platlibdir}/{implementation_lower}{py_version_short}{abi_thread}',
+        'platstdlib': '{platbase}/{platlibdir}/{implementation_lower}{py_version_short}{abi_thread}',
+        'purelib': '{base}/lib/{implementation_lower}{py_version_short}{abi_thread}/site-packages',
+        'platlib': '{platbase}/{platlibdir}/{implementation_lower}{py_version_short}{abi_thread}/site-packages',
+        'include':
+            '{installed_base}/include/{implementation_lower}{py_version_short}{abiflags}',
+        'platinclude':
+            '{installed_platbase}/include/{implementation_lower}{py_version_short}{abiflags}',
+        'scripts': '{base}/bin',
+        'data': '{base}',
+        },
+    'deb_system': {
+        'stdlib': '{installed_base}/lib/python{py_version_short}',
+        'platstdlib': '{platbase}/lib/python{py_version_short}',
+        'purelib': '{base}/lib/python3/dist-packages',
+        'platlib': '{platbase}/lib/python3/dist-packages',
+        'include':
+            '{installed_base}/include/python{py_version_short}{abiflags}',
+        'platinclude':
+            '{installed_platbase}/include/python{py_version_short}{abiflags}',
+        'scripts': '{base}/bin',
+        'data': '{base}',
+        },
+    'posix_local': {
+        'stdlib': '{installed_base}/lib/python{py_version_short}',
+        'platstdlib': '{platbase}/lib/python{py_version_short}',
+        'purelib': '{base}/local/lib/python{py_version_short}/dist-packages',
+        'platlib': '{platbase}/local/lib/python{py_version_short}/dist-packages',
+        'include':
+            '{installed_base}/include/python{py_version_short}{abiflags}',
+        'platinclude':
+            '{installed_platbase}/include/python{py_version_short}{abiflags}',
+        'scripts': '{base}/local/bin',
+        'data': '{base}/local',
+        },
+    'posix_home': {
+        'stdlib': '{installed_base}/lib/{implementation_lower}',
+        'platstdlib': '{base}/lib/{implementation_lower}',
+        'purelib': '{base}/lib/{implementation_lower}',
+        'platlib': '{base}/lib/{implementation_lower}',
+        'include': '{installed_base}/include/{implementation_lower}',
+        'platinclude': '{installed_base}/include/{implementation_lower}',
+        'scripts': '{base}/bin',
+        'data': '{base}',
+        },
+    'nt': {
+        'stdlib': '{installed_base}/Lib',
+        'platstdlib': '{base}/Lib',
+        'purelib': '{base}/Lib/site-packages',
+        'platlib': '{base}/Lib/site-packages',
+        'include': '{installed_base}/Include',
+        'platinclude': '{installed_base}/Include',
+        'scripts': '{base}/Scripts',
+        'data': '{base}',
+        },
+
+    # Downstream distributors can overwrite the default install scheme.
+    # This is done to support downstream modifications where distributors change
+    # the installation layout (eg. different site-packages directory).
+    # So, distributors will change the default scheme to one that correctly
+    # represents their layout.
+    # This presents an issue for projects/people that need to bootstrap virtual
+    # environments, like virtualenv. As distributors might now be customizing
+    # the default install scheme, there is no guarantee that the information
+    # returned by sysconfig.get_default_scheme/get_paths is correct for
+    # a virtual environment, the only guarantee we have is that it is correct
+    # for the *current* environment. When bootstrapping a virtual environment,
+    # we need to know its layout, so that we can place the files in the
+    # correct locations.
+    # The "*_venv" install scheme is a scheme to bootstrap virtual environments,
+    # essentially identical to the default posix_prefix/nt schemes.
+    # Downstream distributors who patch posix_prefix/nt scheme are encouraged to
+    # leave the following schemes unchanged
+    'posix_venv': {
+        'stdlib': '{installed_base}/{platlibdir}/{implementation_lower}{py_version_short}{abi_thread}',
+        'platstdlib': '{platbase}/{platlibdir}/{implementation_lower}{py_version_short}{abi_thread}',
+        'purelib': '{base}/lib/{implementation_lower}{py_version_short}{abi_thread}/site-packages',
+        'platlib': '{platbase}/{platlibdir}/{implementation_lower}{py_version_short}{abi_thread}/site-packages',
+        'include':
+            '{installed_base}/include/{implementation_lower}{py_version_short}{abiflags}',
+        'platinclude':
+            '{installed_platbase}/include/{implementation_lower}{py_version_short}{abiflags}',
+        'scripts': '{base}/bin',
+        'data': '{base}',
+        },
+    'nt_venv': {
+        'stdlib': '{installed_base}/Lib',
+        'platstdlib': '{base}/Lib',
+        'purelib': '{base}/Lib/site-packages',
+        'platlib': '{base}/Lib/site-packages',
+        'include': '{installed_base}/Include',
+        'platinclude': '{installed_base}/Include',
+        'scripts': '{base}/Scripts',
+        'data': '{base}',
+        },
+    }
+
+# For the OS-native venv scheme, we essentially provide an alias:
+if os.name == 'nt':
+    _INSTALL_SCHEMES['venv'] = _INSTALL_SCHEMES['nt_venv']
+else:
+    _INSTALL_SCHEMES['venv'] = _INSTALL_SCHEMES['posix_venv']
+
+def _get_implementation():
+    return 'Python'
+
+# NOTE: site.py has copy of this function.
+# Sync it when modify this function.
+def _getuserbase():
+    env_base = os.environ.get("PYTHONUSERBASE", None)
+    if env_base:
+        return env_base
+
+    # Emscripten, iOS, tvOS, VxWorks, WASI, and watchOS have no home directories
+    if sys.platform in {"emscripten", "ios", "tvos", "vxworks", "wasi", "watchos"}:
+        return None
+
+    def joinuser(*args):
+        return os.path.expanduser(os.path.join(*args))
+
+    if os.name == "nt":
+        base = os.environ.get("APPDATA") or "~"
+        return joinuser(base,  _get_implementation())
+
+    if sys.platform == "darwin" and sys._framework:
+        return joinuser("~", "Library", sys._framework,
+                        f"{sys.version_info[0]}.{sys.version_info[1]}")
+
+    return joinuser("~", ".local")
+
+_HAS_USER_BASE = (_getuserbase() is not None)
+
+if _HAS_USER_BASE:
+    _INSTALL_SCHEMES |= {
+        # NOTE: When modifying "purelib" scheme, update site._get_path() too.
+        'nt_user': {
+            'stdlib': '{userbase}/{implementation}{py_version_nodot_plat}',
+            'platstdlib': '{userbase}/{implementation}{py_version_nodot_plat}',
+            'purelib': '{userbase}/{implementation}{py_version_nodot_plat}/site-packages',
+            'platlib': '{userbase}/{implementation}{py_version_nodot_plat}/site-packages',
+            'include': '{userbase}/{implementation}{py_version_nodot_plat}/Include',
+            'scripts': '{userbase}/{implementation}{py_version_nodot_plat}/Scripts',
+            'data': '{userbase}',
+            },
+        'posix_user': {
+            'stdlib': '{userbase}/{platlibdir}/{implementation_lower}{py_version_short}{abi_thread}',
+            'platstdlib': '{userbase}/{platlibdir}/{implementation_lower}{py_version_short}{abi_thread}',
+            'purelib': '{userbase}/lib/{implementation_lower}{py_version_short}{abi_thread}/site-packages',
+            'platlib': '{userbase}/lib/{implementation_lower}{py_version_short}{abi_thread}/site-packages',
+            'include': '{userbase}/include/{implementation_lower}{py_version_short}{abi_thread}',
+            'scripts': '{userbase}/bin',
+            'data': '{userbase}',
+            },
+        'osx_framework_user': {
+            'stdlib': '{userbase}/lib/{implementation_lower}',
+            'platstdlib': '{userbase}/lib/{implementation_lower}',
+            'purelib': '{userbase}/lib/{implementation_lower}/site-packages',
+            'platlib': '{userbase}/lib/{implementation_lower}/site-packages',
+            'include': '{userbase}/include/{implementation_lower}{py_version_short}',
+            'scripts': '{userbase}/bin',
+            'data': '{userbase}',
+            },
+    }
+
+_SCHEME_KEYS = ('stdlib', 'platstdlib', 'purelib', 'platlib', 'include',
+                'scripts', 'data')
+
+_PY_VERSION = sys.version.split()[0]
+_PY_VERSION_SHORT = f'{sys.version_info[0]}.{sys.version_info[1]}'
+_PY_VERSION_SHORT_NO_DOT = f'{sys.version_info[0]}{sys.version_info[1]}'
+_BASE_PREFIX = os.path.normpath(sys.base_prefix)
+_BASE_EXEC_PREFIX = os.path.normpath(sys.base_exec_prefix)
+# Mutex guarding initialization of _CONFIG_VARS.
+_CONFIG_VARS_LOCK = threading.RLock()
+_CONFIG_VARS = None
+# True iff _CONFIG_VARS has been fully initialized.
+_CONFIG_VARS_INITIALIZED = False
+_USER_BASE = None
+
+
+def _safe_realpath(path):
+    try:
+        return realpath(path)
+    except OSError:
+        return path
+
+if sys.executable:
+    _PROJECT_BASE = os.path.dirname(_safe_realpath(sys.executable))
+else:
+    # sys.executable can be empty if argv[0] has been changed and Python is
+    # unable to retrieve the real program name
+    _PROJECT_BASE = _safe_realpath(os.getcwd())
+
+# In a virtual environment, `sys._home` gives us the target directory
+# `_PROJECT_BASE` for the executable that created it when the virtual
+# python is an actual executable ('venv --copies' or Windows).
+_sys_home = getattr(sys, '_home', None)
+if _sys_home:
+    _PROJECT_BASE = _sys_home
+
+if os.name == 'nt':
+    # In a source build, the executable is in a subdirectory of the root
+    # that we want (<root>\PCbuild\<platname>).
+    # `_BASE_PREFIX` is used as the base installation is where the source
+    # will be.  The realpath is needed to prevent mount point confusion
+    # that can occur with just string comparisons.
+    if _safe_realpath(_PROJECT_BASE).startswith(
+            _safe_realpath(f'{_BASE_PREFIX}\\PCbuild')):
+        _PROJECT_BASE = _BASE_PREFIX
+
+# set for cross builds
+if "_PYTHON_PROJECT_BASE" in os.environ:
+    _PROJECT_BASE = _safe_realpath(os.environ["_PYTHON_PROJECT_BASE"])
+
+def is_python_build(check_home=None):
+    if check_home is not None:
+        import warnings
+        warnings.warn(
+            (
+                'The check_home argument of sysconfig.is_python_build is '
+                'deprecated and its value is ignored. '
+                'It will be removed in Python 3.15.'
+            ),
+            DeprecationWarning,
+            stacklevel=2,
+        )
+    for fn in ("Setup", "Setup.local"):
+        if os.path.isfile(os.path.join(_PROJECT_BASE, "Modules", fn)):
+            return True
+    return False
+
+_PYTHON_BUILD = is_python_build()
+
+if _PYTHON_BUILD:
+    for scheme in ('posix_prefix', 'posix_home', 'posix_local', 'deb_system'):
+        # On POSIX-y platforms, Python will:
+        # - Build from .h files in 'headers' (which is only added to the
+        #   scheme when building CPython)
+        # - Install .h files to 'include'
+        scheme = _INSTALL_SCHEMES[scheme]
+        scheme['headers'] = scheme['include']
+        scheme['include'] = '{srcdir}/Include'
+        scheme['platinclude'] = '{projectbase}/.'
+    del scheme
+
+
+def _subst_vars(s, local_vars):
+    try:
+        return s.format(**local_vars)
+    except KeyError as var:
+        try:
+            return s.format(**os.environ)
+        except KeyError:
+            raise AttributeError(f'{var}') from None
+
+def _extend_dict(target_dict, other_dict):
+    target_keys = target_dict.keys()
+    for key, value in other_dict.items():
+        if key in target_keys:
+            continue
+        target_dict[key] = value
+
+
+def _expand_vars(scheme, vars):
+    res = {}
+    if vars is None:
+        vars = {}
+    _extend_dict(vars, get_config_vars())
+    if os.name == 'nt':
+        # On Windows we want to substitute 'lib' for schemes rather
+        # than the native value (without modifying vars, in case it
+        # was passed in)
+        vars = vars | {'platlibdir': 'lib'}
+
+    for key, value in _INSTALL_SCHEMES[scheme].items():
+        if os.name in ('posix', 'nt'):
+            value = os.path.expanduser(value)
+        res[key] = os.path.normpath(_subst_vars(value, vars))
+    return res
+
+
+def _get_preferred_schemes():
+    if os.name == 'nt':
+        return {
+            'prefix': 'nt',
+            'home': 'posix_home',
+            'user': 'nt_user',
+        }
+    if sys.platform == 'darwin' and sys._framework:
+        return {
+            'prefix': 'posix_prefix',
+            'home': 'posix_home',
+            'user': 'osx_framework_user',
+        }
+
+    if sys.base_prefix != sys.prefix or hasattr(sys, "real_prefix"):
+        # virtual environments
+        prefix_scheme = 'posix_prefix'
+    else:
+        # default to /usr for package builds, /usr/local otherwise
+        deb_build = os.environ.get('DEB_PYTHON_INSTALL_LAYOUT', 'posix_local')
+        if deb_build in ('deb', 'deb_system'):
+            prefix_scheme = 'deb_system'
+        else:
+            prefix_scheme = 'posix_local'
+
+    return {
+        'prefix': prefix_scheme,
+        'home': 'posix_home',
+        'user': 'posix_user',
+    }
+
+
+def get_preferred_scheme(key):
+    if key == 'prefix' and sys.prefix != sys.base_prefix:
+        return 'venv'
+    scheme = _get_preferred_schemes()[key]
+    if scheme not in _INSTALL_SCHEMES:
+        raise ValueError(
+            f"{key!r} returned {scheme!r}, which is not a valid scheme "
+            f"on this platform"
+        )
+    return scheme
+
+
+def get_default_scheme():
+    return get_preferred_scheme('prefix')
+
+
+def get_makefile_filename():
+    """Return the path of the Makefile."""
+    if _PYTHON_BUILD:
+        return os.path.join(_PROJECT_BASE, "Makefile")
+    if hasattr(sys, 'abiflags'):
+        config_dir_name = f'config-{_PY_VERSION_SHORT}{sys.abiflags}'
+    else:
+        config_dir_name = 'config'
+    if hasattr(sys.implementation, '_multiarch'):
+        config_dir_name += f'-{sys.implementation._multiarch}'
+    return os.path.join(get_path('stdlib'), config_dir_name, 'Makefile')
+
+
+def _get_sysconfigdata_name():
+    multiarch = getattr(sys.implementation, '_multiarch', '')
+    return os.environ.get(
+        '_PYTHON_SYSCONFIGDATA_NAME',
+        f'_sysconfigdata_{sys.abiflags}_{sys.platform}_{multiarch}',
+    )
+
+def _init_posix(vars):
+    """Initialize the module as appropriate for POSIX systems."""
+    # _sysconfigdata is generated at build time, see _generate_posix_vars()
+    name = _get_sysconfigdata_name()
+
+    # For cross builds, the path to the target's sysconfigdata must be specified
+    # so it can be imported. It cannot be in PYTHONPATH, as foreign modules in
+    # sys.path can cause crashes when loaded by the host interpreter.
+    # Rely on truthiness as a valueless env variable is still an empty string.
+    # See OS X note in _generate_posix_vars re _sysconfigdata.
+    if (path := os.environ.get('_PYTHON_SYSCONFIGDATA_PATH')):
+        from importlib.machinery import FileFinder, SourceFileLoader, SOURCE_SUFFIXES
+        from importlib.util import module_from_spec
+        spec = FileFinder(path, (SourceFileLoader, SOURCE_SUFFIXES)).find_spec(name)
+        _temp = module_from_spec(spec)
+        spec.loader.exec_module(_temp)
+    else:
+        _temp = __import__(name, globals(), locals(), ['build_time_vars'], 0)
+    build_time_vars = _temp.build_time_vars
+    vars.update(build_time_vars)
+
+def _init_non_posix(vars):
+    """Initialize the module as appropriate for NT"""
+    # set basic install directories
+    import _winapi
+    import _sysconfig
+    vars['LIBDEST'] = get_path('stdlib')
+    vars['BINLIBDEST'] = get_path('platstdlib')
+    vars['INCLUDEPY'] = get_path('include')
+
+    # Add EXT_SUFFIX, SOABI, and Py_GIL_DISABLED
+    vars.update(_sysconfig.config_vars())
+
+    vars['LIBDIR'] = _safe_realpath(os.path.join(get_config_var('installed_base'), 'libs'))
+    if hasattr(sys, 'dllhandle'):
+        dllhandle = _winapi.GetModuleFileName(sys.dllhandle)
+        vars['LIBRARY'] = os.path.basename(_safe_realpath(dllhandle))
+        vars['LDLIBRARY'] = vars['LIBRARY']
+    vars['EXE'] = '.exe'
+    vars['VERSION'] = _PY_VERSION_SHORT_NO_DOT
+    vars['BINDIR'] = os.path.dirname(_safe_realpath(sys.executable))
+    vars['TZPATH'] = ''
+
+#
+# public APIs
+#
+
+
+def parse_config_h(fp, vars=None):
+    """Parse a config.h-style file.
+
+    A dictionary containing name/value pairs is returned.  If an
+    optional dictionary is passed in as the second argument, it is
+    used instead of a new dictionary.
+    """
+    if vars is None:
+        vars = {}
+    import re
+    define_rx = re.compile("#define ([A-Z][A-Za-z0-9_]+) (.*)\n")
+    undef_rx = re.compile("/[*] #undef ([A-Z][A-Za-z0-9_]+) [*]/\n")
+
+    while True:
+        line = fp.readline()
+        if not line:
+            break
+        m = define_rx.match(line)
+        if m:
+            n, v = m.group(1, 2)
+            try:
+                if n in _ALWAYS_STR:
+                    raise ValueError
+                v = int(v)
+            except ValueError:
+                pass
+            vars[n] = v
+        else:
+            m = undef_rx.match(line)
+            if m:
+                vars[m.group(1)] = 0
+    return vars
+
+
+def get_config_h_filename():
+    """Return the path of pyconfig.h."""
+    if _PYTHON_BUILD:
+        if os.name == "nt":
+            inc_dir = os.path.dirname(sys._base_executable)
+        else:
+            inc_dir = _PROJECT_BASE
+    else:
+        inc_dir = get_path('platinclude', 'posix_prefix')
+    return os.path.join(inc_dir, 'pyconfig.h')
+
+
+def get_scheme_names():
+    """Return a tuple containing the schemes names."""
+    return tuple(sorted(_INSTALL_SCHEMES))
+
+
+def get_path_names():
+    """Return a tuple containing the paths names."""
+    return _SCHEME_KEYS
+
+
+def get_paths(scheme=get_default_scheme(), vars=None, expand=True):
+    """Return a mapping containing an install scheme.
+
+    ``scheme`` is the install scheme name. If not provided, it will
+    return the default scheme for the current platform.
+    """
+    if expand:
+        return _expand_vars(scheme, vars)
+    else:
+        return _INSTALL_SCHEMES[scheme]
+
+
+def get_path(name, scheme=get_default_scheme(), vars=None, expand=True):
+    """Return a path corresponding to the scheme.
+
+    ``scheme`` is the install scheme name.
+    """
+    return get_paths(scheme, vars, expand)[name]
+
+
+def _init_config_vars():
+    global _CONFIG_VARS
+    _CONFIG_VARS = {}
+    # Normalized versions of prefix and exec_prefix are handy to have;
+    # in fact, these are the standard versions used most places in the
+    # Distutils.
+    _PREFIX = os.path.normpath(sys.prefix)
+    _EXEC_PREFIX = os.path.normpath(sys.exec_prefix)
+    _CONFIG_VARS['prefix'] = _PREFIX  # FIXME: This gets overwriten by _init_posix.
+    _CONFIG_VARS['exec_prefix'] = _EXEC_PREFIX  # FIXME: This gets overwriten by _init_posix.
+    _CONFIG_VARS['py_version'] = _PY_VERSION
+    _CONFIG_VARS['py_version_short'] = _PY_VERSION_SHORT
+    _CONFIG_VARS['py_version_nodot'] = _PY_VERSION_SHORT_NO_DOT
+    _CONFIG_VARS['installed_base'] = _BASE_PREFIX
+    _CONFIG_VARS['base'] = _PREFIX
+    _CONFIG_VARS['installed_platbase'] = _BASE_EXEC_PREFIX
+    _CONFIG_VARS['platbase'] = _EXEC_PREFIX
+    _CONFIG_VARS['projectbase'] = _PROJECT_BASE
+    _CONFIG_VARS['platlibdir'] = sys.platlibdir
+    _CONFIG_VARS['implementation'] = _get_implementation()
+    _CONFIG_VARS['implementation_lower'] = _get_implementation().lower()
+    try:
+        _CONFIG_VARS['abiflags'] = sys.abiflags
+    except AttributeError:
+        # sys.abiflags may not be defined on all platforms.
+        _CONFIG_VARS['abiflags'] = ''
+    try:
+        _CONFIG_VARS['py_version_nodot_plat'] = sys.winver.replace('.', '')
+    except AttributeError:
+        _CONFIG_VARS['py_version_nodot_plat'] = ''
+
+    if os.name == 'nt':
+        _init_non_posix(_CONFIG_VARS)
+        _CONFIG_VARS['VPATH'] = sys._vpath
+    if os.name == 'posix':
+        _init_posix(_CONFIG_VARS)
+    if _HAS_USER_BASE:
+        # Setting 'userbase' is done below the call to the
+        # init function to enable using 'get_config_var' in
+        # the init-function.
+        _CONFIG_VARS['userbase'] = _getuserbase()
+
+    # e.g., 't' for free-threaded or '' for default build
+    _CONFIG_VARS['abi_thread'] = 't' if _CONFIG_VARS.get('Py_GIL_DISABLED') else ''
+
+    multiarch = get_config_var('MULTIARCH')
+    if multiarch:
+        _CONFIG_VARS['multiarchsubdir'] = '/' + multiarch
+    else:
+        _CONFIG_VARS['multiarchsubdir'] = ''
+
+    # Always convert srcdir to an absolute path
+    srcdir = _CONFIG_VARS.get('srcdir', _PROJECT_BASE)
+    if os.name == 'posix':
+        if _PYTHON_BUILD:
+            # If srcdir is a relative path (typically '.' or '..')
+            # then it should be interpreted relative to the directory
+            # containing Makefile.
+            base = os.path.dirname(get_makefile_filename())
+            srcdir = os.path.join(base, srcdir)
+        else:
+            # srcdir is not meaningful since the installation is
+            # spread about the filesystem.  We choose the
+            # directory containing the Makefile since we know it
+            # exists.
+            srcdir = os.path.dirname(get_makefile_filename())
+    _CONFIG_VARS['srcdir'] = _safe_realpath(srcdir)
+
+    # OS X platforms require special customization to handle
+    # multi-architecture, multi-os-version installers
+    if sys.platform == 'darwin':
+        import _osx_support
+        _osx_support.customize_config_vars(_CONFIG_VARS)
+
+    global _CONFIG_VARS_INITIALIZED
+    _CONFIG_VARS_INITIALIZED = True
+
+
+def get_config_vars(*args):
+    """With no arguments, return a dictionary of all configuration
+    variables relevant for the current platform.
+
+    On Unix, this means every variable defined in Python's installed Makefile;
+    On Windows it's a much smaller set.
+
+    With arguments, return a list of values that result from looking up
+    each argument in the configuration variable dictionary.
+    """
+    global _CONFIG_VARS_INITIALIZED
+
+    # Avoid claiming the lock once initialization is complete.
+    if not _CONFIG_VARS_INITIALIZED:
+        with _CONFIG_VARS_LOCK:
+            # Test again with the lock held to avoid races. Note that
+            # we test _CONFIG_VARS here, not _CONFIG_VARS_INITIALIZED,
+            # to ensure that recursive calls to get_config_vars()
+            # don't re-enter init_config_vars().
+            if _CONFIG_VARS is None:
+                _init_config_vars()
+    else:
+        # If the site module initialization happened after _CONFIG_VARS was
+        # initialized, a virtual environment might have been activated, resulting in
+        # variables like sys.prefix changing their value, so we need to re-init the
+        # config vars (see GH-126789).
+        if _CONFIG_VARS['base'] != os.path.normpath(sys.prefix):
+            with _CONFIG_VARS_LOCK:
+                _CONFIG_VARS_INITIALIZED = False
+                _init_config_vars()
+
+    if args:
+        vals = []
+        for name in args:
+            vals.append(_CONFIG_VARS.get(name))
+        return vals
+    else:
+        return _CONFIG_VARS
+
+
+def get_config_var(name):
+    """Return the value of a single variable using the dictionary returned by
+    'get_config_vars()'.
+
+    Equivalent to get_config_vars().get(name)
+    """
+    return get_config_vars().get(name)
+
+
+def get_platform():
+    """Return a string that identifies the current platform.
+
+    This is used mainly to distinguish platform-specific build directories and
+    platform-specific built distributions.  Typically includes the OS name and
+    version and the architecture (as supplied by 'os.uname()'), although the
+    exact information included depends on the OS; on Linux, the kernel version
+    isn't particularly important.
+
+    Examples of returned values:
+       linux-i586
+       linux-alpha (?)
+       solaris-2.6-sun4u
+
+    Windows will return one of:
+       win-amd64 (64-bit Windows on AMD64 (aka x86_64, Intel64, EM64T, etc)
+       win-arm64 (64-bit Windows on ARM64 (aka AArch64)
+       win32 (all others - specifically, sys.platform is returned)
+
+    For other non-POSIX platforms, currently just returns 'sys.platform'.
+
+    """
+    if os.name == 'nt':
+        if 'amd64' in sys.version.lower():
+            return 'win-amd64'
+        if '(arm)' in sys.version.lower():
+            return 'win-arm32'
+        if '(arm64)' in sys.version.lower():
+            return 'win-arm64'
+        return sys.platform
+
+    if os.name != "posix" or not hasattr(os, 'uname'):
+        # XXX what about the architecture? NT is Intel or Alpha
+        return sys.platform
+
+    # Set for cross builds explicitly
+    if "_PYTHON_HOST_PLATFORM" in os.environ:
+        return os.environ["_PYTHON_HOST_PLATFORM"]
+
+    # Try to distinguish various flavours of Unix
+    osname, host, release, version, machine = os.uname()
+
+    # Convert the OS name to lowercase, remove '/' characters, and translate
+    # spaces (for "Power Macintosh")
+    osname = osname.lower().replace('/', '')
+    machine = machine.replace(' ', '_')
+    machine = machine.replace('/', '-')
+
+    if osname[:5] == "linux":
+        if sys.platform == "android":
+            osname = "android"
+            release = get_config_var("ANDROID_API_LEVEL")
+
+            # Wheel tags use the ABI names from Android's own tools.
+            machine = {
+                "x86_64": "x86_64",
+                "i686": "x86",
+                "aarch64": "arm64_v8a",
+                "armv7l": "armeabi_v7a",
+            }[machine]
+        else:
+            # At least on Linux/Intel, 'machine' is the processor --
+            # i386, etc.
+            # XXX what about Alpha, SPARC, etc?
+            return  f"{osname}-{machine}"
+    elif osname[:5] == "sunos":
+        if release[0] >= "5":           # SunOS 5 == Solaris 2
+            osname = "solaris"
+            release = f"{int(release[0]) - 3}.{release[2:]}"
+            # We can't use "platform.architecture()[0]" because a
+            # bootstrap problem. We use a dict to get an error
+            # if some suspicious happens.
+            bitness = {2147483647:"32bit", 9223372036854775807:"64bit"}
+            machine += f".{bitness[sys.maxsize]}"
+        # fall through to standard osname-release-machine representation
+    elif osname[:3] == "aix":
+        from _aix_support import aix_platform
+        return aix_platform()
+    elif osname[:6] == "cygwin":
+        osname = "cygwin"
+        import re
+        rel_re = re.compile(r'[\d.]+')
+        m = rel_re.match(release)
+        if m:
+            release = m.group()
+    elif osname[:6] == "darwin":
+        if sys.platform == "ios":
+            release = get_config_vars().get("IPHONEOS_DEPLOYMENT_TARGET", "13.0")
+            osname = sys.platform
+            machine = sys.implementation._multiarch
+        else:
+            import _osx_support
+            osname, release, machine = _osx_support.get_platform_osx(
+                                                get_config_vars(),
+                                                osname, release, machine)
+
+    return f"{osname}-{release}-{machine}"
+
+
+def get_python_version():
+    return _PY_VERSION_SHORT
+
+
+def _get_python_version_abi():
+    return _PY_VERSION_SHORT + get_config_var("abi_thread")
+
+
+def expand_makefile_vars(s, vars):
+    """Expand Makefile-style variables -- "${foo}" or "$(foo)" -- in
+    'string' according to 'vars' (a dictionary mapping variable names to
+    values).  Variables not present in 'vars' are silently expanded to the
+    empty string.  The variable values in 'vars' should not contain further
+    variable expansions; if 'vars' is the output of 'parse_makefile()',
+    you're fine.  Returns a variable-expanded version of 's'.
+    """
+    import re
+
+    _findvar1_rx = r"\$\(([A-Za-z][A-Za-z0-9_]*)\)"
+    _findvar2_rx = r"\${([A-Za-z][A-Za-z0-9_]*)}"
+
+    # This algorithm does multiple expansion, so if vars['foo'] contains
+    # "${bar}", it will expand ${foo} to ${bar}, and then expand
+    # ${bar}... and so forth.  This is fine as long as 'vars' comes from
+    # 'parse_makefile()', which takes care of such expansions eagerly,
+    # according to make's variable expansion semantics.
+
+    while True:
+        m = re.search(_findvar1_rx, s) or re.search(_findvar2_rx, s)
+        if m:
+            (beg, end) = m.span()
+            s = s[0:beg] + vars.get(m.group(1)) + s[end:]
+        else:
+            break
+    return s
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            import os
+import sys
+from sysconfig import (
+    _ALWAYS_STR,
+    _PYTHON_BUILD,
+    _get_sysconfigdata_name,
+    get_config_h_filename,
+    get_config_vars,
+    get_default_scheme,
+    get_makefile_filename,
+    get_paths,
+    get_platform,
+    get_python_version,
+    parse_config_h,
+)
+
+
+# Regexes needed for parsing Makefile (and similar syntaxes,
+# like old-style Setup files).
+_variable_rx = r"([a-zA-Z][a-zA-Z0-9_]+)\s*=\s*(.*)"
+_findvar1_rx = r"\$\(([A-Za-z][A-Za-z0-9_]*)\)"
+_findvar2_rx = r"\${([A-Za-z][A-Za-z0-9_]*)}"
+
+
+def _parse_makefile(filename, vars=None, keep_unresolved=True):
+    """Parse a Makefile-style file.
+
+    A dictionary containing name/value pairs is returned.  If an
+    optional dictionary is passed in as the second argument, it is
+    used instead of a new dictionary.
+    """
+    import re
+
+    if vars is None:
+        vars = {}
+    done = {}
+    notdone = {}
+
+    with open(filename, encoding=sys.getfilesystemencoding(),
+              errors="surrogateescape") as f:
+        lines = f.readlines()
+
+    for line in lines:
+        if line.startswith('#') or line.strip() == '':
+            continue
+        m = re.match(_variable_rx, line)
+        if m:
+            n, v = m.group(1, 2)
+            v = v.strip()
+            # `$$' is a literal `$' in make
+            tmpv = v.replace('$$', '')
+
+            if "$" in tmpv:
+                notdone[n] = v
+            else:
+                try:
+                    if n in _ALWAYS_STR:
+                        raise ValueError
+
+                    v = int(v)
+                except ValueError:
+                    # insert literal `$'
+                    done[n] = v.replace('$$', '$')
+                else:
+                    done[n] = v
+
+    # do variable interpolation here
+    variables = list(notdone.keys())
+
+    # Variables with a 'PY_' prefix in the makefile. These need to
+    # be made available without that prefix through sysconfig.
+    # Special care is needed to ensure that variable expansion works, even
+    # if the expansion uses the name without a prefix.
+    renamed_variables = ('CFLAGS', 'LDFLAGS', 'CPPFLAGS')
+
+    while len(variables) > 0:
+        for name in tuple(variables):
+            value = notdone[name]
+            m1 = re.search(_findvar1_rx, value)
+            m2 = re.search(_findvar2_rx, value)
+            if m1 and m2:
+                m = m1 if m1.start() < m2.start() else m2
+            else:
+                m = m1 if m1 else m2
+            if m is not None:
+                n = m.group(1)
+                found = True
+                if n in done:
+                    item = str(done[n])
+                elif n in notdone:
+                    # get it on a subsequent round
+                    found = False
+                elif n in os.environ:
+                    # do it like make: fall back to environment
+                    item = os.environ[n]
+
+                elif n in renamed_variables:
+                    if (name.startswith('PY_') and
+                        name[3:] in renamed_variables):
+                        item = ""
+
+                    elif 'PY_' + n in notdone:
+                        found = False
+
+                    else:
+                        item = str(done['PY_' + n])
+
+                else:
+                    done[n] = item = ""
+
+                if found:
+                    after = value[m.end():]
+                    value = value[:m.start()] + item + after
+                    if "$" in after:
+                        notdone[name] = value
+                    else:
+                        try:
+                            if name in _ALWAYS_STR:
+                                raise ValueError
+                            value = int(value)
+                        except ValueError:
+                            done[name] = value.strip()
+                        else:
+                            done[name] = value
+                        variables.remove(name)
+
+                        if name.startswith('PY_') \
+                        and name[3:] in renamed_variables:
+
+                            name = name[3:]
+                            if name not in done:
+                                done[name] = value
+
+            else:
+                # Adds unresolved variables to the done dict.
+                # This is disabled when called from distutils.sysconfig
+                if keep_unresolved:
+                    done[name] = value
+                # bogus variable reference (e.g. "prefix=$/opt/python");
+                # just drop it since we can't deal
+                variables.remove(name)
+
+    # strip spurious spaces
+    for k, v in done.items():
+        if isinstance(v, str):
+            done[k] = v.strip()
+
+    # save the results in the global dictionary
+    vars.update(done)
+    return vars
+
+
+def _print_config_dict(d, stream):
+    print ("{", file=stream)
+    for k, v in sorted(d.items()):
+        print(f"    {k!r}: {v!r},", file=stream)
+    print ("}", file=stream)
+
+
+def _generate_posix_vars():
+    """Generate the Python module containing build-time variables."""
+    vars = {}
+    # load the installed Makefile:
+    makefile = get_makefile_filename()
+    try:
+        _parse_makefile(makefile, vars)
+    except OSError as e:
+        msg = f"invalid Python installation: unable to open {makefile}"
+        if hasattr(e, "strerror"):
+            msg = f"{msg} ({e.strerror})"
+        raise OSError(msg)
+    # load the installed pyconfig.h:
+    config_h = get_config_h_filename()
+    try:
+        with open(config_h, encoding="utf-8") as f:
+            parse_config_h(f, vars)
+    except OSError as e:
+        msg = f"invalid Python installation: unable to open {config_h}"
+        if hasattr(e, "strerror"):
+            msg = f"{msg} ({e.strerror})"
+        raise OSError(msg)
+    # On AIX, there are wrong paths to the linker scripts in the Makefile
+    # -- these paths are relative to the Python source, but when installed
+    # the scripts are in another directory.
+    if _PYTHON_BUILD:
+        vars['BLDSHARED'] = vars['LDSHARED']
+
+    # There's a chicken-and-egg situation on OS X with regards to the
+    # _sysconfigdata module after the changes introduced by #15298:
+    # get_config_vars() is called by get_platform() as part of the
+    # `make pybuilddir.txt` target -- which is a precursor to the
+    # _sysconfigdata.py module being constructed.  Unfortunately,
+    # get_config_vars() eventually calls _init_posix(), which attempts
+    # to import _sysconfigdata, which we won't have built yet.  In order
+    # for _init_posix() to work, if we're on Darwin, just mock up the
+    # _sysconfigdata module manually and populate it with the build vars.
+    # This is more than sufficient for ensuring the subsequent call to
+    # get_platform() succeeds.
+    name = _get_sysconfigdata_name()
+    if 'darwin' in sys.platform:
+        import types
+        module = types.ModuleType(name)
+        module.build_time_vars = vars
+        sys.modules[name] = module
+
+    pybuilddir = f'build/lib.{get_platform()}-{get_python_version()}'
+    if hasattr(sys, "gettotalrefcount"):
+        pybuilddir += '-pydebug'
+    os.makedirs(pybuilddir, exist_ok=True)
+    destfile = os.path.join(pybuilddir, name + '.py')
+
+    with open(destfile, 'w', encoding='utf8') as f:
+        f.write('# system configuration generated and used by'
+                ' the sysconfig module\n')
+        f.write('build_time_vars = ')
+        _print_config_dict(vars, stream=f)
+
+    # Create file used for sys.path fixup -- see Modules/getpath.c
+    with open('pybuilddir.txt', 'w', encoding='utf8') as f:
+        f.write(pybuilddir)
+
+
+def _print_dict(title, data):
+    for index, (key, value) in enumerate(sorted(data.items())):
+        if index == 0:
+            print(f'{title}: ')
+        print(f'\t{key} = "{value}"')
+
+
+def _main():
+    """Display all information sysconfig detains."""
+    if '--generate-posix-vars' in sys.argv:
+        _generate_posix_vars()
+        return
+    print(f'Platform: "{get_platform()}"')
+    print(f'Python version: "{get_python_version()}"')
+    print(f'Current installation scheme: "{get_default_scheme()}"')
+    print()
+    _print_dict('Paths', get_paths())
+    print()
+    _print_dict('Variables', get_config_vars())
+
+
+if __name__ == '__main__':
+    try:
+        _main()
+    except BrokenPipeError:
+        pass
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     Û   .      ..  Ù    __init__.cpython-313.pycı  »__main__.cpython-313.pyc                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        Û
+    F\hp  „                   Û™  ï S r SSKrSSKrSSKrSSKJr  / SQrSS1rSSS	S
+SSSSS.SSSSSSSSS.SSSSSSSSS.SSSSSSSSS.SSSSS S S!SS.SSS	S
+SSSSS.SSSSS S S!SS.S".r\R                  S#:X  a	  \S$   \S%'   O\S&   \S%'   S' r
+S( r\" 5       SLr\(       a!  \S)S)S*S*S+S,S-S..S/S/S0S0S1S2S-S..S3S3S4S4S5S2S-S..S6.-  rS.r\R                  R                  5       S   r\R"                  S    S7\R"                  S8    3r\R"                  S    \R"                  S8    3r\R(                  R+                  \R,                  5      r\R(                  R+                  \R0                  5      r\R4                  " 5       rSqS9qSrS: r\R@                  (       a,  \R(                  RC                  \" \R@                  5      5      r"O\" \RF                  " 5       5      r"\$" \S;S5      r%\%(       a  \%r"\R                  S#:X  a'  \" \"5      RM                  \" \ S<35      5      (       a  \r"S=\RN                  ;   a  \" \RN                  S=   5      r"S]S> jr(\(" 5       r)\)(       a!  S? H  r*\\*   r*\*S@   \*SA'   SB\*S@'   SC\*SD'   M     C*SE r+SF r,SG r-SH r.SI r/SJ r0SK r1SL r2SM r3SN r4S]SO jr5SP r6SQ r7SR r8\0" 5       SSS4ST jr9\0" 5       SSS4SU jr:SV r;SW r<SX r=SY r>SZ r?S[ r@S\ rAg)^z-Access to Python's configuration information.È    N)⁄realpath)⁄get_config_h_filename⁄get_config_var⁄get_config_vars⁄get_makefile_filename⁄get_path⁄get_path_names⁄	get_paths⁄get_platform⁄get_python_version⁄get_scheme_names⁄parse_config_h⁄IPHONEOS_DEPLOYMENT_TARGET⁄MACOSX_DEPLOYMENT_TARGETzR{installed_base}/{platlibdir}/{implementation_lower}{py_version_short}{abi_thread}zL{platbase}/{platlibdir}/{implementation_lower}{py_version_short}{abi_thread}zM{base}/lib/{implementation_lower}{py_version_short}{abi_thread}/site-packageszZ{platbase}/{platlibdir}/{implementation_lower}{py_version_short}{abi_thread}/site-packageszK{installed_base}/include/{implementation_lower}{py_version_short}{abiflags}zO{installed_platbase}/include/{implementation_lower}{py_version_short}{abiflags}z
+{base}/binz{base})⁄stdlib⁄
+platstdlib⁄purelib⁄platlib⁄include⁄platinclude⁄scripts⁄dataz-{installed_base}/lib/python{py_version_short}z'{platbase}/lib/python{py_version_short}z {base}/lib/python3/dist-packagesz${platbase}/lib/python3/dist-packagesz;{installed_base}/include/python{py_version_short}{abiflags}z?{installed_platbase}/include/python{py_version_short}{abiflags}z7{base}/local/lib/python{py_version_short}/dist-packagesz;{platbase}/local/lib/python{py_version_short}/dist-packagesz{base}/local/binz{base}/localz+{installed_base}/lib/{implementation_lower}z!{base}/lib/{implementation_lower}z/{installed_base}/include/{implementation_lower}z{installed_base}/Libz
+{base}/Libz{base}/Lib/site-packagesz{installed_base}/Includez{base}/Scripts)⁄posix_prefix⁄
+deb_system⁄posix_local⁄
+posix_home⁄nt⁄
+posix_venv⁄nt_venvr   r   ⁄venvr   c                  Û   ï g)N⁄Python© r#   Û    ⁄)/usr/lib/python3.13/sysconfig/__init__.py⁄_get_implementationr&   Ö   s   Ä ÿr$   c            	      Û  ï [         R                  R                  SS 5      n U (       a  U $ [        R                  S;   a  g S n[         R
+                  S:X  a9  [         R                  R                  S5      =(       d    SnU" U[        5       5      $ [        R                  S:X  aU  [        R                  (       a@  U" SS[        R                  [        R                  S	    S
+[        R                  S    35      $ U" SS5      $ )N⁄PYTHONUSERBASE>   ⁄ios⁄tvos⁄wasi⁄vxworks⁄watchos⁄
+emscriptenc                  Ûv   ï [         R                  R                  [         R                  R                  " U 6 5      $ ©N)⁄os⁄path⁄
+expanduser⁄join)⁄argss    r%   ⁄joinuser⁄_getuserbase.<locals>.joinuserì   s$   Ä ‹èwâw◊!—!§"ß'°'ß,¢,∞–"5”6–6r$   r   ⁄APPDATA⁄~⁄darwin⁄Libraryr   ⁄.È   z.local)	r1   ⁄environ⁄get⁄sys⁄platform⁄namer&   ⁄
+_framework⁄version_info)⁄env_baser6   ⁄bases      r%   ⁄_getuserbaserG   ä   sÀ   Ä ‹èzâzè~â~–.∞”5ÄHﬁÿàÙ á|Å|–R”RÿÚ7Ù 
+áwÅwê$É‹èzâzè~â~òi”(◊/®CàŸò‘2”4”5–5‰
+á|Å|êx”§CßNßNŸòòY¨Ø©‹◊+—+®A—.–/®q¥◊1A—1A¿!—1D–0E–FÛH 	HÒ êCò”"–"r$   z2{userbase}/{implementation}{py_version_nodot_plat}z@{userbase}/{implementation}{py_version_nodot_plat}/site-packagesz:{userbase}/{implementation}{py_version_nodot_plat}/Includez:{userbase}/{implementation}{py_version_nodot_plat}/Scriptsz
+{userbase})r   r   r   r   r   r   r   zL{userbase}/{platlibdir}/{implementation_lower}{py_version_short}{abi_thread}zQ{userbase}/lib/{implementation_lower}{py_version_short}{abi_thread}/site-packageszG{userbase}/include/{implementation_lower}{py_version_short}{abi_thread}z{userbase}/binz%{userbase}/lib/{implementation_lower}z3{userbase}/lib/{implementation_lower}/site-packagesz;{userbase}/include/{implementation_lower}{py_version_short})⁄nt_user⁄
+posix_user⁄osx_framework_userr<   r=   Fc                 Û>   ï  [        U 5      $ ! [         a    U s $ f = fr0   )r   ⁄OSError)r2   s    r%   ⁄_safe_realpathrM   “   s%   Ä ‹òã~–¯‹Û ÿä˙s   Ç
+ çõ⁄_homez\PCbuild⁄_PYTHON_PROJECT_BASEc                 Û‡   ï U b  SS K nUR                  S[        SS9  S HL  n[        R                  R                  [        R                  R                  [        SU5      5      (       d  ML    g   g)	Nr   zThe check_home argument of sysconfig.is_python_build is deprecated and its value is ignored. It will be removed in Python 3.15.È   )⁄
+stacklevel)⁄SetupzSetup.local⁄ModulesTF)⁄warnings⁄warn⁄DeprecationWarningr1   r2   ⁄isfiler4   ⁄_PROJECT_BASE)⁄
+check_homerU   ⁄fns      r%   ⁄is_python_buildr\   Ù   sa   Ä ÿ—€ÿèâ5Ù ÿ 	Ò 	
+Û 'à‹è7â7è>â>ú"ü'ô'ü,ô,§}∞i¿”D◊E”EŸÒ ' r$   )r   r   r   r   r   ⁄headersz{srcdir}/Includez{projectbase}/.r   c                 ÛŒ   ï  U R                   " S0 UD6$ ! [         aF  n U R                   " S0 [        R                  D6s S nA$ ! [         a    [	        U 5      S ef = fS nAff = f)Nr#   )⁄format⁄KeyErrorr1   r>   ⁄AttributeError)⁄s⁄
+local_vars⁄vars      r%   ⁄_subst_varsre     sa   Ä 5ÿèxäx—%ò*—%–%¯‹Û 5	5ÿó8í8—)úbüjôj—)’)¯‹Û 	5‹ †C†5”*∞–4	5˛5˙s%   Ç î
+A$üAæA$¡A¡A¡A$c                 Ûl   ï U R                  5       nUR                  5        H  u  p4X2;   a  M  X@U'   M     g r0   )⁄keys⁄items)⁄target_dict⁄
+other_dict⁄target_keys⁄key⁄values        r%   ⁄_extend_dictrn     s6   Ä ÿ◊"—"”$ÄKÿ ◊&—&÷(â
+àÿ”Ÿÿ êC”Ú )r$   c                 Ûl  ï 0 nUc  0 n[        U[        5       5        [        R                  S:X  a  USS0-  n[        U    R                  5        Hb  u  p4[        R                  S;   a  [        R                  R                  U5      n[        R                  R                  [        XA5      5      X#'   Md     U$ )Nr   ⁄
+platlibdir⁄lib)⁄posixr   )
+rn   r   r1   rB   ⁄_INSTALL_SCHEMESrh   r2   r3   ⁄normpathre   )⁄scheme⁄vars⁄resrl   rm   s        r%   ⁄_expand_varsrx   %  sñ   Ä ÿ
+ÄCÿÅ|ÿà‹êî”(‘)‹	áwÅwê$É ê|†U–+—+à‰&†v—.◊4—4÷6â
+à‹è7â7êo”%‹óGëG◊&—&†u”-àE‹ó7ë7◊#—#§K∞”$<”=àãÒ 7 ÄJr$   c                  Ûj  ï [         R                  S:X  a  SSSS.$ [        R                  S:X  a  [        R                  (       a  SSSS.$ [        R
+                  [        R                  :w  d  [        [        S5      (       a  Sn O+[         R                  R

@@ -1,0 +1,3202 @@
+import os
+import sys
+import warnings
+from inspect import isabstract
+from typing import Any
+import linecache
+
+from test import support
+from test.support import os_helper
+from test.support import refleak_helper
+
+from .runtests import HuntRefleak
+from .utils import clear_caches
+
+try:
+    from _abc import _get_dump
+except ImportError:
+    import weakref
+
+    def _get_dump(cls):
+        # Reimplement _get_dump() for pure-Python implementation of
+        # the abc module (Lib/_py_abc.py)
+        registry_weakrefs = set(weakref.ref(obj) for obj in cls._abc_registry)
+        return (registry_weakrefs, cls._abc_cache,
+                cls._abc_negative_cache, cls._abc_negative_cache_version)
+
+
+def save_support_xml(filename):
+    if support.junit_xml_list is None:
+        return
+
+    import pickle
+    with open(filename, 'xb') as fp:
+        pickle.dump(support.junit_xml_list, fp)
+    support.junit_xml_list = None
+
+
+def restore_support_xml(filename):
+    try:
+        fp = open(filename, 'rb')
+    except FileNotFoundError:
+        return
+
+    import pickle
+    with fp:
+        xml_list = pickle.load(fp)
+    os.unlink(filename)
+
+    support.junit_xml_list = xml_list
+
+
+def runtest_refleak(test_name, test_func,
+                    hunt_refleak: HuntRefleak,
+                    quiet: bool):
+    """Run a test multiple times, looking for reference leaks.
+
+    Returns:
+        False if the test didn't leak references; True if we detected refleaks.
+    """
+    # This code is hackish and inelegant, but it seems to do the job.
+    import copyreg
+    import collections.abc
+
+    if not hasattr(sys, 'gettotalrefcount'):
+        raise Exception("Tracking reference leaks requires a debug build "
+                        "of Python")
+
+    # Avoid false positives due to various caches
+    # filling slowly with random data:
+    warm_caches()
+
+    # Save current values for dash_R_cleanup() to restore.
+    fs = warnings.filters[:]
+    ps = copyreg.dispatch_table.copy()
+    pic = sys.path_importer_cache.copy()
+    zdc: dict[str, Any] | None
+    # Linecache holds a cache with the source of interactive code snippets
+    # (e.g. code typed in the REPL). This cache is not cleared by
+    # linecache.clearcache(). We need to save and restore it to avoid false
+    # positives.
+    linecache_data = linecache.cache.copy(), linecache._interactive_cache.copy() # type: ignore[attr-defined]
+    try:
+        import zipimport
+    except ImportError:
+        zdc = None # Run unmodified on platforms without zipimport support
+    else:
+        # private attribute that mypy doesn't know about:
+        zdc = zipimport._zip_directory_cache.copy()  # type: ignore[attr-defined]
+    abcs = {}
+    for abc in [getattr(collections.abc, a) for a in collections.abc.__all__]:
+        if not isabstract(abc):
+            continue
+        for obj in abc.__subclasses__() + [abc]:
+            abcs[obj] = _get_dump(obj)[0]
+
+    # bpo-31217: Integer pool to get a single integer object for the same
+    # value. The pool is used to prevent false alarm when checking for memory
+    # block leaks. Fill the pool with values in -1000..1000 which are the most
+    # common (reference, memory block, file descriptor) differences.
+    int_pool = {value: value for value in range(-1000, 1000)}
+    def get_pooled_int(value):
+        return int_pool.setdefault(value, value)
+
+    warmups = hunt_refleak.warmups
+    runs = hunt_refleak.runs
+    filename = hunt_refleak.filename
+    repcount = warmups + runs
+
+    # Pre-allocate to ensure that the loop doesn't allocate anything new
+    rep_range = list(range(repcount))
+    rc_deltas = [0] * repcount
+    alloc_deltas = [0] * repcount
+    fd_deltas = [0] * repcount
+    getallocatedblocks = sys.getallocatedblocks
+    gettotalrefcount = sys.gettotalrefcount
+    getunicodeinternedsize = sys.getunicodeinternedsize
+    fd_count = os_helper.fd_count
+    # initialize variables to make pyflakes quiet
+    rc_before = alloc_before = fd_before = interned_immortal_before = 0
+
+    if not quiet:
+        print("beginning", repcount, "repetitions. Showing number of leaks "
+                "(. for 0 or less, X for 10 or more)",
+              file=sys.stderr)
+        numbers = ("1234567890"*(repcount//10 + 1))[:repcount]
+        numbers = numbers[:warmups] + ':' + numbers[warmups:]
+        print(numbers, file=sys.stderr, flush=True)
+
+    xml_filename = 'refleak-xml.tmp'
+    result = None
+    dash_R_cleanup(fs, ps, pic, zdc, abcs, linecache_data)
+    support.gc_collect()
+
+    for i in rep_range:
+        current = refleak_helper._hunting_for_refleaks
+        refleak_helper._hunting_for_refleaks = True
+        try:
+            result = test_func()
+        finally:
+            refleak_helper._hunting_for_refleaks = current
+
+        save_support_xml(xml_filename)
+        dash_R_cleanup(fs, ps, pic, zdc, abcs, linecache_data)
+        support.gc_collect()
+
+        # Read memory statistics immediately after the garbage collection.
+        # Also, readjust the reference counts and alloc blocks by ignoring
+        # any strings that might have been interned during test_func. These
+        # strings will be deallocated at runtime shutdown
+        interned_immortal_after = getunicodeinternedsize(
+            # Use an internal-only keyword argument that mypy doesn't know yet
+            _only_immortal=True)  # type: ignore[call-arg]
+        alloc_after = getallocatedblocks() - interned_immortal_after
+        rc_after = gettotalrefcount()
+        fd_after = fd_count()
+
+        rc_deltas[i] = get_pooled_int(rc_after - rc_before)
+        alloc_deltas[i] = get_pooled_int(alloc_after - alloc_before)
+        fd_deltas[i] = get_pooled_int(fd_after - fd_before)
+
+        if not quiet:
+            # use max, not sum, so total_leaks is one of the pooled ints
+            total_leaks = max(rc_deltas[i], alloc_deltas[i], fd_deltas[i])
+            if total_leaks <= 0:
+                symbol = '.'
+            elif total_leaks < 10:
+                symbol = (
+                    '.', '1', '2', '3', '4', '5', '6', '7', '8', '9',
+                    )[total_leaks]
+            else:
+                symbol = 'X'
+            if i == warmups:
+                print(' ', end='', file=sys.stderr, flush=True)
+            print(symbol, end='', file=sys.stderr, flush=True)
+            del total_leaks
+            del symbol
+
+        alloc_before = alloc_after
+        rc_before = rc_after
+        fd_before = fd_after
+        interned_immortal_before = interned_immortal_after
+
+        restore_support_xml(xml_filename)
+
+    if not quiet:
+        print(file=sys.stderr)
+
+    # These checkers return False on success, True on failure
+    def check_rc_deltas(deltas):
+        # Checker for reference counters and memory blocks.
+        #
+        # bpo-30776: Try to ignore false positives:
+        #
+        #   [3, 0, 0]
+        #   [0, 1, 0]
+        #   [8, -8, 1]
+        #
+        # Expected leaks:
+        #
+        #   [5, 5, 6]
+        #   [10, 1, 1]
+        return all(delta >= 1 for delta in deltas)
+
+    def check_fd_deltas(deltas):
+        return any(deltas)
+
+    failed = False
+    for deltas, item_name, checker in [
+        (rc_deltas, 'references', check_rc_deltas),
+        (alloc_deltas, 'memory blocks', check_rc_deltas),
+        (fd_deltas, 'file descriptors', check_fd_deltas)
+    ]:
+        # ignore warmup runs
+        deltas = deltas[warmups:]
+        failing = checker(deltas)
+        suspicious = any(deltas)
+        if failing or suspicious:
+            msg = '%s leaked %s %s, sum=%s' % (
+                test_name, deltas, item_name, sum(deltas))
+            print(msg, end='', file=sys.stderr)
+            if failing:
+                print(file=sys.stderr, flush=True)
+                with open(filename, "a", encoding="utf-8") as refrep:
+                    print(msg, file=refrep)
+                    refrep.flush()
+                failed = True
+            else:
+                print(' (this is fine)', file=sys.stderr, flush=True)
+    return (failed, result)
+
+
+def dash_R_cleanup(fs, ps, pic, zdc, abcs, linecache_data):
+    import copyreg
+    import collections.abc
+
+    # Restore some original values.
+    warnings.filters[:] = fs
+    copyreg.dispatch_table.clear()
+    copyreg.dispatch_table.update(ps)
+    sys.path_importer_cache.clear()
+    sys.path_importer_cache.update(pic)
+    lcache, linteractive = linecache_data
+    linecache._interactive_cache.clear()
+    linecache._interactive_cache.update(linteractive)
+    linecache.cache.clear()
+    linecache.cache.update(lcache)
+    try:
+        import zipimport
+    except ImportError:
+        pass # Run unmodified on platforms without zipimport support
+    else:
+        zipimport._zip_directory_cache.clear()
+        zipimport._zip_directory_cache.update(zdc)
+
+    # Clear ABC registries, restoring previously saved ABC registries.
+    # ignore deprecation warning for collections.abc.ByteString
+    abs_classes = [getattr(collections.abc, a) for a in collections.abc.__all__]
+    abs_classes = filter(isabstract, abs_classes)
+    for abc in abs_classes:
+        for obj in abc.__subclasses__() + [abc]:
+            refs = abcs.get(obj, None)
+            if refs is not None:
+                obj._abc_registry_clear()
+                for ref in refs:
+                    subclass = ref()
+                    if subclass is not None:
+                        obj.register(subclass)
+            obj._abc_caches_clear()
+
+    # Clear caches
+    clear_caches()
+
+    # Clear other caches last (previous function calls can re-populate them):
+    sys._clear_internal_caches()
+
+
+def warm_caches() -> None:
+    # char cache
+    s = bytes(range(256))
+    for i in range(256):
+        s[i:i+1]
+    # unicode cache
+    [chr(i) for i in range(256)]
+    # int cache
+    list(range(-5, 257))
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          import dataclasses
+import json
+from typing import Any
+
+from .utils import (
+    StrJSON, TestName, FilterTuple,
+    format_duration, normalize_test_name, print_warning)
+
+
+@dataclasses.dataclass(slots=True)
+class TestStats:
+    tests_run: int = 0
+    failures: int = 0
+    skipped: int = 0
+
+    @staticmethod
+    def from_unittest(result):
+        return TestStats(result.testsRun,
+                         len(result.failures),
+                         len(result.skipped))
+
+    @staticmethod
+    def from_doctest(results):
+        return TestStats(results.attempted,
+                         results.failed,
+                         results.skipped)
+
+    def accumulate(self, stats):
+        self.tests_run += stats.tests_run
+        self.failures += stats.failures
+        self.skipped += stats.skipped
+
+
+# Avoid enum.Enum to reduce the number of imports when tests are run
+class State:
+    PASSED = "PASSED"
+    FAILED = "FAILED"
+    SKIPPED = "SKIPPED"
+    UNCAUGHT_EXC = "UNCAUGHT_EXC"
+    REFLEAK = "REFLEAK"
+    ENV_CHANGED = "ENV_CHANGED"
+    RESOURCE_DENIED = "RESOURCE_DENIED"
+    INTERRUPTED = "INTERRUPTED"
+    WORKER_FAILED = "WORKER_FAILED"   # non-zero worker process exit code
+    WORKER_BUG = "WORKER_BUG"         # exception when running a worker
+    DID_NOT_RUN = "DID_NOT_RUN"
+    TIMEOUT = "TIMEOUT"
+
+    @staticmethod
+    def is_failed(state):
+        return state in {
+            State.FAILED,
+            State.UNCAUGHT_EXC,
+            State.REFLEAK,
+            State.WORKER_FAILED,
+            State.WORKER_BUG,
+            State.TIMEOUT}
+
+    @staticmethod
+    def has_meaningful_duration(state):
+        # Consider that the duration is meaningless for these cases.
+        # For example, if a whole test file is skipped, its duration
+        # is unlikely to be the duration of executing its tests,
+        # but just the duration to execute code which skips the test.
+        return state not in {
+            State.SKIPPED,
+            State.RESOURCE_DENIED,
+            State.INTERRUPTED,
+            State.WORKER_FAILED,
+            State.WORKER_BUG,
+            State.DID_NOT_RUN}
+
+    @staticmethod
+    def must_stop(state):
+        return state in {
+            State.INTERRUPTED,
+            State.WORKER_BUG,
+        }
+
+
+FileName = str
+LineNo = int
+Location = tuple[FileName, LineNo]
+
+
+@dataclasses.dataclass(slots=True)
+class TestResult:
+    test_name: TestName
+    state: str | None = None
+    # Test duration in seconds
+    duration: float | None = None
+    xml_data: list[str] | None = None
+    stats: TestStats | None = None
+
+    # errors and failures copied from support.TestFailedWithDetails
+    errors: list[tuple[str, str]] | None = None
+    failures: list[tuple[str, str]] | None = None
+
+    # partial coverage in a worker run; not used by sequential in-process runs
+    covered_lines: list[Location] | None = None
+
+    def is_failed(self, fail_env_changed: bool) -> bool:
+        if self.state == State.ENV_CHANGED:
+            return fail_env_changed
+        return State.is_failed(self.state)
+
+    def _format_failed(self):
+        if self.errors and self.failures:
+            le = len(self.errors)
+            lf = len(self.failures)
+            error_s = "error" + ("s" if le > 1 else "")
+            failure_s = "failure" + ("s" if lf > 1 else "")
+            return f"{self.test_name} failed ({le} {error_s}, {lf} {failure_s})"
+
+        if self.errors:
+            le = len(self.errors)
+            error_s = "error" + ("s" if le > 1 else "")
+            return f"{self.test_name} failed ({le} {error_s})"
+
+        if self.failures:
+            lf = len(self.failures)
+            failure_s = "failure" + ("s" if lf > 1 else "")
+            return f"{self.test_name} failed ({lf} {failure_s})"
+
+        return f"{self.test_name} failed"
+
+    def __str__(self) -> str:
+        match self.state:
+            case State.PASSED:
+                return f"{self.test_name} passed"
+            case State.FAILED:
+                return self._format_failed()
+            case State.SKIPPED:
+                return f"{self.test_name} skipped"
+            case State.UNCAUGHT_EXC:
+                return f"{self.test_name} failed (uncaught exception)"
+            case State.REFLEAK:
+                return f"{self.test_name} failed (reference leak)"
+            case State.ENV_CHANGED:
+                return f"{self.test_name} failed (env changed)"
+            case State.RESOURCE_DENIED:
+                return f"{self.test_name} skipped (resource denied)"
+            case State.INTERRUPTED:
+                return f"{self.test_name} interrupted"
+            case State.WORKER_FAILED:
+                return f"{self.test_name} worker non-zero exit code"
+            case State.WORKER_BUG:
+                return f"{self.test_name} worker bug"
+            case State.DID_NOT_RUN:
+                return f"{self.test_name} ran no tests"
+            case State.TIMEOUT:
+                assert self.duration is not None, "self.duration is None"
+                return f"{self.test_name} timed out ({format_duration(self.duration)})"
+            case _:
+                raise ValueError("unknown result state: {state!r}")
+
+    def has_meaningful_duration(self):
+        return State.has_meaningful_duration(self.state)
+
+    def set_env_changed(self):
+        if self.state is None or self.state == State.PASSED:
+            self.state = State.ENV_CHANGED
+
+    def must_stop(self, fail_fast: bool, fail_env_changed: bool) -> bool:
+        if State.must_stop(self.state):
+            return True
+        if fail_fast and self.is_failed(fail_env_changed):
+            return True
+        return False
+
+    def get_rerun_match_tests(self) -> FilterTuple | None:
+        match_tests = []
+
+        errors = self.errors or []
+        failures = self.failures or []
+        for error_list, is_error in (
+            (errors, True),
+            (failures, False),
+        ):
+            for full_name, *_ in error_list:
+                match_name = normalize_test_name(full_name, is_error=is_error)
+                if match_name is None:
+                    # 'setUpModule (test.test_sys)': don't filter tests
+                    return None
+                if not match_name:
+                    error_type = "ERROR" if is_error else "FAIL"
+                    print_warning(f"rerun failed to parse {error_type} test name: "
+                                  f"{full_name!r}: don't filter tests")
+                    return None
+                match_tests.append(match_name)
+
+        if not match_tests:
+            return None
+        return tuple(match_tests)
+
+    def write_json_into(self, file) -> None:
+        json.dump(self, file, cls=_EncodeTestResult)
+
+    @staticmethod
+    def from_json(worker_json: StrJSON) -> 'TestResult':
+        return json.loads(worker_json, object_hook=_decode_test_result)
+
+
+class _EncodeTestResult(json.JSONEncoder):
+    def default(self, o: Any) -> dict[str, Any]:
+        if isinstance(o, TestResult):
+            result = dataclasses.asdict(o)
+            result["__test_result__"] = o.__class__.__name__
+            return result
+        else:
+            return super().default(o)
+
+
+def _decode_test_result(data: dict[str, Any]) -> TestResult | dict[str, Any]:
+    if "__test_result__" in data:
+        data.pop('__test_result__')
+        if data['stats'] is not None:
+            data['stats'] = TestStats(**data['stats'])
+        if data['covered_lines'] is not None:
+            data['covered_lines'] = [
+                tuple(loc) for loc in data['covered_lines']
+            ]
+        return TestResult(**data)
+    else:
+        return data
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     import sys
+import trace
+from typing import TYPE_CHECKING
+
+from .runtests import RunTests
+from .result import State, TestResult, TestStats, Location
+from .utils import (
+    StrPath, TestName, TestTuple, TestList, FilterDict,
+    printlist, count, format_duration)
+
+if TYPE_CHECKING:
+    from xml.etree.ElementTree import Element
+
+
+# Python uses exit code 1 when an exception is not caught
+# argparse.ArgumentParser.error() uses exit code 2
+EXITCODE_BAD_TEST = 2
+EXITCODE_ENV_CHANGED = 3
+EXITCODE_NO_TESTS_RAN = 4
+EXITCODE_RERUN_FAIL = 5
+EXITCODE_INTERRUPTED = 130   # 128 + signal.SIGINT=2
+
+
+class TestResults:
+    def __init__(self) -> None:
+        self.bad: TestList = []
+        self.good: TestList = []
+        self.rerun_bad: TestList = []
+        self.skipped: TestList = []
+        self.resource_denied: TestList = []
+        self.env_changed: TestList = []
+        self.run_no_tests: TestList = []
+        self.rerun: TestList = []
+        self.rerun_results: list[TestResult] = []
+
+        self.interrupted: bool = False
+        self.worker_bug: bool = False
+        self.test_times: list[tuple[float, TestName]] = []
+        self.stats = TestStats()
+        # used by --junit-xml
+        self.testsuite_xml: list['Element'] = []
+        # used by -T with -j
+        self.covered_lines: set[Location] = set()
+
+    def is_all_good(self) -> bool:
+        return (not self.bad
+                and not self.skipped
+                and not self.interrupted
+                and not self.worker_bug)
+
+    def get_executed(self) -> set[TestName]:
+        return (set(self.good) | set(self.bad) | set(self.skipped)
+                | set(self.resource_denied) | set(self.env_changed)
+                | set(self.run_no_tests))
+
+    def no_tests_run(self) -> bool:
+        return not any((self.good, self.bad, self.skipped, self.interrupted,
+                        self.env_changed))
+
+    def get_state(self, fail_env_changed: bool) -> str:
+        state = []
+        if self.bad:
+            state.append("FAILURE")
+        elif fail_env_changed and self.env_changed:
+            state.append("ENV CHANGED")
+        elif self.no_tests_run():
+            state.append("NO TESTS RAN")
+
+        if self.interrupted:
+            state.append("INTERRUPTED")
+        if self.worker_bug:
+            state.append("WORKER BUG")
+        if not state:
+            state.append("SUCCESS")
+
+        return ', '.join(state)
+
+    def get_exitcode(self, fail_env_changed: bool, fail_rerun: bool) -> int:
+        exitcode = 0
+        if self.bad:
+            exitcode = EXITCODE_BAD_TEST
+        elif self.interrupted:
+            exitcode = EXITCODE_INTERRUPTED
+        elif fail_env_changed and self.env_changed:
+            exitcode = EXITCODE_ENV_CHANGED
+        elif self.no_tests_run():
+            exitcode = EXITCODE_NO_TESTS_RAN
+        elif fail_rerun and self.rerun:
+            exitcode = EXITCODE_RERUN_FAIL
+        elif self.worker_bug:
+            exitcode = EXITCODE_BAD_TEST
+        return exitcode
+
+    def accumulate_result(self, result: TestResult, runtests: RunTests) -> None:
+        test_name = result.test_name
+        rerun = runtests.rerun
+        fail_env_changed = runtests.fail_env_changed
+
+        match result.state:
+            case State.PASSED:
+                self.good.append(test_name)
+            case State.ENV_CHANGED:
+                self.env_changed.append(test_name)
+                self.rerun_results.append(result)
+            case State.SKIPPED:
+                self.skipped.append(test_name)
+            case State.RESOURCE_DENIED:
+                self.resource_denied.append(test_name)
+            case State.INTERRUPTED:
+                self.interrupted = True
+            case State.DID_NOT_RUN:
+                self.run_no_tests.append(test_name)
+            case _:
+                if result.is_failed(fail_env_changed):
+                    self.bad.append(test_name)
+                    self.rerun_results.append(result)
+                else:
+                    raise ValueError(f"invalid test state: {result.state!r}")
+
+        if result.state == State.WORKER_BUG:
+            self.worker_bug = True
+
+        if result.has_meaningful_duration() and not rerun:
+            if result.duration is None:
+                raise ValueError("result.duration is None")
+            self.test_times.append((result.duration, test_name))
+        if result.stats is not None:
+            self.stats.accumulate(result.stats)
+        if rerun:
+            self.rerun.append(test_name)
+        if result.covered_lines:
+            # we don't care about trace counts so we don't have to sum them up
+            self.covered_lines.update(result.covered_lines)
+        xml_data = result.xml_data
+        if xml_data:
+            self.add_junit(xml_data)
+
+    def get_coverage_results(self) -> trace.CoverageResults:
+        counts = {loc: 1 for loc in self.covered_lines}
+        return trace.CoverageResults(counts=counts)
+
+    def need_rerun(self) -> bool:
+        return bool(self.rerun_results)
+
+    def prepare_rerun(self, *, clear: bool = True) -> tuple[TestTuple, FilterDict]:
+        tests: TestList = []
+        match_tests_dict = {}
+        for result in self.rerun_results:
+            tests.append(result.test_name)
+
+            match_tests = result.get_rerun_match_tests()
+            # ignore empty match list
+            if match_tests:
+                match_tests_dict[result.test_name] = match_tests
+
+        if clear:
+            # Clear previously failed tests
+            self.rerun_bad.extend(self.bad)
+            self.bad.clear()
+            self.env_changed.clear()
+            self.rerun_results.clear()
+
+        return (tuple(tests), match_tests_dict)
+
+    def add_junit(self, xml_data: list[str]) -> None:
+        import xml.etree.ElementTree as ET
+        for e in xml_data:
+            try:
+                self.testsuite_xml.append(ET.fromstring(e))
+            except ET.ParseError:
+                print(xml_data, file=sys.__stderr__)
+                raise
+
+    def write_junit(self, filename: StrPath) -> None:
+        if not self.testsuite_xml:
+            # Don't create empty XML file
+            return
+
+        import xml.etree.ElementTree as ET
+        root = ET.Element("testsuites")
+
+        # Manually count the totals for the overall summary
+        totals = {'tests': 0, 'errors': 0, 'failures': 0}
+        for suite in self.testsuite_xml:
+            root.append(suite)
+            for k in totals:
+                try:
+                    totals[k] += int(suite.get(k, 0))
+                except ValueError:
+                    pass
+
+        for k, v in totals.items():
+            root.set(k, str(v))
+
+        with open(filename, 'wb') as f:
+            for s in ET.tostringlist(root):
+                f.write(s)
+
+    def display_result(self, tests: TestTuple, quiet: bool, print_slowest: bool) -> None:
+        if print_slowest:
+            self.test_times.sort(reverse=True)
+            print()
+            print("10 slowest tests:")
+            for test_time, test in self.test_times[:10]:
+                print("- %s: %s" % (test, format_duration(test_time)))
+
+        all_tests = []
+        omitted = set(tests) - self.get_executed()
+
+        # less important
+        all_tests.append((sorted(omitted), "test", "{} omitted:"))
+        if not quiet:
+            all_tests.append((self.skipped, "test", "{} skipped:"))
+            all_tests.append((self.resource_denied, "test", "{} skipped (resource denied):"))
+        all_tests.append((self.run_no_tests, "test", "{} run no tests:"))
+
+        # more important
+        all_tests.append((self.env_changed, "test", "{} altered the execution environment (env changed):"))
+        all_tests.append((self.rerun, "re-run test", "{}:"))
+        all_tests.append((self.bad, "test", "{} failed:"))
+
+        for tests_list, count_text, title_format in all_tests:
+            if tests_list:
+                print()
+                count_text = count(len(tests_list), count_text)
+                print(title_format.format(count_text))
+                printlist(tests_list)
+
+        if self.good and not quiet:
+            print()
+            text = count(len(self.good), "test")
+            text = f"{text} OK."
+            if (self.is_all_good() and len(self.good) > 1):
+                text = f"All {text}"
+            print(text)
+
+        if self.interrupted:
+            print()
+            print("Test suite interrupted by signal SIGINT.")
+
+    def display_summary(self, first_runtests: RunTests, filtered: bool) -> None:
+        # Total tests
+        stats = self.stats
+        text = f'run={stats.tests_run:,}'
+        if filtered:
+            text = f"{text} (filtered)"
+        report = [text]
+        if stats.failures:
+            report.append(f'failures={stats.failures:,}')
+        if stats.skipped:
+            report.append(f'skipped={stats.skipped:,}')
+        print(f"Total tests: {' '.join(report)}")
+
+        # Total test files
+        all_tests = [self.good, self.bad, self.rerun,
+                     self.skipped,
+                     self.env_changed, self.run_no_tests]
+        run = sum(map(len, all_tests))
+        text = f'run={run}'
+        if not first_runtests.forever:
+            ntest = len(first_runtests.tests)
+            text = f"{text}/{ntest}"
+        if filtered:
+            text = f"{text} (filtered)"
+        report = [text]
+        for name, tests in (
+            ('failed', self.bad),
+            ('env_changed', self.env_changed),
+            ('skipped', self.skipped),
+            ('resource_denied', self.resource_denied),
+            ('rerun', self.rerun),
+            ('run_no_tests', self.run_no_tests),
+        ):
+            if tests:
+                report.append(f'{name}={len(tests)}')
+        print(f"Total test files: {' '.join(report)}")
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                import contextlib
+import dataclasses
+import faulthandler
+import os.path
+import queue
+import signal
+import subprocess
+import sys
+import tempfile
+import threading
+import time
+import traceback
+from typing import Any, Literal, TextIO
+
+from test import support
+from test.support import os_helper, MS_WINDOWS
+
+from .logger import Logger
+from .result import TestResult, State
+from .results import TestResults
+from .runtests import RunTests, WorkerRunTests, JsonFile, JsonFileType
+from .single import PROGRESS_MIN_TIME
+from .utils import (
+    StrPath, TestName,
+    format_duration, print_warning, count, plural, get_signal_name)
+from .worker import create_worker_process, USE_PROCESS_GROUP
+
+if MS_WINDOWS:
+    import locale
+    import msvcrt
+
+
+
+# Display the running tests if nothing happened last N seconds
+PROGRESS_UPDATE = 30.0   # seconds
+assert PROGRESS_UPDATE >= PROGRESS_MIN_TIME
+
+# Kill the main process after 5 minutes. It is supposed to write an update
+# every PROGRESS_UPDATE seconds. Tolerate 5 minutes for Python slowest
+# buildbot workers.
+MAIN_PROCESS_TIMEOUT = 5 * 60.0
+assert MAIN_PROCESS_TIMEOUT >= PROGRESS_UPDATE
+
+# Time to wait until a worker completes: should be immediate
+WAIT_COMPLETED_TIMEOUT = 30.0   # seconds
+
+# Time to wait a killed process (in seconds)
+WAIT_KILLED_TIMEOUT = 60.0
+
+
+# We do not use a generator so multiple threads can call next().
+class MultiprocessIterator:
+
+    """A thread-safe iterator over tests for multiprocess mode."""
+
+    def __init__(self, tests_iter):
+        self.lock = threading.Lock()
+        self.tests_iter = tests_iter
+
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        with self.lock:
+            if self.tests_iter is None:
+                raise StopIteration
+            return next(self.tests_iter)
+
+    def stop(self):
+        with self.lock:
+            self.tests_iter = None
+
+
+@dataclasses.dataclass(slots=True, frozen=True)
+class MultiprocessResult:
+    result: TestResult
+    # bpo-45410: stderr is written into stdout to keep messages order
+    worker_stdout: str | None = None
+    err_msg: str | None = None
+
+
+class WorkerThreadExited:
+    """Indicates that a worker thread has exited"""
+
+ExcStr = str
+QueueOutput = tuple[Literal[False], MultiprocessResult] | tuple[Literal[True], ExcStr]
+QueueContent = QueueOutput | WorkerThreadExited
+
+
+class ExitThread(Exception):
+    pass
+
+
+class WorkerError(Exception):
+    def __init__(self,
+                 test_name: TestName,
+                 err_msg: str | None,
+                 stdout: str | None,
+                 state: str):
+        result = TestResult(test_name, state=state)
+        self.mp_result = MultiprocessResult(result, stdout, err_msg)
+        super().__init__()
+
+
+_NOT_RUNNING = "<not running>"
+
+
+class WorkerThread(threading.Thread):
+    def __init__(self, worker_id: int, runner: "RunWorkers") -> None:
+        super().__init__()
+        self.worker_id = worker_id
+        self.runtests = runner.runtests
+        self.pending = runner.pending
+        self.output = runner.output
+        self.timeout = runner.worker_timeout
+        self.log = runner.log
+        self.test_name = _NOT_RUNNING
+        self.start_time = time.monotonic()
+        self._popen: subprocess.Popen[str] | None = None
+        self._killed = False
+        self._stopped = False
+
+    def __repr__(self) -> str:
+        info = [f'WorkerThread #{self.worker_id}']
+        if self.is_alive():
+            info.append("running")
+        else:
+            info.append('stopped')
+        test = self.test_name
+        if test:
+            info.append(f'test={test}')
+        popen = self._popen
+        if popen is not None:
+            dt = time.monotonic() - self.start_time
+            info.extend((f'pid={popen.pid}',
+                         f'time={format_duration(dt)}'))
+        return '<%s>' % ' '.join(info)
+
+    def _kill(self) -> None:
+        popen = self._popen
+        if popen is None:
+            return
+
+        if self._killed:
+            return
+        self._killed = True
+
+        if USE_PROCESS_GROUP:
+            what = f"{self} process group"
+        else:
+            what = f"{self} process"
+
+        print(f"Kill {what}", file=sys.stderr, flush=True)
+        try:
+            if USE_PROCESS_GROUP:
+                os.killpg(popen.pid, signal.SIGKILL)
+            else:
+                popen.kill()
+        except ProcessLookupError:
+            # popen.kill(): the process completed, the WorkerThread thread
+            # read its exit status, but Popen.send_signal() read the returncode
+            # just before Popen.wait() set returncode.
+            pass
+        except OSError as exc:
+            print_warning(f"Failed to kill {what}: {exc!r}")
+
+    def stop(self) -> None:
+        # Method called from a different thread to stop this thread
+        self._stopped = True
+        self._kill()
+
+    def _run_process(self, runtests: WorkerRunTests, output_fd: int,
+                     tmp_dir: StrPath | None = None) -> int | None:
+        popen = create_worker_process(runtests, output_fd, tmp_dir)
+        self._popen = popen
+        self._killed = False
+
+        try:
+            if self._stopped:
+                # If kill() has been called before self._popen is set,
+                # self._popen is still running. Call again kill()
+                # to ensure that the process is killed.
+                self._kill()
+                raise ExitThread
+
+            try:
+                # gh-94026: stdout+stderr are written to tempfile
+                retcode = popen.wait(timeout=self.timeout)
+                assert retcode is not None
+                return retcode
+            except subprocess.TimeoutExpired:
+                if self._stopped:
+                    # kill() has been called: communicate() fails on reading
+                    # closed stdout
+                    raise ExitThread
+
+                # On timeout, kill the process
+                self._kill()
+
+                # None means TIMEOUT for the caller
+                retcode = None
+                # bpo-38207: Don't attempt to call communicate() again: on it
+                # can hang until all child processes using stdout
+                # pipes completes.
+            except OSError:
+                if self._stopped:
+                    # kill() has been called: communicate() fails
+                    # on reading closed stdout
+                    raise ExitThread
+                raise
+            return None
+        except:
+            self._kill()
+            raise
+        finally:
+            self._wait_completed()
+            self._popen = None
+
+    def create_stdout(self, stack: contextlib.ExitStack) -> TextIO:
+        """Create stdout temporary file (file descriptor)."""
+
+        if MS_WINDOWS:
+            # gh-95027: When stdout is not a TTY, Python uses the ANSI code
+            # page for the sys.stdout encoding. If the main process runs in a
+            # terminal, sys.stdout uses WindowsConsoleIO with UTF-8 encoding.
+            encoding = locale.getencoding()
+        else:
+            encoding = sys.stdout.encoding
+
+        # gh-94026: Write stdout+stderr to a tempfile as workaround for
+        # non-blocking pipes on Emscripten with NodeJS.
+        # gh-109425: Use "backslashreplace" error handler: log corrupted
+        # stdout+stderr, instead of failing with a UnicodeDecodeError and not
+        # logging stdout+stderr at all.
+        stdout_file = tempfile.TemporaryFile('w+',
+                                             encoding=encoding,
+                                             errors='backslashreplace')
+        stack.enter_context(stdout_file)
+        return stdout_file
+
+    def create_json_file(self, stack: contextlib.ExitStack) -> tuple[JsonFile, TextIO | None]:
+        """Create JSON file."""
+
+        json_file_use_stdout = self.runtests.json_file_use_stdout()
+        if json_file_use_stdout:
+            json_file = JsonFile(None, JsonFileType.STDOUT)
+            json_tmpfile = None
+        else:
+            json_tmpfile = tempfile.TemporaryFile('w+', encoding='utf8')
+            stack.enter_context(json_tmpfile)
+
+            json_fd = json_tmpfile.fileno()
+            if MS_WINDOWS:
+                # The msvcrt module is only available on Windows;
+                # we run mypy with `--platform=linux` in CI
+                json_handle: int = msvcrt.get_osfhandle(json_fd)  # type: ignore[attr-defined]
+                json_file = JsonFile(json_handle,
+                                     JsonFileType.WINDOWS_HANDLE)
+            else:
+                json_file = JsonFile(json_fd, JsonFileType.UNIX_FD)
+        return (json_file, json_tmpfile)
+
+    def create_worker_runtests(self, test_name: TestName, json_file: JsonFile) -> WorkerRunTests:
+        tests = (test_name,)
+        if self.runtests.rerun:
+            match_tests = self.runtests.get_match_tests(test_name)
+        else:
+            match_tests = None
+
+        kwargs: dict[str, Any] = {}
+        if match_tests:
+            kwargs['match_tests'] = [(test, True) for test in match_tests]
+        if self.runtests.output_on_failure:
+            kwargs['verbose'] = True
+            kwargs['output_on_failure'] = False
+        return self.runtests.create_worker_runtests(
+            tests=tests,
+            json_file=json_file,
+            **kwargs)
+
+    def run_tmp_files(self, worker_runtests: WorkerRunTests,
+                      stdout_fd: int) -> tuple[int | None, list[StrPath]]:
+        # gh-93353: Check for leaked temporary files in the parent process,
+        # since the deletion of temporary files can happen late during
+        # Python finalization: too late for libregrtest.
+        if not support.is_wasi:
+            # Don't check for leaked temporary files and directories if Python is
+            # run on WASI. WASI doesn't pass environment variables like TMPDIR to
+            # worker processes.
+            tmp_dir = tempfile.mkdtemp(prefix="test_python_")
+            tmp_dir = os.path.abspath(tmp_dir)
+            try:
+                retcode = self._run_process(worker_runtests,
+                                            stdout_fd, tmp_dir)
+            finally:
+                tmp_files = os.listdir(tmp_dir)
+                os_helper.rmtree(tmp_dir)
+        else:
+            retcode = self._run_process(worker_runtests, stdout_fd)
+            tmp_files = []
+
+        return (retcode, tmp_files)
+
+    def read_stdout(self, stdout_file: TextIO) -> str:
+        stdout_file.seek(0)
+        try:
+            return stdout_file.read().strip()
+        except Exception as exc:
+            # gh-101634: Catch UnicodeDecodeError if stdout cannot be
+            # decoded from encoding
+            raise WorkerError(self.test_name,
+                              f"Cannot read process stdout: {exc}",
+                              stdout=None,
+                              state=State.WORKER_BUG)
+
+    def read_json(self, json_file: JsonFile, json_tmpfile: TextIO | None,
+                  stdout: str) -> tuple[TestResult, str]:
+        try:
+            if json_tmpfile is not None:
+                json_tmpfile.seek(0)
+                worker_json = json_tmpfile.read()
+            elif json_file.file_type == JsonFileType.STDOUT:
+                stdout, _, worker_json = stdout.rpartition("\n")
+                stdout = stdout.rstrip()
+            else:
+                with json_file.open(encoding='utf8') as json_fp:
+                    worker_json = json_fp.read()
+        except Exception as exc:
+            # gh-101634: Catch UnicodeDecodeError if stdout cannot be
+            # decoded from encoding
+            err_msg = f"Failed to read worker process JSON: {exc}"
+            raise WorkerError(self.test_name, err_msg, stdout,
+                              state=State.WORKER_BUG)
+
+        if not worker_json:
+            raise WorkerError(self.test_name, "empty JSON", stdout,
+                              state=State.WORKER_BUG)
+
+        try:
+            result = TestResult.from_json(worker_json)
+        except Exception as exc:
+            # gh-101634: Catch UnicodeDecodeError if stdout cannot be
+            # decoded from encoding
+            err_msg = f"Failed to parse worker process JSON: {exc}"
+            raise WorkerError(self.test_name, err_msg, stdout,
+                              state=State.WORKER_BUG)
+
+        return (result, stdout)
+
+    def _runtest(self, test_name: TestName) -> MultiprocessResult:
+        with contextlib.ExitStack() as stack:
+            stdout_file = self.create_stdout(stack)
+            json_file, json_tmpfile = self.create_json_file(stack)
+            worker_runtests = self.create_worker_runtests(test_name, json_file)
+
+            retcode: str | int | None
+            retcode, tmp_files = self.run_tmp_files(worker_runtests,
+                                                    stdout_file.fileno())
+
+            stdout = self.read_stdout(stdout_file)
+
+            if retcode is None:
+                raise WorkerError(self.test_name, stdout=stdout,
+                                  err_msg=None,
+                                  state=State.TIMEOUT)
+            if retcode != 0:
+                name = get_signal_name(retcode)
+                if name:
+                    retcode = f"{retcode} ({name})"
+                raise WorkerError(self.test_name, f"Exit code {retcode}", stdout,
+                                  state=State.WORKER_FAILED)
+
+            result, stdout = self.read_json(json_file, json_tmpfile, stdout)
+
+        if tmp_files:
+            msg = (f'\n\n'
+                   f'Warning -- {test_name} leaked temporary files '
+                   f'({len(tmp_files)}): {", ".join(sorted(tmp_files))}')
+            stdout += msg
+            result.set_env_changed()
+
+        return MultiprocessResult(result, stdout)
+
+    def run(self) -> None:
+        fail_fast = self.runtests.fail_fast
+        fail_env_changed = self.runtests.fail_env_changed
+        try:
+            while not self._stopped:
+                try:
+                    test_name = next(self.pending)
+                except StopIteration:
+                    break
+
+                self.start_time = time.monotonic()
+                self.test_name = test_name
+                try:
+                    mp_result = self._runtest(test_name)
+                except WorkerError as exc:
+                    mp_result = exc.mp_result
+                finally:
+                    self.test_name = _NOT_RUNNING
+                mp_result.result.duration = time.monotonic() - self.start_time
+                self.output.put((False, mp_result))
+
+                if mp_result.result.must_stop(fail_fast, fail_env_changed):
+                    break
+        except ExitThread:
+            pass
+        except BaseException:
+            self.output.put((True, traceback.format_exc()))
+        finally:
+            self.output.put(WorkerThreadExited())
+
+    def _wait_completed(self) -> None:
+        popen = self._popen
+        # only needed for mypy:
+        if popen is None:
+            raise ValueError("Should never access `._popen` before calling `.run()`")
+
+        try:
+            popen.wait(WAIT_COMPLETED_TIMEOUT)
+        except (subprocess.TimeoutExpired, OSError) as exc:
+            print_warning(f"Failed to wait for {self} completion "
+                          f"(timeout={format_duration(WAIT_COMPLETED_TIMEOUT)}): "
+                          f"{exc!r}")
+
+    def wait_stopped(self, start_time: float) -> None:
+        # bpo-38207: RunWorkers.stop_workers() called self.stop()
+        # which killed the process. Sometimes, killing the process from the
+        # main thread does not interrupt popen.communicate() in
+        # WorkerThread thread. This loop with a timeout is a workaround
+        # for that.
+        #
+        # Moreover, if this method fails to join the thread, it is likely
+        # that Python will hang at exit while calling threading._shutdown()
+        # which tries again to join the blocked thread. Regrtest.main()
+        # uses EXIT_TIMEOUT to workaround this second bug.
+        while True:
+            # Write a message every second
+            self.join(1.0)
+            if not self.is_alive():
+                break
+            dt = time.monotonic() - start_time
+            self.log(f"Waiting for {self} thread for {format_duration(dt)}")
+            if dt > WAIT_KILLED_TIMEOUT:
+                print_warning(f"Failed to join {self} in {format_duration(dt)}")
+                break
+
+
+def get_running(workers: list[WorkerThread]) -> str | None:
+    running: list[str] = []
+    for worker in workers:
+        test_name = worker.test_name
+        if test_name == _NOT_RUNNING:
+            continue
+        dt = time.monotonic() - worker.start_time
+        if dt >= PROGRESS_MIN_TIME:
+            text = f'{test_name} ({format_duration(dt)})'
+            running.append(text)
+    if not running:
+        return None
+    return f"running ({len(running)}): {', '.join(running)}"
+
+
+class RunWorkers:
+    def __init__(self, num_workers: int, runtests: RunTests,
+                 logger: Logger, results: TestResults) -> None:
+        self.num_workers = num_workers
+        self.runtests = runtests
+        self.log = logger.log
+        self.display_progress = logger.display_progress
+        self.results: TestResults = results
+        self.live_worker_count = 0
+
+        self.output: queue.Queue[QueueContent] = queue.Queue()
+        tests_iter = runtests.iter_tests()
+        self.pending = MultiprocessIterator(tests_iter)
+        self.timeout = runtests.timeout
+        if self.timeout is not None:
+            # Rely on faulthandler to kill a worker process. This timouet is
+            # when faulthandler fails to kill a worker process. Give a maximum
+            # of 5 minutes to faulthandler to kill the worker.
+            self.worker_timeout: float | None = min(self.timeout * 1.5, self.timeout + 5 * 60)
+        else:
+            self.worker_timeout = None
+        self.workers: list[WorkerThread] = []
+
+        jobs = self.runtests.get_jobs()
+        if jobs is not None:
+            # Don't spawn more threads than the number of jobs:
+            # these worker threads would never get anything to do.
+            self.num_workers = min(self.num_workers, jobs)
+
+    def start_workers(self) -> None:
+        self.workers = [WorkerThread(index, self)
+                        for index in range(1, self.num_workers + 1)]
+        jobs = self.runtests.get_jobs()
+        if jobs is not None:
+            tests = count(jobs, 'test')
+        else:
+            tests = 'tests'
+        nworkers = len(self.workers)
+        processes = plural(nworkers, "process", "processes")
+        msg = (f"Run {tests} in parallel using "
+               f"{nworkers} worker {processes}")
+        if self.timeout and self.worker_timeout is not None:
+            msg += (" (timeout: %s, worker timeout: %s)"
+                    % (format_duration(self.timeout),
+                       format_duration(self.worker_timeout)))
+        self.log(msg)
+        for worker in self.workers:
+            worker.start()
+            self.live_worker_count += 1
+
+    def stop_workers(self) -> None:
+        start_time = time.monotonic()
+        for worker in self.workers:
+            worker.stop()
+        for worker in self.workers:
+            worker.wait_stopped(start_time)
+
+    def _get_result(self) -> QueueOutput | None:
+        pgo = self.runtests.pgo
+        use_faulthandler = (self.timeout is not None)
+
+        # bpo-46205: check the status of workers every iteration to avoid
+        # waiting forever on an empty queue.
+        while self.live_worker_count > 0:
+            if use_faulthandler:
+                faulthandler.dump_traceback_later(MAIN_PROCESS_TIMEOUT,
+                                                  exit=True)
+
+            # wait for a thread
+            try:
+                result = self.output.get(timeout=PROGRESS_UPDATE)
+                if isinstance(result, WorkerThreadExited):
+                    self.live_worker_count -= 1
+                    continue
+                return result
+            except queue.Empty:
+                pass
+
+            if not pgo:
+                # display progress
+                running = get_running(self.workers)
+                if running:
+                    self.log(running)
+        return None
+
+    def display_result(self, mp_result: MultiprocessResult) -> None:
+        result = mp_result.result
+        pgo = self.runtests.pgo
+
+        text = str(result)
+        if mp_result.err_msg:
+            # WORKER_BUG
+            text += ' (%s)' % mp_result.err_msg
+        elif (result.duration and result.duration >= PROGRESS_MIN_TIME and not pgo):
+            text += ' (%s)' % format_duration(result.duration)
+        if not pgo:
+            running = get_running(self.workers)
+            if running:
+                text += f' -- {running}'
+        self.display_progress(self.test_index, text)
+
+    def _process_result(self, item: QueueOutput) -> TestResult:
+        """Returns True if test runner must stop."""
+        if item[0]:
+            # Thread got an exception
+            format_exc = item[1]
+            print_warning(f"regrtest worker thread failed: {format_exc}")
+            result = TestResult("<regrtest worker>", state=State.WORKER_BUG)
+            self.results.accumulate_result(result, self.runtests)
+            return result
+
+        self.test_index += 1
+        mp_result = item[1]
+        result = mp_result.result
+        self.results.accumulate_result(result, self.runtests)
+        self.display_result(mp_result)
+
+        # Display worker stdout
+        if not self.runtests.output_on_failure:
+            show_stdout = True
+        else:
+            # --verbose3 ignores stdout on success
+            show_stdout = (result.state != State.PASSED)
+        if show_stdout:
+            stdout = mp_result.worker_stdout
+            if stdout:
+                print(stdout, flush=True)
+
+        return result
+
+    def run(self) -> None:
+        fail_fast = self.runtests.fail_fast
+        fail_env_changed = self.runtests.fail_env_changed
+
+        self.start_workers()
+
+        self.test_index = 0
+        try:
+            while True:
+                item = self._get_result()
+                if item is None:
+                    break
+
+                result = self._process_result(item)
+                if result.must_stop(fail_fast, fail_env_changed):
+                    break
+        except KeyboardInterrupt:
+            print()
+            self.results.interrupted = True
+        finally:
+            if self.timeout is not None:
+                faulthandler.cancel_dump_traceback_later()
+
+            # Always ensure that all worker processes are no longer
+            # worker when we exit this function
+            self.pending.stop()
+            self.stop_workers()
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          import contextlib
+import dataclasses
+import json
+import os
+import shlex
+import subprocess
+import sys
+from typing import Any, Iterator
+
+from test import support
+
+from .utils import (
+    StrPath, StrJSON, TestTuple, TestName, TestFilter, FilterTuple, FilterDict)
+
+
+class JsonFileType:
+    UNIX_FD = "UNIX_FD"
+    WINDOWS_HANDLE = "WINDOWS_HANDLE"
+    STDOUT = "STDOUT"
+
+
+@dataclasses.dataclass(slots=True, frozen=True)
+class JsonFile:
+    # file type depends on file_type:
+    # - UNIX_FD: file descriptor (int)
+    # - WINDOWS_HANDLE: handle (int)
+    # - STDOUT: use process stdout (None)
+    file: int | None
+    file_type: str
+
+    def configure_subprocess(self, popen_kwargs: dict[str, Any]) -> None:
+        match self.file_type:
+            case JsonFileType.UNIX_FD:
+                # Unix file descriptor
+                popen_kwargs['pass_fds'] = [self.file]
+            case JsonFileType.WINDOWS_HANDLE:
+                # Windows handle
+                # We run mypy with `--platform=linux` so it complains about this:
+                startupinfo = subprocess.STARTUPINFO()  # type: ignore[attr-defined]
+                startupinfo.lpAttributeList = {"handle_list": [self.file]}
+                popen_kwargs['startupinfo'] = startupinfo
+
+    @contextlib.contextmanager
+    def inherit_subprocess(self) -> Iterator[None]:
+        if sys.platform == 'win32' and self.file_type == JsonFileType.WINDOWS_HANDLE:
+            os.set_handle_inheritable(self.file, True)
+            try:
+                yield
+            finally:
+                os.set_handle_inheritable(self.file, False)
+        else:
+            yield
+
+    def open(self, mode='r', *, encoding):
+        if self.file_type == JsonFileType.STDOUT:
+            raise ValueError("for STDOUT file type, just use sys.stdout")
+
+        file = self.file
+        if self.file_type == JsonFileType.WINDOWS_HANDLE:
+            import msvcrt
+            # Create a file descriptor from the handle
+            file = msvcrt.open_osfhandle(file, os.O_WRONLY)
+        return open(file, mode, encoding=encoding)
+
+
+@dataclasses.dataclass(slots=True, frozen=True)
+class HuntRefleak:
+    warmups: int
+    runs: int
+    filename: StrPath
+
+    def bisect_cmd_args(self) -> list[str]:
+        # Ignore filename since it can contain colon (":"),
+        # and usually it's not used. Use the default filename.
+        return ["-R", f"{self.warmups}:{self.runs}:"]
+
+
+@dataclasses.dataclass(slots=True, frozen=True)
+class RunTests:
+    tests: TestTuple
+    fail_fast: bool
+    fail_env_changed: bool
+    match_tests: TestFilter
+    match_tests_dict: FilterDict | None
+    rerun: bool
+    forever: bool
+    pgo: bool
+    pgo_extended: bool
+    output_on_failure: bool
+    timeout: float | None
+    verbose: int
+    quiet: bool
+    hunt_refleak: HuntRefleak | None
+    test_dir: StrPath | None
+    use_junit: bool
+    coverage: bool
+    memory_limit: str | None
+    gc_threshold: int | None
+    use_resources: tuple[str, ...]
+    python_cmd: tuple[str, ...] | None
+    randomize: bool
+    random_seed: int | str
+
+    def copy(self, **override) -> 'RunTests':
+        state = dataclasses.asdict(self)
+        state.update(override)
+        return RunTests(**state)
+
+    def create_worker_runtests(self, **override) -> 'WorkerRunTests':
+        state = dataclasses.asdict(self)
+        state.update(override)
+        return WorkerRunTests(**state)
+
+    def get_match_tests(self, test_name: TestName) -> FilterTuple | None:
+        if self.match_tests_dict is not None:
+            return self.match_tests_dict.get(test_name, None)
+        else:
+            return None
+
+    def get_jobs(self) -> int | None:
+        # Number of run_single_test() calls needed to run all tests.
+        # None means that there is not bound limit (--forever option).
+        if self.forever:
+            return None
+        return len(self.tests)
+
+    def iter_tests(self) -> Iterator[TestName]:
+        if self.forever:
+            while True:
+                yield from self.tests
+        else:
+            yield from self.tests
+
+    def json_file_use_stdout(self) -> bool:
+        # Use STDOUT in two cases:
+        #
+        # - If --python command line option is used;
+        # - On Emscripten and WASI.
+        #
+        # On other platforms, UNIX_FD or WINDOWS_HANDLE can be used.
+        return (
+            bool(self.python_cmd)
+            or support.is_emscripten
+            or support.is_wasi
+        )
+
+    def create_python_cmd(self) -> list[str]:
+        python_opts = support.args_from_interpreter_flags()
+        if self.python_cmd is not None:
+            executable = self.python_cmd
+            # Remove -E option, since --python=COMMAND can set PYTHON
+            # environment variables, such as PYTHONPATH, in the worker
+            # process.
+            python_opts = [opt for opt in python_opts if opt != "-E"]
+        else:
+            executable = (sys.executable,)
+        cmd = [*executable, *python_opts]
+        if '-u' not in python_opts:
+            cmd.append('-u')  # Unbuffered stdout and stderr
+        if self.coverage:
+            cmd.append("-Xpresite=test.cov")
+        return cmd
+
+    def bisect_cmd_args(self) -> list[str]:
+        args = []
+        if self.fail_fast:
+            args.append("--failfast")
+        if self.fail_env_changed:
+            args.append("--fail-env-changed")
+        if self.timeout:
+            args.append(f"--timeout={self.timeout}")
+        if self.hunt_refleak is not None:
+            args.extend(self.hunt_refleak.bisect_cmd_args())
+        if self.test_dir:
+            args.extend(("--testdir", self.test_dir))
+        if self.memory_limit:
+            args.extend(("--memlimit", self.memory_limit))
+        if self.gc_threshold:
+            args.append(f"--threshold={self.gc_threshold}")
+        if self.use_resources:
+            args.extend(("-u", ','.join(self.use_resources)))
+        if self.python_cmd:
+            cmd = shlex.join(self.python_cmd)
+            args.extend(("--python", cmd))
+        if self.randomize:
+            args.append(f"--randomize")
+        args.append(f"--randseed={self.random_seed}")
+        return args
+
+
+@dataclasses.dataclass(slots=True, frozen=True)
+class WorkerRunTests(RunTests):
+    json_file: JsonFile
+
+    def as_json(self) -> StrJSON:
+        return json.dumps(self, cls=_EncodeRunTests)
+
+    @staticmethod
+    def from_json(worker_json: StrJSON) -> 'WorkerRunTests':
+        return json.loads(worker_json, object_hook=_decode_runtests)
+
+
+class _EncodeRunTests(json.JSONEncoder):
+    def default(self, o: Any) -> dict[str, Any]:
+        if isinstance(o, WorkerRunTests):
+            result = dataclasses.asdict(o)
+            result["__runtests__"] = True
+            return result
+        else:
+            return super().default(o)
+
+
+def _decode_runtests(data: dict[str, Any]) -> RunTests | dict[str, Any]:
+    if "__runtests__" in data:
+        data.pop('__runtests__')
+        if data['hunt_refleak']:
+            data['hunt_refleak'] = HuntRefleak(**data['hunt_refleak'])
+        if data['json_file']:
+            data['json_file'] = JsonFile(**data['json_file'])
+        return WorkerRunTests(**data)
+    else:
+        return data
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         import builtins
+import locale
+import os
+import sys
+import threading
+
+from test import support
+from test.support import os_helper
+
+from .utils import print_warning
+
+
+class SkipTestEnvironment(Exception):
+    pass
+
+
+# Unit tests are supposed to leave the execution environment unchanged
+# once they complete.  But sometimes tests have bugs, especially when
+# tests fail, and the changes to environment go on to mess up other
+# tests.  This can cause issues with buildbot stability, since tests
+# are run in random order and so problems may appear to come and go.
+# There are a few things we can save and restore to mitigate this, and
+# the following context manager handles this task.
+
+class saved_test_environment:
+    """Save bits of the test environment and restore them at block exit.
+
+        with saved_test_environment(test_name, verbose, quiet):
+            #stuff
+
+    Unless quiet is True, a warning is printed to stderr if any of
+    the saved items was changed by the test. The support.environment_altered
+    attribute is set to True if a change is detected.
+
+    If verbose is more than 1, the before and after state of changed
+    items is also printed.
+    """
+
+    def __init__(self, test_name, verbose, quiet, *, pgo):
+        self.test_name = test_name
+        self.verbose = verbose
+        self.quiet = quiet
+        self.pgo = pgo
+
+    # To add things to save and restore, add a name XXX to the resources list
+    # and add corresponding get_XXX/restore_XXX functions.  get_XXX should
+    # return the value to be saved and compared against a second call to the
+    # get function when test execution completes.  restore_XXX should accept
+    # the saved value and restore the resource using it.  It will be called if
+    # and only if a change in the value is detected.
+    #
+    # Note: XXX will have any '.' replaced with '_' characters when determining
+    # the corresponding method names.
+
+    resources = ('sys.argv', 'cwd', 'sys.stdin', 'sys.stdout', 'sys.stderr',
+                 'os.environ', 'sys.path', 'sys.path_hooks', '__import__',
+                 'warnings.filters', 'asyncore.socket_map',
+                 'logging._handlers', 'logging._handlerList', 'sys.gettrace',
+                 'sys.warnoptions',
+                 # multiprocessing.process._cleanup() may release ref
+                 # to a thread, so check processes first.
+                 'multiprocessing.process._dangling', 'threading._dangling',
+                 'sysconfig._CONFIG_VARS', 'sysconfig._INSTALL_SCHEMES',
+                 'files', 'locale', 'warnings.showwarning',
+                 'shutil_archive_formats', 'shutil_unpack_formats',
+                 'asyncio.events._event_loop_policy',
+                 'urllib.requests._url_tempfiles', 'urllib.requests._opener',
+                )
+
+    def get_module(self, name):
+        # function for restore() methods
+        return sys.modules[name]
+
+    def try_get_module(self, name):
+        # function for get() methods
+        try:
+            return self.get_module(name)
+        except KeyError:
+            raise SkipTestEnvironment
+
+    def get_urllib_requests__url_tempfiles(self):
+        urllib_request = self.try_get_module('urllib.request')
+        return list(urllib_request._url_tempfiles)
+    def restore_urllib_requests__url_tempfiles(self, tempfiles):
+        for filename in tempfiles:
+            os_helper.unlink(filename)
+
+    def get_urllib_requests__opener(self):
+        urllib_request = self.try_get_module('urllib.request')
+        return urllib_request._opener
+    def restore_urllib_requests__opener(self, opener):
+        urllib_request = self.get_module('urllib.request')
+        urllib_request._opener = opener
+
+    def get_asyncio_events__event_loop_policy(self):
+        self.try_get_module('asyncio')
+        return support.maybe_get_event_loop_policy()
+    def restore_asyncio_events__event_loop_policy(self, policy):
+        asyncio = self.get_module('asyncio')
+        asyncio.set_event_loop_policy(policy)
+
+    def get_sys_argv(self):
+        return id(sys.argv), sys.argv, sys.argv[:]
+    def restore_sys_argv(self, saved_argv):
+        sys.argv = saved_argv[1]
+        sys.argv[:] = saved_argv[2]
+
+    def get_cwd(self):
+        return os.getcwd()
+    def restore_cwd(self, saved_cwd):
+        os.chdir(saved_cwd)
+
+    def get_sys_stdout(self):
+        return sys.stdout
+    def restore_sys_stdout(self, saved_stdout):
+        sys.stdout = saved_stdout
+
+    def get_sys_stderr(self):
+        return sys.stderr
+    def restore_sys_stderr(self, saved_stderr):
+        sys.stderr = saved_stderr
+
+    def get_sys_stdin(self):
+        return sys.stdin
+    def restore_sys_stdin(self, saved_stdin):
+        sys.stdin = saved_stdin
+
+    def get_os_environ(self):
+        return id(os.environ), os.environ, dict(os.environ)
+    def restore_os_environ(self, saved_environ):
+        os.environ = saved_environ[1]
+        os.environ.clear()
+        os.environ.update(saved_environ[2])
+
+    def get_sys_path(self):
+        return id(sys.path), sys.path, sys.path[:]
+    def restore_sys_path(self, saved_path):
+        sys.path = saved_path[1]
+        sys.path[:] = saved_path[2]
+
+    def get_sys_path_hooks(self):
+        return id(sys.path_hooks), sys.path_hooks, sys.path_hooks[:]
+    def restore_sys_path_hooks(self, saved_hooks):
+        sys.path_hooks = saved_hooks[1]
+        sys.path_hooks[:] = saved_hooks[2]
+
+    def get_sys_gettrace(self):
+        return sys.gettrace()
+    def restore_sys_gettrace(self, trace_fxn):
+        sys.settrace(trace_fxn)
+
+    def get___import__(self):
+        return builtins.__import__
+    def restore___import__(self, import_):
+        builtins.__import__ = import_
+
+    def get_warnings_filters(self):
+        warnings = self.try_get_module('warnings')
+        return id(warnings.filters), warnings.filters, warnings.filters[:]
+    def restore_warnings_filters(self, saved_filters):
+        warnings = self.get_module('warnings')
+        warnings.filters = saved_filters[1]
+        warnings.filters[:] = saved_filters[2]
+
+    def get_asyncore_socket_map(self):
+        asyncore = sys.modules.get('test.support.asyncore')
+        # XXX Making a copy keeps objects alive until __exit__ gets called.
+        return asyncore and asyncore.socket_map.copy() or {}
+    def restore_asyncore_socket_map(self, saved_map):
+        asyncore = sys.modules.get('test.support.asyncore')
+        if asyncore is not None:
+            asyncore.close_all(ignore_all=True)
+            asyncore.socket_map.update(saved_map)
+
+    def get_shutil_archive_formats(self):
+        shutil = self.try_get_module('shutil')
+        # we could call get_archives_formats() but that only returns the
+        # registry keys; we want to check the values too (the functions that
+        # are registered)
+        return shutil._ARCHIVE_FORMATS, shutil._ARCHIVE_FORMATS.copy()
+    def restore_shutil_archive_formats(self, saved):
+        shutil = self.get_module('shutil')
+        shutil._ARCHIVE_FORMATS = saved[0]
+        shutil._ARCHIVE_FORMATS.clear()
+        shutil._ARCHIVE_FORMATS.update(saved[1])
+
+    def get_shutil_unpack_formats(self):
+        shutil = self.try_get_module('shutil')
+        return shutil._UNPACK_FORMATS, shutil._UNPACK_FORMATS.copy()
+    def restore_shutil_unpack_formats(self, saved):
+        shutil = self.get_module('shutil')
+        shutil._UNPACK_FORMATS = saved[0]
+        shutil._UNPACK_FORMATS.clear()
+        shutil._UNPACK_FORMATS.update(saved[1])
+
+    def get_logging__handlers(self):
+        logging = self.try_get_module('logging')
+        # _handlers is a WeakValueDictionary
+        return id(logging._handlers), logging._handlers, logging._handlers.copy()
+    def restore_logging__handlers(self, saved_handlers):
+        # Can't easily revert the logging state
+        pass
+
+    def get_logging__handlerList(self):
+        logging = self.try_get_module('logging')
+        # _handlerList is a list of weakrefs to handlers
+        return id(logging._handlerList), logging._handlerList, logging._handlerList[:]
+    def restore_logging__handlerList(self, saved_handlerList):
+        # Can't easily revert the logging state
+        pass
+
+    def get_sys_warnoptions(self):
+        return id(sys.warnoptions), sys.warnoptions, sys.warnoptions[:]
+    def restore_sys_warnoptions(self, saved_options):
+        sys.warnoptions = saved_options[1]
+        sys.warnoptions[:] = saved_options[2]
+
+    # Controlling dangling references to Thread objects can make it easier
+    # to track reference leaks.
+    def get_threading__dangling(self):
+        # This copies the weakrefs without making any strong reference
+        return threading._dangling.copy()
+    def restore_threading__dangling(self, saved):
+        threading._dangling.clear()
+        threading._dangling.update(saved)
+
+    # Same for Process objects
+    def get_multiprocessing_process__dangling(self):
+        multiprocessing_process = self.try_get_module('multiprocessing.process')
+        # Unjoined process objects can survive after process exits
+        multiprocessing_process._cleanup()
+        # This copies the weakrefs without making any strong reference
+        return multiprocessing_process._dangling.copy()
+    def restore_multiprocessing_process__dangling(self, saved):
+        multiprocessing_process = self.get_module('multiprocessing.process')
+        multiprocessing_process._dangling.clear()
+        multiprocessing_process._dangling.update(saved)
+
+    def get_sysconfig__CONFIG_VARS(self):
+        # make sure the dict is initialized
+        sysconfig = self.try_get_module('sysconfig')
+        sysconfig.get_config_var('prefix')
+        return (id(sysconfig._CONFIG_VARS), sysconfig._CONFIG_VARS,
+                dict(sysconfig._CONFIG_VARS))
+    def restore_sysconfig__CONFIG_VARS(self, saved):
+        sysconfig = self.get_module('sysconfig')
+        sysconfig._CONFIG_VARS = saved[1]
+        sysconfig._CONFIG_VARS.clear()
+        sysconfig._CONFIG_VARS.update(saved[2])
+
+    def get_sysconfig__INSTALL_SCHEMES(self):
+        sysconfig = self.try_get_module('sysconfig')
+        return (id(sysconfig._INSTALL_SCHEMES), sysconfig._INSTALL_SCHEMES,
+                sysconfig._INSTALL_SCHEMES.copy())
+    def restore_sysconfig__INSTALL_SCHEMES(self, saved):
+        sysconfig = self.get_module('sysconfig')
+        sysconfig._INSTALL_SCHEMES = saved[1]
+        sysconfig._INSTALL_SCHEMES.clear()
+        sysconfig._INSTALL_SCHEMES.update(saved[2])
+
+    def get_files(self):
+        # XXX: Maybe add an allow-list here?
+        return sorted(fn + ('/' if os.path.isdir(fn) else '')
+                      for fn in os.listdir()
+                      if not fn.startswith(".hypothesis"))
+    def restore_files(self, saved_value):
+        fn = os_helper.TESTFN
+        if fn not in saved_value and (fn + '/') not in saved_value:
+            if os.path.isfile(fn):
+                os_helper.unlink(fn)
+            elif os.path.isdir(fn):
+                os_helper.rmtree(fn)
+
+    _lc = [getattr(locale, lc) for lc in dir(locale)
+           if lc.startswith('LC_')]
+    def get_locale(self):
+        pairings = []
+        for lc in self._lc:
+            try:
+                pairings.append((lc, locale.setlocale(lc, None)))
+            except (TypeError, ValueError):
+                continue
+        return pairings
+    def restore_locale(self, saved):
+        for lc, setting in saved:
+            locale.setlocale(lc, setting)
+
+    def get_warnings_showwarning(self):
+        warnings = self.try_get_module('warnings')
+        return warnings.showwarning
+    def restore_warnings_showwarning(self, fxn):
+        warnings = self.get_module('warnings')
+        warnings.showwarning = fxn
+
+    def resource_info(self):
+        for name in self.resources:
+            method_suffix = name.replace('.', '_')
+            get_name = 'get_' + method_suffix
+            restore_name = 'restore_' + method_suffix
+            yield name, getattr(self, get_name), getattr(self, restore_name)
+
+    def __enter__(self):
+        self.saved_values = []
+        for name, get, restore in self.resource_info():
+            try:
+                original = get()
+            except SkipTestEnvironment:
+                continue
+
+            self.saved_values.append((name, get, restore, original))
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        saved_values = self.saved_values
+        self.saved_values = None
+
+        # Some resources use weak references
+        support.gc_collect()
+
+        for name, get, restore, original in saved_values:
+            current = get()
+            # Check for changes to the resource's value
+            if current != original:
+                support.environment_altered = True
+                restore(original)
+                if not self.quiet and not self.pgo:
+                    print_warning(
+                        f"{name} was modified by {self.test_name}\n"
+                        f"  Before: {original}\n"
+                        f"  After:  {current} ")
+        return False
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          import faulthandler
+import gc
+import io
+import os
+import random
+import signal
+import sys
+import unittest
+from test import support
+from test.support.os_helper import TESTFN_UNDECODABLE, FS_NONASCII
+
+from .filter import set_match_tests
+from .runtests import RunTests
+from .utils import (
+    setup_unraisable_hook, setup_threading_excepthook, fix_umask,
+    adjust_rlimit_nofile)
+
+
+UNICODE_GUARD_ENV = "PYTHONREGRTEST_UNICODE_GUARD"
+
+
+def setup_test_dir(testdir: str | None) -> None:
+    if testdir:
+        # Prepend test directory to sys.path, so runtest() will be able
+        # to locate tests
+        sys.path.insert(0, os.path.abspath(testdir))
+
+
+def setup_process() -> None:
+    fix_umask()
+
+    assert sys.__stderr__ is not None, "sys.__stderr__ is None"
+    try:
+        stderr_fd = sys.__stderr__.fileno()
+    except (ValueError, AttributeError):
+        # Catch ValueError to catch io.UnsupportedOperation on TextIOBase
+        # and ValueError on a closed stream.
+        #
+        # Catch AttributeError for stderr being None.
+        pass
+    else:
+        # Display the Python traceback on fatal errors (e.g. segfault)
+        faulthandler.enable(all_threads=True, file=stderr_fd)
+
+        # Display the Python traceback on SIGALRM or SIGUSR1 signal
+        signals: list[signal.Signals] = []
+        if hasattr(signal, 'SIGALRM'):
+            signals.append(signal.SIGALRM)
+        if hasattr(signal, 'SIGUSR1'):
+            signals.append(signal.SIGUSR1)
+        for signum in signals:
+            faulthandler.register(signum, chain=True, file=stderr_fd)
+
+    adjust_rlimit_nofile()
+
+    support.record_original_stdout(sys.stdout)
+
+    # Set sys.stdout encoder error handler to backslashreplace,
+    # similar to sys.stderr error handler, to avoid UnicodeEncodeError
+    # when printing a traceback or any other non-encodable character.
+    #
+    # Use an assertion to fix mypy error.
+    assert isinstance(sys.stdout, io.TextIOWrapper)
+    sys.stdout.reconfigure(errors="backslashreplace")
+
+    # Some times __path__ and __file__ are not absolute (e.g. while running from
+    # Lib/) and, if we change the CWD to run the tests in a temporary dir, some
+    # imports might fail.  This affects only the modules imported before os.chdir().
+    # These modules are searched first in sys.path[0] (so '' -- the CWD) and if
+    # they are found in the CWD their __file__ and __path__ will be relative (this
+    # happens before the chdir).  All the modules imported after the chdir, are
+    # not found in the CWD, and since the other paths in sys.path[1:] are absolute
+    # (site.py absolutize them), the __file__ and __path__ will be absolute too.
+    # Therefore it is necessary to absolutize manually the __file__ and __path__ of
+    # the packages to prevent later imports to fail when the CWD is different.
+    for module in sys.modules.values():
+        if hasattr(module, '__path__'):
+            for index, path in enumerate(module.__path__):
+                module.__path__[index] = os.path.abspath(path)
+        if getattr(module, '__file__', None):
+            module.__file__ = os.path.abspath(module.__file__)  # type: ignore[type-var]
+
+    if hasattr(sys, 'addaudithook'):
+        # Add an auditing hook for all tests to ensure PySys_Audit is tested
+        def _test_audit_hook(name, args):
+            pass
+        sys.addaudithook(_test_audit_hook)
+
+    setup_unraisable_hook()
+    setup_threading_excepthook()
+
+    # Ensure there's a non-ASCII character in env vars at all times to force
+    # tests consider this case. See BPO-44647 for details.
+    if TESTFN_UNDECODABLE and os.supports_bytes_environ:
+        os.environb.setdefault(UNICODE_GUARD_ENV.encode(), TESTFN_UNDECODABLE)
+    elif FS_NONASCII:
+        os.environ.setdefault(UNICODE_GUARD_ENV, FS_NONASCII)
+
+
+def setup_tests(runtests: RunTests) -> None:
+    support.verbose = runtests.verbose
+    support.failfast = runtests.fail_fast
+    support.PGO = runtests.pgo
+    support.PGO_EXTENDED = runtests.pgo_extended
+
+    set_match_tests(runtests.match_tests)
+
+    if runtests.use_junit:
+        support.junit_xml_list = []
+        from .testresult import RegressionTestResult
+        RegressionTestResult.USE_XML = True
+    else:
+        support.junit_xml_list = None
+
+    if runtests.memory_limit is not None:
+        support.set_memlimit(runtests.memory_limit)
+
+    support.suppress_msvcrt_asserts(runtests.verbose >= 2)
+
+    support.use_resources = runtests.use_resources
+
+    timeout = runtests.timeout
+    if timeout is not None:
+        # For a slow buildbot worker, increase SHORT_TIMEOUT and LONG_TIMEOUT
+        support.LOOPBACK_TIMEOUT = max(support.LOOPBACK_TIMEOUT, timeout / 120)
+        # don't increase INTERNET_TIMEOUT
+        support.SHORT_TIMEOUT = max(support.SHORT_TIMEOUT, timeout / 40)
+        support.LONG_TIMEOUT = max(support.LONG_TIMEOUT, timeout / 4)
+
+        # If --timeout is short: reduce timeouts
+        support.LOOPBACK_TIMEOUT = min(support.LOOPBACK_TIMEOUT, timeout)
+        support.INTERNET_TIMEOUT = min(support.INTERNET_TIMEOUT, timeout)
+        support.SHORT_TIMEOUT = min(support.SHORT_TIMEOUT, timeout)
+        support.LONG_TIMEOUT = min(support.LONG_TIMEOUT, timeout)
+
+    if runtests.hunt_refleak:
+        # private attribute that mypy doesn't know about:
+        unittest.BaseTestSuite._cleanup = False  # type: ignore[attr-defined]
+
+    if runtests.gc_threshold is not None:
+        gc.set_threshold(runtests.gc_threshold)
+
+    random.seed(runtests.random_seed)
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        import faulthandler
+import gc
+import importlib
+import io
+import sys
+import time
+import traceback
+import unittest
+
+from test import support
+from test.support import threading_helper
+
+from .filter import match_test
+from .result import State, TestResult, TestStats
+from .runtests import RunTests
+from .save_env import saved_test_environment
+from .setup import setup_tests
+from .testresult import get_test_runner
+from .utils import (
+    TestName,
+    clear_caches, remove_testfn, abs_module_name, print_warning)
+
+
+# Minimum duration of a test to display its duration or to mention that
+# the test is running in background
+PROGRESS_MIN_TIME = 30.0   # seconds
+
+
+def run_unittest(test_mod):
+    loader = unittest.TestLoader()
+    tests = loader.loadTestsFromModule(test_mod)
+    for error in loader.errors:
+        print(error, file=sys.stderr)
+    if loader.errors:
+        raise Exception("errors while loading tests")
+    _filter_suite(tests, match_test)
+    return _run_suite(tests)
+
+def _filter_suite(suite, pred):
+    """Recursively filter test cases in a suite based on a predicate."""
+    newtests = []
+    for test in suite._tests:
+        if isinstance(test, unittest.TestSuite):
+            _filter_suite(test, pred)
+            newtests.append(test)
+        else:
+            if pred(test):
+                newtests.append(test)
+    suite._tests = newtests
+
+def _run_suite(suite):
+    """Run tests from a unittest.TestSuite-derived class."""
+    runner = get_test_runner(sys.stdout,
+                             verbosity=support.verbose,
+                             capture_output=(support.junit_xml_list is not None))
+
+    result = runner.run(suite)
+
+    if support.junit_xml_list is not None:
+        import xml.etree.ElementTree as ET
+        xml_elem = result.get_xml_element()
+        xml_str = ET.tostring(xml_elem).decode('ascii')
+        support.junit_xml_list.append(xml_str)
+
+    if not result.testsRun and not result.skipped and not result.errors:
+        raise support.TestDidNotRun
+    if not result.wasSuccessful():
+        stats = TestStats.from_unittest(result)
+        if len(result.errors) == 1 and not result.failures:
+            err = result.errors[0][1]
+        elif len(result.failures) == 1 and not result.errors:
+            err = result.failures[0][1]
+        else:
+            err = "multiple errors occurred"
+            if not support.verbose: err += "; run in verbose mode for details"
+        errors = [(str(tc), exc_str) for tc, exc_str in result.errors]
+        failures = [(str(tc), exc_str) for tc, exc_str in result.failures]
+        raise support.TestFailedWithDetails(err, errors, failures, stats=stats)
+    return result
+
+
+def regrtest_runner(result: TestResult, test_func, runtests: RunTests) -> None:
+    # Run test_func(), collect statistics, and detect reference and memory
+    # leaks.
+    if runtests.hunt_refleak:
+        from .refleak import runtest_refleak
+        refleak, test_result = runtest_refleak(result.test_name, test_func,
+                                               runtests.hunt_refleak,
+                                               runtests.quiet)
+    else:
+        test_result = test_func()
+        refleak = False
+
+    if refleak:
+        result.state = State.REFLEAK
+
+    stats: TestStats | None
+
+    match test_result:
+        case TestStats():
+            stats = test_result
+        case unittest.TestResult():
+            stats = TestStats.from_unittest(test_result)
+        case None:
+            print_warning(f"{result.test_name} test runner returned None: {test_func}")
+            stats = None
+        case _:
+            # Don't import doctest at top level since only few tests return
+            # a doctest.TestResult instance.
+            import doctest
+            if isinstance(test_result, doctest.TestResults):
+                stats = TestStats.from_doctest(test_result)
+            else:
+                print_warning(f"Unknown test result type: {type(test_result)}")
+                stats = None
+
+    result.stats = stats
+
+
+# Storage of uncollectable GC objects (gc.garbage)
+GC_GARBAGE = []
+
+
+def _load_run_test(result: TestResult, runtests: RunTests) -> None:
+    # Load the test module and run the tests.
+    test_name = result.test_name
+    module_name = abs_module_name(test_name, runtests.test_dir)
+    test_mod = importlib.import_module(module_name)
+
+    if hasattr(test_mod, "test_main"):
+        # https://github.com/python/cpython/issues/89392
+        raise Exception(f"Module {test_name} defines test_main() which "
+                        f"is no longer supported by regrtest")
+    def test_func():
+        return run_unittest(test_mod)
+
+    try:
+        regrtest_runner(result, test_func, runtests)
+    finally:
+        # First kill any dangling references to open files etc.
+        # This can also issue some ResourceWarnings which would otherwise get
+        # triggered during the following test run, and possibly produce
+        # failures.
+        support.gc_collect()
+
+        remove_testfn(test_name, runtests.verbose)
+
+    if gc.garbage:
+        support.environment_altered = True
+        print_warning(f"{test_name} created {len(gc.garbage)} "
+                      f"uncollectable object(s)")
+
+        # move the uncollectable objects somewhere,
+        # so we don't see them again
+        GC_GARBAGE.extend(gc.garbage)
+        gc.garbage.clear()
+
+    support.reap_children()
+
+
+def _runtest_env_changed_exc(result: TestResult, runtests: RunTests,
+                             display_failure: bool = True) -> None:
+    # Handle exceptions, detect environment changes.
+
+    # Reset the environment_altered flag to detect if a test altered
+    # the environment
+    support.environment_altered = False
+
+    pgo = runtests.pgo
+    if pgo:
+        display_failure = False
+    quiet = runtests.quiet
+
+    test_name = result.test_name
+    try:
+        clear_caches()
+        support.gc_collect()
+
+        with saved_test_environment(test_name,
+                                    runtests.verbose, quiet, pgo=pgo):
+            _load_run_test(result, runtests)
+    except support.ResourceDenied as exc:
+        if not quiet and not pgo:
+            print(f"{test_name} skipped -- {exc}", flush=True)
+        result.state = State.RESOURCE_DENIED
+        return
+    except unittest.SkipTest as exc:
+        if not quiet and not pgo:
+            print(f"{test_name} skipped -- {exc}", flush=True)
+        result.state = State.SKIPPED
+        return
+    except support.TestFailedWithDetails as exc:
+        msg = f"test {test_name} failed"
+        if display_failure:
+            msg = f"{msg} -- {exc}"
+        print(msg, file=sys.stderr, flush=True)
+        result.state = State.FAILED
+        result.errors = exc.errors
+        result.failures = exc.failures
+        result.stats = exc.stats
+        return
+    except support.TestFailed as exc:
+        msg = f"test {test_name} failed"
+        if display_failure:
+            msg = f"{msg} -- {exc}"
+        print(msg, file=sys.stderr, flush=True)
+        result.state = State.FAILED
+        result.stats = exc.stats
+        return
+    except support.TestDidNotRun:
+        result.state = State.DID_NOT_RUN
+        return
+    except KeyboardInterrupt:
+        print()
+        result.state = State.INTERRUPTED
+        return
+    except:
+        if not pgo:
+            msg = traceback.format_exc()
+            print(f"test {test_name} crashed -- {msg}",
+                  file=sys.stderr, flush=True)
+        result.state = State.UNCAUGHT_EXC
+        return
+
+    if support.environment_altered:
+        result.set_env_changed()
+    # Don't override the state if it was already set (REFLEAK or ENV_CHANGED)
+    if result.state is None:
+        result.state = State.PASSED
+
+
+def _runtest(result: TestResult, runtests: RunTests) -> None:
+    # Capture stdout and stderr, set faulthandler timeout,
+    # and create JUnit XML report.
+    verbose = runtests.verbose
+    output_on_failure = runtests.output_on_failure
+    timeout = runtests.timeout
+
+    if timeout is not None and threading_helper.can_start_thread:
+        use_timeout = True
+        faulthandler.dump_traceback_later(timeout, exit=True)
+    else:
+        use_timeout = False
+
+    try:
+        setup_tests(runtests)
+
+        if output_on_failure:
+            support.verbose = True
+
+            stream = io.StringIO()
+            orig_stdout = sys.stdout
+            orig_stderr = sys.stderr
+            print_warning = support.print_warning
+            orig_print_warnings_stderr = print_warning.orig_stderr
+
+            output = None
+            try:
+                sys.stdout = stream
+                sys.stderr = stream
+                # print_warning() writes into the temporary stream to preserve
+                # messages order. If support.environment_altered becomes true,
+                # warnings will be written to sys.stderr below.
+                print_warning.orig_stderr = stream
+
+                _runtest_env_changed_exc(result, runtests, display_failure=False)
+                # Ignore output if the test passed successfully
+                if result.state != State.PASSED:
+                    output = stream.getvalue()
+            finally:
+                sys.stdout = orig_stdout
+                sys.stderr = orig_stderr
+                print_warning.orig_stderr = orig_print_warnings_stderr
+
+            if output is not None:
+                sys.stderr.write(output)
+                sys.stderr.flush()
+        else:
+            # Tell tests to be moderately quiet
+            support.verbose = verbose
+            _runtest_env_changed_exc(result, runtests,
+                                     display_failure=not verbose)
+
+        xml_list = support.junit_xml_list
+        if xml_list:
+            result.xml_data = xml_list
+    finally:
+        if use_timeout:
+            faulthandler.cancel_dump_traceback_later()
+        support.junit_xml_list = None
+
+
+def run_single_test(test_name: TestName, runtests: RunTests) -> TestResult:
+    """Run a single test.
+
+    test_name -- the name of the test
+
+    Returns a TestResult.
+
+    If runtests.use_junit, xml_data is a list containing each generated
+    testsuite element.
+    """
+    start_time = time.perf_counter()
+    result = TestResult(test_name)
+    pgo = runtests.pgo
+    try:
+        # gh-117783: don't immortalize deferred objects when tracking
+        # refleaks. Only releveant for the free-threaded build.
+        with support.suppress_immortalization(runtests.hunt_refleak):
+            _runtest(result, runtests)
+    except:
+        if not pgo:
+            msg = traceback.format_exc()
+            print(f"test {test_name} crashed -- {msg}",
+                  file=sys.stderr, flush=True)
+        result.state = State.UNCAUGHT_EXC
+
+    sys.stdout.flush()
+    sys.stderr.flush()
+
+    result.duration = time.perf_counter() - start_time
+    return result
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 '''Test runner and result class for the regression test suite.
+
+'''
+
+import functools
+import io
+import sys
+import time
+import traceback
+import unittest
+from test import support
+from test.libregrtest.utils import sanitize_xml
+
+class RegressionTestResult(unittest.TextTestResult):
+    USE_XML = False
+
+    def __init__(self, stream, descriptions, verbosity):
+        super().__init__(stream=stream, descriptions=descriptions,
+                         verbosity=2 if verbosity else 0)
+        self.buffer = True
+        if self.USE_XML:
+            from xml.etree import ElementTree as ET
+            from datetime import datetime, UTC
+            self.__ET = ET
+            self.__suite = ET.Element('testsuite')
+            self.__suite.set('start',
+                             datetime.now(UTC)
+                                     .replace(tzinfo=None)
+                                     .isoformat(' '))
+            self.__e = None
+        self.__start_time = None
+
+    @classmethod
+    def __getId(cls, test):
+        try:
+            test_id = test.id
+        except AttributeError:
+            return str(test)
+        try:
+            return test_id()
+        except TypeError:
+            return str(test_id)
+        return repr(test)
+
+    def startTest(self, test):
+        super().startTest(test)
+        if self.USE_XML:
+            self.__e = e = self.__ET.SubElement(self.__suite, 'testcase')
+        self.__start_time = time.perf_counter()
+
+    def _add_result(self, test, capture=False, **args):
+        if not self.USE_XML:
+            return
+        e = self.__e
+        self.__e = None
+        if e is None:
+            return
+        ET = self.__ET
+
+        e.set('name', args.pop('name', self.__getId(test)))
+        e.set('status', args.pop('status', 'run'))
+        e.set('result', args.pop('result', 'completed'))
+        if self.__start_time:
+            e.set('time', f'{time.perf_counter() - self.__start_time:0.6f}')
+
+        if capture:
+            if self._stdout_buffer is not None:
+                stdout = self._stdout_buffer.getvalue().rstrip()
+                ET.SubElement(e, 'system-out').text = sanitize_xml(stdout)
+            if self._stderr_buffer is not None:
+                stderr = self._stderr_buffer.getvalue().rstrip()
+                ET.SubElement(e, 'system-err').text = sanitize_xml(stderr)
+
+        for k, v in args.items():
+            if not k or not v:
+                continue
+
+            e2 = ET.SubElement(e, k)
+            if hasattr(v, 'items'):
+                for k2, v2 in v.items():
+                    if k2:
+                        e2.set(k2, sanitize_xml(str(v2)))
+                    else:
+                        e2.text = sanitize_xml(str(v2))
+            else:
+                e2.text = sanitize_xml(str(v))
+
+    @classmethod
+    def __makeErrorDict(cls, err_type, err_value, err_tb):
+        if isinstance(err_type, type):
+            if err_type.__module__ == 'builtins':
+                typename = err_type.__name__
+            else:
+                typename = f'{err_type.__module__}.{err_type.__name__}'
+        else:
+            typename = repr(err_type)
+
+        msg = traceback.format_exception(err_type, err_value, None)
+        tb = traceback.format_exception(err_type, err_value, err_tb)
+
+        return {
+            'type': typename,
+            'message': ''.join(msg),
+            '': ''.join(tb),
+        }
+
+    def addError(self, test, err):
+        self._add_result(test, True, error=self.__makeErrorDict(*err))
+        super().addError(test, err)
+
+    def addExpectedFailure(self, test, err):
+        self._add_result(test, True, output=self.__makeErrorDict(*err))
+        super().addExpectedFailure(test, err)
+
+    def addFailure(self, test, err):
+        self._add_result(test, True, failure=self.__makeErrorDict(*err))
+        super().addFailure(test, err)
+        if support.failfast:
+            self.stop()
+
+    def addSkip(self, test, reason):
+        self._add_result(test, skipped=reason)
+        super().addSkip(test, reason)
+
+    def addSuccess(self, test):
+        self._add_result(test)
+        super().addSuccess(test)
+
+    def addUnexpectedSuccess(self, test):
+        self._add_result(test, outcome='UNEXPECTED_SUCCESS')
+        super().addUnexpectedSuccess(test)
+
+    def get_xml_element(self):
+        if not self.USE_XML:
+            raise ValueError("USE_XML is false")
+        e = self.__suite
+        e.set('tests', str(self.testsRun))
+        e.set('errors', str(len(self.errors)))
+        e.set('failures', str(len(self.failures)))
+        return e
+
+class QuietRegressionTestRunner:
+    def __init__(self, stream, buffer=False):
+        self.result = RegressionTestResult(stream, None, 0)
+        self.result.buffer = buffer
+
+    def run(self, test):
+        test(self.result)
+        return self.result
+
+def get_test_runner_class(verbosity, buffer=False):
+    if verbosity:
+        return functools.partial(unittest.TextTestRunner,
+                                 resultclass=RegressionTestResult,
+                                 buffer=buffer,
+                                 verbosity=verbosity)
+    return functools.partial(QuietRegressionTestRunner, buffer=buffer)
+
+def get_test_runner(stream, verbosity, capture_output=False):
+    return get_test_runner_class(verbosity, capture_output)(stream)
+
+if __name__ == '__main__':
+    import xml.etree.ElementTree as ET
+    RegressionTestResult.USE_XML = True
+
+    class TestTests(unittest.TestCase):
+        def test_pass(self):
+            pass
+
+        def test_pass_slow(self):
+            time.sleep(1.0)
+
+        def test_fail(self):
+            print('stdout', file=sys.stdout)
+            print('stderr', file=sys.stderr)
+            self.fail('failure message')
+
+        def test_error(self):
+            print('stdout', file=sys.stdout)
+            print('stderr', file=sys.stderr)
+            raise RuntimeError('error message')
+
+    suite = unittest.TestSuite()
+    suite.addTest(unittest.TestLoader().loadTestsFromTestCase(TestTests))
+    stream = io.StringIO()
+    runner_cls = get_test_runner_class(sum(a == '-v' for a in sys.argv))
+    runner = runner_cls(sys.stdout)
+    result = runner.run(suite)
+    print('Output:', stream.getvalue())
+    print('XML: ', end='')
+    for s in ET.tostringlist(result.get_xml_element()):
+        print(s.decode(), end='')
+    print()
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 # Set of tests run by default if --tsan is specified.  The tests below were
+# chosen because they use threads and run in a reasonable amount of time.
+
+TSAN_TESTS = [
+    # TODO: enable more of test_capi once bugs are fixed (GH-116908, GH-116909).
+    'test_capi.test_mem',
+    'test_capi.test_pyatomic',
+    'test_code',
+    'test_enum',
+    'test_functools',
+    'test_httpservers',
+    'test_imaplib',
+    'test_importlib',
+    'test_io',
+    'test_logging',
+    'test_opcache',
+    'test_queue',
+    'test_signal',
+    'test_socket',
+    'test_sqlite3',
+    'test_ssl',
+    'test_syslog',
+    'test_thread',
+    'test_threadedtempfile',
+    'test_threading',
+    'test_threading_local',
+    'test_threadsignals',
+    'test_weakref',
+]
+
+
+def setup_tsan_tests(cmdline_args) -> None:
+    if not cmdline_args:
+        cmdline_args[:] = TSAN_TESTS[:]
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               import contextlib
+import faulthandler
+import locale
+import math
+import os.path
+import platform
+import random
+import re
+import shlex
+import signal
+import subprocess
+import sys
+import sysconfig
+import tempfile
+import textwrap
+from collections.abc import Callable, Iterable
+
+from test import support
+from test.support import os_helper
+from test.support import threading_helper
+
+
+# All temporary files and temporary directories created by libregrtest should
+# use TMP_PREFIX so cleanup_temp_dir() can remove them all.
+TMP_PREFIX = 'test_python_'
+WORK_DIR_PREFIX = TMP_PREFIX
+WORKER_WORK_DIR_PREFIX = WORK_DIR_PREFIX + 'worker_'
+
+# bpo-38203: Maximum delay in seconds to exit Python (call Py_Finalize()).
+# Used to protect against threading._shutdown() hang.
+# Must be smaller than buildbot "1200 seconds without output" limit.
+EXIT_TIMEOUT = 120.0
+
+
+ALL_RESOURCES = ('audio', 'console', 'curses', 'largefile', 'network',
+                 'decimal', 'cpu', 'subprocess', 'urlfetch', 'gui', 'walltime')
+
+# Other resources excluded from --use=all:
+#
+# - extralagefile (ex: test_zipfile64): really too slow to be enabled
+#   "by default"
+# - tzdata: while needed to validate fully test_datetime, it makes
+#   test_datetime too slow (15-20 min on some buildbots) and so is disabled by
+#   default (see bpo-30822).
+RESOURCE_NAMES = ALL_RESOURCES + ('extralargefile', 'tzdata')
+
+
+# Types for types hints
+StrPath = str
+TestName = str
+StrJSON = str
+TestTuple = tuple[TestName, ...]
+TestList = list[TestName]
+# --match and --ignore options: list of patterns
+# ('*' joker character can be used)
+TestFilter = list[tuple[TestName, bool]]
+FilterTuple = tuple[TestName, ...]
+FilterDict = dict[TestName, FilterTuple]
+
+
+def format_duration(seconds: float) -> str:
+    ms = math.ceil(seconds * 1e3)
+    seconds, ms = divmod(ms, 1000)
+    minutes, seconds = divmod(seconds, 60)
+    hours, minutes = divmod(minutes, 60)
+
+    parts = []
+    if hours:
+        parts.append('%s hour' % hours)
+    if minutes:
+        parts.append('%s min' % minutes)
+    if seconds:
+        if parts:
+            # 2 min 1 sec
+            parts.append('%s sec' % seconds)
+        else:
+            # 1.0 sec
+            parts.append('%.1f sec' % (seconds + ms / 1000))
+    if not parts:
+        return '%s ms' % ms
+
+    parts = parts[:2]
+    return ' '.join(parts)
+
+
+def strip_py_suffix(names: list[str] | None) -> None:
+    if not names:
+        return
+    for idx, name in enumerate(names):
+        basename, ext = os.path.splitext(name)
+        if ext == '.py':
+            names[idx] = basename
+
+
+def plural(n: int, singular: str, plural: str | None = None) -> str:
+    if n == 1:
+        return singular
+    elif plural is not None:
+        return plural
+    else:
+        return singular + 's'
+
+
+def count(n: int, word: str) -> str:
+    if n == 1:
+        return f"{n} {word}"
+    else:
+        return f"{n} {word}s"
+
+
+def printlist(x, width=70, indent=4, file=None):
+    """Print the elements of iterable x to stdout.
+
+    Optional arg width (default 70) is the maximum line length.
+    Optional arg indent (default 4) is the number of blanks with which to
+    begin each line.
+    """
+
+    blanks = ' ' * indent
+    # Print the sorted list: 'x' may be a '--random' list or a set()
+    print(textwrap.fill(' '.join(str(elt) for elt in sorted(x)), width,
+                        initial_indent=blanks, subsequent_indent=blanks),
+          file=file)
+
+
+def print_warning(msg: str) -> None:
+    support.print_warning(msg)
+
+
+orig_unraisablehook: Callable[..., None] | None = None
+
+
+def regrtest_unraisable_hook(unraisable) -> None:
+    global orig_unraisablehook
+    support.environment_altered = True
+    support.print_warning("Unraisable exception")
+    old_stderr = sys.stderr
+    try:
+        support.flush_std_streams()
+        sys.stderr = support.print_warning.orig_stderr
+        assert orig_unraisablehook is not None, "orig_unraisablehook not set"
+        orig_unraisablehook(unraisable)
+        sys.stderr.flush()
+    finally:
+        sys.stderr = old_stderr
+
+
+def setup_unraisable_hook() -> None:
+    global orig_unraisablehook
+    orig_unraisablehook = sys.unraisablehook
+    sys.unraisablehook = regrtest_unraisable_hook
+
+
+orig_threading_excepthook: Callable[..., None] | None = None
+
+
+def regrtest_threading_excepthook(args) -> None:
+    global orig_threading_excepthook
+    support.environment_altered = True
+    support.print_warning(f"Uncaught thread exception: {args.exc_type.__name__}")
+    old_stderr = sys.stderr
+    try:
+        support.flush_std_streams()
+        sys.stderr = support.print_warning.orig_stderr
+        assert orig_threading_excepthook is not None, "orig_threading_excepthook not set"
+        orig_threading_excepthook(args)
+        sys.stderr.flush()
+    finally:
+        sys.stderr = old_stderr
+
+
+def setup_threading_excepthook() -> None:
+    global orig_threading_excepthook
+    import threading
+    orig_threading_excepthook = threading.excepthook
+    threading.excepthook = regrtest_threading_excepthook
+
+
+def clear_caches():
+    # Clear the warnings registry, so they can be displayed again
+    for mod in sys.modules.values():
+        if hasattr(mod, '__warningregistry__'):
+            del mod.__warningregistry__
+
+    # Flush standard output, so that buffered data is sent to the OS and
+    # associated Python objects are reclaimed.
+    for stream in (sys.stdout, sys.stderr, sys.__stdout__, sys.__stderr__):
+        if stream is not None:
+            stream.flush()
+
+    try:
+        re = sys.modules['re']
+    except KeyError:
+        pass
+    else:
+        re.purge()
+
+    try:
+        _strptime = sys.modules['_strptime']
+    except KeyError:
+        pass
+    else:
+        _strptime._regex_cache.clear()
+
+    try:
+        urllib_parse = sys.modules['urllib.parse']
+    except KeyError:
+        pass
+    else:
+        urllib_parse.clear_cache()
+
+    try:
+        urllib_request = sys.modules['urllib.request']
+    except KeyError:
+        pass
+    else:
+        urllib_request.urlcleanup()
+
+    try:
+        linecache = sys.modules['linecache']
+    except KeyError:
+        pass
+    else:
+        linecache.clearcache()
+
+    try:
+        mimetypes = sys.modules['mimetypes']
+    except KeyError:
+        pass
+    else:
+        mimetypes._default_mime_types()
+
+    try:
+        filecmp = sys.modules['filecmp']
+    except KeyError:
+        pass
+    else:
+        filecmp._cache.clear()
+
+    try:
+        struct = sys.modules['struct']
+    except KeyError:
+        pass
+    else:
+        struct._clearcache()
+
+    try:
+        doctest = sys.modules['doctest']
+    except KeyError:
+        pass
+    else:
+        doctest.master = None
+
+    try:
+        ctypes = sys.modules['ctypes']
+    except KeyError:
+        pass
+    else:
+        ctypes._reset_cache()
+
+    try:
+        typing = sys.modules['typing']
+    except KeyError:
+        pass
+    else:
+        for f in typing._cleanups:
+            f()
+
+        import inspect
+        abs_classes = filter(inspect.isabstract, typing.__dict__.values())
+        for abc in abs_classes:
+            for obj in abc.__subclasses__() + [abc]:
+                obj._abc_caches_clear()
+
+    try:
+        fractions = sys.modules['fractions']
+    except KeyError:
+        pass
+    else:
+        fractions._hash_algorithm.cache_clear()
+
+    try:
+        inspect = sys.modules['inspect']
+    except KeyError:
+        pass
+    else:
+        inspect._shadowed_dict_from_weakref_mro_tuple.cache_clear()
+        inspect._filesbymodname.clear()
+        inspect.modulesbyfile.clear()
+
+    try:
+        importlib_metadata = sys.modules['importlib.metadata']
+    except KeyError:
+        pass
+    else:
+        importlib_metadata.FastPath.__new__.cache_clear()
+
+
+def get_build_info():
+    # Get most important configure and build options as a list of strings.
+    # Example: ['debug', 'ASAN+MSAN'] or ['release', 'LTO+PGO'].
+
+    config_args = sysconfig.get_config_var('CONFIG_ARGS') or ''
+    cflags = sysconfig.get_config_var('PY_CFLAGS') or ''
+    cflags += ' ' + (sysconfig.get_config_var('PY_CFLAGS_NODIST') or '')
+    ldflags_nodist = sysconfig.get_config_var('PY_LDFLAGS_NODIST') or ''
+
+    build = []
+
+    # --disable-gil
+    if sysconfig.get_config_var('Py_GIL_DISABLED'):
+        if not sys.flags.ignore_environment:
+            PYTHON_GIL = os.environ.get('PYTHON_GIL', None)
+            if PYTHON_GIL:
+                PYTHON_GIL = (PYTHON_GIL == '1')
+        else:
+            PYTHON_GIL = None
+
+        free_threading = "free_threading"
+        if PYTHON_GIL is not None:
+            free_threading = f"{free_threading} GIL={int(PYTHON_GIL)}"
+        build.append(free_threading)
+
+    if hasattr(sys, 'gettotalrefcount'):
+        # --with-pydebug
+        build.append('debug')
+
+        if '-DNDEBUG' in cflags:
+            build.append('without_assert')
+    else:
+        build.append('release')
+
+        if '--with-assertions' in config_args:
+            build.append('with_assert')
+        elif '-DNDEBUG' not in cflags:
+            build.append('with_assert')
+
+    # --enable-experimental-jit
+    tier2 = re.search('-D_Py_TIER2=([0-9]+)', cflags)
+    if tier2:
+        tier2 = int(tier2.group(1))
+
+    if not sys.flags.ignore_environment:
+        PYTHON_JIT = os.environ.get('PYTHON_JIT', None)
+        if PYTHON_JIT:
+            PYTHON_JIT = (PYTHON_JIT != '0')
+    else:
+        PYTHON_JIT = None
+
+    if tier2 == 1:  # =yes
+        if PYTHON_JIT == False:
+            jit = 'JIT=off'
+        else:
+            jit = 'JIT'
+    elif tier2 == 3:  # =yes-off
+        if PYTHON_JIT:
+            jit = 'JIT'
+        else:
+            jit = 'JIT=off'
+    elif tier2 == 4:  # =interpreter
+        if PYTHON_JIT == False:
+            jit = 'JIT-interpreter=off'
+        else:
+            jit = 'JIT-interpreter'
+    elif tier2 == 6:  # =interpreter-off (Secret option!)
+        if PYTHON_JIT:
+            jit = 'JIT-interpreter'
+        else:
+            jit = 'JIT-interpreter=off'
+    elif '-D_Py_JIT' in cflags:
+        jit = 'JIT'
+    else:
+        jit = None
+    if jit:
+        build.append(jit)
+
+    # --enable-framework=name
+    framework = sysconfig.get_config_var('PYTHONFRAMEWORK')
+    if framework:
+        build.append(f'framework={framework}')
+
+    # --enable-shared
+    shared = int(sysconfig.get_config_var('PY_ENABLE_SHARED') or '0')
+    if shared:
+        build.append('shared')
+
+    # --with-lto
+    optimizations = []
+    if '-flto=thin' in ldflags_nodist:
+        optimizations.append('ThinLTO')
+    elif '-flto' in ldflags_nodist:
+        optimizations.append('LTO')
+
+    if support.check_cflags_pgo():
+        # PGO (--enable-optimizations)
+        optimizations.append('PGO')
+
+    if support.check_bolt_optimized():
+        # BOLT (--enable-bolt)
+        optimizations.append('BOLT')
+
+    if optimizations:
+        build.append('+'.join(optimizations))
+
+    # --with-address-sanitizer
+    sanitizers = []
+    if support.check_sanitizer(address=True):
+        sanitizers.append("ASAN")
+    # --with-memory-sanitizer
+    if support.check_sanitizer(memory=True):
+        sanitizers.append("MSAN")
+    # --with-undefined-behavior-sanitizer
+    if support.check_sanitizer(ub=True):
+        sanitizers.append("UBSAN")
+    # --with-thread-sanitizer
+    if support.check_sanitizer(thread=True):
+        sanitizers.append("TSAN")
+    if sanitizers:
+        build.append('+'.join(sanitizers))
+
+    # --with-trace-refs
+    if hasattr(sys, 'getobjects'):
+        build.append("TraceRefs")
+    # --enable-pystats
+    if hasattr(sys, '_stats_on'):
+        build.append("pystats")
+    # --with-valgrind
+    if sysconfig.get_config_var('WITH_VALGRIND'):
+        build.append("valgrind")
+    # --with-dtrace
+    if sysconfig.get_config_var('WITH_DTRACE'):
+        build.append("dtrace")
+
+    return build
+
+
+def get_temp_dir(tmp_dir: StrPath | None = None) -> StrPath:
+    if tmp_dir:
+        tmp_dir = os.path.expanduser(tmp_dir)
+    else:
+        # When tests are run from the Python build directory, it is best practice
+        # to keep the test files in a subfolder.  This eases the cleanup of leftover
+        # files using the "make distclean" command.
+        if sysconfig.is_python_build():
+            if not support.is_wasi:
+                tmp_dir = sysconfig.get_config_var('abs_builddir')
+                if tmp_dir is None:
+                    tmp_dir = sysconfig.get_config_var('abs_srcdir')
+                    if not tmp_dir:
+                        # gh-74470: On Windows, only srcdir is available. Using
+                        # abs_builddir mostly matters on UNIX when building
+                        # Python out of the source tree, especially when the
+                        # source tree is read only.
+                        tmp_dir = sysconfig.get_config_var('srcdir')
+                        if not tmp_dir:
+                            raise RuntimeError(
+                                "Could not determine the correct value for tmp_dir"
+                            )
+                tmp_dir = os.path.join(tmp_dir, 'build')
+            else:
+                # WASI platform
+                tmp_dir = sysconfig.get_config_var('projectbase')
+                if not tmp_dir:
+                    raise RuntimeError(
+                        "sysconfig.get_config_var('projectbase') "
+                        f"unexpectedly returned {tmp_dir!r} on WASI"
+                    )
+                tmp_dir = os.path.join(tmp_dir, 'build')
+
+                # When get_temp_dir() is called in a worker process,
+                # get_temp_dir() path is different than in the parent process
+                # which is not a WASI process. So the parent does not create
+                # the same "tmp_dir" than the test worker process.
+                os.makedirs(tmp_dir, exist_ok=True)
+        else:
+            tmp_dir = tempfile.gettempdir()
+
+    return os.path.abspath(tmp_dir)
+
+
+def fix_umask() -> None:
+    if support.is_emscripten:
+        # Emscripten has default umask 0o777, which breaks some tests.
+        # see https://github.com/emscripten-core/emscripten/issues/17269
+        old_mask = os.umask(0)
+        if old_mask == 0o777:
+            os.umask(0o027)
+        else:
+            os.umask(old_mask)
+
+
+def get_work_dir(parent_dir: StrPath, worker: bool = False) -> StrPath:
+    # Define a writable temp dir that will be used as cwd while running
+    # the tests. The name of the dir includes the pid to allow parallel
+    # testing (see the -j option).
+    # Emscripten and WASI have stubbed getpid(), Emscripten has only
+    # millisecond clock resolution. Use randint() instead.
+    if support.is_emscripten or support.is_wasi:
+        nounce = random.randint(0, 1_000_000)
+    else:
+        nounce = os.getpid()
+
+    if worker:
+        work_dir = WORK_DIR_PREFIX + str(nounce)
+    else:
+        work_dir = WORKER_WORK_DIR_PREFIX + str(nounce)
+    work_dir += os_helper.FS_NONASCII
+    work_dir = os.path.join(parent_dir, work_dir)
+    return work_dir
+
+
+@contextlib.contextmanager
+def exit_timeout():
+    try:
+        yield
+    except SystemExit as exc:
+        # bpo-38203: Python can hang at exit in Py_Finalize(), especially
+        # on threading._shutdown() call: put a timeout
+        if threading_helper.can_start_thread:
+            faulthandler.dump_traceback_later(EXIT_TIMEOUT, exit=True)
+        sys.exit(exc.code)
+
+
+def remove_testfn(test_name: TestName, verbose: int) -> None:
+    # Try to clean up os_helper.TESTFN if left behind.
+    #
+    # While tests shouldn't leave any files or directories behind, when a test
+    # fails that can be tedious for it to arrange.  The consequences can be
+    # especially nasty on Windows, since if a test leaves a file open, it
+    # cannot be deleted by name (while there's nothing we can do about that
+    # here either, we can display the name of the offending test, which is a
+    # real help).
+    name = os_helper.TESTFN
+    if not os.path.exists(name):
+        return
+
+    nuker: Callable[[str], None]
+    if os.path.isdir(name):
+        import shutil
+        kind, nuker = "directory", shutil.rmtree
+    elif os.path.isfile(name):
+        kind, nuker = "file", os.unlink
+    else:
+        raise RuntimeError(f"os.path says {name!r} exists but is neither "
+                           f"directory nor file")
+
+    if verbose:
+        print_warning(f"{test_name} left behind {kind} {name!r}")
+        support.environment_altered = True
+

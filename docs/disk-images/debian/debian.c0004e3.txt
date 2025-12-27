@@ -1,0 +1,2142 @@
+hread.__init__() not called"
+        return self._daemonic
+
+    @daemon.setter
+    def daemon(self, daemonic):
+        if not self._initialized:
+            raise RuntimeError("Thread.__init__() not called")
+        if daemonic and not _daemon_threads_allowed():
+            raise RuntimeError('daemon threads are disabled in this interpreter')
+        if self._started.is_set():
+            raise RuntimeError("cannot set daemon status of active thread")
+        self._daemonic = daemonic
+
+    def isDaemon(self):
+        """Return whether this thread is a daemon.
+
+        This method is deprecated, use the daemon attribute instead.
+
+        """
+        import warnings
+        warnings.warn('isDaemon() is deprecated, get the daemon attribute instead',
+                      DeprecationWarning, stacklevel=2)
+        return self.daemon
+
+    def setDaemon(self, daemonic):
+        """Set whether this thread is a daemon.
+
+        This method is deprecated, use the .daemon property instead.
+
+        """
+        import warnings
+        warnings.warn('setDaemon() is deprecated, set the daemon attribute instead',
+                      DeprecationWarning, stacklevel=2)
+        self.daemon = daemonic
+
+    def getName(self):
+        """Return a string used for identification purposes only.
+
+        This method is deprecated, use the name attribute instead.
+
+        """
+        import warnings
+        warnings.warn('getName() is deprecated, get the name attribute instead',
+                      DeprecationWarning, stacklevel=2)
+        return self.name
+
+    def setName(self, name):
+        """Set the name string for this thread.
+
+        This method is deprecated, use the name attribute instead.
+
+        """
+        import warnings
+        warnings.warn('setName() is deprecated, set the name attribute instead',
+                      DeprecationWarning, stacklevel=2)
+        self.name = name
+
+
+try:
+    from _thread import (_excepthook as excepthook,
+                         _ExceptHookArgs as ExceptHookArgs)
+except ImportError:
+    # Simple Python implementation if _thread._excepthook() is not available
+    from traceback import print_exception as _print_exception
+    from collections import namedtuple
+
+    _ExceptHookArgs = namedtuple(
+        'ExceptHookArgs',
+        'exc_type exc_value exc_traceback thread')
+
+    def ExceptHookArgs(args):
+        return _ExceptHookArgs(*args)
+
+    def excepthook(args, /):
+        """
+        Handle uncaught Thread.run() exception.
+        """
+        if args.exc_type == SystemExit:
+            # silently ignore SystemExit
+            return
+
+        if _sys is not None and _sys.stderr is not None:
+            stderr = _sys.stderr
+        elif args.thread is not None:
+            stderr = args.thread._stderr
+            if stderr is None:
+                # do nothing if sys.stderr is None and sys.stderr was None
+                # when the thread was created
+                return
+        else:
+            # do nothing if sys.stderr is None and args.thread is None
+            return
+
+        if args.thread is not None:
+            name = args.thread.name
+        else:
+            name = get_ident()
+        print(f"Exception in thread {name}:",
+              file=stderr, flush=True)
+        _print_exception(args.exc_type, args.exc_value, args.exc_traceback,
+                         file=stderr)
+        stderr.flush()
+
+
+# Original value of threading.excepthook
+__excepthook__ = excepthook
+
+
+def _make_invoke_excepthook():
+    # Create a local namespace to ensure that variables remain alive
+    # when _invoke_excepthook() is called, even if it is called late during
+    # Python shutdown. It is mostly needed for daemon threads.
+
+    old_excepthook = excepthook
+    old_sys_excepthook = _sys.excepthook
+    if old_excepthook is None:
+        raise RuntimeError("threading.excepthook is None")
+    if old_sys_excepthook is None:
+        raise RuntimeError("sys.excepthook is None")
+
+    sys_exc_info = _sys.exc_info
+    local_print = print
+    local_sys = _sys
+
+    def invoke_excepthook(thread):
+        global excepthook
+        try:
+            hook = excepthook
+            if hook is None:
+                hook = old_excepthook
+
+            args = ExceptHookArgs([*sys_exc_info(), thread])
+
+            hook(args)
+        except Exception as exc:
+            exc.__suppress_context__ = True
+            del exc
+
+            if local_sys is not None and local_sys.stderr is not None:
+                stderr = local_sys.stderr
+            else:
+                stderr = thread._stderr
+
+            local_print("Exception in threading.excepthook:",
+                        file=stderr, flush=True)
+
+            if local_sys is not None and local_sys.excepthook is not None:
+                sys_excepthook = local_sys.excepthook
+            else:
+                sys_excepthook = old_sys_excepthook
+
+            sys_excepthook(*sys_exc_info())
+        finally:
+            # Break reference cycle (exception stored in a variable)
+            args = None
+
+    return invoke_excepthook
+
+
+# The timer class was contributed by Itamar Shtull-Trauring
+
+class Timer(Thread):
+    """Call a function after a specified number of seconds:
+
+            t = Timer(30.0, f, args=None, kwargs=None)
+            t.start()
+            t.cancel()     # stop the timer's action if it's still waiting
+
+    """
+
+    def __init__(self, interval, function, args=None, kwargs=None):
+        Thread.__init__(self)
+        self.interval = interval
+        self.function = function
+        self.args = args if args is not None else []
+        self.kwargs = kwargs if kwargs is not None else {}
+        self.finished = Event()
+
+    def cancel(self):
+        """Stop the timer if it hasn't finished yet."""
+        self.finished.set()
+
+    def run(self):
+        self.finished.wait(self.interval)
+        if not self.finished.is_set():
+            self.function(*self.args, **self.kwargs)
+        self.finished.set()
+
+
+# Special thread class to represent the main thread
+
+class _MainThread(Thread):
+
+    def __init__(self):
+        Thread.__init__(self, name="MainThread", daemon=False)
+        self._started.set()
+        self._ident = _get_main_thread_ident()
+        self._handle = _make_thread_handle(self._ident)
+        if _HAVE_THREAD_NATIVE_ID:
+            self._set_native_id()
+        with _active_limbo_lock:
+            _active[self._ident] = self
+
+
+# Helper thread-local instance to detect when a _DummyThread
+# is collected. Not a part of the public API.
+_thread_local_info = local()
+
+
+class _DeleteDummyThreadOnDel:
+    '''
+    Helper class to remove a dummy thread from threading._active on __del__.
+    '''
+
+    def __init__(self, dummy_thread):
+        self._dummy_thread = dummy_thread
+        self._tident = dummy_thread.ident
+        # Put the thread on a thread local variable so that when
+        # the related thread finishes this instance is collected.
+        #
+        # Note: no other references to this instance may be created.
+        # If any client code creates a reference to this instance,
+        # the related _DummyThread will be kept forever!
+        _thread_local_info._track_dummy_thread_ref = self
+
+    def __del__(self):
+        with _active_limbo_lock:
+            if _active.get(self._tident) is self._dummy_thread:
+                _active.pop(self._tident, None)
+
+
+# Dummy thread class to represent threads not started here.
+# These should be added to `_active` and removed automatically
+# when they die, although they can't be waited for.
+# Their purpose is to return *something* from current_thread().
+# They are marked as daemon threads so we won't wait for them
+# when we exit (conform previous semantics).
+
+class _DummyThread(Thread):
+
+    def __init__(self):
+        Thread.__init__(self, name=_newname("Dummy-%d"),
+                        daemon=_daemon_threads_allowed())
+        self._started.set()
+        self._set_ident()
+        self._handle = _make_thread_handle(self._ident)
+        if _HAVE_THREAD_NATIVE_ID:
+            self._set_native_id()
+        with _active_limbo_lock:
+            _active[self._ident] = self
+        _DeleteDummyThreadOnDel(self)
+
+    def is_alive(self):
+    cú  dú                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              if not self._handle.is_done() and self._started.is_set():
+            return True
+        raise RuntimeError("thread is not alive")
+
+    def join(self, timeout=None):
+        raise RuntimeError("cannot join a dummy thread")
+
+    def _after_fork(self, new_ident=None):
+        if new_ident is not None:
+            self.__class__ = _MainThread
+            self._name = 'MainThread'
+            self._daemonic = False
+        Thread._after_fork(self, new_ident=new_ident)
+
+
+# Global API functions
+
+def current_thread():
+    """Return the current Thread object, corresponding to the caller's thread of control.
+
+    If the caller's thread of control was not created through the threading
+    module, a dummy thread object with limited functionality is returned.
+
+    """
+    try:
+        return _active[get_ident()]
+    except KeyError:
+        return _DummyThread()
+
+def currentThread():
+    """Return the current Thread object, corresponding to the caller's thread of control.
+
+    This function is deprecated, use current_thread() instead.
+
+    """
+    import warnings
+    warnings.warn('currentThread() is deprecated, use current_thread() instead',
+                  DeprecationWarning, stacklevel=2)
+    return current_thread()
+
+def active_count():
+    """Return the number of Thread objects currently alive.
+
+    The returned count is equal to the length of the list returned by
+    enumerate().
+
+    """
+    # NOTE: if the logic in here ever changes, update Modules/posixmodule.c
+    # warn_about_fork_with_threads() to match.
+    with _active_limbo_lock:
+        return len(_active) + len(_limbo)
+
+def activeCount():
+    """Return the number of Thread objects currently alive.
+
+    This function is deprecated, use active_count() instead.
+
+    """
+    import warnings
+    warnings.warn('activeCount() is deprecated, use active_count() instead',
+                  DeprecationWarning, stacklevel=2)
+    return active_count()
+
+def _enumerate():
+    # Same as enumerate(), but without the lock. Internal use only.
+    return list(_active.values()) + list(_limbo.values())
+
+def enumerate():
+    """Return a list of all Thread objects currently alive.
+
+    The list includes daemonic threads, dummy thread objects created by
+    current_thread(), and the main thread. It excludes terminated threads and
+    threads that have not yet been started.
+
+    """
+    with _active_limbo_lock:
+        return list(_active.values()) + list(_limbo.values())
+
+
+_threading_atexits = []
+_SHUTTING_DOWN = False
+
+def _register_atexit(func, *arg, **kwargs):
+    """CPython internal: register *func* to be called before joining threads.
+
+    The registered *func* is called with its arguments just before all
+    non-daemon threads are joined in `_shutdown()`. It provides a similar
+    purpose to `atexit.register()`, but its functions are called prior to
+    threading shutdown instead of interpreter shutdown.
+
+    For similarity to atexit, the registered functions are called in reverse.
+    """
+    if _SHUTTING_DOWN:
+        raise RuntimeError("can't register atexit after shutdown")
+
+    _threading_atexits.append(lambda: func(*arg, **kwargs))
+
+
+from _thread import stack_size
+
+# Create the main thread object,
+# and make it available for the interpreter
+# (Py_Main) as threading._shutdown.
+
+_main_thread = _MainThread()
+
+def _shutdown():
+    """
+    Wait until the Python thread state of all non-daemon threads get deleted.
+    """
+    # Obscure: other threads may be waiting to join _main_thread.  That's
+    # dubious, but some code does it. We can't wait for it to be marked as done
+    # normally - that won't happen until the interpreter is nearly dead. So
+    # mark it done here.
+    if _main_thread._handle.is_done() and _is_main_interpreter():
+        # _shutdown() was already called
+        return
+
+    global _SHUTTING_DOWN
+    _SHUTTING_DOWN = True
+
+    # Call registered threading atexit functions before threads are joined.
+    # Order is reversed, similar to atexit.
+    for atexit_call in reversed(_threading_atexits):
+        atexit_call()
+
+    if _is_main_interpreter():
+        _main_thread._handle._set_done()
+
+    # Wait for all non-daemon threads to exit.
+    _thread_shutdown()
+
+
+def main_thread():
+    """Return the main thread object.
+
+    In normal conditions, the main thread is the thread from which the
+    Python interpreter was started.
+    """
+    # XXX Figure this out for subinterpreters.  (See gh-75698.)
+    return _main_thread
+
+
+def _after_fork():
+    """
+    Cleanup threading module state that should not exist after a fork.
+    """
+    # Reset _active_limbo_lock, in case we forked while the lock was held
+    # by another (non-forked) thread.  http://bugs.python.org/issue874900
+    global _active_limbo_lock, _main_thread
+    _active_limbo_lock = RLock()
+
+    # fork() only copied the current thread; clear references to others.
+    new_active = {}
+
+    try:
+        current = _active[get_ident()]
+    except KeyError:
+        # fork() was called in a thread which was not spawned
+        # by threading.Thread. For example, a thread spawned
+        # by thread.start_new_thread().
+        current = _MainThread()
+
+    _main_thread = current
+
+    with _active_limbo_lock:
+        # Dangling thread instances must still have their locks reset,
+        # because someone may join() them.
+        threads = set(_enumerate())
+        threads.update(_dangling)
+        for thread in threads:
+            # Any lock/condition variable may be currently locked or in an
+            # invalid state, so we reinitialize them.
+            if thread is current:
+                # This is the one and only active thread.
+                ident = get_ident()
+                thread._after_fork(new_ident=ident)
+                new_active[ident] = thread
+            else:
+                # All the others are already stopped.
+                thread._after_fork()
+
+        _limbo.clear()
+        _active.clear()
+        _active.update(new_active)
+        assert len(_active) == 1
+
+
+if hasattr(_os, "register_at_fork"):
+    _os.register_at_fork(after_in_child=_after_fork)
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    #! /usr/bin/python3.13
+
+"""Tool for measuring execution time of small code snippets.
+
+This module avoids a number of common traps for measuring execution
+times.  See also Tim Peters' introduction to the Algorithms chapter in
+the Python Cookbook, published by O'Reilly.
+
+Library usage: see the Timer class.
+
+Command line usage:
+    python timeit.py [-n N] [-r N] [-s S] [-p] [-h] [--] [statement]
+
+Options:
+  -n/--number N: how many times to execute 'statement' (default: see below)
+  -r/--repeat N: how many times to repeat the timer (default 5)
+  -s/--setup S: statement to be executed once initially (default 'pass').
+                Execution time of this setup statement is NOT timed.
+  -p/--process: use time.process_time() (default is time.perf_counter())
+  -v/--verbose: print raw timing results; repeat for more digits precision
+  -u/--unit: set the output time unit (nsec, usec, msec, or sec)
+  -h/--help: print this usage message and exit
+  --: separate options from statement, use when statement starts with -
+  statement: statement to be timed (default 'pass')
+
+A multi-line statement may be given by specifying each line as a
+separate argument; indented lines are possible by enclosing an
+argument in quotes and using leading spaces.  Multiple -s options are
+treated similarly.
+
+If -n is not given, a suitable number of loops is calculated by trying
+increasing numbers from the sequence 1, 2, 5, 10, 20, 50, ... until the
+total time is at least 0.2 seconds.
+
+Note: there is a certain baseline overhead associated with executing a
+pass statement.  It differs between versions.  The code here doesn't try
+to hide it, but you should be aware of it.  The baseline overhead can be
+measured by invoking the program without arguments.
+
+Classes:
+
+    Timer
+
+Functions:
+
+    timeit(string, string) -> float
+    repeat(string, string) -> list
+    default_timer() -> float
+
+"""
+
+import gc
+import itertools
+import sys
+import time
+
+__all__ = ["Timer", "timeit", "repeat", "default_timer"]
+
+dummy_src_name = "<timeit-src>"
+default_number = 1000000
+default_repeat = 5
+default_timer = time.perf_counter
+
+_globals = globals
+
+# Don't change the indentation of the template; the reindent() calls
+# in Timer.__init__() depend on setup being indented 4 spaces and stmt
+# being indented 8 spaces.
+template = """
+def inner(_it, _timer{init}):
+    {setup}
+    _t0 = _timer()
+    for _i in _it:
+        {stmt}
+        pass
+    _t1 = _timer()
+    return _t1 - _t0
+"""
+
+
+def reindent(src, indent):
+    """Helper to reindent a multi-line statement."""
+    return src.replace("\n", "\n" + " " * indent)
+
+
+class Timer:
+    """Class for timing execution speed of small code snippets.
+
+    The constructor takes a statement to be timed, an additional
+    statement used for setup, and a timer function.  Both statements
+    default to 'pass'; the timer function is platform-dependent (see
+    module doc string).  If 'globals' is specified, the code will be
+    executed within that namespace (as opposed to inside timeit's
+    namespace).
+
+    To measure the execution time of the first statement, use the
+    timeit() method.  The repeat() method is a convenience to call
+    timeit() multiple times and return a list of results.
+
+    The statements may contain newlines, as long as they don't contain
+    multi-line string literals.
+    """
+
+    def __init__(self, stmt="pass", setup="pass", timer=default_timer,
+                 globals=None):
+        """Constructor.  See class doc string."""
+        self.timer = timer
+        local_ns = {}
+        global_ns = _globals() if globals is None else globals
+        init = ''
+        if isinstance(setup, str):
+            # Check that the code can be compiled outside a function
+            compile(setup, dummy_src_name, "exec")
+            stmtprefix = setup + '\n'
+            setup = reindent(setup, 4)
+        elif callable(setup):
+            local_ns['_setup'] = setup
+            init += ', _setup=_setup'
+            stmtprefix = ''
+            setup = '_setup()'
+        else:
+            raise ValueError("setup is neither a string nor callable")
+        if isinstance(stmt, str):
+            # Check that the code can be compiled outside a function
+            compile(stmtprefix + stmt, dummy_src_name, "exec")
+            stmt = reindent(stmt, 8)
+        elif callable(stmt):
+            local_ns['_stmt'] = stmt
+            init += ', _stmt=_stmt'
+            stmt = '_stmt()'
+        else:
+            raise ValueError("stmt is neither a string nor callable")
+        src = template.format(stmt=stmt, setup=setup, init=init)
+        self.src = src  # Save for traceback display
+        code = compile(src, dummy_src_name, "exec")
+        exec(code, global_ns, local_ns)
+        self.inner = local_ns["inner"]
+
+    def print_exc(self, file=None):
+        """Helper to print a traceback from the timed code.
+
+        Typical use:
+
+            t = Timer(...)       # outside the try/except
+            try:
+                t.timeit(...)    # or t.repeat(...)
+            except:
+                t.print_exc()
+
+        The advantage over the standard traceback is that source lines
+        in the compiled template will be displayed.
+
+        The optional file argument directs where the traceback is
+        sent; it defaults to sys.stderr.
+        """
+        import linecache, traceback
+        if self.src is not None:
+            linecache.cache[dummy_src_name] = (len(self.src),
+                                               None,
+                                               self.src.split("\n"),
+                                               dummy_src_name)
+        # else the source is already stored somewhere else
+
+        traceback.print_exc(file=file)
+
+    def timeit(self, number=default_number):
+        """Time 'number' executions of the main statement.
+
+        To be precise, this executes the setup statement once, and
+        then returns the time it takes to execute the main statement
+        a number of times, as float seconds if using the default timer.   The
+        argument is the number of times through the loop, defaulting
+        to one million.  The main statement, the setup statement and
+        the timer function to be used are passed to the constructor.
+        """
+        it = itertools.repeat(None, number)
+        gcold = gc.isenabled()
+        gc.disable()
+        try:
+            timing = self.inner(it, self.timer)
+        finally:
+            if gcold:
+                gc.enable()
+        return timing
+
+    def repeat(self, repeat=default_repeat, number=default_number):
+        """Call timeit() a few times.
+
+        This is a convenience function that calls the timeit()
+        repeatedly, returning a list of results.  The first argument
+        specifies how many times to call timeit(), defaulting to 5;
+        the second argument specifies the timer argument, defaulting
+        to one million.
+
+        Note: it's tempting to calculate mean and standard deviation
+        from the result vector and report these.  However, this is not
+        very useful.  In a typical case, the lowest value gives a
+        lower bound for how fast your machine can run the given code
+        snippet; higher values in the result vector are typically not
+        caused by variability in Python's speed, but by other
+        processes interfering with your timing accuracy.  So the min()
+        of the result is probably the only number you should be
+        interested in.  After that, you should look at the entire
+        vector and apply common sense rather than statistics.
+        """
+        r = []
+        for i in range(repeat):
+            t = self.timeit(number)
+            r.append(t)
+        return r
+
+    def autorange(self, callback=None):
+        """Return the number of loops and time taken so that total time >= 0.2.
+
+        Calls the timeit method with increasing numbers from the sequence
+        1, 2, 5, 10, 20, 50, ... until the time taken is at least 0.2
+        second.  Returns (number, time_taken).
+
+        If *callback* is given and is not None, it will be called after
+        each trial with two arguments: ``callback(number, time_taken)``.
+        """
+        i = 1
+        while True:
+            for j in 1, 2, 5:
+                number = i * j
+                time_taken = self.timeit(number)
+                if callback:
+                    callback(number, time_taken)
+                if time_taken >= 0.2:
+                    return (number, time_taken)
+            i *= 10
+
+
+def timeit(stmt="pass", setup="pass", timer=default_timer,
+           number=default_number, globals=None):
+    """Convenience function to create Timer object and call timeit method."""
+    return Timer(stmt, setup, timer, globals).timeit(number)
+
+
+def repeat(stmt="pass", setup="pass", timer=default_timer,
+           repeat=default_repeat, number=default_number, globals=None):
+    """Convenience function to create Timer object and call repeat method."""
+    return Timer(stmt, setup, timer, globals).repeat(repeat, number)
+
+
+def main(args=None, *, _wrap_timer=None):
+    """Main program, used when run as a script.
+
+    The optional 'args' argument specifies the command line to be parsed,
+    defaulting to sys.argv[1:].
+
+    The return value is an exit code to be passed to sys.exit(); it
+    may be None to indicate success.
+
+    When an exception happens during timing, a traceback is printed to
+    stderr and the return value is 1.  Exceptions at other times
+    (including the template compilation) are not caught.
+
+    '_wrap_timer' is an internal interface used for unit testing.  If it
+    is not None, it must be a callable that accepts a timer function
+    and returns another timer function (used for unit testing).
+    """
+    if args is None:
+        args = sys.argv[1:]
+    import getopt
+    try:
+        opts, args = getopt.getopt(args, "n:u:s:r:pvh",
+                                   ["number=", "setup=", "repeat=",
+                                    "process", "verbose", "unit=", "help"])
+    except getopt.error as err:
+        print(err)
+        print("use -h/--help for command line help")
+        return 2
+
+    timer = default_timer
+    stmt = "\n".join(args) or "pass"
+    number = 0  # auto-determine
+    setup = []
+    repeat = default_repeat
+    verbose = 0
+    time_unit = None
+    units = {"nsec": 1e-9, "usec": 1e-6, "msec": 1e-3, "sec": 1.0}
+    precision = 3
+    for o, a in opts:
+        if o in ("-n", "--number"):
+            number = int(a)
+        if o in ("-s", "--setup"):
+            setup.append(a)
+        if o in ("-u", "--unit"):
+            if a in units:
+                time_unit = a
+            else:
+                print("Unrecognized unit. Please select nsec, usec, msec, or sec.",
+                      file=sys.stderr)
+                return 2
+        if o in ("-r", "--repeat"):
+            repeat = int(a)
+            if repeat <= 0:
+                repeat = 1
+        if o in ("-p", "--process"):
+            timer = time.process_time
+        if o in ("-v", "--verbose"):
+            if verbose:
+                precision += 1
+            verbose += 1
+        if o in ("-h", "--help"):
+            print(__doc__, end=' ')
+            return 0
+    setup = "\n".join(setup) or "pass"
+
+    # Include the current directory, so that local imports work (sys.path
+    # contains the directory of this script, rather than the current
+    # directory)
+    import os
+    sys.path.insert(0, os.curdir)
+    if _wrap_timer is not None:
+        timer = _wrap_timer(timer)
+
+    t = Timer(stmt, setup, timer)
+    if number == 0:
+        # determine number so that 0.2 <= total time < 2.0
+        callback = None
+        if verbose:
+            def callback(number, time_taken):
+                msg = "{num} loop{s} -> {secs:.{prec}g} secs"
+                plural = (number != 1)
+                print(msg.format(num=number, s='s' if plural else '',
+                                 secs=time_taken, prec=precision))
+        try:
+            number, _ = t.autorange(callback)
+        except:
+            t.print_exc()
+            return 1
+
+        if verbose:
+            print()
+
+    try:
+        raw_timings = t.repeat(repeat, number)
+    except:
+        t.print_exc()
+        return 1
+
+    def format_time(dt):
+        unit = time_unit
+
+        if unit is not None:
+            scale = units[unit]
+        else:
+            scales = [(scale, unit) for unit, scale in units.items()]
+            scales.sort(reverse=True)
+            for scale, unit in scales:
+                if dt >= scale:
+                    break
+
+        return "%.*g %s" % (precision, dt / scale, unit)
+
+    if verbose:
+        print("raw times: %s" % ", ".join(map(format_time, raw_timings)))
+        print()
+    timings = [dt / number for dt in raw_timings]
+
+    best = min(timings)
+    print("%d loop%s, best of %d: %s per loop"
+          % (number, 's' if number != 1 else '',
+             repeat, format_time(best)))
+
+    best = min(timings)
+    worst = max(timings)
+    if worst >= best * 4:
+        import warnings
+        warnings.warn_explicit("The test results are likely unreliable. "
+                               "The worst time (%s) was more than four times "
+                               "slower than the best time (%s)."
+                               % (format_time(worst), format_time(best)),
+                               UserWarning, '', 0)
+    return None
+
+
+if __name__ == "__main__":
+    sys.exit(main())
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         """Token constants."""
+# Auto-generated by Tools/build/generate_token.py
+
+__all__ = ['tok_name', 'ISTERMINAL', 'ISNONTERMINAL', 'ISEOF',
+           'EXACT_TOKEN_TYPES']
+
+ENDMARKER = 0
+NAME = 1
+NUMBER = 2
+STRING = 3
+NEWLINE = 4
+INDENT = 5
+DEDENT = 6
+LPAR = 7
+RPAR = 8
+LSQB = 9
+RSQB = 10
+COLON = 11
+COMMA = 12
+SEMI = 13
+PLUS = 14
+MINUS = 15
+STAR = 16
+SLASH = 17
+VBAR = 18
+AMPER = 19
+LESS = 20
+GREATER = 21
+EQUAL = 22
+DOT = 23
+PERCENT = 24
+LBRACE = 25
+RBRACE = 26
+EQEQUAL = 27
+NOTEQUAL = 28
+LESSEQUAL = 29
+GREATEREQUAL = 30
+TILDE = 31
+CIRCUMFLEX = 32
+LEFTSHIFT = 33
+RIGHTSHIFT = 34
+DOUBLESTAR = 35
+PLUSEQUAL = 36
+MINEQUAL = 37
+STAREQUAL = 38
+SLASHEQUAL = 39
+PERCENTEQUAL = 40
+AMPEREQUAL = 41
+VBAREQUAL = 42
+CIRCUMFLEXEQUAL = 43
+LEFTSHIFTEQUAL = 44
+RIGHTSHIFTEQUAL = 45
+DOUBLESTAREQUAL = 46
+DOUBLESLASH = 47
+DOUBLESLASHEQUAL = 48
+AT = 49
+ATEQUAL = 50
+RARROW = 51
+ELLIPSIS = 52
+COLONEQUAL = 53
+EXCLAMATION = 54
+OP = 55
+TYPE_IGNORE = 56
+TYPE_COMMENT = 57
+SOFT_KEYWORD = 58
+FSTRING_START = 59
+FSTRING_MIDDLE = 60
+FSTRING_END = 61
+COMMENT = 62
+NL = 63
+# These aren't used by the C tokenizer but are needed for tokenize.py
+ERRORTOKEN = 64
+ENCODING = 65
+N_TOKENS = 66
+# Special definitions for cooperation with parser
+NT_OFFSET = 256
+
+tok_name = {value: name
+            for name, value in globals().items()
+            if isinstance(value, int) and not name.startswith('_')}
+__all__.extend(tok_name.values())
+
+EXACT_TOKEN_TYPES = {
+    '!': EXCLAMATION,
+    '!=': NOTEQUAL,
+    '%': PERCENT,
+    '%=': PERCENTEQUAL,
+    '&': AMPER,
+    '&=': AMPEREQUAL,
+    '(': LPAR,
+    ')': RPAR,
+    '*': STAR,
+    '**': DOUBLESTAR,
+    '**=': DOUBLESTAREQUAL,
+    '*=': STAREQUAL,
+    '+': PLUS,
+    '+=': PLUSEQUAL,
+    ',': COMMA,
+    '-': MINUS,
+    '-=': MINEQUAL,
+    '->': RARROW,
+    '.': DOT,
+    '...': ELLIPSIS,
+    '/': SLASH,
+    '//': DOUBLESLASH,
+    '//=': DOUBLESLASHEQUAL,
+    '/=': SLASHEQUAL,
+    ':': COLON,
+    ':=': COLONEQUAL,
+    ';': SEMI,
+    '<': LESS,
+    '<<': LEFTSHIFT,
+    '<<=': LEFTSHIFTEQUAL,
+    '<=': LESSEQUAL,
+    '=': EQUAL,
+    '==': EQEQUAL,
+    '>': GREATER,
+    '>=': GREATEREQUAL,
+    '>>': RIGHTSHIFT,
+    '>>=': RIGHTSHIFTEQUAL,
+    '@': AT,
+    '@=': ATEQUAL,
+    '[': LSQB,
+    ']': RSQB,
+    '^': CIRCUMFLEX,
+    '^=': CIRCUMFLEXEQUAL,
+    '{': LBRACE,
+    '|': VBAR,
+    '|=': VBAREQUAL,
+    '}': RBRACE,
+    '~': TILDE,
+}
+
+def ISTERMINAL(x):
+    return x < NT_OFFSET
+
+def ISNONTERMINAL(x):
+    return x >= NT_OFFSET
+
+def ISEOF(x):
+    return x == ENDMARKER
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       """Tokenization help for Python programs.
+
+tokenize(readline) is a generator that breaks a stream of bytes into
+Python tokens.  It decodes the bytes according to PEP-0263 for
+determining source file encoding.
+
+It accepts a readline-like method which is called repeatedly to get the
+next line of input (or b"" for EOF).  It generates 5-tuples with these
+members:
+
+    the token type (see token.py)
+    the token (a string)
+    the starting (row, column) indices of the token (a 2-tuple of ints)
+    the ending (row, column) indices of the token (a 2-tuple of ints)
+    the original line (string)
+
+It is designed to match the working of the Python tokenizer exactly, except
+that it produces COMMENT tokens for comments and gives type OP for all
+operators.  Additionally, all token lists start with an ENCODING token
+which tells you which encoding was used to decode the bytes stream.
+"""
+
+__author__ = 'Ka-Ping Yee <ping@lfw.org>'
+__credits__ = ('GvR, ESR, Tim Peters, Thomas Wouters, Fred Drake, '
+               'Skip Montanaro, Raymond Hettinger, Trent Nelson, '
+               'Michael Foord')
+from builtins import open as _builtin_open
+from codecs import lookup, BOM_UTF8
+import collections
+import functools
+from io import TextIOWrapper
+import itertools as _itertools
+import re
+import sys
+from token import *
+from token import EXACT_TOKEN_TYPES
+import _tokenize
+
+cookie_re = re.compile(r'^[ \t\f]*#.*?coding[:=][ \t]*([-\w.]+)', re.ASCII)
+blank_re = re.compile(br'^[ \t\f]*(?:[#\r\n]|$)', re.ASCII)
+
+import token
+__all__ = token.__all__ + ["tokenize", "generate_tokens", "detect_encoding",
+                           "untokenize", "TokenInfo", "open", "TokenError"]
+del token
+
+class TokenInfo(collections.namedtuple('TokenInfo', 'type string start end line')):
+    def __repr__(self):
+        annotated_type = '%d (%s)' % (self.type, tok_name[self.type])
+        return ('TokenInfo(type=%s, string=%r, start=%r, end=%r, line=%r)' %
+                self._replace(type=annotated_type))
+
+    @property
+    def exact_type(self):
+        if self.type == OP and self.string in EXACT_TOKEN_TYPES:
+            return EXACT_TOKEN_TYPES[self.string]
+        else:
+            return self.type
+
+def group(*choices): return '(' + '|'.join(choices) + ')'
+def any(*choices): return group(*choices) + '*'
+def maybe(*choices): return group(*choices) + '?'
+
+# Note: we use unicode matching for names ("\w") but ascii matching for
+# number literals.
+Whitespace = r'[ \f\t]*'
+Comment = r'#[^\r\n]*'
+Ignore = Whitespace + any(r'\\\r?\n' + Whitespace) + maybe(Comment)
+Name = r'\w+'
+
+Hexnumber = r'0[xX](?:_?[0-9a-fA-F])+'
+Binnumber = r'0[bB](?:_?[01])+'
+Octnumber = r'0[oO](?:_?[0-7])+'
+Decnumber = r'(?:0(?:_?0)*|[1-9](?:_?[0-9])*)'
+Intnumber = group(Hexnumber, Binnumber, Octnumber, Decnumber)
+Exponent = r'[eE][-+]?[0-9](?:_?[0-9])*'
+Pointfloat = group(r'[0-9](?:_?[0-9])*\.(?:[0-9](?:_?[0-9])*)?',
+                   r'\.[0-9](?:_?[0-9])*') + maybe(Exponent)
+Expfloat = r'[0-9](?:_?[0-9])*' + Exponent
+Floatnumber = group(Pointfloat, Expfloat)
+Imagnumber = group(r'[0-9](?:_?[0-9])*[jJ]', Floatnumber + r'[jJ]')
+Number = group(Imagnumber, Floatnumber, Intnumber)
+
+# Return the empty string, plus all of the valid string prefixes.
+def _all_string_prefixes():
+    # The valid string prefixes. Only contain the lower case versions,
+    #  and don't contain any permutations (include 'fr', but not
+    #  'rf'). The various permutations will be generated.
+    _valid_string_prefixes = ['b', 'r', 'u', 'f', 'br', 'fr']
+    # if we add binary f-strings, add: ['fb', 'fbr']
+    result = {''}
+    for prefix in _valid_string_prefixes:
+        for t in _itertools.permutations(prefix):
+            # create a list with upper and lower versions of each
+            #  character
+            for u in _itertools.product(*[(c, c.upper()) for c in t]):
+                result.add(''.join(u))
+    return result
+
+@functools.lru_cache
+def _compile(expr):
+    return re.compile(expr, re.UNICODE)
+
+# Note that since _all_string_prefixes includes the empty string,
+#  StringPrefix can be the empty string (making it optional).
+StringPrefix = group(*_all_string_prefixes())
+
+# Tail end of ' string.
+Single = r"[^'\\]*(?:\\.[^'\\]*)*'"
+# Tail end of " string.
+Double = r'[^"\\]*(?:\\.[^"\\]*)*"'
+# Tail end of ''' string.
+Single3 = r"[^'\\]*(?:(?:\\.|'(?!''))[^'\\]*)*'''"
+# Tail end of """ string.
+Double3 = r'[^"\\]*(?:(?:\\.|"(?!""))[^"\\]*)*"""'
+Triple = group(StringPrefix + "'''", StringPrefix + '"""')
+# Single-line ' or " string.
+String = group(StringPrefix + r"'[^\n'\\]*(?:\\.[^\n'\\]*)*'",
+               StringPrefix + r'"[^\n"\\]*(?:\\.[^\n"\\]*)*"')
+
+# Sorting in reverse order puts the long operators before their prefixes.
+# Otherwise if = came before ==, == would get recognized as two instances
+# of =.
+Special = group(*map(re.escape, sorted(EXACT_TOKEN_TYPES, reverse=True)))
+Funny = group(r'\r?\n', Special)
+
+PlainToken = group(Number, Funny, String, Name)
+Token = Ignore + PlainToken
+
+# First (or only) line of ' or " string.
+ContStr = group(StringPrefix + r"'[^\n'\\]*(?:\\.[^\n'\\]*)*" +
+                group("'", r'\\\r?\n'),
+                StringPrefix + r'"[^\n"\\]*(?:\\.[^\n"\\]*)*' +
+                group('"', r'\\\r?\n'))
+PseudoExtras = group(r'\\\r?\n|\Z', Comment, Triple)
+PseudoToken = Whitespace + group(PseudoExtras, Number, Funny, ContStr, Name)
+
+# For a given string prefix plus quotes, endpats maps it to a regex
+#  to match the remainder of that string. _prefix can be empty, for
+#  a normal single or triple quoted string (with no prefix).
+endpats = {}
+for _prefix in _all_string_prefixes():
+    endpats[_prefix + "'"] = Single
+    endpats[_prefix + '"'] = Double
+    endpats[_prefix + "'''"] = Single3
+    endpats[_prefix + '"""'] = Double3
+del _prefix
+
+# A set of all of the single and triple quoted string prefixes,
+#  including the opening quotes.
+single_quoted = set()
+triple_quoted = set()
+for t in _all_string_prefixes():
+    for u in (t + '"', t + "'"):
+        single_quoted.add(u)
+    for u in (t + '"""', t + "'''"):
+        triple_quoted.add(u)
+del t, u
+
+tabsize = 8
+
+class TokenError(Exception): pass
+
+
+class Untokenizer:
+
+    def __init__(self):
+        self.tokens = []
+        self.prev_row = 1
+        self.prev_col = 0
+        self.prev_type = None
+        self.prev_line = ""
+        self.encoding = None
+
+    def add_whitespace(self, start):
+        row, col = start
+        if row < self.prev_row or row == self.prev_row and col < self.prev_col:
+            raise ValueError("start ({},{}) precedes previous end ({},{})"
+                             .format(row, col, self.prev_row, self.prev_col))
+        self.add_backslash_continuation(start)
+        col_offset = col - self.prev_col
+        if col_offset:
+            self.tokens.append(" " * col_offset)
+
+    def add_backslash_continuation(self, start):
+        """Add backslash continuation characters if the row has increased
+        without encountering a newline token.
+
+        This also inserts the correct amount of whitespace before the backslash.
+        """
+        row = start[0]
+        row_offset = row - self.prev_row
+        if row_offset == 0:
+            return
+
+        newline = '\r\n' if self.prev_line.endswith('\r\n') else '\n'
+        line = self.prev_line.rstrip('\\\r\n')
+        ws = ''.join(_itertools.takewhile(str.isspace, reversed(line)))
+        self.tokens.append(ws + f"\\{newline}" * row_offset)
+        self.prev_col = 0
+
+    def escape_brackets(self, token):
+        characters = []
+        consume_until_next_bracket = False
+        for character in token:
+            if character == "}":
+                if consume_until_next_bracket:
+                    consume_until_next_bracket = False
+                else:
+                    characters.append(character)
+            if character == "{":
+                n_backslashes = sum(
+                    1 for char in _itertools.takewhile(
+                        "\\".__eq__,
+                        characters[-2::-1]
+                    )
+                )
+                if n_backslashes % 2 == 0 or characters[-1] != "N":
+                    characters.append(character)
+                else:
+                    consume_until_next_bracket = True
+            characters.append(character)
+        return "".join(characters)
+
+    def untokenize(self, iterable):
+        it = iter(iterable)
+        indents = []
+        startline = False
+        for t in it:
+            if len(t) == 2:
+                self.compat(t, it)
+                break
+            tok_type, token, start, end, line = t
+            if tok_type == ENCODING:
+                self.encoding = token
+                continue
+            if tok_type == ENDMARKER:
+                break
+            if tok_type == INDENT:
+                indents.append(token)
+                continue
+            elif tok_type == DEDENT:
+                indents.pop()
+                self.prev_row, self.prev_col = end
+                continue
+            elif tok_type in (NEWLINE, NL):
+                startline = True
+            elif startline and indents:
+                indent = indents[-1]
+                if start[1] >= len(indent):
+                    self.tokens.append(indent)
+                    self.prev_col = len(indent)
+                startline = False
+            elif tok_type == FSTRING_MIDDLE:
+                if '{' in token or '}' in token:
+                    token = self.escape_brackets(token)
+                    last_line = token.splitlines()[-1]
+                    end_line, end_col = end
+                    extra_chars = last_line.count("{{") + last_line.count("}}")
+                    end = (end_line, end_col + extra_chars)
+
+            self.add_whitespace(start)
+            self.tokens.append(token)
+            self.prev_row, self.prev_col = end
+            if tok_type in (NEWLINE, NL):
+                self.prev_row += 1
+                self.prev_col = 0
+            self.prev_type = tok_type
+            self.prev_line = line
+        return "".join(self.tokens)
+
+    def compat(self, token, iterable):
+        indents = []
+        toks_append = self.tokens.append
+        startline = token[0] in (NEWLINE, NL)
+        prevstring = False
+        in_fstring = 0
+
+        for tok in _itertools.chain([token], iterable):
+            toknum, tokval = tok[:2]
+            if toknum == ENCODING:
+                self.encoding = tokval
+                continue
+
+            if toknum in (NAME, NUMBER):
+                tokval += ' '
+
+            # Insert a space between two consecutive strings
+            if toknum == STRING:
+                if prevstring:
+                    tokval = ' ' + tokval
+                prevstring = True
+            else:
+                prevstring = False
+
+            if toknum == FSTRING_START:
+                in_fstring += 1
+            elif toknum == FSTRING_END:
+                in_fstring -= 1
+            if toknum == INDENT:
+                indents.append(tokval)
+                continue
+            elif toknum == DEDENT:
+                indents.pop()
+                continue
+            elif toknum in (NEWLINE, NL):
+                startline = True
+            elif startline and indents:
+                toks_append(indents[-1])
+                startline = False
+            elif toknum == FSTRING_MIDDLE:
+                tokval = self.escape_brackets(tokval)
+
+            # Insert a space between two consecutive brackets if we are in an f-string
+            if tokval in {"{", "}"} and self.tokens and self.tokens[-1] == tokval and in_fstring:
+                tokval = ' ' + tokval
+
+            # Insert a space between two consecutive f-strings
+            if toknum in (STRING, FSTRING_START) and self.prev_type in (STRING, FSTRING_END):
+                self.tokens.append(" ")
+
+            toks_append(tokval)
+            self.prev_type = toknum
+
+
+def untokenize(iterable):
+    """Transform tokens back into Python source code.
+    It returns a bytes object, encoded using the ENCODING
+    token, which is the first token sequence output by tokenize.
+
+    Each element returned by the iterable must be a token sequence
+    with at least two elements, a token number and token value.  If
+    only two tokens are passed, the resulting output is poor.
+
+    The result is guaranteed to tokenize back to match the input so
+    that the conversion is lossless and round-trips are assured.
+    The guarantee applies only to the token type and token string as
+    the spacing between tokens (column positions) may change.
+    """
+    ut = Untokenizer()
+    out = ut.untokenize(iterable)
+    if ut.encoding is not None:
+        out = out.encode(ut.encoding)
+    return out
+
+
+def _get_normal_name(orig_enc):
+    """Imitates get_normal_name in Parser/tokenizer/helpers.c."""
+    # Only care about the first 12 characters.
+    enc = orig_enc[:12].lower().replace("_", "-")
+    if enc == "utf-8" or enc.startswith("utf-8-"):
+        return "utf-8"
+    if enc in ("latin-1", "iso-8859-1", "iso-latin-1") or \
+       enc.startswith(("latin-1-", "iso-8859-1-", "iso-latin-1-")):
+        return "iso-8859-1"
+    return orig_enc
+
+def detect_encoding(readline):
+    """
+    The detect_encoding() function is used to detect the encoding that should
+    be used to decode a Python source file.  It requires one argument, readline,
+    in the same way as the tokenize() generator.
+
+    It will call readline a maximum of twice, and return the encoding used
+    (as a string) and a list of any lines (left as bytes) it has read in.
+
+    It detects the encoding from the presence of a utf-8 bom or an encoding
+    cookie as specified in pep-0263.  If both a bom and a cookie are present,
+    but disagree, a SyntaxError will be raised.  If the encoding cookie is an
+    invalid charset, raise a SyntaxError.  Note that if a utf-8 bom is found,
+    'utf-8-sig' is returned.
+
+    If no encoding is specified, then the default of 'utf-8' will be returned.
+    """
+    try:
+        filename = readline.__self__.name
+    except AttributeError:
+        filename = None
+    bom_found = False
+    encoding = None
+    default = 'utf-8'
+    def read_or_stop():
+        try:
+            return readline()
+        except StopIteration:
+            return b''
+
+    def find_cookie(line):
+        try:
+            # Decode as UTF-8. Either the line is an encoding declaration,
+            # in which case it should be pure ASCII, or it must be UTF-8
+            # per default encoding.
+            line_string = line.decode('utf-8')
+        except UnicodeDecodeError:
+            msg = "invalid or missing encoding declaration"
+            if filename is not None:
+                msg = '{} for {!r}'.format(msg, filename)
+            raise SyntaxError(msg)
+
+        match = cookie_re.match(line_string)
+        if not match:
+            return None
+        encoding = _get_normal_name(match.group(1))
+        try:
+            codec = lookup(encoding)
+        except LookupError:
+            # This behaviour mimics the Python interpreter
+            if filename is None:
+                msg = "unknown encoding: " + encoding
+            else:
+                msg = "unknown encoding for {!r}: {}".format(filename,
+                        encoding)
+            raise SyntaxError(msg)
+
+        if bom_found:
+            if encoding != 'utf-8':
+                # This behaviour mimics the Python interpreter
+                if filename is None:
+                    msg = 'encoding problem: utf-8'
+                else:
+                    msg = 'encoding problem for {!r}: utf-8'.format(filename)
+                raise SyntaxError(msg)
+            encoding += '-sig'
+        return encoding
+
+    first = read_or_stop()
+    if first.startswith(BOM_UTF8):
+        bom_found = True
+        first = first[3:]
+        default = 'utf-8-sig'
+    if not first:
+        return default, []
+
+    encoding = find_cookie(first)
+    if encoding:
+        return encoding, [first]
+    if not blank_re.match(first):
+        return default, [first]
+
+    second = read_or_stop()
+    if not second:
+        return default, [first]
+
+    encoding = find_cookie(second)
+    if encoding:
+        return encoding, [first, second]
+
+    return default, [first, second]
+
+
+def open(filename):
+    """Open a file in read only mode using the encoding detected by
+    detect_encoding().
+    """
+    buffer = _builtin_open(filename, 'rb')
+    try:
+        encoding, lines = detect_encoding(buffer.readline)
+        buffer.seek(0)
+        text = TextIOWrapper(buffer, encoding, line_buffering=True)
+        text.mode = 'r'
+        return text
+    except:
+        buffer.close()
+        raise
+
+def tokenize(readline):
+    """
+    The tokenize() generator requires one argument, readline, which
+    must be a callable object which provides the same interface as the
+    readline() method of built-in file objects.  Each call to the function
+    should return one line of input as bytes.  Alternatively, readline
+    can be a callable function terminating with StopIteration:
+        readline = open(myfile, 'rb').__next__  # Example of alternate readline
+
+    The generator produces 5-tuples with these members: the token type; the
+    token string; a 2-tuple (srow, scol) of ints specifying the row and
+    column where the token begins in the source; a 2-tuple (erow, ecol) of
+    ints specifying the row and column where the token ends in the source;
+    and the line on which the token was found.  The line passed is the
+    physical line.
+
+    The first token sequence will always be an ENCODING token
+    which tells you which encoding was used to decode the bytes stream.
+    """
+    encoding, consumed = detect_encoding(readline)
+    rl_gen = _itertools.chain(consumed, iter(readline, b""))
+    if encoding is not None:
+        if encoding == "utf-8-sig":
+            # BOM will already have been stripped.
+            encoding = "utf-8"
+        yield TokenInfo(ENCODING, encoding, (0, 0), (0, 0), '')
+    yield from _generate_tokens_from_c_tokenizer(rl_gen.__next__, encoding, extra_tokens=True)
+
+def generate_tokens(readline):
+    """Tokenize a source reading Python code as unicode strings.
+
+    This has the same API as tokenize(), except that it expects the *readline*
+    callable to return str objects instead of bytes.
+    """
+    return _generate_tokens_from_c_tokenizer(readline, extra_tokens=True)
+
+def main():
+    import argparse
+
+    # Helper error handling routines
+    def perror(message):
+        sys.stderr.write(message)
+        sys.stderr.write('\n')
+
+    def error(message, filename=None, location=None):
+        if location:
+            args = (filename,) + location + (message,)
+            perror("%s:%d:%d: error: %s" % args)
+        elif filename:
+            perror("%s: error: %s" % (filename, message))
+        else:
+            perror("error: %s" % message)
+        sys.exit(1)
+
+    # Parse the arguments and options
+    parser = argparse.ArgumentParser(prog='python -m tokenize')
+    parser.add_argument(dest='filename', nargs='?',
+                        metavar='filename.py',
+                        help='the file to tokenize; defaults to stdin')
+    parser.add_argument('-e', '--exact', dest='exact', action='store_true',
+                        help='display token names using the exact type')
+    args = parser.parse_args()
+
+    try:
+        # Tokenize the input
+        if args.filename:
+            filename = args.filename
+            with _builtin_open(filename, 'rb') as f:
+                tokens = list(tokenize(f.readline))
+        else:
+            filename = "<stdin>"
+            tokens = _generate_tokens_from_c_tokenizer(
+                sys.stdin.readline, extra_tokens=True)
+
+
+        # Output the tokenization
+        for token in tokens:
+            token_type = token.type
+            if args.exact:
+                token_type = token.exact_type
+            token_range = "%d,%d-%d,%d:" % (token.start + token.end)
+            print("%-20s%-15s%-15r" %
+                  (token_range, tok_name[token_type], token.string))
+    except IndentationError as err:
+        line, column = err.args[1][1:3]
+        error(err.args[0], filename, (line, column))
+    except TokenError as err:
+        line, column = err.args[1]
+        error(err.args[0], filename, (line, column))
+    except SyntaxError as err:
+        error(err, filename)
+    except OSError as err:
+        error(err)
+    except KeyboardInterrupt:
+        print("interrupted\n")
+    except Exception as err:
+        perror("unexpected error: %s" % err)
+        raise
+
+def _transform_msg(msg):
+    """Transform error messages from the C tokenizer into the Python tokenize
+
+    The C tokenizer is more picky than the Python one, so we need to massage
+    the error messages a bit for backwards compatibility.
+    """
+    if "unterminated triple-quoted string literal" in msg:
+        return "EOF in multi-line string"
+    return msg
+
+def _generate_tokens_from_c_tokenizer(source, encoding=None, extra_tokens=False):
+    """Tokenize a source reading Python code as unicode strings using the internal C tokenizer"""
+    if encoding is None:
+        it = _tokenize.TokenizerIter(source, extra_tokens=extra_tokens)
+    else:
+        it = _tokenize.TokenizerIter(source, encoding=encoding, extra_tokens=extra_tokens)
+    try:
+        for info in it:
+            yield TokenInfo._make(info)
+    except SyntaxError as e:
+        if type(e) != SyntaxError:
+            raise e from None
+        msg = _transform_msg(e.msg)
+        raise TokenError(msg, (e.lineno, e.offset)) from None
+
+
+if __name__ == "__main__":
+    main()
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                é   .   ˙   ..  è   __init__.py ê   __pycache__ ï   
+_parser.py  ñ   _re.py  ó   	_types.py   ò  àmypy.ini                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        # SPDX-License-Identifier: MIT
+# SPDX-FileCopyrightText: 2021 Taneli Hukkinen
+# Licensed to PSF under a Contributor Agreement.
+
+__all__ = ("loads", "load", "TOMLDecodeError")
+
+from ._parser import TOMLDecodeError, load, loads
+
+# Pretend this exception was created here.
+TOMLDecodeError.__module__ = __name__
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            ê   .   é   ..  ë    __init__.cpython-313.pycí    _parser.cpython-313.pyc ì   _re.cpython-313.pyc î  å_types.cpython-313.pyc                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              Û
+    F\h4  „                   Û*   ï S r SSKJrJrJr  \\l        g))⁄loads⁄load⁄TOMLDecodeErrorÈ   )r   r   r   N)⁄__all__⁄_parserr   r   r   ⁄__name__⁄
+__module__© Û    ⁄'/usr/lib/python3.13/tomllib/__init__.py⁄<module>r      s   
+ /ÄÁ 1— 1 &Ä’ r                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    Û
+    F\häX  „            
+      ÛÄ  ï S SK Jr  S SKJr  S SKrS SKJr  S SKJrJ	r	J
+r
+  SSKJrJrJrJrJrJr  SSKJrJrJr  \" S	 \" S
+5       5       5      \" \" S5      5      -  r\\" S5      -
+  r\\" S5      -
+  r\r\r\r\" S5      r\\" S5      -  r \" \RB                  \RD                  -   S-   5      r#\#\" S5      -  r$\" \RJ                  5      r&\" SSSSSSSS.5      r' " S S\(5      r)\*S.S<S jjr+\*S.S=S jjr, " S S5      r- " S S 5      r. " S! S"\
+5      r/S>S# jr0            S?S$ jr1S@S% jr2S@S& jr3SAS' jr4SAS( jr5            SBS) jr6        SCS* jr7SDS+ jr8SES, jr9SES- jr:SFS. jr;SGS/ jr<S0S1.       SHS2 jjr=SES3 jr>SIS4 jr?SES5 jr@SJS6 jrASHS7 jrB        SKS8 jrCSLS9 jrDSMS: jrESNS; jrFg)OÈ    )⁄annotations)⁄IterableN)⁄MappingProxyType)⁄Any⁄BinaryIO⁄
+NamedTupleÈ   )⁄RE_DATETIME⁄RE_LOCALTIME⁄	RE_NUMBER⁄match_to_datetime⁄match_to_localtime⁄match_to_number)⁄Key⁄
+ParseFloat⁄Posc              #  Û8   #   ï U  H  n[        U5      v ï  M     g 7f©N)⁄chr)⁄.0⁄is     ⁄&/usr/lib/python3.13/tomllib/_parser.py⁄	<genexpr>r      s   È Ä –1¢y†!îsò1óvêv¢y˘s   ÇÈ    È   ⁄	z	
+z 	⁄
+z-_z"'⁄⁄⁄⁄"⁄\)z\bz\tz\nz\fz\rz\"z\\c                  Û   ï \ rS rSrSrSrg)⁄TOMLDecodeErrorÈ5   z0An error raised if a document is not valid TOML.© N)⁄__name__⁄
+__module__⁄__qualname__⁄__firstlineno__⁄__doc__⁄__static_attributes__r&   Û    r   r$   r$   5   s   Ü ‹:r-   r$   ©⁄parse_floatc              Ûä   ï U R                  5       n UR                  5       n[	        X1S9$ ! [         a    [        S5      Sef = f)z%Parse TOML from a binary file object.zEFile must be opened in binary mode, e.g. use `open('foo.toml', 'rb')`Nr.   )⁄read⁄decode⁄AttributeError⁄	TypeError⁄loads)⁄fpr/   ⁄b⁄ss       r   ⁄loadr9   9   sN   Ä ‡
+èâã	ÄAÿèHâHãJàÙ
+ ê—,–,¯Ù	 Û ‹ÿSÛ
+‡	˙s	   í+ ´Ac              Û¯  ï U R                  SS5      nSn[        [        5       [        5       5      nSn[	        U5      n [        X#[        5      n X#   nUS:X  a  US-  nM#  U[        ;   a  [        X#XEU5      n[        X#[        5      nOnUS:X  aV   X#S-      nUR                  R                  5         US:X  a  [        X#U5      u  p5O[        X#U5      u  p5[        X#[        5      nOUS:w  a  [        X#S	5      e[        X#5      n X#   nUS:w  a  [        X#S
+5      eUS-  nM·  ! [         a     UR                   R"                  $ f = f! [         a    Sn Nºf = f! [         a     UR                   R"                  $ f = f)zParse TOML from a string.z
+r   r   r&   r	   ⁄[N⁄#zInvalid statementz5Expected newline or end of document after a statement)⁄replace⁄Output⁄
+NestedDict⁄Flags⁄make_safe_parse_float⁄
+skip_chars⁄TOML_WS⁄
+IndexError⁄KEY_INITIAL_CHARS⁄key_value_rule⁄flags⁄finalize_pending⁄create_list_rule⁄create_dict_rule⁄suffixed_err⁄skip_comment⁄data⁄dict)r8   r/   ⁄src⁄pos⁄out⁄header⁄char⁄second_chars           r   r5   r5   E   s†  Ä 
+ è)â)êFòD”
+!ÄCÿ
+ÄC‹
+îìúuõw”
+'ÄCÿÄF‹'®”4ÄK ‰ò§7”+à	ÿë8àD ê4ã<ÿê1âHàCŸÿ‘$”$‹ †®3∏”DàC‹òS§w”/âCÿêSã[#ÿ*-∞A©g©,ê èIâI◊&—&‘(ÿòc”!‹.®s∏”=ëêêV‰.®s∏”=ëê‹òS§w”/âCÿêSã[‹òs–)<”=–=Ù ò3”$à	ÿë8àD ê4ã<‹ÿ–QÛ  	àqâàÒa ¯Ù Û 	ÿF è8â8è=â=–I	˚Ù Û #ÿ"í#˚Ù" Û 	ÿ è8â8è=â=–	˙s6   ¡D  ¬E ƒE ƒ 
+E≈E≈E≈E≈
+E9≈8E9c                  Û\   ï \ rS rSrSrSrSrSS jrSS jrSS jr	SS jr
+SS	 jrSS
+ jrSrg)r@   Èá   z)Flags that map to parsed keys/namespaces.r   r	   c                Û0   ï 0 U l         [        5       U l        g r   )⁄_flags⁄set⁄_pending_flags©⁄selfs    r   ⁄__init__⁄Flags.__init__ê   s   Ä ÿ13àå‹47≥Eà’r-   c                Û<   ï U R                   R                  X45        g r   )rZ   ⁄add©r\   ⁄key⁄flags      r   ⁄add_pending⁄Flags.add_pendingî   s   Ä ÿ◊—◊—††’,r-   c                ÛÇ   ï U R                    H  u  pU R                  XSS9  M     U R                   R                  5         g )NF©⁄	recursive)rZ   rY   ⁄clearra   s      r   rH   ⁄Flags.finalize_pendingó   s6   Ä ÿ◊,‘,âIàCÿèHâHêS®%àH”0Ò -‡◊—◊!—!’#r-   c                Ûz   ï U R                   nUS S  H  nX2;  a    g X#   S   nM     UR                  US   S 5        g )NÈˇˇˇˇ⁄nested)rX   ⁄pop)r\   rb   ⁄cont⁄ks       r   ⁄	unset_all⁄Flags.unset_allú   sC   Ä ÿè{â{àÿêSêbìàAÿã}Ÿÿë7ò8—$äDÒ  	èâêêRëò$’r-   c               Û   ï U R                   nUS S US   peU H'  nXt;  a  [        5       [        5       0 S.XG'   XG   S   nM)     Xd;  a  [        5       [        5       0 S.XF'   XF   U(       a  SOS   R                  U5        g )Nrl   )rG   ⁄recursive_flagsrm   rm   rt   rG   )rX   rY   r`   )r\   rb   rc   rh   ro   ⁄
+key_parent⁄key_stemrp   s           r   rY   ⁄	Flags.set§   s~   Ä ÿè{â{àÿ"†3†Bòx®®R©êH€àAÿã}‹$'£Eºcªe»r—Rêëÿë7ò8—$äDÒ  ”‹'*£uƒ√–RT—UàDâNÿâÆI—(∏7—C◊G—G»’Mr-   c                Ûæ   ï U(       d  gU R                   nUS S  H  nXC;  a    gX4   nX%S   ;   a    gUS   nM     US   nXc;   a  X6   nX#S   ;   =(       d    X#S   ;   $ g)NFrl   rt   Trm   rG   )rX   )r\   rb   rc   ro   rp   ⁄
+inner_contrv   s          r   ⁄is_⁄	Flags.is_Ø   s   Ä ﬁÿÿè{â{àÿêSêbìàAÿã}ŸÿôàJÿ–"3—4”4Ÿÿòh—'äDÒ  êrë7àÿ”ÿë>àDÿ†ô=—(◊K®D–9J—4K—,K–Kÿr-   )rX   rZ   N©⁄return⁄None)rb   r   rc   ⁄intr}   r~   ©rb   r   r}   r~   )rb   r   rc   r   rh   ⁄boolr}   r~   )rb   r   rc   r   r}   rÅ   )r'   r(   r)   r*   r+   ⁄FROZEN⁄EXPLICIT_NESTr]   rd   rH   rq   rY   rz   r,   r&   r-   r   r@   r@   á   s2   Ü Ÿ3 ÄF ÄMÙ:Ù-Ù$Ù
+ Ù	N˜r-   r@   c                  ÛD   ï \ rS rSrS	S jrSS.     S
+S jjrSS jrSrg)r?   È¡   c                Û   ï 0 U l         g r   ©rN   r[   s    r   r]   ⁄NestedDict.__init__¬   s	   Ä ‡$&àç	r-   T©⁄access_listsc               ÛÃ   ï U R                   nU HQ  nXC;  a  0 X4'   X4   nU(       a  [        U[        5      (       a  US   n[        U[         5      (       a  MH  [        S5      e   U$ )Nrl   z There is no nest behind this key)rN   ⁄
+isinstance⁄list⁄KeyError)r\   rb   rä   ro   rp   s        r   ⁄get_or_create_nest⁄NestedDict.get_or_create_nest∆   sb   Ä  óIëIà€àAÿã}ÿêëÿë7àDﬁ§
+®4¥◊ 6— 6ÿòBëxê‹òd§D◊)”)‹–A”B–BÒ  àr-   c                Û∂   ï U R                  US S 5      nUS   nX2;   a6  X#   n[        U[        5      (       d  [        S5      eUR	                  0 5        g 0 /X#'   g )Nrl   z/An object other than list found behind this key)rè   rå   rç   ré   ⁄append)r\   rb   ro   ⁄last_key⁄list_s        r   ⁄append_nest_to_list⁄NestedDict.append_nest_to_list◊   s\   Ä ÿ◊&—&†s®3®B†x”0àÿêrë7àÿ”ÿëNàE‹òe§T◊*—*‹–P”Q–QÿèLâLò’‡ òTàDäNr-   rá   Nr|   )rb   r   rä   rÅ   r}   ˙dict[str, Any]rÄ   )r'   r(   r)   r*   r]   rè   rï   r,   r&   r-   r   r?   r?   ¡   s2   Ü Ù' "Ò	‡ 	
+ 
+ı˜"	"r-   r?   c                  Û*   ï \ rS rSr% S\S'   S\S'   Srg)r>   È„   r?   rM   r@   rG   r&   N)r'   r(   r)   r*   ⁄__annotations__r,   r&   r-   r   r>   r>   „   s   á ÿ
+”ÿÜLr-   r>   c                ÛX   ï  X   U;   a  US-  nX   U;   a  M  U$ ! [          a     U$ f = f)Nr	   )rD   )rO   rP   ⁄charss      r   rB   rB   Ë   sF   Ä ÿâhò%”ÿê1âHàC âhò%’ ÄJ¯Ù Û ÿÿÄJ˙s   Ç õ
+)®)c               Û  ï  U R                  X!5      nUR	                  XU 5      (       d)  X   U;  a  US-  nX   U;  a  M  [        XSX   < 35      eU$ ! [         a&    [        U 5      nU(       a  [        XSU< 35      S e Nrf = f)Nz	Expected r	   zFound invalid character )⁄index⁄
+ValueError⁄lenrK   ⁄
+isdisjoint)rO   rP   ⁄expect⁄error_on⁄error_on_eof⁄new_poss         r   ⁄
+skip_untilr¶   Ò   s£   Ä Oÿó)ë)òF”(à ◊—òs†w–/◊0—0ÿâhòh”&ÿê1âHàC âhòh’&‰ò3–'?¿¡π|–%L”M–MÿÄN¯Ù Û O‹êcì(àﬁ‹òs®y∏π
+–-C”D»$–NÒ O˙s   ÇA ¡-B¬Bc                Ûf   ï  X   nUS:X  a  [        XS-   S[        SS9$ U$ ! [          a    S n N)f = f)Nr<   r	   r   F©r£   r§   )rD   r¶   ⁄ILLEGAL_COMMENT_CHARS)rO   rP   rS   s      r   rL   rL     sO   Ä ÿô8à àsÉ{‹ÿêqëò$‘)>»UÒ
+ 	
+ ÄJ¯Ù Û ÿä˙s   Ç! °0Ø0c                ÛP   ï  Un[        X[        5      n[        X5      nX:X  a  U$ M&  r   )rB   ⁄TOML_WS_AND_NEWLINErL   )rO   rP   ⁄pos_before_skips      r   ⁄skip_comments_and_array_wsr≠     s1   Ä ÿ
+ÿà‹ò‘#6”7à‹ò3”$àÿ”!ÿàJÒ r-   c                Û6  ï US-  n[        X[        5      n[        X5      u  pUR                  R	                  U[
+        R                  5      (       d/  UR                  R	                  U[
+        R                  5      (       a  [        XSU S35      eUR                  R                  U[
+        R                  SS9   UR                  R                  U5        U R                  SU5      (       d  [        XS5      eUS-   U4$ ! [         a    [        XS5      S ef = f)	Nr	   zCannot declare z twiceFrg   ˙Cannot overwrite a value⁄]z.Expected ']' at the end of a table declaration)rB   rC   ⁄	parse_keyrG   rz   r@   rÉ   rÇ   rK   rY   rM   rè   ré   ⁄
+startswith©rO   rP   rQ   rb   s       r   rJ   rJ     sÚ   Ä ÿà1ÅHÄC‹
+êSúw”
+'ÄC‹ò”"ÅHÄC‡
+áyÅyá}Å}êSú%◊-—-◊.—.∞#∑)±)∑-±-¿ƒU«\¡\◊2R—2R‹ò3†∞s∞e∏6–%B”C–CÿáIÅIáMÅMê#îu◊*—*∞eÄM—<Kÿèâ◊#—#†C‘( è>â>ò#òs◊#—#‹ò3–%U”V–Vÿêâ7êCà<–¯Ù Û K‹ò3–%?”@¿d–JK˙s   ¬;D  ƒ Dc                Û  ï US-  n[        X[        5      n[        X5      u  pUR                  R	                  U[
+        R                  5      (       a  [        XSU 35      eUR                  R                  U5        UR                  R                  U[
+        R                  SS9   UR                  R                  U5        U R                  SU5      (       d  [        XS5      eUS-   U4$ ! [         a    [        XS5      S ef = f)NÈ   ˙"Cannot mutate immutable namespace Frg   rØ   z]]z0Expected ']]' at the end of an array declaration)rB   rC   r±   rG   rz   r@   rÇ   rK   rq   rY   rÉ   rM   rï   ré   r≤   r≥   s       r   rI   rI   .  sÈ   Ä ÿà1ÅHÄC‹
+êSúw”
+'ÄC‹ò”"ÅHÄC‡
+áyÅyá}Å}êSú%ü,ô,◊'—'‹ò3–'I»#»–%O”P–P‡áIÅI◊—ò‘‡áIÅIáMÅMê#îu◊*—*∞eÄM—<Kÿèâ◊$—$†S‘) è>â>ò$†◊$—$‹ò3–%W”X–Xÿêâ7êCà<–¯Ù Û K‹ò3–%?”@¿d–JK˙s   ¬&C+ √+Dc                Û
+  ^^ï [        XU5      u  nmnTS S TS   pvTU-   nUU4S j[        S[        T5      5       5       n	U	 Hk  n
+UR                  R	                  U
+[
+        R                  5      (       a  [        XSU
+ 35      eUR                  R                  U
+[
+        R                  5        Mm     UR                  R	                  U[
+        R                  5      (       a  [        XSU 35      e UR                  R                  U5      nX{;   a  [        XS5      e[        U[        [        45      (       a,  UR                  R!                  TT-   [
+        R                  SS9  X[U'   U$ ! [         a    [        XS5      S ef = f)	Nrl   c              3  Û4   >#   ï U  H  nTTS U -   v ï  M     g 7fr   r&   )r   r   rR   rb   s     ÄÄr   r   ⁄!key_value_rule.<locals>.<genexpr>J  s   ¯È Ä –L“9K∞Aòv®®B®Q®÷/“9K˘s   Ér	   zCannot redefine namespace r∂   rØ   Trg   )⁄parse_key_value_pair⁄ranger†   rG   rz   r@   rÉ   rK   rd   rÇ   rM   rè   ré   rå   rN   rç   rY   )rO   rP   rQ   rR   r/   ⁄valueru   rv   ⁄abs_key_parent⁄relative_path_cont_keys⁄cont_key⁄nestrb   s      `        @r   rF   rF   C  sb  ˘Ä Ù +®3∞[”AÅOÄCààeÿòs†ò8†S®°Wêÿòj—(ÄNÂLº∏qƒ#¿c√(‘9K”L–€+à‡è9â9è=â=ò§5◊#6—#6◊7—7‹òs–+E¿h¿Z–)P”Q–Q 	è	â	◊—òh¨◊(;—(;÷<Ò , áyÅyá}Å}ê^§Uß\°\◊2—2‹ÿ–:∏>–:J–KÛ
+ 	
+Kÿèxâx◊*—*®>”:à ”‹ò3–%?”@–@‰ê%ú$§ò◊&—&ÿè	â	èâêfòsël§EßL°L∏Dà—AÿàÅNÿÄJ¯Ù Û K‹ò3–%?”@¿d–JK˙s   √1E* ≈*Fc                Ûº   ï [        X5      u  p X   nUS:w  a  [        XS5      eUS-  n[        X[        5      n[        XU5      u  pXU4$ ! [         a    S n NGf = f)N⁄=z,Expected '=' after a key in a key/value pairr	   )r±   rD   rK   rB   rC   ⁄parse_value)rO   rP   r/   rb   rS   rº   s         r   r∫   r∫   e  sv   Ä Ù ò”"ÅHÄCÿô8à àsÉ{‹ò3–%S”T–Tÿà1ÅHÄC‹
+êSúw”
+'ÄC‹òS†{”3ÅJÄCÿêUà?–¯Ù Û ÿä˙s   èA ¡A¡Ac                Ûˆ   ï [        X5      u  pU4n[        X[        5      n  X   nUS:w  a  X4$ US-  n[        X[        5      n[        X5      u  pX24-  n[        X[        5      nMG  ! [         a    S n NPf = f)N⁄.r	   )⁄parse_key_partrB   rC   rD   )rO   rP   ⁄key_partrb   rS   s        r   r±   r±   u  sí   Ä ‹"†3”,ÅMÄCÿà{ÄC‹
+êSúw”
+'ÄCÿ
+	ÿ"ôxàD ê3ã;ÿê8àOÿàqâà‹ò§7”+à‹&†s”0âàÿà{—à‹ò§7”+àÒ ¯Ù Û 	ÿäD	˙s   £A) ¡)A8¡7A8c                ÛŒ   ï  X   nU[        ;   a  Un[        X[        5      nXX1 4$ US:X  a  [        X5      $ US:X  a  [	        X5      $ [        XS5      e! [          a    S n N]f = f)N⁄'r!   z(Invalid initial character for a key part)rD   ⁄BARE_KEY_CHARSrB   ⁄parse_literal_str⁄parse_one_line_basic_strrK   )rO   rP   rS   ⁄	start_poss       r   r∆   r∆   á  s   Ä ÿô8à å~”ÿà	‹ò§>”2àÿò	–&–&–&ÿàsÉ{‹ †”*–*ÿàsÉ{‹'®”1–1‹
+ês–!K”
+L–L¯Ù Û ÿä˙s   ÇA ¡A$¡#A$c                Û    ï US-  n[        XSS9$ )Nr	   F©⁄	multiline)⁄parse_basic_str©rO   rP   s     r   rÃ   rÃ   ó  s   Ä ÿà1ÅHÄC‹ò3®u—5–5r-   c                Ûd  ï US-  n/ n[        X5      nU R                  SU5      (       a  US-   U4$  [        XU5      u  pUR                  U5        [        X5      nXUS-    nUS:X  a  US-   U4$ US:w  a  [	        XS5      eUS-  n[        X5      nU R                  SU5      (       a  US-   U4$ MÄ  )Nr	   r∞   ⁄,zUnclosed array)r≠   r≤   r√   rí   rK   )rO   rP   r/   ⁄array⁄val⁄cs         r   ⁄parse_arrayrÿ   ú  sœ   Ä ÿà1ÅHÄCÿÄE‰
+$†S”
+.ÄCÿ
+á~Å~êcò3◊—ÿêQâwòà~–ÿ
+‹òs®”5âàÿèâêS‘‹(®”2à‡êcòAëg–àÿêã8ÿòë7òEê>–!ÿêã8‹òs–)9”:–:ÿàqâà‰(®”2àÿè>â>ò#òs◊#—#ÿòë7òEê>–!Ò r-   c                ÛÏ  ï US-  n[        5       n[        5       n[        X[        5      nU R	                  SU5      (       a  US-   UR
+                  4$  [        XU5      u  pnUS S US   páUR                  U[        R                  5      (       a  [        XSU 35      e UR                  USS9n	Xâ;   a  [        XS	U< 35      eXiU'   [        X[        5      nXUS-    n
+U
+S:X  a  US-   UR
+                  4$ U
+S
+:w  a  [        XS5      e[        U[
+        [        45      (       a  UR                  U[        R                  SS9  US-  n[        X[        5      nGM  ! [         a    [        XS5      S ef = f)Nr	   ⁄}Trl   r∂   Frâ   rØ   zDuplicate inline table key r‘   zUnclosed inline tablerg   )r?   r@   rB   rC   r≤   rN   r∫   rz   rÇ   rK   rè   ré   rå   rç   rY   )rO   rP   r/   ⁄nested_dictrG   rb   rº   ru   rv   r¿   r◊   s              r   ⁄parse_inline_tabler‹   ¥  sá  Ä ÿà1ÅHÄC‹ì,ÄK‹ãGÄE‰
+êSúw”
+'ÄCÿ
+á~Å~êcò3◊—ÿêQâwò◊(—(–(–(ÿ
+‹.®s∏”Eâàê%ÿ"†3†Bòx®®R©êHÿè9â9êSú%ü,ô,◊'—'‹òs–+M»c»U–)S”T–T	Oÿ◊1—1∞*»5–1–QàD ”‹òs–+F¿x¡l–)S”T–TÿàXâ‹ò§7”+àÿêcòAëg–àÿêã8ÿòë7òK◊,—,–,–,ÿêã8‹òs–)@”A–A‹êeúd§Dò\◊*—*ÿèIâIêcú5ü<ô<∞4àI—8ÿàqâà‹ò§7”+àÚ+ ¯Ù Û 	O‹òs–)C”D»$–N	O˙s   ¬ E ≈E3Frœ   c               Û~  ï XUS-    nUS-  nU(       aL  US;   aF  US:w  a,  [        X[        5      n X   nUS:w  a  [        XS5      eUS-  n[        X[        5      nUS4$ US:X  a  [        XS	5      $ US
+:X  a  [        XS5      $  U[        U   4$ ! [         a    US4s $ f = f! [         a    [        XS5      S ef = f)Nrµ   >   ˙\	˙\
+˙\ rﬂ   ⁄ r   zUnescaped '\' in a stringr	   z\uÈ   z\UÈ   )rB   rC   rD   rK   r´   ⁄parse_hex_char⁄BASIC_STR_ESCAPE_REPLACEMENTSré   )rO   rP   r–   ⁄	escape_idrS   s        r   ⁄parse_basic_str_escaperÁ   ‘  s˚   Ä  ò#†ô'–"ÄIÿà1ÅHÄCﬁêY–"9”9 ò”‹òS§w”/àCÿëxê êtã|‹"†3–-I”J–Jÿê1âHàC‹ò‘#6”7àÿêBàwàÿêE”‹òc®”*–*ÿêE”‹òc®”*–*Mÿ‘1∞)—<–<–<¯Ù Û ÿòBêwí˚Ù Û M‹ò3–%A”B»–LM˙s   ±B ¬
+B$ ¬B!¬ B!¬$B<c                Û   ï [        XSS9$ )NTrœ   )rÁ   r“   s     r   ⁄ parse_basic_str_escape_multilinerÈ   Ò  s   Ä ‹!†#∞d—;–;r-   c                ÛÍ   ï XX-    n[        U5      U:w  d  [        R                  U5      (       d  [        XS5      eX-  n[	        US5      n[        U5      (       d  [        XS5      eU[        U5      4$ )NzInvalid hex valueÈ   z/Escaped character is not a Unicode scalar value)r†   ⁄HEXDIGIT_CHARS⁄
+issupersetrK   r   ⁄is_unicode_scalar_valuer   )rO   rP   ⁄hex_len⁄hex_str⁄hex_ints        r   r‰   r‰   ı  ss   Ä ÿòô–&ÄG‹
+à7É|êw”§n◊&?—&?¿◊&H—&H‹ò3–%8”9–9ÿÅNÄC‹ê'ò2”ÄG‹"†7◊+—+‹ò3–%V”W–WÿîêGì––r-   c                ÛB   ï US-  nUn[        XS[        SS9nUS-   XU 4$ )Nr	   r…   Tr®   )r¶   ⁄ILLEGAL_LITERAL_STR_CHARS)rO   rP   rÕ   s      r   rÀ   rÀ      s:   Ä ÿà1ÅHÄCÿÄI‹
+ÿê#‘ 9»ÒÄC êâ7êC†#–&–&–&r-   c               Û8  ï US-  nU R                  SU5      (       a  US-  nU(       a  Sn[        U US[        SS9nXU nUS-   nOSn[        XSS	9u  pU R                  X15      (       d  X4$ US-  nU R                  X15      (       d  XU-   4$ US-  nXUS
+-  -   4$ )NÈ   r   r	   r…   ˙'''Tr®   r!   rœ   rµ   )r≤   r¶   ⁄#ILLEGAL_MULTILINE_LITERAL_STR_CHARSr—   )rO   rP   ⁄literal⁄delim⁄end_pos⁄results         r   ⁄parse_multiline_strr¸   	  s«   Ä ÿà1ÅHÄCÿ
+á~Å~êdòC◊ — ÿàqâàÊÿà‹ÿÿÿ‹8ÿÒ
+à ò–!àÿòâkâ‡à‹%†c∏$—?âà è>â>ò%◊%—%ÿà{–ÿà1ÅHÄCÿè>â>ò%◊%—%ÿòUëN–"–"ÿà1ÅHÄCÿò%†!ô)—$–$–$r-   c               ÛÇ  ï U(       a  [         n[        nO[        n[        nSnUn  X   nUS:X  a;  U(       d  US-   XPXa -   4$ U R                  SU5      (       a  US-   XPXa -   4$ US-  nMG  US:X  a  XPXa -  nU" X5      u  pXX-  nUnMe  Xs;   a  [        XSU< 35      eUS-  nMÄ  ! [         a    [        XS5      S ef = f)	Nr·   zUnterminated stringr!   r	   ˙"""rı   r"   zIllegal character )⁄!ILLEGAL_MULTILINE_BASIC_STR_CHARSrÈ   ⁄ILLEGAL_BASIC_STR_CHARSrÁ   rD   rK   r≤   )	rO   rP   r–   r£   ⁄parse_escapesr˚   rÕ   rS   ⁄parsed_escapes	            r   r—   r—   (  s  Ä ﬁ‹4à‹8â‰*à‹.àÿÄFÿÄIÿ
+	Jÿë8àD ê3ã;ﬁÿòQëw†®Y–);— ;–;–;ÿè~â~òe†S◊)—)ÿòQëw†®Y–);— ;–;–;ÿê1âHàCŸÿê4ã<ÿò)–(—(àFŸ!.®s”!8—àCÿ—#àFÿàIŸÿ”‹òs–+=∏dπX–)F”G–GÿàqâàÒ) ¯Ù Û 	J‹òs–)>”?¿T–I	J˙s   ßB& ¬&B>c                ÛÊ  ï  X   nUS:X  a,  U R                  SU5      (       a
+  [        XSS9$ [        X5      $ US:X  a,  U R                  SU5      (       a
+  [        XSS9$ [	        X5      $ US:X  a  U R                  S	U5      (       a  US
+-   S4$ US:X  a  U R                  SU5      (       a  US-   S4$ US:X  a  [        XU5      $ US:X  a  [        XU5      $ [        R                  " X5      nU(       a   [        U5      nUR                  5       U4$ [        R                  " X5      nU(       a  UR                  5       [        U5      4$ [        R                  " X5      nU(       a  UR                  5       [!        XÇ5      4$ XUS-    n	U	S;   a  US-   U" U	5      4$ XUS
+-    n
+U
+S;   a  US
+-   U" U
+5      4$ [        XS5      e! [          a    S n GN f = f! [         a  n[        XS5      UeS nAff = f)Nr!   r˛   F)r¯   r…   rˆ   T⁄t⁄truer‚   ⁄f⁄falseÈ   r;   ⁄{zInvalid date or datetimerı   >   ⁄inf⁄nan>   ˙+inf˙+nan˙-inf˙-nanzInvalid value)rD   r≤   r¸   rÃ   rÀ   rÿ   r‹   r
+   ⁄matchr   rü   rK   ⁄endr   r   r   r   )rO   rP   r/   rS   ⁄datetime_match⁄datetime_obj⁄e⁄localtime_match⁄number_match⁄first_three⁄
+first_fours              r   r√   r√   H  s  Ä ÿô8à àsÉ{ÿè>â>ò%†◊%—%‹&†s∏—?–?‹'®”1–1 àsÉ{ÿè>â>ò%†◊%—%‹&†s∏—>–>‹ †”*–* àsÉ{ÿè>â>ò&†#◊&—&ÿòë7òDê=– ÿàsÉ{ÿè>â>ò'†3◊'—'ÿòë7òEê>–! àsÉ{‹ò3†[”1–1 àsÉ{‹!†#®K”8–8Ù !◊&“&†s”0ÄNﬁ	L‹,®^”<àL ◊!—!”#†\–1–1‹"◊(“(®”2ÄOﬁÿ◊"—"”$‘&8∏”&I–I–IÙ
+ ó?í?†3”,ÄLﬁÿ◊—”!§?∞<”#M–M–M òC†!ôG–$ÄKÿên”$ÿêQâwô†K”0–0–0ÿò3†ô7–#ÄJÿ–5”5ÿêQâwô†J”/–/–/‰
+ês†”
+1–1¯Ùy Û ÿã˚ÙL Û 	L‹òs–)C”D»!–K˚	L˙s)   ÇG √4G «G«G«
+G0«G+«+G0c                Û:   ï SS jn[        U SU" X5       S35      $ )zVReturn a `TOMLDecodeError` where error message is suffixed with
+coordinates in source.c                Û†   ï U[        U 5      :º  a  gU R                  SSU5      S-   nUS:X  a  US-   nOXR                  SSU5      -
+  nSU SU 3$ )Nzend of documentr   r   r	   zline z	, column )r†   ⁄count⁄rindex)rO   rP   ⁄line⁄columns       r   ⁄
+coord_repr⁄ suffixed_err.<locals>.coord_reprê  s_   Ä ÿî#êcì(ã?ÿ$ÿèyâyòòq†#”&®—*àÿê1ã9ÿò1ëWâF‡ü:ô:†d®A®s”3—3àFÿêtêfòI†f†X–.–.r-   z (at ⁄))rO   ⁄strrP   r   r}   r"  )r$   )rO   rP   ⁄msgr  s       r   rK   rK   å  s'   Ä Ù/Ù òcòU†%©
+∞3”(<–'=∏Q–?”@–@r-   c                Ûd   ï SU s=:*  =(       a    S:*  Os  =(       d    SU s=:*  =(       a    S:*  $ s  $ )Nr   iˇ◊  i ‡  iˇˇ r&   )⁄	codepoints    r   rÓ   rÓ   ù  s-   Ä ÿê◊#”#òe‘#◊G®∞)◊)F”)F∏w—)F–G—)F–Gr-   c                Û6   ^ ï T [         L a  [         $ SU 4S jjnU$ )a  A decorator to make `parse_float` safe.
+
+`parse_float` must not return dicts or lists, because these types
+would be mixed with parsed TOML tables and arrays, thus confusing
+the parser. The returned decorated callable raises `ValueError`
+instead of returning illegal types.
+c                Ûd   >ï T" U 5      n[        U[        [        45      (       a  [        S5      eU$ )Nz*parse_float must not return dicts or lists)rå   rN   rç   rü   )⁄	float_str⁄float_valuer/   s     Är   ⁄safe_parse_float⁄/make_safe_parse_float.<locals>.safe_parse_float≠  s0   ¯Ä Ÿ!†)”,à‹êk§D¨$†<◊0—0‹–I”J–Jÿ–r-   )r(  r"  r}   r   )⁄float)r/   r*  s   ` r   rA   rA   °  s   ¯Ä  îe“‹à˜ –r-   )r6   r   r/   r   r}   ró   )r8   r"  r/   r   r}   ró   )rO   r"  rP   r   rú   zIterable[str]r}   r   )rO   r"  rP   r   r¢   r"  r£   zfrozenset[str]r§   rÅ   r}   r   )rO   r"  rP   r   r}   r   )rO   r"  rP   r   rQ   r>   r}   ˙tuple[Pos, Key])rO   r"  rP   r   rQ   r>   rR   r   r/   r   r}   r   )rO   r"  rP   r   r/   r   r}   ztuple[Pos, Key, Any])rO   r"  rP   r   r}   r-  )rO   r"  rP   r   r}   ˙tuple[Pos, str])rO   r"  rP   r   r/   r   r}   ztuple[Pos, list[Any]])rO   r"  rP   r   r/   r   r}   ztuple[Pos, dict[str, Any]])rO   r"  rP   r   r–   rÅ   r}   r.  )rO   r"  rP   r   rÔ   r   r}   r.  )rO   r"  rP   r   r¯   rÅ   r}   r.  )rO   r"  rP   r   r/   r   r}   ztuple[Pos, Any])rO   r"  rP   r   r#  r"  r}   r$   )r%  r   r}   rÅ   )r/   r   r}   r   )G⁄
+__future__r   ⁄collections.abcr   ⁄string⁄typesr   ⁄typingr   r   r   ⁄_rer
+   r   r   r   r   r   ⁄_typesr   r   r   ⁄	frozensetrª   r   ⁄
+ASCII_CTRLr   rˇ   rÛ   r˜   r©   rC   r´   ⁄ascii_letters⁄digitsr    rE   ⁄	hexdigitsrÏ   rÂ   rü   r$   r,  r9   r5   r@   r?   r>   rB   r¶   rL   r≠   rJ   rI   rF   r∫   r±   r∆   rÃ   rÿ   r‹   rÁ   rÈ   r‰   rÀ   r¸   r—   r√   rK   rÓ   rA   r&   r-   r   ⁄<module>r;     sê  ı
+ #Â $€ › "ﬂ ,— ,˜˜ ˜ )— (·—1°u®R§y”1”1±Iπc¿#ªh”4G—GÄ
+ %°y∞£—6– ÿ$.±∏6”1B—$B– !‡3– ÿ&G– #‡/– ·
+êE”
+Äÿ°	®$£—/– Ÿò6◊/—/∞&∑-±-—?¿$—F”GÄÿ"°Y®u”%5—5– Ÿò6◊+—+”,Ä· 0‡ÿÿÿÿÿÿÒÛ
+!– Ù;êjÙ ; 8=˜ 	- 38˜ ?˜D7Ò 7˜t"Ò "ÙDàZÙ Ù
+ÿ	‡	 
+   	ÙÙ,	ÙÙÙ$*ÿ	ÿÿ#ÿ-0ÿ?I‡ÙDÿ	ÿÿ%/‡ÙÙ ,Ù$MÙ 6Ù
+"Ù0,B .3ÒMÿ	MÿMÿ&*M‡ıMÙ:<ÙÙ'Ù%Ù>@A2ÿ	A2ÿA2ÿ%/A2‡ÙA2ÙHAÙ"Hır-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  Û
+    F\hé  „                  Û2  ï S SK Jr  S SKJrJrJrJrJrJr  S SKJ	r	  S SK
+r
+S SKJr  SSKJr  Sr\
+R                   " S	\
+R"                  S
+9r\
+R                   " \5      r\
+R                   " S\ S3\
+R"                  S
+9rSS jr\	" SS9SS j5       rSS jrSS jrg)È    )⁄annotations)⁄date⁄datetime⁄time⁄	timedelta⁄timezone⁄tzinfo)⁄	lru_cacheN)⁄AnyÈ   )⁄
+ParseFloatzE([01][0-9]|2[0-3]):([0-5][0-9]):([0-5][0-9])(?:\.([0-9]{1,6})[0-9]*)?a`  
+0
+(?:
+    x[0-9A-Fa-f](?:_?[0-9A-Fa-f])*   # hex
+    |
+    b[01](?:_?[01])*                 # bin
+    |
+    o[0-7](?:_?[0-7])*               # oct
+)
+|
+[+-]?(?:0|[1-9](?:_?[0-9])*)         # dec, integer part
+(?P<floatpart>
+    (?:\.[0-9](?:_?[0-9])*)?         # optional fractional part
+    (?:[eE][+-]?[0-9](?:_?[0-9])*)?  # optional exponent part
+)
+)⁄flagsz`
+([0-9]{4})-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])  # date, e.g. 1988-10-27
+(?:
+    [Tt ]
+    zR
+    (?:([Zz])|([+-])([01][0-9]|2[0-3]):([0-5][0-9]))?  # optional time offset
+)?
+c                Ûö  ï U R                  5       u  nnnnnnnnn	n
+n[        U5      [        U5      [        U5      pÌnUc  [        XÕU5      $ [        U5      [        U5      [        U5      nnnU(       a  [        UR                  SS5      5      OSnU	(       a  [	        X´U	5      nOU(       a  [
+        R                  nOSn[        XÕXÔUUUUS9$ )zöConvert a `RE_DATETIME` match to `datetime.datetime` or `datetime.date`.
+
+Raises ValueError if the match does not correspond to a valid date
+or datetime.
+NÈ   ⁄0r   )r	   )⁄groups⁄intr   ⁄ljust⁄	cached_tzr   ⁄utcr   )⁄match⁄year_str⁄	month_str⁄day_str⁄hour_str⁄
+minute_str⁄sec_str⁄
+micros_str⁄	zulu_time⁄offset_sign_str⁄offset_hour_str⁄offset_minute_str⁄year⁄month⁄day⁄hour⁄minute⁄sec⁄micros⁄tzs                       ⁄"/usr/lib/python3.13/tomllib/_re.py⁄match_to_datetimer,   4   sÀ   Ä $ 	èâãÒÿÿÿÿÿÿÿÿÿÿÿ‰ò8ì}§c®)£n¥c∏'≥lêÄDÿ—‹êD†”%–%‹òHõ§s®:£º∏Gªê#à&ÄDﬁ.8åSê◊!—!†!†S”)‘*∏aÄFﬁ‹%ÿ∞Û
+âˆ 
+‹è\â\â‡à‹êD†®F∞C∏»—K–KÛ    )⁄maxsizec           	     Ûl   ï US:X  a  SOSn[        [        U[        U 5      -  U[        U5      -  S95      $ )N⁄+r   Èˇˇˇˇ)⁄hours⁄minutes)r   r   r   )r   r   ⁄sign_str⁄signs       r+   r   r   W   s<   Ä ‡òCìâ1†RÄD‹‹ÿúòXõ—&ÿú3òzõ?—*Ò	
+Û r-   c                Û¬   ï U R                  5       u  pp4U(       a  [        UR                  SS5      5      OSn[        [        U5      [        U5      [        U5      U5      $ )Nr   r   r   )r   r   r   r   )r   r   r   r   r   r)   s         r+   ⁄match_to_localtimer7   b   sJ   Ä ÿ05∑±≥—-ÄHò'ﬁ.8åSê◊!—!†!†S”)‘*∏aÄF‹îêHìús†:õ¥∞G≥∏f”E–Er-   c                Ûé   ï U R                  S5      (       a  U" U R                  5       5      $ [        U R                  5       S5      $ )N⁄	floatpartr   )⁄groupr   )r   ⁄parse_floats     r+   ⁄match_to_numberr<   h   s5   Ä ÿá{Å{ê;◊—Ÿò5ü;ô;õ=”)–)‹àuè{â{ã}òa” – r-   )r   ˙re.Match[str]⁄returnzdatetime | date)r   ⁄strr   r?   r4   r?   r>   r   )r   r=   r>   r   )r   r=   r;   r   r>   r   )⁄
+__future__r   r   r   r   r   r   r	   ⁄	functoolsr
+   ⁄re⁄typingr   ⁄_typesr   ⁄_TIME_RE_STR⁄compile⁄VERBOSE⁄	RE_NUMBER⁄RE_LOCALTIME⁄RE_DATETIMEr,   r   r7   r<   © r-   r+   ⁄<module>rL      s®   ı
+ #Á F◊ F› € 	› Â 
+ XÄ‡èJäJ  è*â*Ò#Ä	& èzäzò,”'Äÿèjäj
+ ÄN 	 è*â*Ò
+ÄÙ LÒF ê4—ÛÛ ÙFı!r-                                                                                                                                                                                                                                                          Û
+    F\h˛   „                   Û:   ï S SK JrJrJr  \\/\4   r\\S4   r\rg)È    )⁄Any⁄Callable⁄Tuple.N)	⁄typingr   r   r   ⁄str⁄
+ParseFloat⁄Key⁄int⁄Pos© Û    ⁄%/usr/lib/python3.13/tomllib/_types.py⁄<module>r      s1   ˜
+ (— ' êsêeòSêj—!Ä
+ÿàCêàHÅoÄÿ	År                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         # SPDX-License-Identifier: MIT
+# SPDX-FileCopyrightText: 2021 Taneli Hukkinen
+# Licensed to PSF under a Contributor Agreement.
+
+from __future__ import annotations
+
+from collections.abc import Iterable
+import string
+from types import MappingProxyType
+from typing import Any, BinaryIO, NamedTuple
+
+from ._re import (
+    RE_DATETIME,
+    RE_LOCALTIME,
+    RE_NUMBER,
+    match_to_datetime,
+    match_to_localtime,
+    match_to_number,
+)
+from ._types import Key, ParseFloat, Pos
+
+ASCII_CTRL = frozenset(chr(i) for i in range(32)) | frozenset(chr(127))
+
+# Neither of these sets include quotation mark or backslash. They are
+# currently handled as separate cases in the parser functions.
+ILLEGAL_BASIC_STR_CHARS = ASCII_CTRL - frozenset("\t")
+ILLEGAL_MULTILINE_BASIC_STR_CHARS = ASCII_CTRL - frozenset("\t\n")
+
+ILLEGAL_LITERAL_STR_CHARS = ILLEGAL_BASIC_STR_CHARS
+ILLEGAL_MULTILINE_LITERAL_STR_CHARS = ILLEGAL_MULTILINE_BASIC_STR_CHARS
+
+ILLEGAL_COMMENT_CHARS = ILLEGAL_BASIC_STR_CHARS
+
+TOML_WS = frozenset(" \t")
+TOML_WS_AND_NEWLINE = TOML_WS | frozenset("\n")
+BARE_KEY_CHARS = frozenset(string.ascii_letters + string.digits + "-_")
+KEY_INITIAL_CHARS = BARE_KEY_CHARS | frozenset("\"'")
+HEXDIGIT_CHARS = frozenset(string.hexdigits)
+
+BASIC_STR_ESCAPE_REPLACEMENTS = MappingProxyType(
+    {
+        "\\b": "\u0008",  # backspace
+        "\\t": "\u0009",  # tab
+        "\\n": "\u000A",  # linefeed
+        "\\f": "\u000C",  # form feed
+        "\\r": "\u000D",  # carriage return
+        '\\"': "\u0022",  # quote
+        "\\\\": "\u005C",  # backslash
+    }
+)
+
+
+class TOMLDecodeError(ValueError):
+    """An error raised if a document is not valid TOML."""
+
+
+def load(fp: BinaryIO, /, *, parse_float: ParseFloat = float) -> dict[str, Any]:
+    """Parse TOML from a binary file object."""
+    b = fp.read()
+    try:
+        s = b.decode()
+    except AttributeError:
+        raise TypeError(
+            "File must be opened in binary mode, e.g. use `open('foo.toml', 'rb')`"
+        ) from None
+    return loads(s, parse_float=parse_float)
+
+
+def loads(s: str, /, *, parse_float: ParseFloat = float) -> dict[str, Any]:  # noqa: C901
+    """Parse TOML from a string."""
+
+    # The spec allows converting "\r\n" to "\n", even in string
+    # literals. Let's do so to simplify parsing.
+    src = s.replace("\r\n", "\n")
+    pos = 0
+    out = Output(NestedDict(), Flags())
+    header: Key = ()
+    parse_float = make_safe_parse_float(parse_float)
+
+    # Parse one statement at a time
+    # (typically means one line in TOML source)
+    while True:
+        # 1. Skip line leading whitespace
+        pos = skip_chars(src, pos, TOML_WS)
+
+        # 2. Parse rules. Expect one of the following:
+        #    - end of file
+        #    - end of line
+        #    - comment
+        #    - key/value pair
+        #    - append dict to list (and move to its namespace)
+        #    - create dict (and move to its namespace)
+        # Skip trailing whitespace when applicable.
+        try:
+            char = src[pos]
+        except IndexError:
+            break
+        if char == "\n":
+            pos += 1
+            continue
+        if char in KEY_INITIAL_CHARS:
+            pos = key_value_rule(src, pos, out, header, parse_float)
+            pos = skip_chars(src, pos, TOML_WS)
+        elif char == "[":
+            try:
+                second_char: str | None = src[pos + 1]
+            except IndexError:
+                second_char = None
+            out.flags.finalize_pending()
+            if second_char == "[":
+                pos, header = create_list_rule(src, pos, out)
+            else:
+                pos, header = create_dict_rule(src, pos, out)
+            pos = skip_chars(src, pos, TOML_WS)
+        elif char != "#":
+            raise suffixed_err(src, pos, "Invalid statement")
+
+        # 3. Skip comment
+        pos = skip_comment(src, pos)
+
+        # 4. Expect end of line or end of file
+        try:
+            char = src[pos]
+        except IndexError:
+            break
+        if char != "\n":
+            raise suffixed_err(
+                src, pos, "Expected newline or end of document after a statement"
+            )
+        pos += 1
+
+    return out.data.dict
+
+
+class Flags:
+    """Flags that map to parsed keys/namespaces."""
+
+    # Marks an immutable namespace (inline array or inline table).
+    FROZEN = 0
+    # Marks a nest that has been explicitly created and can no longer
+    # be opened using the "[table]" syntax.
+    EXPLICIT_NEST = 1
+
+    def __init__(self) -> None:
+        self._flags: dict[str, dict[Any, Any]] = {}
+        self._pending_flags: set[tuple[Key, int]] = set()
+
+    def add_pending(self, key: Key, flag: int) -> None:
+        self._pending_flags.add((key, flag))
+
+    def finalize_pending(self) -> None:
+        for key, flag in self._pending_flags:
+            self.set(key, flag, recursive=False)
+        self._pending_flags.clear()
+
+    def unset_all(self, key: Key) -> None:
+        cont = self._flags
+        for k in key[:-1]:
+            if k not in cont:
+                return
+            cont = cont[k]["nested"]
+        cont.pop(key[-1], None)
+
+    def set(self, key: Key, flag: int, *, recursive: bool) -> None:  # noqa: A003
+        cont = self._flags
+        key_parent, key_stem = key[:-1], key[-1]
+        for k in key_parent:
+            if k not in cont:
+                cont[k] = {"flags": set(), "recursive_flags": set(), "nested": {}}
+            cont = cont[k]["nested"]
+        if key_stem not in cont:
+            cont[key_stem] = {"flags": set(), "recursive_flags": set(), "nested": {}}
+        cont[key_stem]["recursive_flags" if recursive else "flags"].add(flag)
+
+    def is_(self, key: Key, flag: int) -> bool:
+        if not key:
+            return False  # document root has no flags
+        cont = self._flags
+        for k in key[:-1]:
+            if k not in cont:
+                return False
+            inner_cont = cont[k]
+            if flag in inner_cont["recursive_flags"]:
+                return True
+            cont = inner_cont["nested"]
+        key_stem = key[-1]
+        if key_stem in cont:
+            cont = cont[key_stem]
+            return flag in cont["flags"] or flag in cont["recursive_flags"]
+        return False
+
+
+class NestedDict:
+    def __init__(self) -> None:
+        # The parsed content of the TOML document
+        self.dict: dict[str, Any] = {}
+
+    def get_or_create_nest(
+        self,
+        key: Key,
+        *,
+        access_lists: bool = True,
+    ) -> dict[str, Any]:
+        cont: Any = self.dict
+        for k in key:
+            if k not in cont:
+                cont[k] = {}
+            cont = cont[k]
+            if access_lists and isinstance(cont, list):
+                cont = cont[-1]
+            if not isinstance(cont, dict):
+                raise KeyError("There is no nest behind this key")
+        return cont  # type: ignore[no-any-return]
+
+    def append_nest_to_list(self, key: Key) -> None:
+        cont = self.get_or_create_nest(key[:-1])
+        last_key = key[-1]
+        if last_key in cont:
+            list_ = cont[last_key]
+            if not isinstance(list_, list):
+                raise KeyError("An object other than list found behind this key")
+            list_.append({})
+        else:
+            cont[last_key] = [{}]
+
+
+class Output(NamedTuple):
+    data: NestedDict
+    flags: Flags
+
+
+def skip_chars(src: str, pos: Pos, chars: Iterable[str]) -> Pos:
+    try:
+        while src[pos] in chars:
+            pos += 1
+    except IndexError:
+        pass
+    return pos
+
+
+def skip_until(
+    src: str,
+    pos: Pos,
+    expect: str,
+    *,
+    error_on: frozenset[str],
+    error_on_eof: bool,
+) -> Pos:
+    try:
+        new_pos = src.index(expect, pos)
+    except ValueError:
+        new_pos = len(src)
+        if error_on_eof:
+            raise suffixed_err(src, new_pos, f"Expected {expect!r}") from None
+
+    if not error_on.isdisjoint(src[pos:new_pos]):
+        while src[pos] not in error_on:
+            pos += 1
+        raise suffixed_err(src, pos, f"Found invalid character {src[pos]!r}")
+    return new_pos
+
+
+def skip_comment(src: str, pos: Pos) -> Pos:
+    try:
+        char: str | None = src[pos]
+    except IndexError:
+        char = None
+    if char == "#":
+        return skip_until(
+            src, pos + 1, "\n", error_on=ILLEGAL_COMMENT_CHARS, error_on_eof=False
+        )
+    return pos
+
+
+def skip_comments_and_array_ws(src: str, pos: Pos) -> Pos:
+    while True:
+        pos_before_skip = pos
+        pos = skip_chars(src, pos, TOML_WS_AND_NEWLINE)
+        pos = skip_comment(src, pos)
+        if pos == pos_before_skip:
+            return pos
+
+
+def create_dict_rule(src: str, pos: Pos, out: Output) -> tuple[Pos, Key]:
+    pos += 1  # Skip "["
+    pos = skip_chars(src, pos, TOML_WS)
+    pos, key = parse_key(src, pos)
+
+    if out.flags.is_(key, Flags.EXPLICIT_NEST) or out.flags.is_(key, Flags.FROZEN):
+        raise suffixed_err(src, pos, f"Cannot declare {key} twice")
+    out.flags.set(key, Flags.EXPLICIT_NEST, recursive=False)
+    try:
+        out.data.get_or_create_nest(key)
+    except KeyError:
+        raise suffixed_err(src, pos, "Cannot overwrite a value") from None
+
+    if not src.startswith("]", pos):
+        raise suffixed_err(src, pos, "Expected ']' at the end of a table declaration")
+    return pos + 1, key
+
+
+def create_list_rule(src: str, pos: Pos, out: Output) -> tuple[Pos, Key]:
+    pos += 2  # Skip "[["
+    pos = skip_chars(src, pos, TOML_WS)
+    pos, key = parse_key(src, pos)
+
+    if out.flags.is_(key, Flags.FROZEN):
+        raise suffixed_err(src, pos, f"Cannot mutate immutable namespace {key}")
+    # Free the namespace now that it points to another empty list item...
+    out.flags.unset_all(key)
+    # ...but this key precisely is still prohibited from table declaration
+    out.flags.set(key, Flags.EXPLICIT_NEST, recursive=False)
+    try:
+        out.data.append_nest_to_list(key)
+    except KeyError:
+        raise suffixed_err(src, pos, "Cannot overwrite a value") from None
+
+    if not src.startswith("]]", pos):
+        raise suffixed_err(src, pos, "Expected ']]' at the end of an array declaration")
+    return pos + 2, key
+
+
+def key_value_rule(
+    src: str, pos: Pos, out: Output, header: Key, parse_float: ParseFloat
+) -> Pos:
+    pos, key, value = parse_key_value_pair(src, pos, parse_float)
+    key_parent, key_stem = key[:-1], key[-1]
+    abs_key_parent = header + key_parent
+
+    relative_path_cont_keys = (header + key[:i] for i in range(1, len(key)))
+    for cont_key in relative_path_cont_keys:
+        # Check that dotted key syntax does not redefine an existing table
+        if out.flags.is_(cont_key, Flags.EXPLICIT_NEST):
+            raise suffixed_err(src, pos, f"Cannot redefine namespace {cont_key}")
+        # Containers in the relative path can't be opened with the table syntax or
+        # dotted key/value syntax in following table sections.
+        out.flags.add_pending(cont_key, Flags.EXPLICIT_NEST)
+
+    if out.flags.is_(abs_key_parent, Flags.FROZEN):
+        raise suffixed_err(
+            src, pos, f"Cannot mutate immutable namespace {abs_key_parent}"
+        )
+
+    try:
+        nest = out.data.get_or_create_nest(abs_key_parent)
+    except KeyError:
+        raise suffixed_err(src, pos, "Cannot overwrite a value") from None
+    if key_stem in nest:
+        raise suffixed_err(src, pos, "Cannot overwrite a value")
+    # Mark inline table and array namespaces recursively immutable
+    if isinstance(value, (dict, list)):
+        out.flags.set(header + key, Flags.FROZEN, recursive=True)
+    nest[key_stem] = value
+    return pos
+
+
+def parse_key_value_pair(
+    src: str, pos: Pos, parse_float: ParseFloat
+) -> tuple[Pos, Key, Any]:
+    pos, key = parse_key(src, pos)
+    try:
+        char: str | None = src[pos]
+    except IndexError:
+        char = None
+    if char != "=":
+        raise suffixed_err(src, pos, "Expected '=' after a key in a key/value pair")
+    pos += 1
+    pos = skip_chars(src, pos, TOML_WS)
+    pos, value = parse_value(src, pos, parse_float)
+    return pos, key, value
+
+
+def parse_key(src: str, pos: Pos) -> tuple[Pos, Key]:
+    pos, key_part = parse_key_part(src, pos)
+    key: Key = (key_part,)
+    pos = skip_chars(src, pos, TOML_WS)
+    while True:
+        try:
+            char: str | None = src[pos]
+        except In

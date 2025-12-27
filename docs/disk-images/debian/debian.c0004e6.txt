@@ -1,0 +1,3548 @@
+rtle.tiltangle()
+        315.0
+        >>> turtle.stamp()
+        >>> turtle.fd(50)
+        """
+        if angle is None:
+            tilt = -math.degrees(self._tilt) * self._angleOrient
+            return (tilt / self._degreesPerAU) % self._fullcircle
+        else:
+            tilt = -angle * self._degreesPerAU * self._angleOrient
+            tilt = math.radians(tilt) % math.tau
+            self.pen(resizemode="user", tilt=tilt)
+
+    def tilt(self, angle):
+        """Rotate the turtleshape by angle.
+
+        Argument:
+        angle - a number
+
+        Rotate the turtleshape by angle from its current tilt-angle,
+        but do NOT change the turtle's heading (direction of movement).
+
+        Examples (for a Turtle instance named turtle):
+        >>> turtle.shape("circle")
+        >>> turtle.shapesize(5,2)
+        >>> turtle.tilt(30)
+        >>> turtle.fd(50)
+        >>> turtle.tilt(30)
+        >>> turtle.fd(50)
+        """
+        self.tiltangle(angle + self.tiltangle())
+
+    def shapetransform(self, t11=None, t12=None, t21=None, t22=None):
+        """Set or return the current transformation matrix of the turtle shape.
+
+        Optional arguments: t11, t12, t21, t22 -- numbers.
+
+        If none of the matrix elements are given, return the transformation
+        matrix.
+        Otherwise set the given elements and transform the turtleshape
+        according to the matrix consisting of first row t11, t12 and
+        second row t21, 22.
+        Modify stretchfactor, shearfactor and tiltangle according to the
+        given matrix.
+
+        Examples (for a Turtle instance named turtle):
+        >>> turtle.shape("square")
+        >>> turtle.shapesize(4,2)
+        >>> turtle.shearfactor(-0.5)
+        >>> turtle.shapetransform()
+        (4.0, -1.0, -0.0, 2.0)
+        """
+        if t11 is t12 is t21 is t22 is None:
+            return self._shapetrafo
+        m11, m12, m21, m22 = self._shapetrafo
+        if t11 is not None: m11 = t11
+        if t12 is not None: m12 = t12
+        if t21 is not None: m21 = t21
+        if t22 is not None: m22 = t22
+        if t11 * t22 - t12 * t21 == 0:
+            raise TurtleGraphicsError("Bad shape transform matrix: must not be singular")
+        self._shapetrafo = (m11, m12, m21, m22)
+        alfa = math.atan2(-m21, m11) % math.tau
+        sa, ca = math.sin(alfa), math.cos(alfa)
+        a11, a12, a21, a22 = (ca*m11 - sa*m21, ca*m12 - sa*m22,
+                              sa*m11 + ca*m21, sa*m12 + ca*m22)
+        self._stretchfactor = a11, a22
+        self._shearfactor = a12/a22
+        self._tilt = alfa
+        self.pen(resizemode="user")
+
+
+    def _polytrafo(self, poly):
+        """Computes transformed polygon shapes from a shape
+        according to current position and heading.
+        """
+        screen = self.screen
+        p0, p1 = self._position
+        e0, e1 = self._orient
+        e = Vec2D(e0, e1 * screen.yscale / screen.xscale)
+        e0, e1 = (1.0 / abs(e)) * e
+        return [(p0+(e1*x+e0*y)/screen.xscale, p1+(-e0*x+e1*y)/screen.yscale)
+                                                           for (x, y) in poly]
+
+    def get_shapepoly(self):
+        """Return the current shape polygon as tuple of coordinate pairs.
+
+        No argument.
+
+        Examples (for a Turtle instance named turtle):
+        >>> turtle.shape("square")
+        >>> turtle.shapetransform(4, -1, 0, 2)
+        >>> turtle.get_shapepoly()
+        ((50, -20), (30, 20), (-50, 20), (-30, -20))
+
+        """
+        shape = self.screen._shapes[self.turtle.shapeIndex]
+        if shape._type == "polygon":
+            return self._getshapepoly(shape._data, shape._type == "compound")
+        # else return None
+
+    def _getshapepoly(self, polygon, compound=False):
+        """Calculate transformed shape polygon according to resizemode
+        and shapetransform.
+        """
+        if self._resizemode == "user" or compound:
+            t11, t12, t21, t22 = self._shapetrafo
+        elif self._resizemode == "auto":
+            l = max(1, self._pensize/5.0)
+            t11, t12, t21, t22 = l, 0, 0, l
+        elif self._resizemode == "noresize":
+            return polygon
+        return tuple((t11*x + t12*y, t21*x + t22*y) for (x, y) in polygon)
+
+    def _drawturtle(self):
+        """Manages the correct rendering of the turtle with respect to
+        its shape, resizemode, stretch and tilt etc."""
+        screen = self.screen
+        shape = screen._shapes[self.turtle.shapeIndex]
+        ttype = shape._type
+        titem = self.turtle._item
+        if self._shown and screen._updatecounter == 0 and screen._tracing > 0:
+            self._hidden_from_screen = False
+            tshape = shape._data
+            if ttype == "polygon":
+                if self._resizemode == "noresize": w = 1
+                elif self._resizemode == "auto": w = self._pensize
+                else: w =self._outlinewidth
+                shape = self._polytrafo(self._getshapepoly(tshape))
+                fc, oc = self._fillcolor, self._pencolor
+                screen._drawpoly(titem, shape, fill=fc, outline=oc,
+                                                      width=w, top=True)
+            elif ttype == "image":
+                screen._drawimage(titem, self._position, tshape)
+            elif ttype == "compound":
+                for item, (poly, fc, oc) in zip(titem, tshape):
+                    poly = self._polytrafo(self._getshapepoly(poly, True))
+                    screen._drawpoly(item, poly, fill=self._cc(fc),
+                                     outline=self._cc(oc), width=self._outlinewidth, top=True)
+        else:
+            if self._hidden_from_screen:
+                return
+            if ttype == "polygon":
+                screen._drawpoly(titem, ((0, 0), (0, 0), (0, 0)), "", "")
+            elif ttype == "image":
+                screen._drawimage(titem, self._position,
+                                          screen._shapes["blank"]._data)
+            elif ttype == "compound":
+                for item in titem:
+                    screen._drawpoly(item, ((0, 0), (0, 0), (0, 0)), "", "")
+            self._hidden_from_screen = True
+
+##############################  stamp stuff  ###############################
+
+    def stamp(self):
+        """Stamp a copy of the turtleshape onto the canvas and return its id.
+
+        No argument.
+
+        Stamp a copy of the turtle shape onto the canvas at the current
+        turtle position. Return a stamp_id for that stamp, which can be
+        used to delete it by calling clearstamp(stamp_id).
+
+        Example (for a Turtle instance named turtle):
+        >>> turtle.color("blue")
+        >>> turtle.stamp()
+        13
+        >>> turtle.fd(50)
+        """
+        screen = self.screen
+        shape = screen._shapes[self.turtle.shapeIndex]
+        ttype = shape._type
+        tshape = shape._data
+        if ttype == "polygon":
+            stitem = screen._createpoly()
+            if self._resizemode == "noresize": w = 1
+            elif self._resizemode == "auto": w = self._pensize
+            else: w =self._outlinewidth
+            shape = self._polytrafo(self._getshapepoly(tshape))
+            fc, oc = self._fillcolor, self._pencolor
+            screen._drawpoly(stitem, shape, fill=fc, outline=oc,
+                                                  width=w, top=True)
+        elif ttype == "image":
+            stitem = screen._createimage("")
+            screen._drawimage(stitem, self._position, tshape)
+        elif ttype == "compound":
+            stitem = []
+            for element in tshape:
+                item = screen._createpoly()
+                stitem.append(item)
+            stitem = tuple(stitem)
+            for item, (poly, fc, oc) in zip(stitem, tshape):
+                poly = self._polytrafo(self._getshapepoly(poly, True))
+                screen._drawpoly(item, poly, fill=self._cc(fc),
+                                 outline=self._cc(oc), width=self._outlinewidth, top=True)
+        self.stampItems.append(stitem)
+        self.undobuffer.push(("stamp", stitem))
+        return stitem
+
+    def _clearstamp(self, stampid):
+        """does the work for clearstamp() and clearstamps()
+        """
+        if stampid in self.stampItems:
+            if isinstance(stampid, tuple):
+                for subitem in stampid:
+                    self.screen._delete(subitem)
+            else:
+                self.screen._delete(stampid)
+            self.stampItems.remove(stampid)
+        # Delete stampitem from undobuffer if necessary
+        # if clearstamp is called directly.
+        item = ("stamp", stampid)
+        buf = self.undobuffer
+        if item not in buf.buffer:
+            return
+        index = buf.buffer.index(item)
+        buf.buffer.remove(item)
+        if index <= buf.ptr:
+            buf.ptr = (buf.ptr - 1) % buf.bufsize
+        buf.buffer.insert((buf.ptr+1)%buf.bufsize, [None])
+
+    def clearstamp(self, stampid):
+        """Delete stamp with given stampid
+
+        Argument:
+        stampid - an integer, must be return value of previous stamp() call.
+
+        Example (for a Turtle instance named turtle):
+        >>> turtle.color("blue")
+        >>> astamp = turtle.stamp()
+        >>> turtle.fd(50)
+        >>> turtle.clearstamp(astamp)
+        """
+        self._clearstamp(stampid)
+        self._update()
+
+    def clearstamps(self, n=None):
+        """Delete all or first/last n of turtle's stamps.
+
+        Optional argument:
+        n -- an integer
+
+        If n is None, delete all of pen's stamps,
+        else if n > 0 delete first n stamps
+        else if n < 0 delete last n stamps.
+
+        Example (for a Turtle instance named turtle):
+        >>> for i in range(8):
+        ...     turtle.stamp(); turtle.fd(30)
+        ...
+        >>> turtle.clearstamps(2)
+        >>> turtle.clearstamps(-2)
+        >>> turtle.clearstamps()
+        """
+        if n is None:
+            toDelete = self.stampItems[:]
+        elif n >= 0:
+            toDelete = self.stampItems[:n]
+        else:
+            toDelete = self.stampItems[n:]
+        for item in toDelete:
+            self._clearstamp(item)
+        self._update()
+
+    def _goto(self, end):
+        """Move the pen to the point end, thereby drawing a line
+        if pen is down. All other methods for turtle movement depend
+        on this one.
+        """
+        ## Version with undo-stuff
+        go_modes = ( self._drawing,
+                     self._pencolor,
+                     self._pensize,
+                     isinstance(self._fillpath, list))
+        screen = self.screen
+        undo_entry = ("go", self._position, end, go_modes,
+                      (self.currentLineItem,
+                      self.currentLine[:],
+                      screen._pointlist(self.currentLineItem),
+                      self.items[:])
+                      )
+        if self.undobuffer:
+            self.undobuffer.push(undo_entry)
+        start = self._position
+        if self._speed and screen._tracing == 1:
+            diff = (end-start)
+            diffsq = (diff[0]*screen.xscale)**2 + (diff[1]*screen.yscale)**2
+            nhops = 1+int((diffsq**0.5)/(3*(1.1**self._speed)*self._speed))
+            delta = diff * (1.0/nhops)
+            for n in range(1, nhops):
+                if n == 1:
+                    top = True
+                else:
+                    top = False
+                self._position = start + delta * n
+                if self._drawing:
+                    screen._drawline(self.drawingLineItem,
+                                     (start, self._position),
+                                     self._pencolor, self._pensize, top)
+                self._update()
+            if self._drawing:
+                screen._drawline(self.drawingLineItem, ((0, 0), (0, 0)),
+                                               fill="", width=self._pensize)
+        # Turtle now at end,
+        if self._drawing: # now update currentLine
+            self.currentLine.append(end)
+        if isinstance(self._fillpath, list):
+            self._fillpath.append(end)
+        ######    vererbung!!!!!!!!!!!!!!!!!!!!!!
+        self._position = end
+        if self._creatingPoly:
+            self._poly.append(end)
+        if len(self.currentLine) > 42: # 42! answer to the ultimate question
+                                       # of life, the universe and everything
+            self._newLine()
+        self._update() #count=True)
+
+    def _undogoto(self, entry):
+        """Reverse a _goto. Used for undo()
+        """
+        old, new, go_modes, coodata = entry
+        drawing, pc, ps, filling = go_modes
+        cLI, cL, pl, items = coodata
+        screen = self.screen
+        if abs(self._position - new) > 0.5:
+            print ("undogoto: HALLO-DA-STIMMT-WAS-NICHT!")
+        # restore former situation
+        self.currentLineItem = cLI
+        self.currentLine = cL
+
+        if pl == [(0, 0), (0, 0)]:
+            usepc = ""
+        else:
+            usepc = pc
+        screen._drawline(cLI, pl, fill=usepc, width=ps)
+
+        todelete = [i for i in self.items if (i not in items) and
+                                       (screen._type(i) == "line")]
+        for i in todelete:
+            screen._delete(i)
+            self.items.remove(i)
+
+        start = old
+        if self._speed and screen._tracing == 1:
+            diff = old - new
+            diffsq = (diff[0]*screen.xscale)**2 + (diff[1]*screen.yscale)**2
+            nhops = 1+int((diffsq**0.5)/(3*(1.1**self._speed)*self._speed))
+            delta = diff * (1.0/nhops)
+            for n in range(1, nhops):
+                if n == 1:
+                    top = True
+                else:
+                    top = False
+                self._position = new + delta * n
+                if drawing:
+                    screen._drawline(self.drawingLineItem,
+                                     (start, self._position),
+                                     pc, ps, top)
+                self._update()
+            if drawing:
+                screen._drawline(self.drawingLineItem, ((0, 0), (0, 0)),
+                                               fill="", width=ps)
+        # Turtle now at position old,
+        self._position = old
+        ##  if undo is done during creating a polygon, the last vertex
+        ##  will be deleted. if the polygon is entirely deleted,
+        ##  creatingPoly will be set to False.
+        ##  Polygons created before the last one will not be affected by undo()
+        if self._creatingPoly:
+            if len(self._poly) > 0:
+                self._poly.pop()
+            if self._poly == []:
+                self._creatingPoly = False
+                self._poly = None
+        if filling:
+            if self._fillpath == []:
+                self._fillpath = None
+                print("Unwahrscheinlich in _undogoto!")
+            elif self._fillpath is not None:
+                self._fillpath.pop()
+        self._update() #count=True)
+
+    def _rotate(self, angle):
+        """Turns pen clockwise by angle.
+        """
+        if self.undobuffer:
+            self.undobuffer.push(("rot", angle, self._degreesPerAU))
+        angle *= self._degreesPerAU
+        neworient = self._orient.rotate(angle)
+        tracing = self.screen._tracing
+        if tracing == 1 and self._speed > 0:
+            anglevel = 3.0 * self._speed
+            steps = 1 + int(abs(angle)/anglevel)
+            delta = 1.0*angle/steps
+            for _ in range(steps):
+                self._orient = self._orient.rotate(delta)
+                self._update()
+        self._orient = neworient
+        self._update()
+
+    def _newLine(self, usePos=True):
+        """Closes current line item and starts a new one.
+           Remark: if current line became too long, animation
+           performance (via _drawline) slowed down considerably.
+        """
+        if len(self.currentLine) > 1:
+            self.screen._drawline(self.currentLineItem, self.currentLine,
+                                      self._pencolor, self._pensize)
+            self.currentLineItem = self.screen._createline()
+            self.items.append(self.currentLineItem)
+        else:
+            self.screen._drawline(self.currentLineItem, top=True)
+        self.currentLine = []
+        if usePos:
+            self.currentLine = [self._position]
+
+    def filling(self):
+        """Return fillstate (True if filling, False else).
+
+        No argument.
+
+        Example (for a Turtle instance named turtle):
+        >>> turtle.begin_fill()
+        >>> if turtle.filling():
+        ...     turtle.pensize(5)
+        ... else:
+        ...     turtle.pensize(3)
+        """
+        return isinstance(self._fillpath, list)
+
+    def begin_fill(self):
+        """Called just before drawing a shape to be filled.
+
+        No argument.
+
+        Example (for a Turtle instance named turtle):
+        >>> turtle.color("black", "red")
+        >>> turtle.begin_fill()
+        >>> turtle.circle(60)
+        >>> turtle.end_fill()
+        """
+        if not self.filling():
+            self._fillitem = self.screen._createpoly()
+            self.items.append(self._fillitem)
+        self._fillpath = [self._position]
+        self._newLine()
+        if self.undobuffer:
+            self.undobuffer.push(("beginfill", self._fillitem))
+        self._update()
+
+
+    def end_fill(self):
+        """Fill the shape drawn after the call begin_fill().
+
+        No argument.
+
+        Example (for a Turtle instance named turtle):
+        >>> turtle.color("black", "red")
+        >>> turtle.begin_fill()
+        >>> turtle.circle(60)
+        >>> turtle.end_fill()
+        """
+        if self.filling():
+            if len(self._fillpath) > 2:
+                self.screen._drawpoly(self._fillitem, self._fillpath,
+                                      fill=self._fillcolor)
+                if self.undobuffer:
+                    self.undobuffer.push(("dofill", self._fillitem))
+            self._fillitem = self._fillpath = None
+            self._update()
+
+    def dot(self, size=None, *color):
+        """Draw a dot with diameter size, using color.
+
+        Optional arguments:
+        size -- an integer >= 1 (if given)
+        color -- a colorstring or a numeric color tuple
+
+        Draw a circular dot with diameter size, using color.
+        If size is not given, the maximum of pensize+4 and 2*pensize is used.
+
+        Example (for a Turtle instance named turtle):
+        >>> turtle.dot()
+        >>> turtle.fd(50); turtle.dot(20, "blue"); turtle.fd(50)
+        """
+        if not color:
+            if isinstance(size, (str, tuple)):
+                color = self._colorstr(size)
+                size = self._pensize + max(self._pensize, 4)
+            else:
+                color = self._pencolor
+                if not size:
+                    size = self._pensize + max(self._pensize, 4)
+        else:
+            if size is None:
+                size = self._pensize + max(self._pensize, 4)
+            color = self._colorstr(color)
+        # If screen were to gain a dot function, see GH #104218.
+        pen = self.pen()
+        if self.undobuffer:
+            self.undobuffer.push(["seq"])
+            self.undobuffer.cumulate = True
+        try:
+            if self.resizemode() == 'auto':
+                self.ht()
+            self.pendown()
+            self.pensize(size)
+            self.pencolor(color)
+            self.forward(0)
+        finally:
+            self.pen(pen)
+        if self.undobuffer:
+            self.undobuffer.cumulate = False
+
+    def _write(self, txt, align, font):
+        """Performs the writing for write()
+        """
+        item, end = self.screen._write(self._position, txt, align, font,
+                                                          self._pencolor)
+        self._update()
+        self.items.append(item)
+        if self.undobuffer:
+            self.undobuffer.push(("wri", item))
+        return end
+
+    def write(self, arg, move=False, align="left", font=("Arial", 8, "normal")):
+        """Write text at the current turtle position.
+
+        Arguments:
+        arg -- info, which is to be written to the TurtleScreen
+        move (optional) -- True/False
+        align (optional) -- one of the strings "left", "center" or right"
+        font (optional) -- a triple (fontname, fontsize, fonttype)
+
+        Write text - the string representation of arg - at the current
+        turtle position according to align ("left", "center" or right")
+        and with the given font.
+        If move is True, the pen is moved to the bottom-right corner
+        of the text. By default, move is False.
+
+        Example (for a Turtle instance named turtle):
+        >>> turtle.write('Home = ', True, align="center")
+        >>> turtle.write((0,0), True)
+        """
+        if self.undobuffer:
+            self.undobuffer.push(["seq"])
+            self.undobuffer.cumulate = True
+        end = self._write(str(arg), align.lower(), font)
+        if move:
+            x, y = self.pos()
+            self.setpos(end, y)
+        if self.undobuffer:
+            self.undobuffer.cumulate = False
+
+    def begin_poly(self):
+        """Start recording the vertices of a polygon.
+
+        No argument.
+
+        Start recording the vertices of a polygon. Current turtle position
+        is first point of polygon.
+
+        Example (for a Turtle instance named turtle):
+        >>> turtle.begin_poly()
+        """
+        self._poly = [self._position]
+        self._creatingPoly = True
+
+    def end_poly(self):
+        """Stop recording the vertices of a polygon.
+
+        No argument.
+
+        Stop recording the vertices of a polygon. Current turtle position is
+        last point of polygon. This will be connected with the first point.
+
+        Example (for a Turtle instance named turtle):
+        >>> turtle.end_poly()
+        """
+        self._creatingPoly = False
+
+    def get_poly(self):
+        """Return the lastly recorded polygon.
+
+        No argument.
+
+        Example (for a Turtle instance named turtle):
+        >>> p = turtle.get_poly()
+        >>> turtle.register_shape("myFavouriteShape", p)
+        """
+        ## check if there is any poly?
+        if self._poly is not None:
+            return tuple(self._poly)
+
+    def getscreen(self):
+        """Return the TurtleScreen object, the turtle is drawing  on.
+
+        No argument.
+
+        Return the TurtleScreen object, the turtle is drawing  on.
+        So TurtleScreen-methods can be called for that object.
+
+        Example (for a Turtle instance named turtle):
+        >>> ts = turtle.getscreen()
+        >>> ts
+        <turtle.TurtleScreen object at 0x0106B770>
+        >>> ts.bgcolor("pink")
+        """
+        return self.screen
+
+    def getturtle(self):
+        """Return the Turtleobject itself.
+
+        No argument.
+
+        Only reasonable use: as a function to return the 'anonymous turtle':
+
+        Example:
+        >>> pet = getturtle()
+        >>> pet.fd(50)
+        >>> pet
+        <turtle.Turtle object at 0x0187D810>
+        >>> turtles()
+        [<turtle.Turtle object at 0x0187D810>]
+        """
+        return self
+
+    getpen = getturtle
+
+
+    ################################################################
+    ### screen oriented methods recurring to methods of TurtleScreen
+    ################################################################
+
+    def _delay(self, delay=None):
+        """Set delay value which determines speed of turtle animation.
+        """
+        return self.screen.delay(delay)
+
+    def onclick(self, fun, btn=1, add=None):
+        """Bind fun to mouse-click event on this turtle on canvas.
+
+        Arguments:
+        fun --  a function with two arguments, to which will be assigned
+                the coordinates of the clicked point on the canvas.
+        btn --  number of the mouse-button defaults to 1 (left mouse button).
+        add --  True or False. If True, new binding will be added, otherwise
+                it will replace a former binding.
+
+        Example for the anonymous turtle, i. e. the procedural way:
+
+        >>> def turn(x, y):
+        ...     left(360)
+        ...
+        >>> onclick(turn)  # Now clicking into the turtle will turn it.
+        >>> onclick(None)  # event-binding will be removed
+        """
+        self.screen._onclick(self.turtle._item, fun, btn, add)
+        self._update()
+
+    def onrelease(self, fun, btn=1, add=None):
+        """Bind fun to mouse-button-release event on this turtle on canvas.
+
+        Arguments:
+        fun -- a function with two arguments, to which will be assigned
+                the coordinates of the clicked point on the canvas.
+        btn --  number of the mouse-button defaults to 1 (left mouse button).
+
+        Example (for a MyTurtle instance named joe):
+        >>> class MyTurtle(Turtle):
+        ...     def glow(self,x,y):
+        ...             self.fillcolor("red")
+        ...     def unglow(self,x,y):
+        ...             self.fillcolor("")
+        ...
+        >>> joe = MyTurtle()
+        >>> joe.onclick(joe.glow)
+        >>> joe.onrelease(joe.unglow)
+
+        Clicking on joe turns fillcolor red, unclicking turns it to
+        transparent.
+        """
+        self.screen._onrelease(self.turtle._item, fun, btn, add)
+        self._update()
+
+    def ondrag(self, fun, btn=1, add=None):
+        """Bind fun to mouse-move event on this turtle on canvas.
+
+        Arguments:
+        fun -- a function with two arguments, to which will be assigned
+               the coordinates of the clicked point on the canvas.
+        btn -- number of the mouse-button defaults to 1 (left mouse button).
+
+        Every sequence of mouse-move-events on a turtle is preceded by a
+        mouse-click event on that turtle.
+
+        Example (for a Turtle instance named turtle):
+        >>> turtle.ondrag(turtle.goto)
+
+        Subsequently clicking and dragging a Turtle will move it
+        across the screen thereby producing handdrawings (if pen is
+        down).
+        """
+        self.screen._ondrag(self.turtle._item, fun, btn, add)
+
+
+    def _undo(self, action, data):
+        """Does the main part of the work for undo()
+        """
+        if self.undobuffer is None:
+            return
+        if action == "rot":
+            angle, degPAU = data
+            self._rotate(-angle*degPAU/self._degreesPerAU)
+            dummy = self.undobuffer.pop()
+        elif action == "stamp":
+            stitem = data[0]
+            self.clearstamp(stitem)
+        elif action == "go":
+            self._undogoto(data)
+        elif action in ["wri", "dot"]:
+            item = data[0]
+            self.screen._delete(item)
+            self.items.remove(item)
+        elif action == "dofill":
+            item = data[0]
+            self.screen._drawpoly(item, ((0, 0),(0, 0),(0, 0)),
+                                  fill="", outline="")
+        elif action == "beginfill":
+            item = data[0]
+            self._fillitem = self._fillpath = None
+            if item in self.items:
+                self.screen._delete(item)
+                self.items.remove(item)
+        elif action == "pen":
+            TPen.pen(self, data[0])
+            self.undobuffer.pop()
+
+    def undo(self):
+        """undo (repeatedly) the last turtle action.
+
+        No argument.
+
+        undo (repeatedly) the last turtle action.
+        Number of available undo actions is determined by the size of
+        the undobuffer.
+
+        Example (for a Turtle instance named turtle):
+        >>> for i in range(4):
+        ...     turtle.fd(50); turtle.lt(80)
+        ...
+        >>> for i in range(8):
+        ...     turtle.undo()
+        ...
+        """
+        if self.undobuffer is None:
+            return
+        item = self.undobuffer.pop()
+        action = item[0]
+        data = item[1:]
+        if action == "seq":
+            while data:
+                item = data.pop()
+                self._undo(item[0], item[1:])
+        else:
+            self._undo(action, data)
+
+    turtlesize = shapesize
+
+RawPen = RawTurtle
+
+###  Screen - Singleton  ########################
+
+def Screen():
+    """Return the singleton screen object.
+    If none exists at the moment, create a new one and return it,
+    else return the existing one."""
+    if Turtle._screen is None:
+        Turtle._screen = _Screen()
+    return Turtle._screen
+
+class _Screen(TurtleScreen):
+
+    _root = None
+    _canvas = None
+    _title = _CFG["title"]
+
+    def __init__(self):
+        if _Screen._root is None:
+            _Screen._root = self._root = _Root()
+            self._root.title(_Screen._title)
+            self._root.ondestroy(self._destroy)
+        if _Screen._canvas is None:
+            width = _CFG["width"]
+            height = _CFG["height"]
+            canvwidth = _CFG["canvwidth"]
+            canvheight = _CFG["canvheight"]
+            leftright = _CFG["leftright"]
+            topbottom = _CFG["topbottom"]
+            self._root.setupcanvas(width, height, canvwidth, canvheight)
+            _Screen._canvas = self._root._getcanvas()
+            TurtleScreen.__init__(self, _Screen._canvas)
+            self.setup(width, height, leftright, topbottom)
+
+    def setup(self, width=_CFG["width"], height=_CFG["height"],
+              startx=_CFG["leftright"], starty=_CFG["topbottom"]):
+        """ Set the size and position of the main window.
+
+        Arguments:
+        width: as integer a size in pixels, as float a fraction of the screen.
+          Default is 50% of screen.
+        height: as integer the height in pixels, as float a fraction of the
+          screen. Default is 75% of screen.
+        startx: if positive, starting position in pixels from the left
+          edge of the screen, if negative from the right edge
+          Default, startx=None is to center window horizontally.
+        starty: if positive, starting position in pixels from the top
+          edge of the screen, if negative from the bottom edge
+          Default, starty=None is to center window vertically.
+
+        Examples (for a Screen instance named screen):
+        >>> screen.setup (width=200, height=200, startx=0, starty=0)
+
+        sets window to 200x200 pixels, in upper left of screen
+
+        >>> screen.setup(width=.75, height=0.5, startx=None, starty=None)
+
+        sets window to 75% of screen by 50% of screen and centers
+        """
+        if not hasattr(self._root, "set_geometry"):
+            return
+        sw = self._root.win_width()
+        sh = self._root.win_height()
+        if isinstance(width, float) and 0 <= width <= 1:
+            width = sw*width
+        if startx is None:
+            startx = (sw - width) / 2
+        if isinstance(height, float) and 0 <= height <= 1:
+            height = sh*height
+        if starty is None:
+            starty = (sh - height) / 2
+        self._root.set_geometry(width, height, startx, starty)
+        self.update()
+
+    def title(self, titlestring):
+        """Set title of turtle-window
+
+        Argument:
+        titlestring -- a string, to appear in the titlebar of the
+                       turtle graphics window.
+
+        This is a method of Screen-class. Not available for TurtleScreen-
+        objects.
+
+        Example (for a Screen instance named screen):
+        >>> screen.title("Welcome to the turtle-zoo!")
+        """
+        if _Screen._root is not None:
+            _Screen._root.title(titlestring)
+        _Screen._title = titlestring
+
+    def _destroy(self):
+        root = self._root
+        if root is _Screen._root:
+            Turtle._pen = None
+            Turtle._screen = None
+            _Screen._root = None
+            _Screen._canvas = None
+        TurtleScreen._RUNNING = False
+        root.destroy()
+
+    def bye(self):
+        """Shut the turtlegraphics window.
+
+        Example (for a TurtleScreen instance named screen):
+        >>> screen.bye()
+        """
+        self._destroy()
+
+    def exitonclick(self):
+        """Go into mainloop until the mouse is clicked.
+
+        No arguments.
+
+        Bind bye() method to mouseclick on TurtleScreen.
+        If "using_IDLE" - value in configuration dictionary is False
+        (default value), enter mainloop.
+        If IDLE with -n switch (no subprocess) is used, this value should be
+        set to True in turtle.cfg. In this case IDLE's mainloop
+        is active also for the client script.
+
+        This is a method of the Screen-class and not available for
+        TurtleScreen instances.
+
+        Example (for a Screen instance named screen):
+        >>> screen.exitonclick()
+
+        """
+        def exitGracefully(x, y):
+            """Screen.bye() with two dummy-parameters"""
+            self.bye()
+        self.onclick(exitGracefully)
+        if _CFG["using_IDLE"]:
+            return
+        try:
+            mainloop()
+        except AttributeError:
+            exit(0)
+
+class Turtle(RawTurtle):
+    """RawTurtle auto-creating (scrolled) canvas.
+
+    When a Turtle object is created or a function derived from some
+    Turtle method is called a TurtleScreen object is automatically created.
+    """
+    _pen = None
+    _screen = None
+
+    def __init__(self,
+                 shape=_CFG["shape"],
+                 undobuffersize=_CFG["undobuffersize"],
+                 visible=_CFG["visible"]):
+        if Turtle._screen is None:
+            Turtle._screen = Screen()
+        RawTurtle.__init__(self, Turtle._screen,
+                           shape=shape,
+                           undobuffersize=undobuffersize,
+                           visible=visible)
+
+Pen = Turtle
+
+def write_docstringdict(filename="turtle_docstringdict"):
+    """Create and write docstring-dictionary to file.
+
+    Optional argument:
+    filename -- a string, used as filename
+                default value is turtle_docstringdict
+
+    Has to be called explicitly, (not used by the turtle-graphics classes)
+    The docstring dictionary will be written to the Python script <filename>.py
+    It is intended to serve as a template for translation of the docstrings
+    into different languages.
+    """
+    docsdict = {}
+
+    for methodname in _tg_screen_functions:
+        key = "_Screen."+methodname
+        docsdict[key] = eval(key).__doc__
+    for methodname in _tg_turtle_functions:
+        key = "Turtle."+methodname
+        docsdict[key] = eval(key).__doc__
+
+    with open("%s.py" % filename,"w") as f:
+        keys = sorted(x for x in docsdict
+                      if x.split('.')[1] not in _alias_list)
+        f.write('docsdict = {\n\n')
+        for key in keys[:-1]:
+            f.write('%s :\n' % repr(key))
+            f.write('        """%s\n""",\n\n' % docsdict[key])
+        key = keys[-1]
+        f.write('%s :\n' % repr(key))
+        f.write('        """%s\n"""\n\n' % docsdict[key])
+        f.write("}\n")
+        f.close()
+
+def read_docstrings(lang):
+    """Read in docstrings from lang-specific docstring dictionary.
+
+    Transfer docstrings, translated to lang, from a dictionary-file
+    to the methods of classes Screen and Turtle and - in revised form -
+    to the corresponding functions.
+    """
+    modname = "turtle_docstringdict_%(language)s" % {'language':lang.lower()}
+    module = __import__(modname)
+    docsdict = module.docsdict
+    for key in docsdict:
+        try:
+#            eval(key).im_func.__doc__ = docsdict[key]
+            eval(key).__doc__ = docsdict[key]
+        except Exception:
+            print("Bad docstring-entry: %s" % key)
+
+_LANGUAGE = _CFG["language"]
+
+try:
+    if _LANGUAGE != "english":
+        read_docstrings(_LANGUAGE)
+except ImportError:
+    print("Cannot find docsdict for", _LANGUAGE)
+except Exception:
+    print ("Unknown Error when trying to import %s-docstring-dictionary" %
+                                                                  _LANGUAGE)
+
+
+def getmethparlist(ob):
+    """Get strings describing the arguments for the given object
+
+    Returns a pair of strings representing function parameter lists
+    including parenthesis.  The first string is suitable for use in
+    function definition and the second is suitable for use in function
+    call.  The "self" parameter is not included.
+    """
+    orig_sig = inspect.signature(ob)
+    # bit of a hack for methods - turn it into a function
+    # but we drop the "self" param.
+    # Try and build one for Python defined functions
+    func_sig = orig_sig.replace(
+        parameters=list(orig_sig.parameters.values())[1:],
+    )
+
+    call_args = []
+    for param in func_sig.parameters.values():
+        match param.kind:
+            case (
+                inspect.Parameter.POSITIONAL_ONLY
+                | inspect.Parameter.POSITIONAL_OR_KEYWORD
+            ):
+                call_args.append(param.name)
+            case inspect.Parameter.VAR_POSITIONAL:
+                call_args.append(f'*{param.name}')
+            case inspect.Parameter.KEYWORD_ONLY:
+                call_args.append(f'{param.name}={param.name}')
+            case inspect.Parameter.VAR_KEYWORD:
+                call_args.append(f'**{param.name}')
+            case _:
+                raise RuntimeError('Unsupported parameter kind', param.kind)
+    call_text = f'({', '.join(call_args)})'
+
+    return str(func_sig), call_text
+
+def _turtle_docrevise(docstr):
+    """To reduce docstrings from RawTurtle class for functions
+    """
+    import re
+    if docstr is None:
+        return None
+    turtlename = _CFG["exampleturtle"]
+    newdocstr = docstr.replace("%s." % turtlename,"")
+    parexp = re.compile(r' \(.+ %s\):' % turtlename)
+    newdocstr = parexp.sub(":", newdocstr)
+    return newdocstr
+
+def _screen_docrevise(docstr):
+    """To reduce docstrings from TurtleScreen class for functions
+    """
+    import re
+    if docstr is None:
+        return None
+    screenname = _CFG["examplescreen"]
+    newdocstr = docstr.replace("%s." % screenname,"")
+    parexp = re.compile(r' \(.+ %s\):' % screenname)
+    newdocstr = parexp.sub(":", newdocstr)
+    return newdocstr
+
+## The following mechanism makes all methods of RawTurtle and Turtle available
+## as functions. So we can enhance, change, add, delete methods to these
+## classes and do not need to change anything here.
+
+__func_body = """\
+def {name}{paramslist}:
+    if {obj} is None:
+        if not TurtleScreen._RUNNING:
+            TurtleScreen._RUNNING = True
+            raise Terminator
+        {obj} = {init}
+    try:
+        return {obj}.{name}{argslist}
+    except TK.TclError:
+        if not TurtleScreen._RUNNING:
+            TurtleScreen._RUNNING = True
+            raise Terminator
+        raise
+"""
+
+def _make_global_funcs(functions, cls, obj, init, docrevise):
+    for methodname in functions:
+        method = getattr(cls, methodname)
+        pl1, pl2 = getmethparlist(method)
+        if pl1 == "":
+            print(">>>>>>", pl1, pl2)
+            continue
+        defstr = __func_body.format(obj=obj, init=init, name=methodname,
+                                    paramslist=pl1, argslist=pl2)
+        exec(defstr, globals())
+        globals()[methodname].__doc__ = docrevise(method.__doc__)
+
+_make_global_funcs(_tg_screen_functions, _Screen,
+                   'Turtle._screen', 'Screen()', _screen_docrevise)
+_make_global_funcs(_tg_turtle_functions, Turtle,
+                   'Turtle._pen', 'Turtle()', _turtle_docrevise)
+
+
+done = mainloop
+
+if __name__ == "__main__":
+    def switchpen():
+        if isdown():
+            pu()
+        else:
+            pd()
+
+    def demo1():
+        """Demo of old turtle.py - module"""
+        reset()
+        tracer(True)
+        up()
+        backward(100)
+        down()
+        # draw 3 squares; the last filled
+        width(3)
+        for i in range(3):
+            if i == 2:
+                begin_fill()
+            for _ in range(4):
+                forward(20)
+                left(90)
+            if i == 2:
+                color("maroon")
+                end_fill()
+            up()
+            forward(30)
+            down()
+        width(1)
+        color("black")
+        # move out of the way
+        tracer(False)
+        up()
+        right(90)
+        forward(100)
+        right(90)
+        forward(100)
+        right(180)
+        down()
+        # some text
+        write("startstart", 1)
+        write("start", 1)
+        color("red")
+        # staircase
+        for i in range(5):
+            forward(20)
+            left(90)
+            forward(20)
+            right(90)
+        # filled staircase
+        tracer(True)
+        begin_fill()
+        for i in range(5):
+            forward(20)
+            left(90)
+            forward(20)
+            right(90)
+        end_fill()
+        # more text
+
+    def demo2():
+        """Demo of some new features."""
+        speed(1)
+        st()
+        pensize(3)
+        setheading(towards(0, 0))
+        radius = distance(0, 0)/2.0
+        rt(90)
+        for _ in range(18):
+            switchpen()
+            circle(radius, 10)
+        write("wait a moment...")
+        while undobufferentries():
+            undo()
+        reset()
+        lt(90)
+        colormode(255)
+        laenge = 10
+        pencolor("green")
+        pensize(3)
+        lt(180)
+        for i in range(-2, 16):
+            if i > 0:
+                begin_fill()
+                fillcolor(255-15*i, 0, 15*i)
+            for _ in range(3):
+                fd(laenge)
+                lt(120)
+            end_fill()
+            laenge += 10
+            lt(15)
+            speed((speed()+1)%12)
+        #end_fill()
+
+        lt(120)
+        pu()
+        fd(70)
+        rt(30)
+        pd()
+        color("red","yellow")
+        speed(0)
+        begin_fill()
+        for _ in range(4):
+            circle(50, 90)
+            rt(90)
+            fd(30)
+            rt(90)
+        end_fill()
+        lt(90)
+        pu()
+        fd(30)
+        pd()
+        shape("turtle")
+
+        tri = getturtle()
+        tri.resizemode("auto")
+        turtle = Turtle()
+        turtle.resizemode("auto")
+        turtle.shape("turtle")
+        turtle.reset()
+        turtle.left(90)
+        turtle.speed(0)
+        turtle.up()
+        turtle.goto(280, 40)
+        turtle.lt(30)
+        turtle.down()
+        turtle.speed(6)
+        turtle.color("blue","orange")
+        turtle.pensize(2)
+        tri.speed(6)
+        setheading(towards(turtle))
+        count = 1
+        while tri.distance(turtle) > 4:
+            turtle.fd(3.5)
+            turtle.lt(0.6)
+            tri.setheading(tri.towards(turtle))
+            tri.fd(4)
+            if count % 20 == 0:
+                turtle.stamp()
+                tri.stamp()
+                switchpen()
+            count += 1
+        tri.write("CAUGHT! ", font=("Arial", 16, "bold"), align="right")
+        tri.pencolor("black")
+        tri.pencolor("red")
+
+        def baba(xdummy, ydummy):
+            clearscreen()
+            bye()
+
+        time.sleep(2)
+
+        while undobufferentries():
+            tri.undo()
+            turtle.undo()
+        tri.fd(50)
+        tri.write("  Click me!", font = ("Courier", 12, "bold") )
+        tri.onclick(baba, 1)
+
+    demo1()
+    demo2()
+    exitonclick()
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 """
+Define names for built-in types that aren't directly accessible as a builtin.
+"""
+
+import sys
+
+# Iterators in Python aren't a matter of type but of protocol.  A large
+# and changing number of builtin types implement *some* flavor of
+# iterator.  Don't check the type!  Use hasattr to check for both
+# "__iter__" and "__next__" attributes instead.
+
+def _f(): pass
+FunctionType = type(_f)
+LambdaType = type(lambda: None)         # Same as FunctionType
+CodeType = type(_f.__code__)
+MappingProxyType = type(type.__dict__)
+SimpleNamespace = type(sys.implementation)
+
+def _cell_factory():
+    a = 1
+    def f():
+        nonlocal a
+    return f.__closure__[0]
+CellType = type(_cell_factory())
+
+def _g():
+    yield 1
+GeneratorType = type(_g())
+
+async def _c(): pass
+_c = _c()
+CoroutineType = type(_c)
+_c.close()  # Prevent ResourceWarning
+
+async def _ag():
+    yield
+_ag = _ag()
+AsyncGeneratorType = type(_ag)
+
+class _C:
+    def _m(self): pass
+MethodType = type(_C()._m)
+
+BuiltinFunctionType = type(len)
+BuiltinMethodType = type([].append)     # Same as BuiltinFunctionType
+
+WrapperDescriptorType = type(object.__init__)
+MethodWrapperType = type(object().__str__)
+MethodDescriptorType = type(str.join)
+ClassMethodDescriptorType = type(dict.__dict__['fromkeys'])
+
+ModuleType = type(sys)
+
+try:
+    raise TypeError
+except TypeError as exc:
+    TracebackType = type(exc.__traceback__)
+    FrameType = type(exc.__traceback__.tb_frame)
+
+GetSetDescriptorType = type(FunctionType.__code__)
+MemberDescriptorType = type(FunctionType.__globals__)
+
+del sys, _f, _g, _C, _c, _ag, _cell_factory  # Not for export
+
+
+# Provide a PEP 3115 compliant mechanism for class creation
+def new_class(name, bases=(), kwds=None, exec_body=None):
+    """Create a class object dynamically using the appropriate metaclass."""
+    resolved_bases = resolve_bases(bases)
+    meta, ns, kwds = prepare_class(name, resolved_bases, kwds)
+    if exec_body is not None:
+        exec_body(ns)
+    if resolved_bases is not bases:
+        ns['__orig_bases__'] = bases
+    return meta(name, resolved_bases, ns, **kwds)
+
+def resolve_bases(bases):
+    """Resolve MRO entries dynamically as specified by PEP 560."""
+    new_bases = list(bases)
+    updated = False
+    shift = 0
+    for i, base in enumerate(bases):
+        if isinstance(base, type):
+            continue
+        if not hasattr(base, "__mro_entries__"):
+            continue
+        new_base = base.__mro_entries__(bases)
+        updated = True
+        if not isinstance(new_base, tuple):
+            raise TypeError("__mro_entries__ must return a tuple")
+        else:
+            new_bases[i+shift:i+shift+1] = new_base
+            shift += len(new_base) - 1
+    if not updated:
+        return bases
+    return tuple(new_bases)
+
+def prepare_class(name, bases=(), kwds=None):
+    """Call the __prepare__ method of the appropriate metaclass.
+
+    Returns (metaclass, namespace, kwds) as a 3-tuple
+
+    *metaclass* is the appropriate metaclass
+    *namespace* is the prepared class namespace
+    *kwds* is an updated copy of the passed in kwds argument with any
+    'metaclass' entry removed. If no kwds argument is passed in, this will
+    be an empty dict.
+    """
+    if kwds is None:
+        kwds = {}
+    else:
+        kwds = dict(kwds) # Don't alter the provided mapping
+    if 'metaclass' in kwds:
+        meta = kwds.pop('metaclass')
+    else:
+        if bases:
+            meta = type(bases[0])
+        else:
+            meta = type
+    if isinstance(meta, type):
+        # when meta is a type, we first determine the most-derived metaclass
+        # instead of invoking the initial candidate directly
+        meta = _calculate_meta(meta, bases)
+    if hasattr(meta, '__prepare__'):
+        ns = meta.__prepare__(name, bases, **kwds)
+    else:
+        ns = {}
+    return meta, ns, kwds
+
+def _calculate_meta(meta, bases):
+    """Calculate the most derived metaclass."""
+    winner = meta
+    for base in bases:
+        base_meta = type(base)
+        if issubclass(winner, base_meta):
+            continue
+        if issubclass(base_meta, winner):
+            winner = base_meta
+            continue
+        # else:
+        raise TypeError("metaclass conflict: "
+                        "the metaclass of a derived class "
+                        "must be a (non-strict) subclass "
+                        "of the metaclasses of all its bases")
+    return winner
+
+
+def get_original_bases(cls, /):
+    """Return the class's "original" bases prior to modification by `__mro_entries__`.
+
+    Examples::
+
+        from typing import TypeVar, Generic, NamedTuple, TypedDict
+
+        T = TypeVar("T")
+        class Foo(Generic[T]): ...
+        class Bar(Foo[int], float): ...
+        class Baz(list[str]): ...
+        Eggs = NamedTuple("Eggs", [("a", int), ("b", str)])
+        Spam = TypedDict("Spam", {"a": int, "b": str})
+
+        assert get_original_bases(Bar) == (Foo[int], float)
+        assert get_original_bases(Baz) == (list[str],)
+        assert get_original_bases(Eggs) == (NamedTuple,)
+        assert get_original_bases(Spam) == (TypedDict,)
+        assert get_original_bases(int) == (object,)
+    """
+    try:
+        return cls.__dict__.get("__orig_bases__", cls.__bases__)
+    except AttributeError:
+        raise TypeError(
+            f"Expected an instance of type, not {type(cls).__name__!r}"
+        ) from None
+
+
+class DynamicClassAttribute:
+    """Route attribute access on a class to __getattr__.
+
+    This is a descriptor, used to define attributes that act differently when
+    accessed through an instance and through a class.  Instance access remains
+    normal, but access to an attribute through a class will be routed to the
+    class's __getattr__ method; this is done by raising AttributeError.
+
+    This allows one to have properties active on an instance, and have virtual
+    attributes on the class with the same name.  (Enum used this between Python
+    versions 3.4 - 3.9 .)
+
+    Subclass from this to use a different method of accessing virtual attributes
+    and still be treated properly by the inspect module. (Enum uses this since
+    Python 3.10 .)
+
+    """
+    def __init__(self, fget=None, fset=None, fdel=None, doc=None):
+        self.fget = fget
+        self.fset = fset
+        self.fdel = fdel
+        # next two lines make DynamicClassAttribute act the same as property
+        self.__doc__ = doc or fget.__doc__
+        self.overwrite_doc = doc is None
+        # support for abstract methods
+        self.__isabstractmethod__ = bool(getattr(fget, '__isabstractmethod__', False))
+
+    def __get__(self, instance, ownerclass=None):
+        if instance is None:
+            if self.__isabstractmethod__:
+                return self
+            raise AttributeError()
+        elif self.fget is None:
+            raise AttributeError("unreadable attribute")
+        return self.fget(instance)
+
+    def __set__(self, instance, value):
+        if self.fset is None:
+            raise AttributeError("can't set attribute")
+        self.fset(instance, value)
+
+    def __delete__(self, instance):
+        if self.fdel is None:
+            raise AttributeError("can't delete attribute")
+        self.fdel(instance)
+
+    def getter(self, fget):
+        fdoc = fget.__doc__ if self.overwrite_doc else None
+        result = type(self)(fget, self.fset, self.fdel, fdoc or self.__doc__)
+        result.overwrite_doc = self.overwrite_doc
+        return result
+
+    def setter(self, fset):
+        result = type(self)(self.fget, fset, self.fdel, self.__doc__)
+        result.overwrite_doc = self.overwrite_doc
+        return result
+
+    def deleter(self, fdel):
+        result = type(self)(self.fget, self.fset, fdel, self.__doc__)
+        result.overwrite_doc = self.overwrite_doc
+        return result
+
+
+class _GeneratorWrapper:
+    # TODO: Implement this in C.
+    def __init__(self, gen):
+        self.__wrapped = gen
+        self.__isgen = gen.__class__ is GeneratorType
+        self.__name__ = getattr(gen, '__name__', None)
+        self.__qualname__ = getattr(gen, '__qualname__', None)
+    def send(self, val):
+        return self.__wrapped.send(val)
+    def throw(self, tp, *rest):
+        return self.__wrapped.throw(tp, *rest)
+    def close(self):
+        return self.__wrapped.close()
+    @property
+    def gi_code(self):
+        return self.__wrapped.gi_code
+    @property
+    def gi_frame(self):
+        return self.__wrapped.gi_frame
+    @property
+    def gi_running(self):
+        return self.__wrapped.gi_running
+    @property
+    def gi_yieldfrom(self):
+        return self.__wrapped.gi_yieldfrom
+    cr_code = gi_code
+    cr_frame = gi_frame
+    cr_running = gi_running
+    cr_await = gi_yieldfrom
+    def __next__(self):
+        return next(self.__wrapped)
+    def __iter__(self):
+        if self.__isgen:
+            return self.__wrapped
+        return self
+    __await__ = __iter__
+
+def coroutine(func):
+    """Convert regular generator function to a coroutine."""
+
+    if not callable(func):
+        raise TypeError('types.coroutine() expects a callable')
+
+    if (func.__class__ is FunctionType and
+        getattr(func, '__code__', None).__class__ is CodeType):
+
+        co_flags = func.__code__.co_flags
+
+        # Check if 'func' is a coroutine function.
+        # (0x180 == CO_COROUTINE | CO_ITERABLE_COROUTINE)
+        if co_flags & 0x180:
+            return func
+
+        # Check if 'func' is a generator function.
+        # (0x20 == CO_GENERATOR)
+        if co_flags & 0x20:
+            # TODO: Implement this in C.
+            co = func.__code__
+            # 0x100 == CO_ITERABLE_COROUTINE
+            func.__code__ = co.replace(co_flags=co.co_flags | 0x100)
+            return func
+
+    # The following code is primarily to support functions that
+    # return generator-like objects (for instance generators
+    # compiled with Cython).
+
+    # Delay functools and _collections_abc import for speeding up types import.
+    import functools
+    import _collections_abc
+    @functools.wraps(func)
+    def wrapped(*args, **kwargs):
+        coro = func(*args, **kwargs)
+        if (coro.__class__ is CoroutineType or
+            coro.__class__ is GeneratorType and coro.gi_code.co_flags & 0x100):
+            # 'coro' is a native coroutine object or an iterable coroutine
+            return coro
+        if (isinstance(coro, _collections_abc.Generator) and
+            not isinstance(coro, _collections_abc.Coroutine)):
+            # 'coro' is either a pure Python generator iterator, or it
+            # implements collections.abc.Generator (and does not implement
+            # collections.abc.Coroutine).
+            return _GeneratorWrapper(coro)
+        # 'coro' is either an instance of collections.abc.Coroutine or
+        # some other object -- pass it through.
+        return coro
+
+    return wrapped
+
+GenericAlias = type(list[int])
+UnionType = type(int | str)
+
+EllipsisType = type(Ellipsis)
+NoneType = type(None)
+NotImplementedType = type(NotImplemented)
+
+def __getattr__(name):
+    if name == 'CapsuleType':
+        import _socket
+        return type(_socket.CAPI)
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+
+__all__ = [n for n in globals() if n[:1] != '_']
+__all__ += ['CapsuleType']
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         """
+The typing module: Support for gradual typing as defined by PEP 484 and subsequent PEPs.
+
+Among other things, the module includes the following:
+* Generic, Protocol, and internal machinery to support generic aliases.
+  All subscripted types like X[int], Union[int, str] are generic aliases.
+* Various "special forms" that have unique meanings in type annotations:
+  NoReturn, Never, ClassVar, Self, Concatenate, Unpack, and others.
+* Classes whose instances can be type arguments to generic classes and functions:
+  TypeVar, ParamSpec, TypeVarTuple.
+* Public helper functions: get_type_hints, overload, cast, final, and others.
+* Several protocols to support duck-typing:
+  SupportsFloat, SupportsIndex, SupportsAbs, and others.
+* Special types: NewType, NamedTuple, TypedDict.
+* Deprecated aliases for builtin types and collections.abc ABCs.
+
+Any name not present in __all__ is an implementation detail
+that may be changed without notice. Use at your own risk!
+"""
+
+from abc import abstractmethod, ABCMeta
+import collections
+from collections import defaultdict
+import collections.abc
+import copyreg
+import functools
+import operator
+import sys
+import types
+from types import WrapperDescriptorType, MethodWrapperType, MethodDescriptorType, GenericAlias
+
+from _typing import (
+    _idfunc,
+    TypeVar,
+    ParamSpec,
+    TypeVarTuple,
+    ParamSpecArgs,
+    ParamSpecKwargs,
+    TypeAliasType,
+    Generic,
+    NoDefault,
+)
+
+# Please keep __all__ alphabetized within each category.
+__all__ = [
+    # Super-special typing primitives.
+    'Annotated',
+    'Any',
+    'Callable',
+    'ClassVar',
+    'Concatenate',
+    'Final',
+    'ForwardRef',
+    'Generic',
+    'Literal',
+    'Optional',
+    'ParamSpec',
+    'Protocol',
+    'Tuple',
+    'Type',
+    'TypeVar',
+    'TypeVarTuple',
+    'Union',
+
+    # ABCs (from collections.abc).
+    'AbstractSet',  # collections.abc.Set.
+    'ByteString',
+    'Container',
+    'ContextManager',
+    'Hashable',
+    'ItemsView',
+    'Iterable',
+    'Iterator',
+    'KeysView',
+    'Mapping',
+    'MappingView',
+    'MutableMapping',
+    'MutableSequence',
+    'MutableSet',
+    'Sequence',
+    'Sized',
+    'ValuesView',
+    'Awaitable',
+    'AsyncIterator',
+    'AsyncIterable',
+    'Coroutine',
+    'Collection',
+    'AsyncGenerator',
+    'AsyncContextManager',
+
+    # Structural checks, a.k.a. protocols.
+    'Reversible',
+    'SupportsAbs',
+    'SupportsBytes',
+    'SupportsComplex',
+    'SupportsFloat',
+    'SupportsIndex',
+    'SupportsInt',
+    'SupportsRound',
+
+    # Concrete collection types.
+    'ChainMap',
+    'Counter',
+    'Deque',
+    'Dict',
+    'DefaultDict',
+    'List',
+    'OrderedDict',
+    'Set',
+    'FrozenSet',
+    'NamedTuple',  # Not really a type.
+    'TypedDict',  # Not really a type.
+    'Generator',
+
+    # Other concrete types.
+    'BinaryIO',
+    'IO',
+    'Match',
+    'Pattern',
+    'TextIO',
+
+    # One-off things.
+    'AnyStr',
+    'assert_type',
+    'assert_never',
+    'cast',
+    'clear_overloads',
+    'dataclass_transform',
+    'final',
+    'get_args',
+    'get_origin',
+    'get_overloads',
+    'get_protocol_members',
+    'get_type_hints',
+    'is_protocol',
+    'is_typeddict',
+    'LiteralString',
+    'Never',
+    'NewType',
+    'no_type_check',
+    'no_type_check_decorator',
+    'NoDefault',
+    'NoReturn',
+    'NotRequired',
+    'overload',
+    'override',
+    'ParamSpecArgs',
+    'ParamSpecKwargs',
+    'ReadOnly',
+    'Required',
+    'reveal_type',
+    'runtime_checkable',
+    'Self',
+    'Text',
+    'TYPE_CHECKING',
+    'TypeAlias',
+    'TypeGuard',
+    'TypeIs',
+    'TypeAliasType',
+    'Unpack',
+]
+
+
+def _type_convert(arg, module=None, *, allow_special_forms=False):
+    """For converting None to type(None), and strings to ForwardRef."""
+    if arg is None:
+        return type(None)
+    if isinstance(arg, str):
+        return ForwardRef(arg, module=module, is_class=allow_special_forms)
+    return arg
+
+
+def _type_check(arg, msg, is_argument=True, module=None, *, allow_special_forms=False):
+    """Check that the argument is a type, and return it (internal helper).
+
+    As a special case, accept None and return type(None) instead. Also wrap strings
+    into ForwardRef instances. Consider several corner cases, for example plain
+    special forms like Union are not valid, while Union[int, str] is OK, etc.
+    The msg argument is a human-readable error message, e.g.::
+
+        "Union[arg, ...]: arg should be a type."
+
+    We append the repr() of the actual value (truncated to 100 chars).
+    """
+    invalid_generic_forms = (Generic, Protocol)
+    if not allow_special_forms:
+        invalid_generic_forms += (ClassVar,)
+        if is_argument:
+            invalid_generic_forms += (Final,)
+
+    arg = _type_convert(arg, module=module, allow_special_forms=allow_special_forms)
+    if (isinstance(arg, _GenericAlias) and
+            arg.__origin__ in invalid_generic_forms):
+        raise TypeError(f"{arg} is not valid as type argument")
+    if arg in (Any, LiteralString, NoReturn, Never, Self, TypeAlias):
+        return arg
+    if allow_special_forms and arg in (ClassVar, Final):
+        return arg
+    if isinstance(arg, _SpecialForm) or arg in (Generic, Protocol):
+        raise TypeError(f"Plain {arg} is not valid as type argument")
+    if type(arg) is tuple:
+        raise TypeError(f"{msg} Got {arg!r:.100}.")
+    return arg
+
+
+def _is_param_expr(arg):
+    return arg is ... or isinstance(arg,
+            (tuple, list, ParamSpec, _ConcatenateGenericAlias))
+
+
+def _should_unflatten_callable_args(typ, args):
+    """Internal helper for munging collections.abc.Callable's __args__.
+
+    The canonical representation for a Callable's __args__ flattens the
+    argument types, see https://github.com/python/cpython/issues/86361.
+
+    For example::
+
+        >>> import collections.abc
+        >>> P = ParamSpec('P')
+        >>> collections.abc.Callable[[int, int], str].__args__ == (int, int, str)
+        True
+        >>> collections.abc.Callable[P, str].__args__ == (P, str)
+        True
+
+    As a result, if we need to reconstruct the Callable from its __args__,
+    we need to unflatten it.
+    """
+    return (
+        typ.__origin__ is collections.abc.Callable
+        and not (len(args) == 2 and _is_param_expr(args[0]))
+    )
+
+
+def _type_repr(obj):
+    """Return the repr() of an object, special-casing types (internal helper).
+
+    If obj is a type, we return a shorter version than the default
+    type.__repr__, based on the module and qualified name, which is
+    typically enough to uniquely identify a type.  For everything
+    else, we fall back on repr(obj).
+    """
+    # When changing this function, don't forget about
+    # `_collections_abc._type_repr`, which does the same thing
+    # and must be consistent with this one.
+    if isinstance(obj, type):
+        if obj.__module__ == 'builtins':
+            return obj.__qualname__
+        return f'{obj.__module__}.{obj.__qualname__}'
+    if obj is ...:
+        return '...'
+    if isinstance(obj, types.FunctionType):
+        return obj.__name__
+    if isinstance(obj, tuple):
+        # Special case for `repr` of types with `ParamSpec`:
+        return '[' + ', '.join(_type_repr(t) for t in obj) + ']'
+    return repr(obj)
+
+
+def _collect_type_parameters(args, *, enforce_default_ordering: bool = True):
+    """Collect all type parameters in args
+    in order of first appearance (lexicographic order).
+
+    For example::
+
+        >>> P = ParamSpec('P')
+        >>> T = TypeVar('T')
+        >>> _collect_type_parameters((T, Callable[P, T]))
+        (~T, ~P)
+    """
+    # required type parameter cannot appear after parameter with default
+    default_encountered = False
+    # or after TypeVarTuple
+    type_var_tuple_encountered = False
+    parameters = []
+    for t in args:
+        if isinstance(t, type):
+            # We don't want __parameters__ descriptor of a bare Python class.
+            pass
+        elif isinstance(t, tuple):
+            # `t` might be a tuple, when `ParamSpec` is substituted with
+            # `[T, int]`, or `[int, *Ts]`, etc.
+            for x in t:
+                for collected in _collect_type_parameters([x]):
+                    if collected not in parameters:
+                        parameters.append(collected)
+        elif hasattr(t, '__typing_subst__'):
+            if t not in parameters:
+                if enforce_default_ordering:
+                    if type_var_tuple_encountered and t.has_default():
+                        raise TypeError('Type parameter with a default'
+                                        ' follows TypeVarTuple')
+
+                    if t.has_default():
+                        default_encountered = True
+                    elif default_encountered:
+                        raise TypeError(f'Type parameter {t!r} without a default'
+                                        ' follows type parameter with a default')
+
+                parameters.append(t)
+        else:
+            if _is_unpacked_typevartuple(t):
+                type_var_tuple_encountered = True
+            for x in getattr(t, '__parameters__', ()):
+                if x not in parameters:
+                    parameters.append(x)
+    return tuple(parameters)
+
+
+def _check_generic_specialization(cls, arguments):
+    """Check correct count for parameters of a generic cls (internal helper).
+
+    This gives a nice error message in case of count mismatch.
+    """
+    expected_len = len(cls.__parameters__)
+    if not expected_len:
+        raise TypeError(f"{cls} is not a generic class")
+    actual_len = len(arguments)
+    if actual_len != expected_len:
+        # deal with defaults
+        if actual_len < expected_len:
+            # If the parameter at index `actual_len` in the parameters list
+            # has a default, then all parameters after it must also have
+            # one, because we validated as much in _collect_type_parameters().
+            # That means that no error needs to be raised here, despite
+            # the number of arguments being passed not matching the number
+            # of parameters: all parameters that aren't explicitly
+            # specialized in this call are parameters with default values.
+            if cls.__parameters__[actual_len].has_default():
+                return
+
+            expected_len -= sum(p.has_default() for p in cls.__parameters__)
+            expect_val = f"at least {expected_len}"
+        else:
+            expect_val = expected_len
+
+        raise TypeError(f"Too {'many' if actual_len > expected_len else 'few'} arguments"
+                        f" for {cls}; actual {actual_len}, expected {expect_val}")
+
+
+def _unpack_args(*args):
+    newargs = []
+    for arg in args:
+        subargs = getattr(arg, '__typing_unpacked_tuple_args__', None)
+        if subargs is not None and not (subargs and subargs[-1] is ...):
+            newargs.extend(subargs)
+        else:
+            newargs.append(arg)
+    return newargs
+
+def _deduplicate(params, *, unhashable_fallback=False):
+    # Weed out strict duplicates, preserving the first of each occurrence.
+    try:
+        return dict.fromkeys(params)
+    except TypeError:
+        if not unhashable_fallback:
+            raise
+        # Happens for cases like `Annotated[dict, {'x': IntValidator()}]`
+        return _deduplicate_unhashable(params)
+
+def _deduplicate_unhashable(unhashable_params):
+    new_unhashable = []
+    for t in unhashable_params:
+        if t not in new_unhashable:
+            new_unhashable.append(t)
+    return new_unhashable
+
+def _compare_args_orderless(first_args, second_args):
+    first_unhashable = _deduplicate_unhashable(first_args)
+    second_unhashable = _deduplicate_unhashable(second_args)
+    t = list(second_unhashable)
+    try:
+        for elem in first_unhashable:
+            t.remove(elem)
+    except ValueError:
+        return False
+    return not t
+
+def _remove_dups_flatten(parameters):
+    """Internal helper for Union creation and substitution.
+
+    Flatten Unions among parameters, then remove duplicates.
+    """
+    # Flatten out Union[Union[...], ...].
+    params = []
+    for p in parameters:
+        if isinstance(p, (_UnionGenericAlias, types.UnionType)):
+            params.extend(p.__args__)
+        else:
+            params.append(p)
+
+    return tuple(_deduplicate(params, unhashable_fallback=True))
+
+
+def _flatten_literal_params(parameters):
+    """Internal helper for Literal creation: flatten Literals among parameters."""
+    params = []
+    for p in parameters:
+        if isinstance(p, _LiteralGenericAlias):
+            params.extend(p.__args__)
+        else:
+            params.append(p)
+    return tuple(params)
+
+
+_cleanups = []
+_caches = {}
+
+
+def _tp_cache(func=None, /, *, typed=False):
+    """Internal wrapper caching __getitem__ of generic types.
+
+    For non-hashable arguments, the original function is used as a fallback.
+    """
+    def decorator(func):
+        # The callback 'inner' references the newly created lru_cache
+        # indirectly by performing a lookup in the global '_caches' dictionary.
+        # This breaks a reference that can be problematic when combined with
+        # C API extensions that leak references to types. See GH-98253.
+
+        cache = functools.lru_cache(typed=typed)(func)
+        _caches[func] = cache
+        _cleanups.append(cache.cache_clear)
+        del cache
+
+        @functools.wraps(func)
+        def inner(*args, **kwds):
+            try:
+                return _caches[func](*args, **kwds)
+            except TypeError:
+                pass  # All real errors (not unhashable args) are raised below.
+            return func(*args, **kwds)
+        return inner
+
+    if func is not None:
+        return decorator(func)
+
+    return decorator
+
+
+def _deprecation_warning_for_no_type_params_passed(funcname: str) -> None:
+    import warnings
+
+    depr_message = (
+        f"Failing to pass a value to the 'type_params' parameter "
+        f"of {funcname!r} is deprecated, as it leads to incorrect behaviour "
+        f"when calling {funcname} on a stringified annotation "
+        f"that references a PEP 695 type parameter. "
+        f"It will be disallowed in Python 3.15."
+    )
+    warnings.warn(depr_message, category=DeprecationWarning, stacklevel=3)
+
+
+class _Sentinel:
+    __slots__ = ()
+    def __repr__(self):
+        return '<sentinel>'
+
+
+_sentinel = _Sentinel()
+
+
+def _eval_type(t, globalns, localns, type_params=_sentinel, *, recursive_guard=frozenset()):
+    """Evaluate all forward references in the given type t.
+
+    For use of globalns and localns see the docstring for get_type_hints().
+    recursive_guard is used to prevent infinite recursion with a recursive
+    ForwardRef.
+    """
+    if type_params is _sentinel:
+        _deprecation_warning_for_no_type_params_passed("typing._eval_type")
+        type_params = ()
+    if isinstance(t, ForwardRef):
+        return t._evaluate(globalns, localns, type_params, recursive_guard=recursive_guard)
+    if isinstance(t, (_GenericAlias, GenericAlias, types.UnionType)):
+        if isinstance(t, GenericAlias):
+            args = tuple(
+                ForwardRef(arg) if isinstance(arg, str) else arg
+                for arg in t.__args__
+            )
+            is_unpacked = t.__unpacked__
+            if _should_unflatten_callable_args(t, args):
+                t = t.__origin__[(args[:-1], args[-1])]
+            else:
+                t = t.__origin__[args]
+            if is_unpacked:
+                t = Unpack[t]
+
+        ev_args = tuple(
+            _eval_type(
+                a, globalns, localns, type_params, recursive_guard=recursive_guard
+            )
+            for a in t.__args__
+        )
+        if ev_args == t.__args__:
+            return t
+        if isinstance(t, GenericAlias):
+            return GenericAlias(t.__origin__, ev_args)
+        if isinstance(t, types.UnionType):
+            return functools.reduce(operator.or_, ev_args)
+        else:
+            return t.copy_with(ev_args)
+    return t
+
+
+class _Final:
+    """Mixin to prohibit subclassing."""
+
+    __slots__ = ('__weakref__',)
+
+    def __init_subclass__(cls, /, *args, **kwds):
+        if '_root' not in kwds:
+            raise TypeError("Cannot subclass special typing classes")
+
+
+class _NotIterable:
+    """Mixin to prevent iteration, without being compatible with Iterable.
+
+    That is, we could do::
+
+        def __iter__(self): raise TypeError()
+
+    But this would make users of this mixin duck type-compatible with
+    collections.abc.Iterable - isinstance(foo, Iterable) would be True.
+
+    Luckily, we can instead prevent iteration by setting __iter__ to None, which
+    is treated specially.
+    """
+
+    __slots__ = ()
+    __iter__ = None
+
+
+# Internal indicator of special typing constructs.
+# See __doc__ instance attribute for specific docs.
+class _SpecialForm(_Final, _NotIterable, _root=True):
+    __slots__ = ('_name', '__doc__', '_getitem')
+
+    def __init__(self, getitem):
+        self._getitem = getitem
+        self._name = getitem.__name__
+        self.__doc__ = getitem.__doc__
+
+    def __getattr__(self, item):
+        if item in {'__name__', '__qualname__'}:
+            return self._name
+
+        raise AttributeError(item)
+
+    def __mro_entries__(self, bases):
+        raise TypeError(f"Cannot subclass {self!r}")
+
+    def __repr__(self):
+        return 'typing.' + self._name
+
+    def __reduce__(self):
+        return self._name
+
+    def __call__(self, *args, **kwds):
+        raise TypeError(f"Cannot instantiate {self!r}")
+
+    def __or__(self, other):
+        return Union[self, other]
+
+    def __ror__(self, other):
+        return Union[other, self]
+
+    def __instancecheck__(self, obj):
+        raise TypeError(f"{self} cannot be used with isinstance()")
+
+    def __subclasscheck__(self, cls):
+        raise TypeError(f"{self} cannot be used with issubclass()")
+
+    @_tp_cache
+    def __getitem__(self, parameters):
+        return self._getitem(self, parameters)
+
+
+class _TypedCacheSpecialForm(_SpecialForm, _root=True):
+    def __getitem__(self, parameters):
+        if not isinstance(parameters, tuple):
+            parameters = (parameters,)
+        return self._getitem(self, *parameters)
+
+
+class _AnyMeta(type):
+    def __instancecheck__(self, obj):
+        if self is Any:
+            raise TypeError("typing.Any cannot be used with isinstance()")
+        return super().__instancecheck__(obj)
+
+    def __repr__(self):
+        if self is Any:
+            return "typing.Any"
+        return super().__repr__()  # respect to subclasses
+
+
+class Any(metaclass=_AnyMeta):
+    """Special type indicating an unconstrained type.
+
+    - Any is compatible with every type.
+    - Any assumed to have all methods.
+    - All values assumed to be instances of Any.
+
+    Note that all the above statements are true from the point of view of
+    static type checkers. At runtime, Any should not be used with instance
+    checks.
+    """
+
+    def __new__(cls, *args, **kwargs):
+        if cls is Any:
+            raise TypeError("Any cannot be instantiated")
+        return super().__new__(cls)
+
+
+@_SpecialForm
+def NoReturn(self, parameters):
+    """Special type indicating functions that never return.
+
+    Example::
+
+        from typing import NoReturn
+
+        def stop() -> NoReturn:
+            raise Exception('no way')
+
+    NoReturn can also be used as a bottom type, a type that
+    has no values. Starting in Python 3.11, the Never type should
+    be used for this concept instead. Type checkers should treat the two
+    equivalently.
+    """
+    raise TypeError(f"{self} is not subscriptable")
+
+# This is semantically identical to NoReturn, but it is implemented
+# separately so that type checkers can distinguish between the two
+# if they want.
+@_SpecialForm
+def Never(self, parameters):
+    """The bottom type, a type that has no members.
+
+    This can be used to define a function that should never be
+    called, or a function that never returns::
+
+        from typing import Never
+
+        def never_call_me(arg: Never) -> None:
+            pass
+
+        def int_or_str(arg: int | str) -> None:
+            never_call_me(arg)  # type checker error
+            match arg:
+                case int():
+                    print("It's an int")
+                case str():
+                    print("It's a str")
+                case _:
+                    never_call_me(arg)  # OK, arg is of type Never
+    """
+    raise TypeError(f"{self} is not subscriptable")
+
+
+@_SpecialForm
+def Self(self, parameters):
+    """Used to spell the type of "self" in classes.
+
+    Example::
+
+        from typing import Self
+
+        class Foo:
+            def return_self(self) -> Self:
+                ...
+                return self
+
+    This is especially useful for:
+        - classmethods that are used as alternative constructors
+        - annotating an `__enter__` method which returns self
+    """
+    raise TypeError(f"{self} is not subscriptable")
+
+
+@_SpecialForm
+def LiteralString(self, parameters):
+    """Represents an arbitrary literal string.
+
+    Example::
+
+        from typing import LiteralString
+
+        def run_query(sql: LiteralString) -> None:
+            ...
+
+        def caller(arbitrary_string: str, literal_string: LiteralString) -> None:
+            run_query("SELECT * FROM students")  # OK
+            run_query(literal_string)  # OK
+            run_query("SELECT * FROM " + literal_string)  # OK
+            run_query(arbitrary_string)  # type checker error
+            run_query(  # type checker error
+                f"SELECT * FROM students WHERE name = {arbitrary_string}"
+            )
+
+    Only string literals and other LiteralStrings are compatible
+    with LiteralString. This provides a tool to help prevent
+    security issues such as SQL injection.
+    """
+    raise TypeError(f"{self} is not subscriptable")
+
+
+@_SpecialForm
+def ClassVar(self, parameters):
+    """Special type construct to mark class variables.
+
+    An annotation wrapped in ClassVar indicates that a given
+    attribute is intended to be used as a class variable and
+    should not be set on instances of that class.
+
+    Usage::
+
+        class Starship:
+            stats: ClassVar[dict[str, int]] = {} # class variable
+            damage: int = 10                     # instance variable
+
+    ClassVar accepts only types and cannot be further subscribed.
+
+    Note that ClassVar is not a class itself, and should not
+    be used with isinstance() or issubclass().
+    """
+    item = _type_check(parameters, f'{self} accepts only single type.', allow_special_forms=True)
+    return _GenericAlias(self, (item,))
+
+@_SpecialForm
+def Final(self, parameters):
+    """Special typing construct to indicate final names to type checkers.
+
+    A final name cannot be re-assigned or overridden in a subclass.
+
+    For example::
+
+        MAX_SIZE: Final = 9000
+        MAX_SIZE += 1  # Error reported by type checker
+
+        class Connection:
+            TIMEOUT: Final[int] = 10
+
+        class FastConnector(Connection):
+            TIMEOUT = 1  # Error reported by type checker
+
+    There is no runtime checking of these properties.
+    """
+    item = _type_check(parameters, f'{self} accepts only single type.', allow_special_forms=True)
+    return _GenericAlias(self, (item,))
+
+@_SpecialForm
+def Union(self, parameters):
+    """Union type; Union[X, Y] means either X or Y.
+
+    On Python 3.10 and higher, the | operator
+    can also be used to denote unions;
+    X | Y means the same thing to the type checker as Union[X, Y].
+
+    To define a union, use e.g. Union[int, str]. Details:
+    - The arguments must be types and there must be at least one.
+    - None as an argument is a special case and is replaced by
+      type(None).
+    - Unions of unions are flattened, e.g.::
+
+        assert Union[Union[int, str], float] == Union[int, str, float]
+
+    - Unions of a single argument vanish, e.g.::
+
+        assert Union[int] == int  # The constructor actually returns int
+
+    - Redundant arguments are skipped, e.g.::
+
+        assert Union[int, str, int] == Union[int, str]
+
+    - When comparing unions, the argument order is ignored, e.g.::
+
+        assert Union[int, str] == Union[str, int]
+
+    - You cannot subclass or instantiate a union.
+    - You can use Optional[X] as a shorthand for Union[X, None].
+    """
+    if parameters == ():
+        raise TypeError("Cannot take a Union of no types.")
+    if not isinstance(parameters, tuple):
+        parameters = (parameters,)
+    msg = "Union[arg, ...]: each arg must be a type."
+    parameters = tuple(_type_check(p, msg) for p in parameters)
+    parameters = _remove_dups_flatten(parameters)
+    if len(parameters) == 1:
+        return parameters[0]
+    if len(parameters) == 2 and type(None) in parameters:
+        return _UnionGenericAlias(self, parameters, name="Optional")
+    return _UnionGenericAlias(self, parameters)
+
+def _make_union(left, right):
+    """Used from the C implementation of TypeVar.
+
+    TypeVar.__or__ calls this instead of returning types.UnionType
+    because we want to allow unions between TypeVars and strings
+    (forward references).
+    """
+    return Union[left, right]
+
+@_SpecialForm
+def Optional(self, parameters):
+    """Optional[X] is equivalent to Union[X, None]."""
+    arg = _type_check(parameters, f"{self} requires a single type.")
+    return Union[arg, type(None)]
+
+@_TypedCacheSpecialForm
+@_tp_cache(typed=True)
+def Literal(self, *parameters):
+    """Special typing form to define literal types (a.k.a. value types).
+
+    This form can be used to indicate to type checkers that the corresponding
+    variable or function parameter has a value equivalent to the provided
+    literal (or one of several literals)::
+
+        def validate_simple(data: Any) -> Literal[True]:  # always returns True
+            ...
+
+        MODE = Literal['r', 'rb', 'w', 'wb']
+        def open_helper(file: str, mode: MODE) -> str:
+            ...
+
+        open_helper('/some/path', 'r')  # Passes type check
+        open_helper('/other/path', 'typo')  # Error in type checker
+
+    Literal[...] cannot be subclassed. At runtime, an arbitrary value
+    is allowed as type argument to Literal[...], but type checkers may
+    impose restrictions.
+    """
+    # There is no '_type_check' call because arguments to Literal[...] are
+    # values, not types.
+    parameters = _flatten_literal_params(parameters)
+
+    try:
+        parameters = tuple(p for p, _ in _deduplicate(list(_value_and_type_iter(parameters))))
+    except TypeError:  # unhashable parameters
+        pass
+
+    return _LiteralGenericAlias(self, parameters)
+
+
+@_SpecialForm
+def TypeAlias(self, parameters):
+    """Special form for marking type aliases.
+
+    Use TypeAlias to indicate that an assignment should
+    be recognized as a proper type alias definition by type
+    checkers.
+
+    For example::
+
+        Predicate: TypeAlias = Callable[..., bool]
+
+    It's invalid when used anywhere except as in the example above.
+    """
+    raise TypeError(f"{self} is not subscriptable")
+
+
+@_SpecialForm
+def Concatenate(self, parameters):
+    """Special form for annotating higher-order functions.
+
+    ``Concatenate`` can be used in conjunction with ``ParamSpec`` and
+    ``Callable`` to represent a higher-order function which adds, removes or
+    transforms the parameters of a callable.
+
+    For example::
+
+        Callable[Concatenate[int, P], int]
+
+    See PEP 612 for detailed information.
+    """
+    if parameters == ():
+        raise TypeError("Cannot take a Concatenate of no types.")
+    if not isinstance(parameters, tuple):
+        parameters = (parameters,)
+    if not (parameters[-1] is ... or isinstance(parameters[-1], ParamSpec)):
+        raise TypeError("The last parameter to Concatenate should be a "
+                        "ParamSpec variable or ellipsis.")
+    msg = "Concatenate[arg, ...]: each arg must be a type."
+    parameters = (*(_type_check(p, msg) for p in parameters[:-1]), parameters[-1])
+    return _ConcatenateGenericAlias(self, parameters)
+
+
+@_SpecialForm
+def TypeGuard(self, parameters):
+    """Special typing construct for marking user-defined type predicate functions.
+
+    ``TypeGuard`` can be used to annotate the return type of a user-defined
+    type predicate function.  ``TypeGuard`` only accepts a single type argument.
+    At runtime, functions marked this way should return a boolean.
+
+    ``TypeGuard`` aims to benefit *type narrowing* -- a technique used by static
+    type checkers to determine a more precise type of an expression within a
+    program's code flow.  Usually type narrowing is done by analyzing
+    conditional code flow and applying the narrowing to a block of code.  The
+    conditional expression here is sometimes referred to as a "type predicate".
+
+    Sometimes it would be convenient to use a user-defined boolean function
+    as a type predicate.  Such a function should use ``TypeGuard[...]`` or
+    ``TypeIs[...]`` as its return type to alert static type checkers to
+    this intention. ``TypeGuard`` should be used over ``TypeIs`` when narrowing
+    from an incompatible type (e.g., ``list[object]`` to ``list[int]``) or when
+    the function does not return ``True`` for all instances of the narrowed type.
+
+    Using  ``-> TypeGuard[NarrowedType]`` tells the static type checker that
+    for a given function:
+
+    1. The return value is a boolean.
+    2. If the return value is ``True``, the type of its argument
+       is ``NarrowedType``.
+
+    For example::
+
+         def is_str_list(val: list[object]) -> TypeGuard[list[str]]:
+             '''Determines whether all objects in the list are strings'''
+             return all(isinstance(x, str) for x in val)
+
+         def func1(val: list[object]):
+             if is_str_list(val):
+                 # Type of ``val`` is narrowed to ``list[str]``.
+                 print(" ".join(val))
+             else:
+                 # Type of ``val`` remains as ``list[object]``.
+                 print("Not a list of strings!")
+
+    Strict type narrowing is not enforced -- ``TypeB`` need not be a narrower
+    form of ``TypeA`` (it can even be a wider form) and this may lead to
+    type-unsafe results.  The main reason is to allow for things like
+    narrowing ``list[object]`` to ``list[str]`` even though the latter is not
+    a subtype of the former, since ``list`` is invariant.  The responsibility of
+    writing type-safe type predicates is left to the user.
+
+    ``TypeGuard`` also works with type variables.  For more information, see
+    PEP 647 (User-Defined Type Guards).
+    """
+    item = _type_check(parameters, f'{self} accepts only single type.')
+    return _GenericAlias(self, (item,))
+
+
+@_SpecialForm
+def TypeIs(self, parameters):
+    """Special typing construct for marking user-defined type predicate functions.
+
+    ``TypeIs`` can be used to annotate the return type of a user-defined
+    type predicate function.  ``TypeIs`` only accepts a single type argument.
+    At runtime, functions marked this way should return a boolean and accept
+    at least one argument.
+
+    ``TypeIs`` aims to benefit *type narrowing* -- a technique used by static
+    type checkers to determine a more precise type of an expression within a
+    program's code flow.  Usually type narrowing is done by analyzing
+    conditional code flow and applying the narrowing to a block of code.  The
+    conditional expression here is sometimes referred to as a "type predicate".
+
+    Sometimes it would be convenient to use a user-defined boolean function
+    as a type predicate.  Such a function should use ``TypeIs[...]`` or
+    ``TypeGuard[...]`` as its return type to alert static type checkers to
+    this intention.  ``TypeIs`` usually has more intuitive behavior than
+    ``TypeGuard``, but it cannot be used when the input and output types
+    are incompatible (e.g., ``list[object]`` to ``list[int]``) or when the
+    function does not return ``True`` for all instances of the narrowed type.
+
+    Using  ``-> TypeIs[NarrowedType]`` tells the static type checker that for
+    a given function:
+
+    1. The return value is a boolean.
+    2. If the return value is ``True``, the type of its argument
+       is the intersection of the argument's original type and
+       ``NarrowedType``.
+    3. If the return value is ``False``, the type of its argument
+       is narrowed to exclude ``NarrowedType``.
+
+    For example::
+
+        from typing import assert_type, final, TypeIs
+
+        class Parent: pass
+        class Child(Parent): pass
+        @final
+        class Unrelated: pass
+
+        def is_parent(val: object) -> TypeIs[Parent]:
+            return isinstance(val, Parent)
+
+        def run(arg: Child | Unrelated):
+            if is_parent(arg):
+                # Type of ``arg`` is narrowed to the intersection
+                # of ``Parent`` and ``Child``, which is equivalent to
+                # ``Child``.
+                assert_type(arg, Child)
+            else:
+                # Type of ``arg`` is narrowed to exclude ``Parent``,
+                # so only ``Unrelated`` is left.
+                assert_type(arg, Unrelated)
+
+    The type inside ``TypeIs`` must be consistent with the type of the
+    function's argument; if it is not, static type checkers will raise
+    an error.  An incorrectly written ``TypeIs`` function can lead to
+    unsound behavior in the type system; it is the user's responsibility
+    to write such functions in a type-safe manner.
+
+    ``TypeIs`` also works with type variables.  For more information, see
+    PEP 742 (Narrowing types with ``TypeIs``).
+    """
+    item = _type_check(parameters, f'{self} accepts only single type.')
+    return _GenericAlias(self, (item,))
+
+
+class ForwardRef(_Final, _root=True):
+    """Internal wrapper to hold a forward reference."""
+
+    __slots__ = ('__forward_arg__', '__forward_code__',
+                 '__forward_evaluated__', '__forward_value__',
+                 '__forward_is_argument__', '__forward_is_class__',
+                 '__forward_module__')
+
+    def __init__(self, arg, is_argument=True, module=None, *, is_class=False):
+        if not isinstance(arg, str):
+            raise TypeError(f"Forward reference must be a string -- got {arg!r}")
+
+        # If we do `def f(*args: *Ts)`, then we'll have `arg = '*Ts'`.
+        # Unfortunately, this isn't a valid expression on its own, so we
+        # do the unpacking manually.
+        if arg.startswith('*'):
+            arg_to_compile = f'({arg},)[0]'  # E.g. (*Ts,)[0] or (*tuple[int, int],)[0]
+        else:
+            arg_to_compile = arg
+        try:
+            code = compile(arg_to_compile, '<string>', 'eval')
+        except SyntaxError:
+            raise SyntaxError(f"Forward reference must be an expression -- got {arg!r}")
+
+        self.__forward_arg__ = arg
+        self.__forward_code__ = code
+        self.__forward_evaluated__ = False
+        self.__forward_value__ = None
+        self.__forward_is_argument__ = is_argument
+        self.__forward_is_class__ = is_class
+        self.__forward_module__ = module
+
+    def _evaluate(self, globalns, localns, type_params=_sentinel, *, recursive_guard):
+        if type_params is _sentinel:
+            _deprecation_warning_for_no_type_params_passed("typing.ForwardRef._evaluate")
+            type_params = ()
+        if self.__forward_arg__ in recursive_guard:
+            return self
+        if not self.__forward_evaluated__ or localns is not globalns:
+            if globalns is None and localns is None:
+                globalns = localns = {}
+            elif globalns is None:
+                globalns = localns
+            elif localns is None:
+                localns = globalns
+            if self.__forward_module__ is not None:
+                globalns = getattr(
+                    sys.modules.get(self.__forward_module__, None), '__dict__', globalns
+                )
+
+            # type parameters require some special handling,
+            # as they exist in their own scope
+            # but `eval()` does not have a dedicated parameter for that scope.
+            # For classes, names in type parameter scopes should override
+            # names in the global scope (which here are called `localns`!),
+            # but should in turn be overridden by names in the class scope
+            # (which here are called `globalns`!)
+            if type_params:
+                globalns, localns = dict(globalns), dict(localns)
+                for param in type_params:
+                    param_name = param.__name__
+                    if not self.__forward_is_class__ or param_name not in globalns:
+                        globalns[param_name] = param
+                        localns.pop(param_name, None)
+
+            type_ = _type_check(
+                eval(self.__forward_code__, globalns, localns),
+                "Forward references must evaluate to types.",
+                is_argument=self.__forward_is_argument__,
+                allow_special_forms=self.__forward_is_class__,
+            )
+            self.__forward_value__ = _eval_type(
+                type_,
+                globalns,
+                localns,
+                type_params,
+                recursive_guard=(recursive_guard | {self.__forward_arg__}),
+            )
+            self.__forward_evaluated__ = True
+        return self.__forward_value__
+
+    def __eq__(self, other):
+        if not isinstance(other, ForwardRef):
+            return NotImplemented
+        if self.__forward_evaluated__ and other.__forward_evaluated__:
+            return (self.__forward_arg__ == other.__forward_arg__ and
+                    self.__forward_value__ == other.__forward_value__)
+        return (self.__forward_arg__ == other.__forward_arg__ and
+                self.__forward_module__ == other.__forward_module__)
+
+    def __hash__(self):
+        return hash((self.__forward_arg__, self.__forward_module__))
+
+    def __or__(self, other):
+        return Union[self, other]
+
+    def __ror__(self, other):
+        return Union[other, self]
+
+    def __repr__(self):
+        if self.__forward_module__ is None:
+            module_repr = ''
+        else:
+            module_repr = f', module={self.__forward_module__!r}'
+        return f'ForwardRef({self.__forward_arg__!r}{module_repr})'
+
+
+def _is_unpacked_typevartuple(x: Any) -> bool:
+    return ((not isinstance(x, type)) and
+            getattr(x, '__typing_is_unpacked_typevartuple__', False))
+
+
+def _is_typevar_like(x: Any) -> bool:
+    return isinstance(x, (TypeVar, ParamSpec)) or _is_unpacked_typevartuple(x)
+
+
+def _typevar_subst(self, arg):
+    msg = "Parameters to generic types must be types."
+    arg = _type_check(arg, msg, is_argument=True)
+    if ((isinstance(arg, _GenericAlias) and arg.__origin__ is Unpack) or
+        (isinstance(arg, GenericAlias) and getattr(arg, '__unpacked__', False))):
+        raise TypeError(f"{arg} is not valid as type argument")
+    return arg
+
+
+def _typevartuple_prepare_subst(self, alias, args):
+    params = alias.__parameters__
+    typevartuple_index = params.index(self)
+    for param in params[typevartuple_index + 1:]:
+        if isinstance(param, TypeVarTuple):
+            raise TypeError(f"More than one TypeVarTuple parameter in {alias}")
+
+    alen = len(args)
+    plen = len(params)
+    left = typevartuple_index
+    right = plen - typevartuple_index - 1
+    var_tuple_index = None
+    fillarg = None
+    for k, arg in enumerate(args):
+        if not isinstance(arg, type):
+            subargs = getattr(arg, '__typing_unpacked_tuple_args__', None)
+            if subargs and len(subargs) == 2 and subargs[-1] is ...:
+                if var_tuple_index is not None:
+                    raise TypeError("More than one unpacked arbitrary-length tuple argument")
+                var_tuple_index = k
+                fillarg = subargs[0]
+    if var_tuple_index is not None:
+        left = min(left, var_tuple_index)
+        right = min(right, alen - var_tuple_index - 1)
+    elif left + right > alen:
+        raise TypeError(f"Too few arguments for {alias};"
+                        f" actual {alen}, expected at least {plen-1}")
+    if left == alen - right and self.has_default():
+        replacement = _unpack_args(self.__default__)
+    else:
+        replacement = args[left: alen - right]
+
+    return (
+        *args[:left],
+        *([fillarg]*(typevartuple_index - left)),
+        replacement,
+        *([fillarg]*(plen - right - left - typevartuple_index - 1)),
+        *args[alen - right:],
+    )
+
+
+def _paramspec_subst(self, arg):
+    if isinstance(arg, (list, tuple)):
+        arg = tuple(_type_check(a, "Expected a type.") for a in arg)
+    elif not _is_param_expr(arg):
+        raise TypeError(f"Expected a list of types, an ellipsis, "
+                        f"ParamSpec, or Concatenate. Got {arg}")
+    return arg
+
+
+def _paramspec_prepare_subst(self, alias, args):
+    params = alias.__parameters__
+    i = params.index(self)
+    if i == len(args) and self.has_default():
+        args = [*args, self.__default__]
+    if i >= len(args):
+        raise TypeError(f"Too few arguments for {alias}")
+    # Special case where Z[[int, str, bool]] == Z[int, str, bool] in PEP 612.
+    if len(params) == 1 and not _is_param_expr(args[0]):
+        assert i == 0
+        args = (args,)
+    # Convert lists to tuples to help other libraries cache the results.
+    elif isinstance(args[i], list):
+        args = (*args[:i], tuple(args[i]), *args[i+1:])
+    return args
+
+
+@_tp_cache
+def _generic_class_getitem(cls, args):
+    """Parameterizes a generic class.
+
+    At least, parameterizing a generic class is the *main* thing this method
+    does. For example, for some generic class `Foo`, this is called when we
+    do `Foo[int]` - there, with `cls=Foo` and `args=int`.
+
+    However, note that this method is also called when defining generic
+    classes in the first place with `class Foo(Generic[T]): ...`.
+    """
+    if not isinstance(args, tuple):
+        args = (args,)
+
+    args = tuple(_type_convert(p) for p in args)
+    is_generic_or_protocol = cls in (Generic, Protocol)
+
+    if is_generic_or_protocol:
+        # Generic and Protocol can only be subscripted with unique type variables.
+        if not args:
+            raise TypeError(
+                f"Parameter list to {cls.__qualname__}[...] cannot be empty"
+            )
+        if not all(_is_typevar_like(p) for p in args):
+            raise TypeError(
+                f"Parameters to {cls.__name__}[...] must all be type variables "
+                f"or parameter specification variables.")
+        if len(set(args)) != len(args):
+            raise TypeError(
+                f"Parameters to {cls.__name__}[...] must all be unique")
+    else:
+        # Subscripting a regular Generic subclass.
+        for param in cls.__parameters__:
+            prepare = getattr(param, '__typing_prepare_subst__', None)
+            if prepare is not None:
+                args = prepare(cls, args)
+        _check_generic_specialization(cls, args)
+
+        new_args = []
+        for param, new_arg in zip(cls.__parameters__, args):
+            if isinstance(param, TypeVarTuple):
+                new_args.extend(new_arg)
+            else:
+                new_args.append(new_arg)
+        args = tuple(new_args)
+
+    return _GenericAlias(cls, args)
+
+
+def _generic_init_subclass(cls, *args, **kwargs):
+    super(Generic, cls).__init_subclass__(*args, **kwargs)
+    tvars = []
+    if '__orig_bases__' in cls.__dict__:
+        error = Generic in cls.__orig_bases__
+    else:
+        error = (Generic in cls.__bases__ and
+                    cls.__name__ != 'Protocol' and
+                    type(cls) != _TypedDictMeta)
+    if error:
+        raise TypeError("Cannot inherit from plain Generic")
+    if '__orig_bases__' in cls.__dict__:
+        tvars = _collect_type_parameters(cls.__orig_bases__)
+        # Look for Generic[T1, ..., Tn].
+        # If found, tvars must be a subset of it.
+        # If not found, tvars is it.
+        # Also check for and reject plain Generic,
+        # and reject multiple Generic[...].
+        gvars = None
+        for base in cls.__orig_bases__:
+            if (isinstance(base, _GenericAlias) and
+                    base.__origin__ is Generic):
+                if gvars is not None:
+                    raise TypeError(
+                        "Cannot inherit from Generic[...] multiple times.")
+                gvars = base.__parameters__
+        if gvars is not None:
+            tvarset = set(tvars)
+            gvarset = set(gvars)
+            if not tvarset <= gvarset:
+                s_vars = ', '.join(str(t) for t in tvars if t not in gvarset)
+                s_args = ', '.join(str(g) for g in gvars)
+                raise TypeError(f"Some type variables ({s_vars}) are"
+                                f" not listed in Generic[{s_args}]")
+            tvars = gvars
+    cls.__parameters__ = tuple(tvars)
+
+
+def _is_dunder(attr):
+    return attr.startswith('__') and attr.endswith('__')
+
+class _BaseGenericAlias(_Final, _root=True):
+    """The central part of the internal API.
+
+    This represents a generic version of type 'origin' with type arguments 'params'.
+    There are two kind of these aliases: user defined and special. The special ones
+    are wrappers around builtin collections and ABCs in collections.abc. These must
+    have 'name' always set. If 'inst' is False, then the alias can't be instantiated;
+    this is used by e.g. typing.List and typing.Dict.
+    """
+
+    def __init__(self, origin, *, inst=True, name=None):
+        self._inst = inst
+        self._name = name
+        self.__origin__ = origin
+        self.__slots__ = None  # This is not documented.
+
+    def __call__(self, *args, **kwargs):
+        if not self._inst:
+            raise TypeError(f"Type {self._name} cannot be instantiated; "
+                            f"use {self.__origin__.__name__}() instead")
+        result = self.__origin__(*args, **kwargs)
+        try:
+            result.__orig_class__ = self
+        # Some objects raise TypeError (or something even more exotic)
+        # if you try to set attributes on them; we guard against that here
+        except Exception:
+            pass
+        return result
+
+    def __mro_entries__(self, bases):
+        res = []
+        if self.__origin__ not in bases:
+            res.append(self.__origin__)
+
+        # Check if any base that occurs after us in `bases` is either itself a
+        # subclass of Generic, or something which will add a subclass of Generic
+        # to `__bases__` via its `__mro_entries__`. If not, add Generic
+        # ourselves. The goal is to ensure that Generic (or a subclass) will
+        # appear exactly once in the final bases tuple. If we let it appear
+        # multiple times, we risk "can't form a consistent MRO" errors.
+        i = bases.index(self)
+        for b in bases[i+1:]:
+            if isinstance(b, _BaseGenericAlias):
+                break
+            if not isinstance(b, type):
+                meth = getattr(b, "__mro_entries__", None)
+                new_bases = meth(bases) if meth else None
+                if (
+                    isinstance(new_bases, tuple) and
+                    any(
+                        isinstance(b2, type) and issubclass(b2, Generic)
+                        for b2 in new_bases
+                    )
+                ):
+                    break
+            elif issubclass(b, Generic):
+                break
+        else:
+            res.append(Generic)
+        return tuple(res)
+
+    def __getattr__(self, attr):
+        if attr in {'__name__', '__qualname__'}:
+            return self._name or self.__origin__.__name__
+
+        # We are careful for copy and pickle.
+        # Also for simplicity we don't relay any dunder names
+        if '__origin__' in self.__dict__ and not _is_dunder(attr):
+            return getattr(self.__origin__, attr)
+        raise AttributeError(attr)
+
+    def __setattr__(self, attr, val):
+        if _is_dunder(attr) or attr in {'_name', '_inst', '_nparams', '_defaults'}:
+            super().__setattr__(attr, val)
+        else:
+            setattr(self.__origin__, attr, val)
+
+    def __instancecheck__(self, obj):
+        return self.__subclasscheck__(type(obj))
+
+    def __subclasscheck__(self, cls):
+        raise TypeError("Subscripted generics cannot be used with"
+                        " class and instance checks")
+
+    def __dir__(self):
+        return list(set(super().__dir__()
+                + [attr for attr in dir(self.__origin__) if not _is_dunder(attr)]))
+
+
+# Special typing constructs Union, Optional, Generic, Callable and Tuple
+# use three special attributes for internal bookkeeping of generic types:
+# * __parameters__ is a tuple of unique free type parameters of a generic
+#   type, for example, Dict[T, T].__parameters__ == (T,);
+# * __origin__ keeps a reference to a type that was subscripted,
+#   e.g., Union[T, int].__origin__ == Union, or the non-generic version of
+#   the type.
+# * __args__ is a tuple of all arguments used in subscripting,
+#   e.g., Dict[T, int].__args__ == (T, int).
+
+
+class _GenericAlias(_BaseGenericAlias, _root=True):
+    # The type of parameterized generics.
+    #
+    # That is, for example, `type(List[int])` is `_GenericAlias`.
+   Ûœ  Üœ  Ýœ  Þœ  ßœ  àœ  áœ  âœ  ãœ  äœ  åœ  æœ  çœ  èœ  éœ  êœ  ëœ  ìœ  íœ  îœ  ïœ                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               #
+    # Objects which are instances of this class include:
+    # * Parameterized container types, e.g. `Tuple[int]`, `List[int]`.
+    #  * Note that native container types, e.g. `tuple`, `list`, use
+    #    `types.GenericAlias` instead.
+    # * Parameterized classes:
+    #     class C[T]: pass
+    #     # C[int] is a _GenericAlias
+    # * `Callable` aliases, generic `Callable` aliases, and
+    #   parameterized `Callable` aliases:
+    #     T = TypeVar('T')
+    #     # _CallableGenericAlias inherits from _GenericAlias.
+    #     A = Callable[[], None]  # _CallableGenericAlias
+    #     B = Callable[[T], None]  # _CallableGenericAlias
+    #     C = B[int]  # _CallableGenericAlias
+    # * Parameterized `Final`, `ClassVar`, `TypeGuard`, and `TypeIs`:
+    #     # All _GenericAlias
+    #     Final[int]
+    #     ClassVar[float]
+    #     TypeGuard[bool]
+    #     TypeIs[range]
+
+    def __init__(self, origin, args, *, inst=True, name=None):
+        super().__init__(origin, inst=inst, name=name)
+        if not isinstance(args, tuple):
+            args = (args,)
+        self.__args__ = tuple(... if a is _TypingEllipsis else
+                              a for a in args)
+        enforce_default_ordering = origin in (Generic, Protocol)
+        self.__parameters__ = _collect_type_parameters(
+            args,
+            enforce_default_ordering=enforce_default_ordering,
+        )
+        if not name:
+            self.__module__ = origin.__module__
+
+    def __eq__(self, other):
+        if not isinstance(other, _GenericAlias):
+            return NotImplemented
+        return (self.__origin__ == other.__origin__
+                and self.__args__ == other.__args__)
+
+    def __hash__(self):
+        return hash((self.__origin__, self.__args__))
+
+    def __or__(self, right):
+        return Union[self, right]
+
+    def __ror__(self, left):
+        return Union[left, self]
+
+    @_tp_cache
+    def __getitem__(self, args):
+        # Parameterizes an already-parameterized object.
+        #
+        # For example, we arrive here doing something like:
+        #   T1 = TypeVar('T1')
+        #   T2 = TypeVar('T2')
+        #   T3 = TypeVar('T3')
+        #   class A(Generic[T1]): pass
+        #   B = A[T2]  # B is a _GenericAlias
+        #   C = B[T3]  # Invokes _GenericAlias.__getitem__
+        #
+        # We also arrive here when parameterizing a generic `Callable` alias:
+        #   T = TypeVar('T')
+        #   C = Callable[[T], None]
+        #   C[int]  # Invokes _GenericAlias.__getitem__
+
+        if self.__origin__ in (Generic, Protocol):
+            # Can't subscript Generic[...] or Protocol[...].
+            raise TypeError(f"Cannot subscript already-subscripted {self}")
+        if not self.__parameters__:
+            raise TypeError(f"{self} is not a generic class")
+
+        # Preprocess `args`.
+        if not isinstance(args, tuple):
+            args = (args,)
+        args = _unpack_args(*(_type_convert(p) for p in args))
+        new_args = self._determine_new_args(args)
+        r = self.copy_with(new_args)
+        return r
+
+    def _determine_new_args(self, args):
+        # Determines new __args__ for __getitem__.
+        #
+        # For example, suppose we had:
+        #   T1 = TypeVar('T1')
+        #   T2 = TypeVar('T2')
+        #   class A(Generic[T1, T2]): pass
+        #   T3 = TypeVar('T3')
+        #   B = A[int, T3]
+        #   C = B[str]
+        # `B.__args__` is `(int, T3)`, so `C.__args__` should be `(int, str)`.
+        # Unfortunately, this is harder than it looks, because if `T3` is
+        # anything more exotic than a plain `TypeVar`, we need to consider
+        # edge cases.
+
+        params = self.__parameters__
+        # In the example above, this would be {T3: str}
+        for param in params:
+            prepare = getattr(param, '__typing_prepare_subst__', None)
+            if prepare is not None:
+                args = prepare(self, args)
+        alen = len(args)
+        plen = len(params)
+        if alen != plen:
+            raise TypeError(f"Too {'many' if alen > plen else 'few'} arguments for {self};"
+                            f" actual {alen}, expected {plen}")
+        new_arg_by_param = dict(zip(params, args))
+        return tuple(self._make_substitution(self.__args__, new_arg_by_param))
+
+    def _make_substitution(self, args, new_arg_by_param):
+        """Create a list of new type arguments."""
+        new_args = []
+        for old_arg in args:
+            if isinstance(old_arg, type):
+                new_args.append(old_arg)
+                continue
+
+            substfunc = getattr(old_arg, '__typing_subst__', None)
+            if substfunc:
+                new_arg = substfunc(new_arg_by_param[old_arg])
+            else:
+                subparams = getattr(old_arg, '__parameters__', ())
+                if not subparams:
+                    new_arg = old_arg
+                else:
+                    subargs = []
+                    for x in subparams:
+                        if isinstance(x, TypeVarTuple):
+                            subargs.extend(new_arg_by_param[x])
+                        else:
+                            subargs.append(new_arg_by_param[x])
+                    new_arg = old_arg[tuple(subargs)]
+
+            if self.__origin__ == collections.abc.Callable and isinstance(new_arg, tuple):
+                # Consider the following `Callable`.
+                #   C = Callable[[int], str]
+                # Here, `C.__args__` should be (int, str) - NOT ([int], str).
+                # That means that if we had something like...
+                #   P = ParamSpec('P')
+                #   T = TypeVar('T')
+                #   C = Callable[P, T]
+                #   D = C[[int, str], float]
+                # ...we need to be careful; `new_args` should end up as
+                # `(int, str, float)` rather than `([int, str], float)`.
+                new_args.extend(new_arg)
+            elif _is_unpacked_typevartuple(old_arg):
+                # Consider the following `_GenericAlias`, `B`:
+                #   class A(Generic[*Ts]): ...
+                #   B = A[T, *Ts]
+                # If we then do:
+                #   B[float, int, str]
+                # The `new_arg` corresponding to `T` will be `float`, and the
+                # `new_arg` corresponding to `*Ts` will be `(int, str)`. We
+                # should join all these types together in a flat list
+                # `(float, int, str)` - so again, we should `extend`.
+                new_args.extend(new_arg)
+            elif isinstance(old_arg, tuple):
+                # Corner case:
+                #    P = ParamSpec('P')
+                #    T = TypeVar('T')
+                #    class Base(Generic[P]): ...
+                # Can be substituted like this:
+                #    X = Base[[int, T]]
+                # In this case, `old_arg` will be a tuple:
+                new_args.append(
+                    tuple(self._make_substitution(old_arg, new_arg_by_param)),
+                )
+            else:
+                new_args.append(new_arg)
+        return new_args
+
+    def copy_with(self, args):
+        return self.__class__(self.__origin__, args, name=self._name, inst=self._inst)
+
+    def __repr__(self):
+        if self._name:
+            name = 'typing.' + self._name
+        else:
+            name = _type_repr(self.__origin__)
+        if self.__args__:
+            args = ", ".join([_type_repr(a) for a in self.__args__])
+        else:
+            # To ensure the repr is eval-able.
+            args = "()"
+        return f'{name}[{args}]'
+
+    def __reduce__(self):
+        if self._name:
+            origin = globals()[self._name]
+        else:
+            origin = self.__origin__
+        args = tuple(self.__args__)
+        if len(args) == 1 and not isinstance(args[0], tuple):
+            args, = args
+        return operator.getitem, (origin, args)
+
+    def __mro_entries__(self, bases):
+        if isinstance(self.__origin__, _SpecialForm):
+            raise TypeError(f"Cannot subclass {self!r}")
+
+        if self._name:  # generic version of an ABC or built-in class
+            return super().__mro_entries__(bases)
+        if self.__origin__ is Generic:
+            if Protocol in bases:
+                return ()
+            i = bases.index(self)
+            for b in bases[i+1:]:
+                if isinstance(b, _BaseGenericAlias) and b is not self:
+                    return ()
+        return (self.__origin__,)
+
+    def __iter__(self):
+        yield Unpack[self]
+
+
+# _nparams is the number of accepted parameters, e.g. 0 for Hashable,
+# 1 for List and 2 for Dict.  It may be -1 if variable number of
+# parameters are accepted (needs custom __getitem__).
+
+class _SpecialGenericAlias(_NotIterable, _BaseGenericAlias, _root=True):
+    def __init__(self, origin, nparams, *, inst=True, name=None, defaults=()):
+        if name is None:
+            name = origin.__name__
+        super().__init__(origin, inst=inst, name=name)
+        self._nparams = nparams
+        self._defaults = defaults
+        if origin.__module__ == 'builtins':
+            self.__doc__ = f'A generic version of {origin.__qualname__}.'
+        else:
+            self.__doc__ = f'A generic version of {origin.__module__}.{origin.__qualname__}.'
+
+    @_tp_cache
+    def __getitem__(self, params):
+        if not isinstance(params, tuple):
+            params = (params,)
+        msg = "Parameters to generic types must be types."
+        params = tuple(_type_check(p, msg) for p in params)
+        if (self._defaults
+            and len(params) < self._nparams
+            and len(params) + len(self._defaults) >= self._nparams
+        ):
+            params = (*params, *self._defaults[len(params) - self._nparams:])
+        actual_len = len(params)
+
+        if actual_len != self._nparams:
+            if self._defaults:
+                expected = f"at least {self._nparams - len(self._defaults)}"
+            else:
+                expected = str(self._nparams)
+            if not self._nparams:
+                raise TypeError(f"{self} is not a generic class")
+            raise TypeError(f"Too {'many' if actual_len > self._nparams else 'few'} arguments for {self};"
+                            f" actual {actual_len}, expected {expected}")
+        return self.copy_with(params)
+
+    def copy_with(self, params):
+        return _GenericAlias(self.__origin__, params,
+                             name=self._name, inst=self._inst)
+
+    def __repr__(self):
+        return 'typing.' + self._name
+
+    def __subclasscheck__(self, cls):
+        if isinstance(cls, _SpecialGenericAlias):
+            return issubclass(cls.__origin__, self.__origin__)
+        if not isinstance(cls, _GenericAlias):
+            return issubclass(cls, self.__origin__)
+        return super().__subclasscheck__(cls)
+
+    def __reduce__(self):
+        return self._name
+
+    def __or__(self, right):
+        return Union[self, right]
+
+    def __ror__(self, left):
+        return Union[left, self]
+
+
+class _DeprecatedGenericAlias(_SpecialGenericAlias, _root=True):
+    def __init__(
+        self, origin, nparams, *, removal_version, inst=True, name=None
+    ):
+        super().__init__(origin, nparams, inst=inst, name=name)
+        self._removal_version = removal_version
+
+    def __instancecheck__(self, inst):
+        import warnings
+        warnings._deprecated(
+            f"{self.__module__}.{self._name}", remove=self._removal_version
+        )
+        return super().__instancecheck__(inst)
+
+
+class _CallableGenericAlias(_NotIterable, _GenericAlias, _root=True):
+    def __repr__(self):
+        assert self._name == 'Callable'
+        args = self.__args__
+        if len(args) == 2 and _is_param_expr(args[0]):
+            return super().__repr__()
+        return (f'typing.Callable'
+                f'[[{", ".join([_type_repr(a) for a in args[:-1]])}], '
+                f'{_type_repr(args[-1])}]')
+
+    def __reduce__(self):
+        args = self.__args__
+        if not (len(args) == 2 and _is_param_expr(args[0])):
+            args = list(args[:-1]), args[-1]
+        return operator.getitem, (Callable, args)
+
+
+class _CallableType(_SpecialGenericAlias, _root=True):
+    def copy_with(self, params):
+        return _CallableGenericAlias(self.__origin__, params,
+                                     name=self._name, inst=self._inst)
+
+    def __getitem__(self, params):
+        if not isinstance(params, tuple) or len(params) != 2:
+            raise TypeError("Callable must be used as "
+                            "Callable[[arg, ...], result].")
+        args, result = params
+        # This relaxes what args can be on purpose to allow things like
+        # PEP 612 ParamSpec.  Responsibility for whether a user is using
+        # Callable[...] properly is deferred to static type checkers.
+        if isinstance(args, list):
+            params = (tuple(args), result)
+        else:
+            params = (args, result)
+        return self.__getitem_inner__(params)
+
+    @_tp_cache
+    def __getitem_inner__(self, params):
+        args, result = params
+        msg = "Callable[args, result]: result must be a type."
+        result = _type_check(result, msg)
+        if args is Ellipsis:
+            return self.copy_with((_TypingEllipsis, result))
+        if not isinstance(args, tuple):
+            args = (args,)
+        args = tuple(_type_convert(arg) for arg in args)
+        params = args + (result,)
+        return self.copy_with(params)
+
+
+class _TupleType(_SpecialGenericAlias, _root=True):
+    @_tp_cache
+    def __getitem__(self, params):
+        if not isinstance(params, tuple):
+            params = (params,)
+        if len(params) >= 2 and params[-1] is ...:
+            msg = "Tuple[t, ...]: t must be a type."
+            params = tuple(_type_check(p, msg) for p in params[:-1])
+            return self.copy_with((*params, _TypingEllipsis))
+        msg = "Tuple[t0, t1, ...]: each t must be a type."
+        params = tuple(_type_check(p, msg) for p in params)
+        return self.copy_with(params)
+
+
+class _UnionGenericAlias(_NotIterable, _GenericAlias, _root=True):
+    def copy_with(self, params):
+        return Union[params]
+
+    def __eq__(self, other):
+        if not isinstance(other, (_UnionGenericAlias, types.UnionType)):
+            return NotImplemented
+        try:  # fast path
+            return set(self.__args__) == set(other.__args__)
+        except TypeError:  # not hashable, slow path
+            return _compare_args_orderless(self.__args__, other.__args__)
+
+    def __hash__(self):
+        return hash(frozenset(self.__args__))
+
+    def __repr__(self):
+        args = self.__args__
+        if len(args) == 2:
+            if args[0] is type(None):
+                return f'typing.Optional[{_type_repr(args[1])}]'
+            elif args[1] is type(None):
+                return f'typing.Optional[{_type_repr(args[0])}]'
+        return super().__repr__()
+
+    def __instancecheck__(self, obj):
+        for arg in self.__args__:
+            if isinstance(obj, arg):
+                return True
+        return False
+
+    def __subclasscheck__(self, cls):
+        for arg in self.__args__:
+            if issubclass(cls, arg):
+                return True
+        return False
+
+    def __reduce__(self):
+        func, (origin, args) = super().__reduce__()
+        return func, (Union, args)
+
+
+def _value_and_type_iter(parameters):
+    return ((p, type(p)) for p in parameters)
+
+
+class _LiteralGenericAlias(_GenericAlias, _root=True):
+    def __eq__(self, other):
+        if not isinstance(other, _LiteralGenericAlias):
+            return NotImplemented
+
+        return set(_value_and_type_iter(self.__args__)) == set(_value_and_type_iter(other.__args__))
+
+    def __hash__(self):
+        return hash(frozenset(_value_and_type_iter(self.__args__)))
+
+
+class _ConcatenateGenericAlias(_GenericAlias, _root=True):
+    def copy_with(self, params):
+        if isinstance(params[-1], (list, tuple)):
+            return (*params[:-1], *params[-1])
+        if isinstance(params[-1], _ConcatenateGenericAlias):
+            params = (*params[:-1], *params[-1].__args__)
+        return super().copy_with(params)
+
+
+@_SpecialForm
+def Unpack(self, parameters):
+    """Type unpack operator.
+
+    The type unpack operator takes the child types from some container type,
+    such as `tuple[int, str]` or a `TypeVarTuple`, and 'pulls them out'.
+
+    For example::
+
+        # For some generic class `Foo`:
+        Foo[Unpack[tuple[int, str]]]  # Equivalent to Foo[int, str]
+
+        Ts = TypeVarTuple('Ts')
+        # Specifies that `Bar` is generic in an arbitrary number of types.
+        # (Think of `Ts` as a tuple of an arbitrary number of individual
+        #  `TypeVar`s, which the `Unpack` is 'pulling out' directly into the
+        #  `Generic[]`.)
+        class Bar(Generic[Unpack[Ts]]): ...
+        Bar[int]  # Valid
+        Bar[int, str]  # Also valid
+
+    From Python 3.11, this can also be done using the `*` operator::
+
+        Foo[*tuple[int, str]]
+        class Bar(Generic[*Ts]): ...
+
+    And from Python 3.12, it can be done using built-in syntax for generics::
+
+        Foo[*tuple[int, str]]
+        class Bar[*Ts]: ...
+
+    The operator can also be used along with a `TypedDict` to annotate
+    `**kwargs` in a function signature::
+
+        class Movie(TypedDict):
+            name: str
+            year: int
+
+        # This function expects two keyword arguments - *name* of type `str` and
+        # *year* of type `int`.
+        def foo(**kwargs: Unpack[Movie]): ...
+
+    Note that there is only some runtime checking of this operator. Not
+    everything the runtime allows may be accepted by static type checkers.
+
+    For more information, see PEPs 646 and 692.
+    """
+    item = _type_check(parameters, f'{self} accepts only single type.')
+    return _UnpackGenericAlias(origin=self, args=(item,))
+
+
+class _UnpackGenericAlias(_GenericAlias, _root=True):
+    def __repr__(self):
+        # `Unpack` only takes one argument, so __args__ should contain only
+        # a single item.
+        return f'typing.Unpack[{_type_repr(self.__args__[0])}]'
+
+    def __getitem__(self, args):
+        if self.__typing_is_unpacked_typevartuple__:
+            return args
+        return super().__getitem__(args)
+
+    @property
+    def __typing_unpacked_tuple_args__(self):
+        assert self.__origin__ is Unpack
+        assert len(self.__args__) == 1
+        arg, = self.__args__
+        if isinstance(arg, (_GenericAlias, types.GenericAlias)):
+            if arg.__origin__ is not tuple:
+                raise TypeError("Unpack[...] must be used with a tuple type")
+            return arg.__args__
+        return None
+
+    @property
+    def __typing_is_unpacked_typevartuple__(self):
+        assert self.__origin__ is Unpack
+        assert len(self.__args__) == 1
+        return isinstance(self.__args__[0], TypeVarTuple)
+
+
+class _TypingEllipsis:
+    """Internal placeholder for ... (ellipsis)."""
+
+
+_TYPING_INTERNALS = frozenset({
+    '__parameters__', '__orig_bases__',  '__orig_class__',
+    '_is_protocol', '_is_runtime_protocol', '__protocol_attrs__',
+    '__non_callable_proto_members__', '__type_params__',
+})
+
+_SPECIAL_NAMES = frozenset({
+    '__abstractmethods__', '__annotations__', '__dict__', '__doc__',
+    '__init__', '__module__', '__new__', '__slots__',
+    '__subclasshook__', '__weakref__', '__class_getitem__',
+    '__match_args__', '__static_attributes__', '__firstlineno__',
+})
+
+# These special attributes will be not collected as protocol members.
+EXCLUDED_ATTRIBUTES = _TYPING_INTERNALS | _SPECIAL_NAMES | {'_MutableMapping__marker'}
+
+
+def _get_protocol_attrs(cls):
+    """Collect protocol members from a protocol class objects.
+
+    This includes names actually defined in the class dictionary, as well
+    as names that appear in annotations. Special names (above) are skipped.
+    """
+    attrs = set()
+    for base in cls.__mro__[:-1]:  # without object
+        if base.__name__ in {'Protocol', 'Generic'}:
+            continue
+        annotations = getattr(base, '__annotations__', {})
+        for attr in (*base.__dict__, *annotations):
+            if not attr.startswith('_abc_') and attr not in EXCLUDED_ATTRIBUTES:
+                attrs.add(attr)
+    return attrs
+
+
+def _no_init_or_replace_init(self, *args, **kwargs):
+    cls = type(self)
+
+    if cls._is_protocol:
+        raise TypeError('Protocols cannot be instantiated')
+
+    # Already using a custom `__init__`. No need to calculate correct
+    # `__init__` to call. This can lead to Recursio

@@ -1,0 +1,3593 @@
+= self.current_frame
+            if f.tell() >= self._FRAME_SIZE_TARGET or force:
+                data = f.getbuffer()
+                write = self.file_write
+                if len(data) >= self._FRAME_SIZE_MIN:
+                    # Issue a single call to the write method of the underlying
+                    # file object for the frame opcode with the size of the
+                    # frame. The concatenation is expected to be less expensive
+                    # than issuing an additional call to write.
+                    write(FRAME + pack("<Q", len(data)))
+
+                # Issue a separate call to write to append the frame
+                # contents without concatenation to the above to avoid a
+                # memory copy.
+                write(data)
+
+                # Start the new frame with a new io.BytesIO instance so that
+                # the file object can have delayed access to the previous frame
+                # contents via an unreleased memoryview of the previous
+                # io.BytesIO instance.
+                self.current_frame = io.BytesIO()
+
+    def write(self, data):
+        if self.current_frame:
+            return self.current_frame.write(data)
+        else:
+            return self.file_write(data)
+
+    def write_large_bytes(self, header, payload):
+        write = self.file_write
+        if self.current_frame:
+            # Terminate the current frame and flush it to the file.
+            self.commit_frame(force=True)
+
+        # Perform direct write of the header and payload of the large binary
+        # object. Be careful not to concatenate the header and the payload
+        # prior to calling 'write' as we do not want to allocate a large
+        # temporary bytes object.
+        # We intentionally do not insert a protocol 4 frame opcode to make
+        # it possible to optimize file.read calls in the loader.
+        write(header)
+        write(payload)
+
+
+class _Unframer:
+
+    def __init__(self, file_read, file_readline, file_tell=None):
+        self.file_read = file_read
+        self.file_readline = file_readline
+        self.current_frame = None
+
+    def readinto(self, buf):
+        if self.current_frame:
+            n = self.current_frame.readinto(buf)
+            if n == 0 and len(buf) != 0:
+                self.current_frame = None
+                n = len(buf)
+                buf[:] = self.file_read(n)
+                return n
+            if n < len(buf):
+                raise UnpicklingError(
+                    "pickle exhausted before end of frame")
+            return n
+        else:
+            n = len(buf)
+            buf[:] = self.file_read(n)
+            return n
+
+    def read(self, n):
+        if self.current_frame:
+            data = self.current_frame.read(n)
+            if not data and n != 0:
+                self.current_frame = None
+                return self.file_read(n)
+            if len(data) < n:
+                raise UnpicklingError(
+                    "pickle exhausted before end of frame")
+            return data
+        else:
+            return self.file_read(n)
+
+    def readline(self):
+        if self.current_frame:
+            data = self.current_frame.readline()
+            if not data:
+                self.current_frame = None
+                return self.file_readline()
+            if data[-1] != b'\n'[0]:
+                raise UnpicklingError(
+                    "pickle exhausted before end of frame")
+            return data
+        else:
+            return self.file_readline()
+
+    def load_frame(self, frame_size):
+        if self.current_frame and self.current_frame.read() != b'':
+            raise UnpicklingError(
+                "beginning of a new frame before end of current frame")
+        self.current_frame = io.BytesIO(self.file_read(frame_size))
+
+
+# Tools used for pickling.
+
+def _getattribute(obj, name):
+    top = obj
+    for subpath in name.split('.'):
+        if subpath == '<locals>':
+            raise AttributeError("Can't get local attribute {!r} on {!r}"
+                                 .format(name, top))
+        try:
+            parent = obj
+            obj = getattr(obj, subpath)
+        except AttributeError:
+            raise AttributeError("Can't get attribute {!r} on {!r}"
+                                 .format(name, top)) from None
+    return obj, parent
+
+def whichmodule(obj, name):
+    """Find the module an object belong to."""
+    module_name = getattr(obj, '__module__', None)
+    if module_name is not None:
+        return module_name
+    # Protect the iteration by using a list copy of sys.modules against dynamic
+    # modules that trigger imports of other modules upon calls to getattr.
+    for module_name, module in sys.modules.copy().items():
+        if (module_name == '__main__'
+            or module_name == '__mp_main__'  # bpo-42406
+            or module is None):
+            continue
+        try:
+            if _getattribute(module, name)[0] is obj:
+                return module_name
+        except AttributeError:
+            pass
+    return '__main__'
+
+def encode_long(x):
+    r"""Encode a long to a two's complement little-endian binary string.
+    Note that 0 is a special case, returning an empty string, to save a
+    byte in the LONG1 pickling context.
+
+    >>> encode_long(0)
+    b''
+    >>> encode_long(255)
+    b'\xff\x00'
+    >>> encode_long(32767)
+    b'\xff\x7f'
+    >>> encode_long(-256)
+    b'\x00\xff'
+    >>> encode_long(-32768)
+    b'\x00\x80'
+    >>> encode_long(-128)
+    b'\x80'
+    >>> encode_long(127)
+    b'\x7f'
+    >>>
+    """
+    if x == 0:
+        return b''
+    nbytes = (x.bit_length() >> 3) + 1
+    result = x.to_bytes(nbytes, byteorder='little', signed=True)
+    if x < 0 and nbytes > 1:
+        if result[-1] == 0xff and (result[-2] & 0x80) != 0:
+            result = result[:-1]
+    return result
+
+def decode_long(data):
+    r"""Decode a long from a two's complement little-endian binary string.
+
+    >>> decode_long(b'')
+    0
+    >>> decode_long(b"\xff\x00")
+    255
+    >>> decode_long(b"\xff\x7f")
+    32767
+    >>> decode_long(b"\x00\xff")
+    -256
+    >>> decode_long(b"\x00\x80")
+    -32768
+    >>> decode_long(b"\x80")
+    -128
+    >>> decode_long(b"\x7f")
+    127
+    """
+    return int.from_bytes(data, byteorder='little', signed=True)
+
+
+_NoValue = object()
+
+# Pickling machinery
+
+class _Pickler:
+
+    def __init__(self, file, protocol=None, *, fix_imports=True,
+                 buffer_callback=None):
+        """This takes a binary file for writing a pickle data stream.
+
+        The optional *protocol* argument tells the pickler to use the
+        given protocol; supported protocols are 0, 1, 2, 3, 4 and 5.
+        The default protocol is 4. It was introduced in Python 3.4, and
+        is incompatible with previous versions.
+
+        Specifying a negative protocol version selects the highest
+        protocol version supported.  The higher the protocol used, the
+        more recent the version of Python needed to read the pickle
+        produced.
+
+        The *file* argument must have a write() method that accepts a
+        single bytes argument. It can thus be a file object opened for
+        binary writing, an io.BytesIO instance, or any other custom
+        object that meets this interface.
+
+        If *fix_imports* is True and *protocol* is less than 3, pickle
+        will try to map the new Python 3 names to the old module names
+        used in Python 2, so that the pickle data stream is readable
+        with Python 2.
+
+        If *buffer_callback* is None (the default), buffer views are
+        serialized into *file* as part of the pickle stream.
+
+        If *buffer_callback* is not None, then it can be called any number
+        of times with a buffer view.  If the callback returns a false value
+        (such as None), the given buffer is out-of-band; otherwise the
+        buffer is serialized in-band, i.e. inside the pickle stream.
+
+        It is an error if *buffer_callback* is not None and *protocol*
+        is None or smaller than 5.
+        """
+        if protocol is None:
+            protocol = DEFAULT_PROTOCOL
+        if protocol < 0:
+            protocol = HIGHEST_PROTOCOL
+        elif not 0 <= protocol <= HIGHEST_PROTOCOL:
+            raise ValueError("pickle protocol must be <= %d" % HIGHEST_PROTOCOL)
+        if buffer_callback is not None and protocol < 5:
+            raise ValueError("buffer_callback needs protocol >= 5")
+        self._buffer_callback = buffer_callback
+        try:
+            self._file_write = file.write
+        except AttributeError:
+            raise TypeError("file must have a 'write' attribute")
+        self.framer = _Framer(self._file_write)
+        self.write = self.framer.write
+        self._write_large_bytes = self.framer.write_large_bytes
+        self.memo = {}
+        self.proto = int(protocol)
+        self.bin = protocol >= 1
+        self.fast = 0
+        self.fix_imports = fix_imports and protocol < 3
+
+    def clear_memo(self):
+        """Clears the pickler's "memo".
+
+        The memo is the data structure that remembers which objects the
+        pickler has already seen, so that shared or recursive objects
+        are pickled by reference and not by value.  This method is
+        useful when re-using picklers.
+        """
+        self.memo.clear()
+
+    def dump(self, obj):
+        """Write a pickled representation of obj to the open file."""
+        # Check whether Pickler was initialized correctly. This is
+        # only needed to mimic the behavior of _pickle.Pickler.dump().
+        if not hasattr(self, "_file_write"):
+            raise PicklingError("Pickler.__init__() was not called by "
+                                "%s.__init__()" % (self.__class__.__name__,))
+        if self.proto >= 2:
+            self.write(PROTO + pack("<B", self.proto))
+        if self.proto >= 4:
+            self.framer.start_framing()
+        self.save(obj)
+        self.write(STOP)
+        self.framer.end_framing()
+
+    def memoize(self, obj):
+        """Store an object in the memo."""
+
+        # The Pickler memo is a dictionary mapping object ids to 2-tuples
+        # that contain the Unpickler memo key and the object being memoized.
+        # The memo key is written to the pickle and will become
+        # the key in the Unpickler's memo.  The object is stored in the
+        # Pickler memo so that transient objects are kept alive during
+        # pickling.
+
+        # The use of the Unpickler memo length as the memo key is just a
+        # convention.  The only requirement is that the memo values be unique.
+        # But there appears no advantage to any other scheme, and this
+        # scheme allows the Unpickler memo to be implemented as a plain (but
+        # growable) array, indexed by memo key.
+        if self.fast:
+            return
+        assert id(obj) not in self.memo
+        idx = len(self.memo)
+        self.write(self.put(idx))
+        self.memo[id(obj)] = idx, obj
+
+    # Return a PUT (BINPUT, LONG_BINPUT) opcode string, with argument i.
+    def put(self, idx):
+        if self.proto >= 4:
+            return MEMOIZE
+        elif self.bin:
+            if idx < 256:
+                return BINPUT + pack("<B", idx)
+            else:
+                return LONG_BINPUT + pack("<I", idx)
+        else:
+            return PUT + repr(idx).encode("ascii") + b'\n'
+
+    # Return a GET (BINGET, LONG_BINGET) opcode string, with argument i.
+    def get(self, i):
+        if self.bin:
+            if i < 256:
+                return BINGET + pack("<B", i)
+            else:
+                return LONG_BINGET + pack("<I", i)
+
+        return GET + repr(i).encode("ascii") + b'\n'
+
+    def save(self, obj, save_persistent_id=True):
+        self.framer.commit_frame()
+
+        # Check for persistent id (defined by a subclass)
+        if save_persistent_id:
+            pid = self.persistent_id(obj)
+            if pid is not None:
+                self.save_pers(pid)
+                return
+
+        # Check the memo
+        x = self.memo.get(id(obj))
+        if x is not None:
+            self.write(self.get(x[0]))
+            return
+
+        rv = NotImplemented
+        reduce = getattr(self, "reducer_override", _NoValue)
+        if reduce is not _NoValue:
+            rv = reduce(obj)
+
+        if rv is NotImplemented:
+            # Check the type dispatch table
+            t = type(obj)
+            f = self.dispatch.get(t)
+            if f is not None:
+                f(self, obj)  # Call unbound method with explicit self
+                return
+
+            # Check private dispatch table if any, or else
+            # copyreg.dispatch_table
+            reduce = getattr(self, 'dispatch_table', dispatch_table).get(t, _NoValue)
+            if reduce is not _NoValue:
+                rv = reduce(obj)
+            else:
+                # Check for a class with a custom metaclass; treat as regular
+                # class
+                if issubclass(t, type):
+                    self.save_global(obj)
+                    return
+
+                # Check for a __reduce_ex__ method, fall back to __reduce__
+                reduce = getattr(obj, "__reduce_ex__", _NoValue)
+                if reduce is not _NoValue:
+                    rv = reduce(self.proto)
+                else:
+                    reduce = getattr(obj, "__reduce__", _NoValue)
+                    if reduce is not _NoValue:
+                        rv = reduce()
+                    else:
+                        raise PicklingError("Can't pickle %r object: %r" %
+                                            (t.__name__, obj))
+
+        # Check for string returned by reduce(), meaning "save as global"
+        if isinstance(rv, str):
+            self.save_global(obj, rv)
+            return
+
+        # Assert that reduce() returned a tuple
+        if not isinstance(rv, tuple):
+            raise PicklingError("%s must return string or tuple" % reduce)
+
+        # Assert that it returned an appropriately sized tuple
+        l = len(rv)
+        if not (2 <= l <= 6):
+            raise PicklingError("Tuple returned by %s must have "
+                                "two to six elements" % reduce)
+
+        # Save the reduce() output and finally memoize the object
+        self.save_reduce(obj=obj, *rv)
+
+    def persistent_id(self, obj):
+        # This exists so a subclass can override it
+        return None
+
+    def save_pers(self, pid):
+        # Save a persistent id reference
+        if self.bin:
+            self.save(pid, save_persistent_id=False)
+            self.write(BINPERSID)
+        else:
+            try:
+                self.write(PERSID + str(pid).encode("ascii") + b'\n')
+            except UnicodeEncodeError:
+                raise PicklingError(
+                    "persistent IDs in protocol 0 must be ASCII strings")
+
+    def save_reduce(self, func, args, state=None, listitems=None,
+                    dictitems=None, state_setter=None, *, obj=None):
+        # This API is called by some subclasses
+
+        if not isinstance(args, tuple):
+            raise PicklingError("args from save_reduce() must be a tuple")
+        if not callable(func):
+            raise PicklingError("func from save_reduce() must be callable")
+
+        save = self.save
+        write = self.write
+
+        func_name = getattr(func, "__name__", "")
+        if self.proto >= 2 and func_name == "__newobj_ex__":
+            cls, args, kwargs = args
+            if not hasattr(cls, "__new__"):
+                raise PicklingError("args[0] from {} args has no __new__"
+                                    .format(func_name))
+            if obj is not None and cls is not obj.__class__:
+                raise PicklingError("args[0] from {} args has the wrong class"
+                                    .format(func_name))
+            if self.proto >= 4:
+                save(cls)
+                save(args)
+                save(kwargs)
+                write(NEWOBJ_EX)
+            else:
+                func = partial(cls.__new__, cls, *args, **kwargs)
+                save(func)
+                save(())
+                write(REDUCE)
+        elif self.proto >= 2 and func_name == "__newobj__":
+            # A __reduce__ implementation can direct protocol 2 or newer to
+            # use the more efficient NEWOBJ opcode, while still
+            # allowing protocol 0 and 1 to work normally.  For this to
+            # work, the function returned by __reduce__ should be
+            # called __newobj__, and its first argument should be a
+            # class.  The implementation for __newobj__
+            # should be as follows, although pickle has no way to
+            # verify this:
+            #
+            # def __newobj__(cls, *args):
+            #     return cls.__new__(cls, *args)
+            #
+            # Protocols 0 and 1 will pickle a reference to __newobj__,
+            # while protocol 2 (and above) will pickle a reference to
+            # cls, the remaining args tuple, and the NEWOBJ code,
+            # which calls cls.__new__(cls, *args) at unpickling time
+            # (see load_newobj below).  If __reduce__ returns a
+            # three-tuple, the state from the third tuple item will be
+            # pickled regardless of the protocol, calling __setstate__
+            # at unpickling time (see load_build below).
+            #
+            # Note that no standard __newobj__ implementation exists;
+            # you have to provide your own.  This is to enforce
+            # compatibility with Python 2.2 (pickles written using
+            # protocol 0 or 1 in Python 2.3 should be unpicklable by
+            # Python 2.2).
+            cls = args[0]
+            if not hasattr(cls, "__new__"):
+                raise PicklingError(
+                    "args[0] from __newobj__ args has no __new__")
+            if obj is not None and cls is not obj.__class__:
+                raise PicklingError(
+                    "args[0] from __newobj__ args has the wrong class")
+            args = args[1:]
+            save(cls)
+            save(args)
+            write(NEWOBJ)
+        else:
+            save(func)
+            save(args)
+            write(REDUCE)
+
+        if obj is not None:
+            # If the object is already in the memo, this means it is
+            # recursive. In this case, throw away everything we put on the
+            # stack, and fetch the object back from the memo.
+            if id(obj) in self.memo:
+                write(POP + self.get(self.memo[id(obj)][0]))
+            else:
+                self.memoize(obj)
+
+        # More new special cases (that work with older protocols as
+        # well): when __reduce__ returns a tuple with 4 or 5 items,
+        # the 4th and 5th item should be iterators that provide list
+        # items and dict items (as (key, value) tuples), or None.
+
+        if listitems is not None:
+            self._batch_appends(listitems)
+
+        if dictitems is not None:
+            self._batch_setitems(dictitems)
+
+        if state is not None:
+            if state_setter is None:
+                save(state)
+                write(BUILD)
+            else:
+                # If a state_setter is specified, call it instead of load_build
+                # to update obj's with its previous state.
+                # First, push state_setter and its tuple of expected arguments
+                # (obj, state) onto the stack.
+                save(state_setter)
+                save(obj)  # simple BINGET opcode as obj is already memoized.
+                save(state)
+                write(TUPLE2)
+                # Trigger a state_setter(obj, state) function call.
+                write(REDUCE)
+                # The purpose of state_setter is to carry-out an
+                # inplace modification of obj. We do not care about what the
+                # method might return, so its output is eventually removed from
+                # the stack.
+                write(POP)
+
+    # Methods below this point are dispatched through the dispatch table
+
+    dispatch = {}
+
+    def save_none(self, obj):
+        self.write(NONE)
+    dispatch[type(None)] = save_none
+
+    def save_bool(self, obj):
+        if self.proto >= 2:
+            self.write(NEWTRUE if obj else NEWFALSE)
+        else:
+            self.write(TRUE if obj else FALSE)
+    dispatch[bool] = save_bool
+
+    def save_long(self, obj):
+        if self.bin:
+            # If the int is small enough to fit in a signed 4-byte 2's-comp
+            # format, we can store it more efficiently than the general
+            # case.
+            # First one- and two-byte unsigned ints:
+            if obj >= 0:
+                if obj <= 0xff:
+                    self.write(BININT1 + pack("<B", obj))
+                    return
+                if obj <= 0xffff:
+                    self.write(BININT2 + pack("<H", obj))
+                    return
+            # Next check for 4-byte signed ints:
+            if -0x80000000 <= obj <= 0x7fffffff:
+                self.write(BININT + pack("<i", obj))
+                return
+        if self.proto >= 2:
+            encoded = encode_long(obj)
+            n = len(encoded)
+            if n < 256:
+                self.write(LONG1 + pack("<B", n) + encoded)
+            else:
+                self.write(LONG4 + pack("<i", n) + encoded)
+            return
+        if -0x80000000 <= obj <= 0x7fffffff:
+            self.write(INT + repr(obj).encode("ascii") + b'\n')
+        else:
+            self.write(LONG + repr(obj).encode("ascii") + b'L\n')
+    dispatch[int] = save_long
+
+    def save_float(self, obj):
+        if self.bin:
+            self.write(BINFLOAT + pack('>d', obj))
+        else:
+            self.write(FLOAT + repr(obj).encode("ascii") + b'\n')
+    dispatch[float] = save_float
+
+    def _save_bytes_no_memo(self, obj):
+        # helper for writing bytes objects for protocol >= 3
+        # without memoizing them
+        assert self.proto >= 3
+        n = len(obj)
+        if n <= 0xff:
+            self.write(SHORT_BINBYTES + pack("<B", n) + obj)
+        elif n > 0xffffffff and self.proto >= 4:
+            self._write_large_bytes(BINBYTES8 + pack("<Q", n), obj)
+        elif n >= self.framer._FRAME_SIZE_TARGET:
+            self._write_large_bytes(BINBYTES + pack("<I", n), obj)
+        else:
+            self.write(BINBYTES + pack("<I", n) + obj)
+
+    def save_bytes(self, obj):
+        if self.proto < 3:
+            if not obj: # bytes object is empty
+                self.save_reduce(bytes, (), obj=obj)
+            else:
+                self.save_reduce(codecs.encode,
+                                 (str(obj, 'latin1'), 'latin1'), obj=obj)
+            return
+        self._save_bytes_no_memo(obj)
+        self.memoize(obj)
+    dispatch[bytes] = save_bytes
+
+    def _save_bytearray_no_memo(self, obj):
+        # helper for writing bytearray objects for protocol >= 5
+        # without memoizing them
+        assert self.proto >= 5
+        n = len(obj)
+        if n >= self.framer._FRAME_SIZE_TARGET:
+            self._write_large_bytes(BYTEARRAY8 + pack("<Q", n), obj)
+        else:
+            self.write(BYTEARRAY8 + pack("<Q", n) + obj)
+
+    def save_bytearray(self, obj):
+        if self.proto < 5:
+            if not obj:  # bytearray is empty
+                self.save_reduce(bytearray, (), obj=obj)
+            else:
+                self.save_reduce(bytearray, (bytes(obj),), obj=obj)
+            return
+        self._save_bytearray_no_memo(obj)
+        self.memoize(obj)
+    dispatch[bytearray] = save_bytearray
+
+    if _HAVE_PICKLE_BUFFER:
+        def save_picklebuffer(self, obj):
+            if self.proto < 5:
+                raise PicklingError("PickleBuffer can only be pickled with "
+                                    "protocol >= 5")
+            with obj.raw() as m:
+                if not m.contiguous:
+                    raise PicklingError("PickleBuffer can not be pickled when "
+                                        "pointing to a non-contiguous buffer")
+                in_band = True
+                if self._buffer_callback is not None:
+                    in_band = bool(self._buffer_callback(obj))
+                if in_band:
+                    # Write data in-band
+                    # XXX The C implementation avoids a copy here
+                    buf = m.tobytes()
+                    in_memo = id(buf) in self.memo
+                    if m.readonly:
+                        if in_memo:
+                            self._save_bytes_no_memo(buf)
+                        else:
+                            self.save_bytes(buf)
+                    else:
+                        if in_memo:
+                            self._save_bytearray_no_memo(buf)
+                        else:
+                            self.save_bytearray(buf)
+                else:
+                    # Write data out-of-band
+                    self.write(NEXT_BUFFER)
+                    if m.readonly:
+                        self.write(READONLY_BUFFER)
+
+        dispatch[PickleBuffer] = save_picklebuffer
+
+    def save_str(self, obj):
+        if self.bin:
+            encoded = obj.encode('utf-8', 'surrogatepass')
+            n = len(encoded)
+            if n <= 0xff and self.proto >= 4:
+                self.write(SHORT_BINUNICODE + pack("<B", n) + encoded)
+            elif n > 0xffffffff and self.proto >= 4:
+                self._write_large_bytes(BINUNICODE8 + pack("<Q", n), encoded)
+            elif n >= self.framer._FRAME_SIZE_TARGET:
+                self._write_large_bytes(BINUNICODE + pack("<I", n), encoded)
+            else:
+                self.write(BINUNICODE + pack("<I", n) + encoded)
+        else:
+            # Escape what raw-unicode-escape doesn't, but memoize the original.
+            tmp = obj.replace("\\", "\\u005c")
+            tmp = tmp.replace("\0", "\\u0000")
+            tmp = tmp.replace("\n", "\\u000a")
+            tmp = tmp.replace("\r", "\\u000d")
+            tmp = tmp.replace("\x1a", "\\u001a")  # EOF on DOS
+            self.write(UNICODE + tmp.encode('raw-unicode-escape') + b'\n')
+        self.memoize(obj)
+    dispatch[str] = save_str
+
+    def save_tuple(self, obj):
+        if not obj: # tuple is empty
+            if self.bin:
+                self.write(EMPTY_TUPLE)
+            else:
+                self.write(MARK + TUPLE)
+            return
+
+        n = len(obj)
+        save = self.save
+        memo = self.memo
+        if n <= 3 and self.proto >= 2:
+            for element in obj:
+                save(element)
+            # Subtle.  Same as in the big comment below.
+            if id(obj) in memo:
+                get = self.get(memo[id(obj)][0])
+                self.write(POP * n + get)
+            else:
+                self.write(_tuplesize2code[n])
+                self.memoize(obj)
+            return
+
+        # proto 0 or proto 1 and tuple isn't empty, or proto > 1 and tuple
+        # has more than 3 elements.
+        write = self.write
+        write(MARK)
+        for element in obj:
+            save(element)
+
+        if id(obj) in memo:
+            # Subtle.  d was not in memo when we entered save_tuple(), so
+            # the process of saving the tuple's elements must have saved
+            # the tuple itself:  the tuple is recursive.  The proper action
+            # now is to throw away everything we put on the stack, and
+            # simply GET the tuple (it's already constructed).  This check
+            # could have been done in the "for element" loop instead, but
+            # recursive tuples are a rare thing.
+            get = self.get(memo[id(obj)][0])
+            if self.bin:
+                write(POP_MARK + get)
+            else:   # proto 0 -- POP_MARK not available
+                write(POP * (n+1) + get)
+            return
+
+        # No recursion.
+        write(TUPLE)
+        self.memoize(obj)
+
+    dispatch[tuple] = save_tuple
+
+    def save_list(self, obj):
+        if self.bin:
+            self.write(EMPTY_LIST)
+        else:   # proto 0 -- can't use EMPTY_LIST
+            self.write(MARK + LIST)
+
+        self.memoize(obj)
+        self._batch_appends(obj)
+
+    dispatch[list] = save_list
+
+    _BATCHSIZE = 1000
+
+    def _batch_appends(self, items):
+        # Helper to batch up APPENDS sequences
+        save = self.save
+        write = self.write
+
+        if not self.bin:
+            for x in items:
+                save(x)
+                write(APPEND)
+            return
+
+        it = iter(items)
+        while True:
+            tmp = list(islice(it, self._BATCHSIZE))
+            n = len(tmp)
+            if n > 1:
+                write(MARK)
+                for x in tmp:
+                    save(x)
+                write(APPENDS)
+            elif n:
+                save(tmp[0])
+                write(APPEND)
+            # else tmp is empty, and we're done
+            if n < self._BATCHSIZE:
+                return
+
+    def save_dict(self, obj):
+        if self.bin:
+            self.write(EMPTY_DICT)
+        else:   # proto 0 -- can't use EMPTY_DICT
+            self.write(MARK + DICT)
+
+        self.memoize(obj)
+        self._batch_setitems(obj.items())
+
+    dispatch[dict] = save_dict
+
+    def _batch_setitems(self, items):
+        # Helper to batch up SETITEMS sequences; proto >= 1 only
+        save = self.save
+        write = self.write
+
+        if not self.bin:
+            for k, v in items:
+                save(k)
+                save(v)
+                write(SETITEM)
+            return
+
+        it = iter(items)
+        while True:
+            tmp = list(islice(it, self._BATCHSIZE))
+            n = len(tmp)
+            if n > 1:
+                write(MARK)
+                for k, v in tmp:
+                    save(k)
+                    save(v)
+                write(SETITEMS)
+            elif n:
+                k, v = tmp[0]
+                save(k)
+                save(v)
+                write(SETITEM)
+            # else tmp is empty, and we're done
+            if n < self._BATCHSIZE:
+                return
+
+    def save_set(self, obj):
+        save = self.save
+        write = self.write
+
+        if self.proto < 4:
+            self.save_reduce(set, (list(obj),), obj=obj)
+            return
+
+        write(EMPTY_SET)
+        self.memoize(obj)
+
+        it = iter(obj)
+        while True:
+            batch = list(islice(it, self._BATCHSIZE))
+            n = len(batch)
+            if n > 0:
+                write(MARK)
+                for item in batch:
+                    save(item)
+                write(ADDITEMS)
+            if n < self._BATCHSIZE:
+                return
+    dispatch[set] = save_set
+
+    def save_frozenset(self, obj):
+        save = self.save
+        write = self.write
+
+        if self.proto < 4:
+            self.save_reduce(frozenset, (list(obj),), obj=obj)
+            return
+
+        write(MARK)
+        for item in obj:
+            save(item)
+
+        if id(obj) in self.memo:
+            # If the object is already in the memo, this means it is
+            # recursive. In this case, throw away everything we put on the
+            # stack, and fetch the object back from the memo.
+            write(POP_MARK + self.get(self.memo[id(obj)][0]))
+            return
+
+        write(FROZENSET)
+        self.memoize(obj)
+    dispatch[frozenset] = save_frozenset
+
+    def save_global(self, obj, name=None):
+        write = self.write
+        memo = self.memo
+
+        if name is None:
+            name = getattr(obj, '__qualname__', None)
+        if name is None:
+            name = obj.__name__
+
+        module_name = whichmodule(obj, name)
+        try:
+            __import__(module_name, level=0)
+            module = sys.modules[module_name]
+            obj2, parent = _getattribute(module, name)
+        except (ImportError, KeyError, AttributeError):
+            raise PicklingError(
+                "Can't pickle %r: it's not found as %s.%s" %
+                (obj, module_name, name)) from None
+        else:
+            if obj2 is not obj:
+                raise PicklingError(
+                    "Can't pickle %r: it's not the same object as %s.%s" %
+                    (obj, module_name, name))
+
+        if self.proto >= 2:
+            code = _extension_registry.get((module_name, name), _NoValue)
+            if code is not _NoValue:
+                if code <= 0xff:
+                    data = pack("<B", code)
+                    if data == b'\0':
+                        # Should never happen in normal circumstances,
+                        # since the type and the value of the code are
+                        # checked in copyreg.add_extension().
+                        raise RuntimeError("extension code 0 is out of range")
+                    write(EXT1 + data)
+                elif code <= 0xffff:
+                    write(EXT2 + pack("<H", code))
+                else:
+                    write(EXT4 + pack("<i", code))
+                return
+        lastname = name.rpartition('.')[2]
+        if parent is module:
+            name = lastname
+        # Non-ASCII identifiers are supported only with protocols >= 3.
+        if self.proto >= 4:
+            self.save(module_name)
+            self.save(name)
+            write(STACK_GLOBAL)
+        elif '.' in name:
+            # In protocol < 4, objects with multi-part __qualname__
+            # are represented as
+            # getattr(getattr(..., attrname1), attrname2).
+            dotted_path = name.split('.')
+            name = dotted_path.pop(0)
+            save = self.save
+            for attrname in dotted_path:
+                save(getattr)
+                if self.proto < 2:
+                    write(MARK)
+            self._save_toplevel_by_name(module_name, name)
+            for attrname in dotted_path:
+                save(attrname)
+                if self.proto < 2:
+                    write(TUPLE)
+                else:
+                    write(TUPLE2)
+                write(REDUCE)
+        else:
+            self._save_toplevel_by_name(module_name, name)
+
+        self.memoize(obj)
+
+    def _save_toplevel_by_name(self, module_name, name):
+        if self.proto >= 3:
+            # Non-ASCII identifiers are supported only with protocols >= 3.
+            self.write(GLOBAL + bytes(module_name, "utf-8") + b'\n' +
+                       bytes(name, "utf-8") + b'\n')
+        else:
+            if self.fix_imports:
+                r_name_mapping = _compat_pickle.REVERSE_NAME_MAPPING
+                r_import_mapping = _compat_pickle.REVERSE_IMPORT_MAPPING
+                if (module_name, name) in r_name_mapping:
+                    module_name, name = r_name_mapping[(module_name, name)]
+                elif module_name in r_import_mapping:
+                    module_name = r_import_mapping[module_name]
+            try:
+                self.write(GLOBAL + bytes(module_name, "ascii") + b'\n' +
+                           bytes(name, "ascii") + b'\n')
+            except UnicodeEncodeError:
+                raise PicklingError(
+                    "can't pickle global identifier '%s.%s' using "
+                    "pickle protocol %i" % (module_name, name, self.proto)) from None
+
+    def save_type(self, obj):
+        if obj is type(None):
+            return self.save_reduce(type, (None,), obj=obj)
+        elif obj is type(NotImplemented):
+            return self.save_reduce(type, (NotImplemented,), obj=obj)
+        elif obj is type(...):
+            return self.save_reduce(type, (...,), obj=obj)
+        return self.save_global(obj)
+
+    dispatch[FunctionType] = save_global
+    dispatch[type] = save_type
+
+
+# Unpickling machinery
+
+class _Unpickler:
+
+    def __init__(self, file, *, fix_imports=True,
+                 encoding="ASCII", errors="strict", buffers=None):
+        """This takes a binary file for reading a pickle data stream.
+
+        The protocol version of the pickle is detected automatically, so
+        no proto argument is needed.
+
+        The argument *file* must have two methods, a read() method that
+        takes an integer argument, and a readline() method that requires
+        no arguments.  Both methods should return bytes.  Thus *file*
+        can be a binary file object opened for reading, an io.BytesIO
+        object, or any other custom object that meets this interface.
+
+        The file-like object must have two methods, a read() method
+        that takes an integer argument, and a readline() method that
+        requires no arguments.  Both methods should return bytes.
+        Thus file-like object can be a binary file object opened for
+        reading, a BytesIO object, or any other custom object that
+        meets this interface.
+
+        If *buffers* is not None, it should be an iterable of buffer-enabled
+        objects that is consumed each time the pickle stream references
+        an out-of-band buffer view.  Such buffers have been given in order
+        to the *buffer_callback* of a Pickler object.
+
+        If *buffers* is None (the default), then the buffers are taken
+        from the pickle stream, assuming they are serialized there.
+        It is an error for *buffers* to be None if the pickle stream
+        was produced with a non-None *buffer_callback*.
+
+        Other optional arguments are *fix_imports*, *encoding* and
+        *errors*, which are used to control compatibility support for
+        pickle stream generated by Python 2.  If *fix_imports* is True,
+        pickle will try to map the old Python 2 names to the new names
+        used in Python 3.  The *encoding* and *errors* tell pickle how
+        to decode 8-bit string instances pickled by Python 2; these
+        default to 'ASCII' and 'strict', respectively. *encoding* can be
+        'bytes' to read these 8-bit string instances as bytes objects.
+        """
+        self._buffers = iter(buffers) if buffers is not None else None
+        self._file_readline = file.readline
+        self._file_read = file.read
+        self.memo = {}
+        self.encoding = encoding
+        self.errors = errors
+        self.proto = 0
+        self.fix_imports = fix_imports
+
+    def load(self):
+        """Read a pickled object representation from the open file.
+
+        Return the reconstituted object hierarchy specified in the file.
+        """
+        # Check whether Unpickler was initialized correctly. This is
+        # only needed to mimic the behavior of _pickle.Unpickler.dump().
+        if not hasattr(self, "_file_read"):
+            raise UnpicklingError("Unpickler.__init__() was not called by "
+                                  "%s.__init__()" % (self.__class__.__name__,))
+        self._unframer = _Unframer(self._file_read, self._file_readline)
+        self.read = self._unframer.read
+        self.readinto = self._unframer.readinto
+        self.readline = self._unframer.readline
+        self.metastack = []
+        self.stack = []
+        self.append = self.stack.append
+        self.proto = 0
+        read = self.read
+        dispatch = self.dispatch
+        try:
+            while True:
+                key = read(1)
+                if not key:
+                    raise EOFError
+                assert isinstance(key, bytes_types)
+                dispatch[key[0]](self)
+        except _Stop as stopinst:
+            return stopinst.value
+
+    # Return a list of items pushed in the stack after last MARK instruction.
+    def pop_mark(self):
+        items = self.stack
+        self.stack = self.metastack.pop()
+        self.append = self.stack.append
+        return items
+
+    def persistent_load(self, pid):
+        raise UnpicklingError("unsupported persistent id encountered")
+
+    dispatch = {}
+
+    def load_proto(self):
+        proto = self.read(1)[0]
+        if not 0 <= proto <= HIGHEST_PROTOCOL:
+            raise ValueError("unsupported pickle protocol: %d" % proto)
+        self.proto = proto
+    dispatch[PROTO[0]] = load_proto
+
+    def load_frame(self):
+        frame_size, = unpack('<Q', self.read(8))
+        if frame_size > sys.maxsize:
+            raise ValueError("frame size > sys.maxsize: %d" % frame_size)
+        self._unframer.load_frame(frame_size)
+    dispatch[FRAME[0]] = load_frame
+
+    def load_persid(self):
+        try:
+            pid = self.readline()[:-1].decode("ascii")
+        except UnicodeDecodeError:
+            raise UnpicklingError(
+                "persistent IDs in protocol 0 must be ASCII strings")
+        self.append(self.persistent_load(pid))
+    dispatch[PERSID[0]] = load_persid
+
+    def load_binpersid(self):
+        pid = self.stack.pop()
+        self.append(self.persistent_load(pid))
+    dispatch[BINPERSID[0]] = load_binpersid
+
+    def load_none(self):
+        self.append(None)
+    dispatch[NONE[0]] = load_none
+
+    def load_false(self):
+        self.append(False)
+    dispatch[NEWFALSE[0]] = load_false
+
+    def load_true(self):
+        self.append(True)
+    dispatch[NEWTRUE[0]] = load_true
+
+    def load_int(self):
+        data = self.readline()
+        if data == FALSE[1:]:
+            val = False
+        elif data == TRUE[1:]:
+            val = True
+        else:
+            val = int(data, 0)
+        self.append(val)
+    dispatch[I+˜  ,˜  -˜  .˜  /˜                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              NT[0]] = load_int
+
+    def load_binint(self):
+        self.append(unpack('<i', self.read(4))[0])
+    dispatch[BININT[0]] = load_binint
+
+    def load_binint1(self):
+        self.append(self.read(1)[0])
+    dispatch[BININT1[0]] = load_binint1
+
+    def load_binint2(self):
+        self.append(unpack('<H', self.read(2))[0])
+    dispatch[BININT2[0]] = load_binint2
+
+    def load_long(self):
+        val = self.readline()[:-1]
+        if val and val[-1] == b'L'[0]:
+            val = val[:-1]
+        self.append(int(val, 0))
+    dispatch[LONG[0]] = load_long
+
+    def load_long1(self):
+        n = self.read(1)[0]
+        data = self.read(n)
+        self.append(decode_long(data))
+    dispatch[LONG1[0]] = load_long1
+
+    def load_long4(self):
+        n, = unpack('<i', self.read(4))
+        if n < 0:
+            # Corrupt or hostile pickle -- we never write one like this
+            raise UnpicklingError("LONG pickle has negative byte count")
+        data = self.read(n)
+        self.append(decode_long(data))
+    dispatch[LONG4[0]] = load_long4
+
+    def load_float(self):
+        self.append(float(self.readline()[:-1]))
+    dispatch[FLOAT[0]] = load_float
+
+    def load_binfloat(self):
+        self.append(unpack('>d', self.read(8))[0])
+    dispatch[BINFLOAT[0]] = load_binfloat
+
+    def _decode_string(self, value):
+        # Used to allow strings from Python 2 to be decoded either as
+        # bytes or Unicode strings.  This should be used only with the
+        # STRING, BINSTRING and SHORT_BINSTRING opcodes.
+        if self.encoding == "bytes":
+            return value
+        else:
+            return value.decode(self.encoding, self.errors)
+
+    def load_string(self):
+        data = self.readline()[:-1]
+        # Strip outermost quotes
+        if len(data) >= 2 and data[0] == data[-1] and data[0] in b'"\'':
+            data = data[1:-1]
+        else:
+            raise UnpicklingError("the STRING opcode argument must be quoted")
+        self.append(self._decode_string(codecs.escape_decode(data)[0]))
+    dispatch[STRING[0]] = load_string
+
+    def load_binstring(self):
+        # Deprecated BINSTRING uses signed 32-bit length
+        len, = unpack('<i', self.read(4))
+        if len < 0:
+            raise UnpicklingError("BINSTRING pickle has negative byte count")
+        data = self.read(len)
+        self.append(self._decode_string(data))
+    dispatch[BINSTRING[0]] = load_binstring
+
+    def load_binbytes(self):
+        len, = unpack('<I', self.read(4))
+        if len > maxsize:
+            raise UnpicklingError("BINBYTES exceeds system's maximum size "
+                                  "of %d bytes" % maxsize)
+        self.append(self.read(len))
+    dispatch[BINBYTES[0]] = load_binbytes
+
+    def load_unicode(self):
+        self.append(str(self.readline()[:-1], 'raw-unicode-escape'))
+    dispatch[UNICODE[0]] = load_unicode
+
+    def load_binunicode(self):
+        len, = unpack('<I', self.read(4))
+        if len > maxsize:
+            raise UnpicklingError("BINUNICODE exceeds system's maximum size "
+                                  "of %d bytes" % maxsize)
+        self.append(str(self.read(len), 'utf-8', 'surrogatepass'))
+    dispatch[BINUNICODE[0]] = load_binunicode
+
+    def load_binunicode8(self):
+        len, = unpack('<Q', self.read(8))
+        if len > maxsize:
+            raise UnpicklingError("BINUNICODE8 exceeds system's maximum size "
+                                  "of %d bytes" % maxsize)
+        self.append(str(self.read(len), 'utf-8', 'surrogatepass'))
+    dispatch[BINUNICODE8[0]] = load_binunicode8
+
+    def load_binbytes8(self):
+        len, = unpack('<Q', self.read(8))
+        if len > maxsize:
+            raise UnpicklingError("BINBYTES8 exceeds system's maximum size "
+                                  "of %d bytes" % maxsize)
+        self.append(self.read(len))
+    dispatch[BINBYTES8[0]] = load_binbytes8
+
+    def load_bytearray8(self):
+        len, = unpack('<Q', self.read(8))
+        if len > maxsize:
+            raise UnpicklingError("BYTEARRAY8 exceeds system's maximum size "
+                                  "of %d bytes" % maxsize)
+        b = bytearray(len)
+        self.readinto(b)
+        self.append(b)
+    dispatch[BYTEARRAY8[0]] = load_bytearray8
+
+    def load_next_buffer(self):
+        if self._buffers is None:
+            raise UnpicklingError("pickle stream refers to out-of-band data "
+                                  "but no *buffers* argument was given")
+        try:
+            buf = next(self._buffers)
+        except StopIteration:
+            raise UnpicklingError("not enough out-of-band buffers")
+        self.append(buf)
+    dispatch[NEXT_BUFFER[0]] = load_next_buffer
+
+    def load_readonly_buffer(self):
+        buf = self.stack[-1]
+        with memoryview(buf) as m:
+            if not m.readonly:
+                self.stack[-1] = m.toreadonly()
+    dispatch[READONLY_BUFFER[0]] = load_readonly_buffer
+
+    def load_short_binstring(self):
+        len = self.read(1)[0]
+        data = self.read(len)
+        self.append(self._decode_string(data))
+    dispatch[SHORT_BINSTRING[0]] = load_short_binstring
+
+    def load_short_binbytes(self):
+        len = self.read(1)[0]
+        self.append(self.read(len))
+    dispatch[SHORT_BINBYTES[0]] = load_short_binbytes
+
+    def load_short_binunicode(self):
+        len = self.read(1)[0]
+        self.append(str(self.read(len), 'utf-8', 'surrogatepass'))
+    dispatch[SHORT_BINUNICODE[0]] = load_short_binunicode
+
+    def load_tuple(self):
+        items = self.pop_mark()
+        self.append(tuple(items))
+    dispatch[TUPLE[0]] = load_tuple
+
+    def load_empty_tuple(self):
+        self.append(())
+    dispatch[EMPTY_TUPLE[0]] = load_empty_tuple
+
+    def load_tuple1(self):
+        self.stack[-1] = (self.stack[-1],)
+    dispatch[TUPLE1[0]] = load_tuple1
+
+    def load_tuple2(self):
+        self.stack[-2:] = [(self.stack[-2], self.stack[-1])]
+    dispatch[TUPLE2[0]] = load_tuple2
+
+    def load_tuple3(self):
+        self.stack[-3:] = [(self.stack[-3], self.stack[-2], self.stack[-1])]
+    dispatch[TUPLE3[0]] = load_tuple3
+
+    def load_empty_list(self):
+        self.append([])
+    dispatch[EMPTY_LIST[0]] = load_empty_list
+
+    def load_empty_dictionary(self):
+        self.append({})
+    dispatch[EMPTY_DICT[0]] = load_empty_dictionary
+
+    def load_empty_set(self):
+        self.append(set())
+    dispatch[EMPTY_SET[0]] = load_empty_set
+
+    def load_frozenset(self):
+        items = self.pop_mark()
+        self.append(frozenset(items))
+    dispatch[FROZENSET[0]] = load_frozenset
+
+    def load_list(self):
+        items = self.pop_mark()
+        self.append(items)
+    dispatch[LIST[0]] = load_list
+
+    def load_dict(self):
+        items = self.pop_mark()
+        d = {items[i]: items[i+1]
+             for i in range(0, len(items), 2)}
+        self.append(d)
+    dispatch[DICT[0]] = load_dict
+
+    # INST and OBJ differ only in how they get a class object.  It's not
+    # only sensible to do the rest in a common routine, the two routines
+    # previously diverged and grew different bugs.
+    # klass is the class to instantiate, and k points to the topmost mark
+    # object, following which are the arguments for klass.__init__.
+    def _instantiate(self, klass, args):
+        if (args or not isinstance(klass, type) or
+            hasattr(klass, "__getinitargs__")):
+            try:
+                value = klass(*args)
+            except TypeError as err:
+                raise TypeError("in constructor for %s: %s" %
+                                (klass.__name__, str(err)), err.__traceback__)
+        else:
+            value = klass.__new__(klass)
+        self.append(value)
+
+    def load_inst(self):
+        module = self.readline()[:-1].decode("ascii")
+        name = self.readline()[:-1].decode("ascii")
+        klass = self.find_class(module, name)
+        self._instantiate(klass, self.pop_mark())
+    dispatch[INST[0]] = load_inst
+
+    def load_obj(self):
+        # Stack is ... markobject classobject arg1 arg2 ...
+        args = self.pop_mark()
+        cls = args.pop(0)
+        self._instantiate(cls, args)
+    dispatch[OBJ[0]] = load_obj
+
+    def load_newobj(self):
+        args = self.stack.pop()
+        cls = self.stack.pop()
+        obj = cls.__new__(cls, *args)
+        self.append(obj)
+    dispatch[NEWOBJ[0]] = load_newobj
+
+    def load_newobj_ex(self):
+        kwargs = self.stack.pop()
+        args = self.stack.pop()
+        cls = self.stack.pop()
+        obj = cls.__new__(cls, *args, **kwargs)
+        self.append(obj)
+    dispatch[NEWOBJ_EX[0]] = load_newobj_ex
+
+    def load_global(self):
+        module = self.readline()[:-1].decode("utf-8")
+        name = self.readline()[:-1].decode("utf-8")
+        klass = self.find_class(module, name)
+        self.append(klass)
+    dispatch[GLOBAL[0]] = load_global
+
+    def load_stack_global(self):
+        name = self.stack.pop()
+        module = self.stack.pop()
+        if type(name) is not str or type(module) is not str:
+            raise UnpicklingError("STACK_GLOBAL requires str")
+        self.append(self.find_class(module, name))
+    dispatch[STACK_GLOBAL[0]] = load_stack_global
+
+    def load_ext1(self):
+        code = self.read(1)[0]
+        self.get_extension(code)
+    dispatch[EXT1[0]] = load_ext1
+
+    def load_ext2(self):
+        code, = unpack('<H', self.read(2))
+        self.get_extension(code)
+    dispatch[EXT2[0]] = load_ext2
+
+    def load_ext4(self):
+        code, = unpack('<i', self.read(4))
+        self.get_extension(code)
+    dispatch[EXT4[0]] = load_ext4
+
+    def get_extension(self, code):
+        obj = _extension_cache.get(code, _NoValue)
+        if obj is not _NoValue:
+            self.append(obj)
+            return
+        key = _inverted_registry.get(code)
+        if not key:
+            if code <= 0: # note that 0 is forbidden
+                # Corrupt or hostile pickle.
+                raise UnpicklingError("EXT specifies code <= 0")
+            raise ValueError("unregistered extension code %d" % code)
+        obj = self.find_class(*key)
+        _extension_cache[code] = obj
+        self.append(obj)
+
+    def find_class(self, module, name):
+        # Subclasses may override this.
+        sys.audit('pickle.find_class', module, name)
+        if self.proto < 3 and self.fix_imports:
+            if (module, name) in _compat_pickle.NAME_MAPPING:
+                module, name = _compat_pickle.NAME_MAPPING[(module, name)]
+            elif module in _compat_pickle.IMPORT_MAPPING:
+                module = _compat_pickle.IMPORT_MAPPING[module]
+        __import__(module, level=0)
+        if self.proto >= 4:
+            return _getattribute(sys.modules[module], name)[0]
+        else:
+            return getattr(sys.modules[module], name)
+
+    def load_reduce(self):
+        stack = self.stack
+        args = stack.pop()
+        func = stack[-1]
+        stack[-1] = func(*args)
+    dispatch[REDUCE[0]] = load_reduce
+
+    def load_pop(self):
+        if self.stack:
+            del self.stack[-1]
+        else:
+            self.pop_mark()
+    dispatch[POP[0]] = load_pop
+
+    def load_pop_mark(self):
+        self.pop_mark()
+    dispatch[POP_MARK[0]] = load_pop_mark
+
+    def load_dup(self):
+        self.append(self.stack[-1])
+    dispatch[DUP[0]] = load_dup
+
+    def load_get(self):
+        i = int(self.readline()[:-1])
+        try:
+            self.append(self.memo[i])
+        except KeyError:
+            msg = f'Memo value not found at index {i}'
+            raise UnpicklingError(msg) from None
+    dispatch[GET[0]] = load_get
+
+    def load_binget(self):
+        i = self.read(1)[0]
+        try:
+            self.append(self.memo[i])
+        except KeyError as exc:
+            msg = f'Memo value not found at index {i}'
+            raise UnpicklingError(msg) from None
+    dispatch[BINGET[0]] = load_binget
+
+    def load_long_binget(self):
+        i, = unpack('<I', self.read(4))
+        try:
+            self.append(self.memo[i])
+        except KeyError as exc:
+            msg = f'Memo value not found at index {i}'
+            raise UnpicklingError(msg) from None
+    dispatch[LONG_BINGET[0]] = load_long_binget
+
+    def load_put(self):
+        i = int(self.readline()[:-1])
+        if i < 0:
+            raise ValueError("negative PUT argument")
+        self.memo[i] = self.stack[-1]
+    dispatch[PUT[0]] = load_put
+
+    def load_binput(self):
+        i = self.read(1)[0]
+        if i < 0:
+            raise ValueError("negative BINPUT argument")
+        self.memo[i] = self.stack[-1]
+    dispatch[BINPUT[0]] = load_binput
+
+    def load_long_binput(self):
+        i, = unpack('<I', self.read(4))
+        if i > maxsize:
+            raise ValueError("negative LONG_BINPUT argument")
+        self.memo[i] = self.stack[-1]
+    dispatch[LONG_BINPUT[0]] = load_long_binput
+
+    def load_memoize(self):
+        memo = self.memo
+        memo[len(memo)] = self.stack[-1]
+    dispatch[MEMOIZE[0]] = load_memoize
+
+    def load_append(self):
+        stack = self.stack
+        value = stack.pop()
+        list = stack[-1]
+        list.append(value)
+    dispatch[APPEND[0]] = load_append
+
+    def load_appends(self):
+        items = self.pop_mark()
+        list_obj = self.stack[-1]
+        try:
+            extend = list_obj.extend
+        except AttributeError:
+            pass
+        else:
+            extend(items)
+            return
+        # Even if the PEP 307 requires extend() and append() methods,
+        # fall back on append() if the object has no extend() method
+        # for backward compatibility.
+        append = list_obj.append
+        for item in items:
+            append(item)
+    dispatch[APPENDS[0]] = load_appends
+
+    def load_setitem(self):
+        stack = self.stack
+        value = stack.pop()
+        key = stack.pop()
+        dict = stack[-1]
+        dict[key] = value
+    dispatch[SETITEM[0]] = load_setitem
+
+    def load_setitems(self):
+        items = self.pop_mark()
+        dict = self.stack[-1]
+        for i in range(0, len(items), 2):
+            dict[items[i]] = items[i + 1]
+    dispatch[SETITEMS[0]] = load_setitems
+
+    def load_additems(self):
+        items = self.pop_mark()
+        set_obj = self.stack[-1]
+        if isinstance(set_obj, set):
+            set_obj.update(items)
+        else:
+            add = set_obj.add
+            for item in items:
+                add(item)
+    dispatch[ADDITEMS[0]] = load_additems
+
+    def load_build(self):
+        stack = self.stack
+        state = stack.pop()
+        inst = stack[-1]
+        setstate = getattr(inst, "__setstate__", _NoValue)
+        if setstate is not _NoValue:
+            setstate(state)
+            return
+        slotstate = None
+        if isinstance(state, tuple) and len(state) == 2:
+            state, slotstate = state
+        if state:
+            inst_dict = inst.__dict__
+            intern = sys.intern
+            for k, v in state.items():
+                if type(k) is str:
+                    inst_dict[intern(k)] = v
+                else:
+                    inst_dict[k] = v
+        if slotstate:
+            for k, v in slotstate.items():
+                setattr(inst, k, v)
+    dispatch[BUILD[0]] = load_build
+
+    def load_mark(self):
+        self.metastack.append(self.stack)
+        self.stack = []
+        self.append = self.stack.append
+    dispatch[MARK[0]] = load_mark
+
+    def load_stop(self):
+        value = self.stack.pop()
+        raise _Stop(value)
+    dispatch[STOP[0]] = load_stop
+
+
+# Shorthands
+
+def _dump(obj, file, protocol=None, *, fix_imports=True, buffer_callback=None):
+    _Pickler(file, protocol, fix_imports=fix_imports,
+             buffer_callback=buffer_callback).dump(obj)
+
+def _dumps(obj, protocol=None, *, fix_imports=True, buffer_callback=None):
+    f = io.BytesIO()
+    _Pickler(f, protocol, fix_imports=fix_imports,
+             buffer_callback=buffer_callback).dump(obj)
+    res = f.getvalue()
+    assert isinstance(res, bytes_types)
+    return res
+
+def _load(file, *, fix_imports=True, encoding="ASCII", errors="strict",
+          buffers=None):
+    return _Unpickler(file, fix_imports=fix_imports, buffers=buffers,
+                     encoding=encoding, errors=errors).load()
+
+def _loads(s, /, *, fix_imports=True, encoding="ASCII", errors="strict",
+           buffers=None):
+    if isinstance(s, str):
+        raise TypeError("Can't load pickle from unicode string")
+    file = io.BytesIO(s)
+    return _Unpickler(file, fix_imports=fix_imports, buffers=buffers,
+                      encoding=encoding, errors=errors).load()
+
+# Use the faster _pickle if possible
+try:
+    from _pickle import (
+        PickleError,
+        PicklingError,
+        UnpicklingError,
+        Pickler,
+        Unpickler,
+        dump,
+        dumps,
+        load,
+        loads
+    )
+except ImportError:
+    Pickler, Unpickler = _Pickler, _Unpickler
+    dump, dumps, load, loads = _dump, _dumps, _load, _loads
+
+# Doctest
+def _test():
+    import doctest
+    return doctest.testmod()
+
+if __name__ == "__main__":
+    import argparse
+    parser = argparse.ArgumentParser(
+        description='display contents of the pickle files')
+    parser.add_argument(
+        'pickle_file',
+        nargs='*', help='the pickle file')
+    parser.add_argument(
+        '-t', '--test', action='store_true',
+        help='run self-test suite')
+    parser.add_argument(
+        '-v', action='store_true',
+        help='run verbosely; only affects self-test run')
+    args = parser.parse_args()
+    if args.test:
+        _test()
+    else:
+        if not args.pickle_file:
+            parser.print_help()
+        else:
+            import pprint
+            for fn in args.pickle_file:
+                if fn == '-':
+                    obj = load(sys.stdin.buffer)
+                else:
+                    with open(fn, 'rb') as f:
+                        obj = load(f)
+                pprint.pprint(obj)
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   '''"Executable documentation" for the pickle module.
+
+Extensive comments about the pickle protocols and pickle-machine opcodes
+can be found here.  Some functions meant for external use:
+
+genops(pickle)
+   Generate all the opcodes in a pickle, as (opcode, arg, position) triples.
+
+dis(pickle, out=None, memo=None, indentlevel=4)
+   Print a symbolic disassembly of a pickle.
+'''
+
+import codecs
+import io
+import pickle
+import re
+import sys
+
+__all__ = ['dis', 'genops', 'optimize']
+
+bytes_types = pickle.bytes_types
+
+# Other ideas:
+#
+# - A pickle verifier:  read a pickle and check it exhaustively for
+#   well-formedness.  dis() does a lot of this already.
+#
+# - A protocol identifier:  examine a pickle and return its protocol number
+#   (== the highest .proto attr value among all the opcodes in the pickle).
+#   dis() already prints this info at the end.
+#
+# - A pickle optimizer:  for example, tuple-building code is sometimes more
+#   elaborate than necessary, catering for the possibility that the tuple
+#   is recursive.  Or lots of times a PUT is generated that's never accessed
+#   by a later GET.
+
+
+# "A pickle" is a program for a virtual pickle machine (PM, but more accurately
+# called an unpickling machine).  It's a sequence of opcodes, interpreted by the
+# PM, building an arbitrarily complex Python object.
+#
+# For the most part, the PM is very simple:  there are no looping, testing, or
+# conditional instructions, no arithmetic and no function calls.  Opcodes are
+# executed once each, from first to last, until a STOP opcode is reached.
+#
+# The PM has two data areas, "the stack" and "the memo".
+#
+# Many opcodes push Python objects onto the stack; e.g., INT pushes a Python
+# integer object on the stack, whose value is gotten from a decimal string
+# literal immediately following the INT opcode in the pickle bytestream.  Other
+# opcodes take Python objects off the stack.  The result of unpickling is
+# whatever object is left on the stack when the final STOP opcode is executed.
+#
+# The memo is simply an array of objects, or it can be implemented as a dict
+# mapping little integers to objects.  The memo serves as the PM's "long term
+# memory", and the little integers indexing the memo are akin to variable
+# names.  Some opcodes pop a stack object into the memo at a given index,
+# and others push a memo object at a given index onto the stack again.
+#
+# At heart, that's all the PM has.  Subtleties arise for these reasons:
+#
+# + Object identity.  Objects can be arbitrarily complex, and subobjects
+#   may be shared (for example, the list [a, a] refers to the same object a
+#   twice).  It can be vital that unpickling recreate an isomorphic object
+#   graph, faithfully reproducing sharing.
+#
+# + Recursive objects.  For example, after "L = []; L.append(L)", L is a
+#   list, and L[0] is the same list.  This is related to the object identity
+#   point, and some sequences of pickle opcodes are subtle in order to
+#   get the right result in all cases.
+#
+# + Things pickle doesn't know everything about.  Examples of things pickle
+#   does know everything about are Python's builtin scalar and container
+#   types, like ints and tuples.  They generally have opcodes dedicated to
+#   them.  For things like module references and instances of user-defined
+#   classes, pickle's knowledge is limited.  Historically, many enhancements
+#   have been made to the pickle protocol in order to do a better (faster,
+#   and/or more compact) job on those.
+#
+# + Backward compatibility and micro-optimization.  As explained below,
+#   pickle opcodes never go away, not even when better ways to do a thing
+#   get invented.  The repertoire of the PM just keeps growing over time.
+#   For example, protocol 0 had two opcodes for building Python integers (INT
+#   and LONG), protocol 1 added three more for more-efficient pickling of short
+#   integers, and protocol 2 added two more for more-efficient pickling of
+#   long integers (before protocol 2, the only ways to pickle a Python long
+#   took time quadratic in the number of digits, for both pickling and
+#   unpickling).  "Opcode bloat" isn't so much a subtlety as a source of
+#   wearying complication.
+#
+#
+# Pickle protocols:
+#
+# For compatibility, the meaning of a pickle opcode never changes.  Instead new
+# pickle opcodes get added, and each version's unpickler can handle all the
+# pickle opcodes in all protocol versions to date.  So old pickles continue to
+# be readable forever.  The pickler can generally be told to restrict itself to
+# the subset of opcodes available under previous protocol versions too, so that
+# users can create pickles under the current version readable by older
+# versions.  However, a pickle does not contain its version number embedded
+# within it.  If an older unpickler tries to read a pickle using a later
+# protocol, the result is most likely an exception due to seeing an unknown (in
+# the older unpickler) opcode.
+#
+# The original pickle used what's now called "protocol 0", and what was called
+# "text mode" before Python 2.3.  The entire pickle bytestream is made up of
+# printable 7-bit ASCII characters, plus the newline character, in protocol 0.
+# That's why it was called text mode.  Protocol 0 is small and elegant, but
+# sometimes painfully inefficient.
+#
+# The second major set of additions is now called "protocol 1", and was called
+# "binary mode" before Python 2.3.  This added many opcodes with arguments
+# consisting of arbitrary bytes, including NUL bytes and unprintable "high bit"
+# bytes.  Binary mode pickles can be substantially smaller than equivalent
+# text mode pickles, and sometimes faster too; e.g., BININT represents a 4-byte
+# int as 4 bytes following the opcode, which is cheaper to unpickle than the
+# (perhaps) 11-character decimal string attached to INT.  Protocol 1 also added
+# a number of opcodes that operate on many stack elements at once (like APPENDS
+# and SETITEMS), and "shortcut" opcodes (like EMPTY_DICT and EMPTY_TUPLE).
+#
+# The third major set of additions came in Python 2.3, and is called "protocol
+# 2".  This added:
+#
+# - A better way to pickle instances of new-style classes (NEWOBJ).
+#
+# - A way for a pickle to identify its protocol (PROTO).
+#
+# - Time- and space- efficient pickling of long ints (LONG{1,4}).
+#
+# - Shortcuts for small tuples (TUPLE{1,2,3}}.
+#
+# - Dedicated opcodes for bools (NEWTRUE, NEWFALSE).
+#
+# - The "extension registry", a vector of popular objects that can be pushed
+#   efficiently by index (EXT{1,2,4}).  This is akin to the memo and GET, but
+#   the registry contents are predefined (there's nothing akin to the memo's
+#   PUT).
+#
+# Another independent change with Python 2.3 is the abandonment of any
+# pretense that it might be safe to load pickles received from untrusted
+# parties -- no sufficient security analysis has been done to guarantee
+# this and there isn't a use case that warrants the expense of such an
+# analysis.
+#
+# To this end, all tests for __safe_for_unpickling__ or for
+# copyreg.safe_constructors are removed from the unpickling code.
+# References to these variables in the descriptions below are to be seen
+# as describing unpickling in Python 2.2 and before.
+
+
+# Meta-rule:  Descriptions are stored in instances of descriptor objects,
+# with plain constructors.  No meta-language is defined from which
+# descriptors could be constructed.  If you want, e.g., XML, write a little
+# program to generate XML from the objects.
+
+##############################################################################
+# Some pickle opcodes have an argument, following the opcode in the
+# bytestream.  An argument is of a specific type, described by an instance
+# of ArgumentDescriptor.  These are not to be confused with arguments taken
+# off the stack -- ArgumentDescriptor applies only to arguments embedded in
+# the opcode stream, immediately following an opcode.
+
+# Represents the number of bytes consumed by an argument delimited by the
+# next newline character.
+UP_TO_NEWLINE = -1
+
+# Represents the number of bytes consumed by a two-argument opcode where
+# the first argument gives the number of bytes in the second argument.
+TAKEN_FROM_ARGUMENT1  = -2   # num bytes is 1-byte unsigned int
+TAKEN_FROM_ARGUMENT4  = -3   # num bytes is 4-byte signed little-endian int
+TAKEN_FROM_ARGUMENT4U = -4   # num bytes is 4-byte unsigned little-endian int
+TAKEN_FROM_ARGUMENT8U = -5   # num bytes is 8-byte unsigned little-endian int
+
+class ArgumentDescriptor(object):
+    __slots__ = (
+        # name of descriptor record, also a module global name; a string
+        'name',
+
+        # length of argument, in bytes; an int; UP_TO_NEWLINE and
+        # TAKEN_FROM_ARGUMENT{1,4,8} are negative values for variable-length
+        # cases
+        'n',
+
+        # a function taking a file-like object, reading this kind of argument
+        # from the object at the current position, advancing the current
+        # position by n bytes, and returning the value of the argument
+        'reader',
+
+        # human-readable docs for this arg descriptor; a string
+        'doc',
+    )
+
+    def __init__(self, name, n, reader, doc):
+        assert isinstance(name, str)
+        self.name = name
+
+        assert isinstance(n, int) and (n >= 0 or
+                                       n in (UP_TO_NEWLINE,
+                                             TAKEN_FROM_ARGUMENT1,
+                                             TAKEN_FROM_ARGUMENT4,
+                                             TAKEN_FROM_ARGUMENT4U,
+                                             TAKEN_FROM_ARGUMENT8U))
+        self.n = n
+
+        self.reader = reader
+
+        assert isinstance(doc, str)
+        self.doc = doc
+
+from struct import unpack as _unpack
+
+def read_uint1(f):
+    r"""
+    >>> import io
+    >>> read_uint1(io.BytesIO(b'\xff'))
+    255
+    """
+
+    data = f.read(1)
+    if data:
+        return data[0]
+    raise ValueError("not enough data in stream to read uint1")
+
+uint1 = ArgumentDescriptor(
+            name='uint1',
+            n=1,
+            reader=read_uint1,
+            doc="One-byte unsigned integer.")
+
+
+def read_uint2(f):
+    r"""
+    >>> import io
+    >>> read_uint2(io.BytesIO(b'\xff\x00'))
+    255
+    >>> read_uint2(io.BytesIO(b'\xff\xff'))
+    65535
+    """
+
+    data = f.read(2)
+    if len(data) == 2:
+        return _unpack("<H", data)[0]
+    raise ValueError("not enough data in stream to read uint2")
+
+uint2 = ArgumentDescriptor(
+            name='uint2',
+            n=2,
+            reader=read_uint2,
+            doc="Two-byte unsigned integer, little-endian.")
+
+
+def read_int4(f):
+    r"""
+    >>> import io
+    >>> read_int4(io.BytesIO(b'\xff\x00\x00\x00'))
+    255
+    >>> read_int4(io.BytesIO(b'\x00\x00\x00\x80')) == -(2**31)
+    True
+    """
+
+    data = f.read(4)
+    if len(data) == 4:
+        return _unpack("<i", data)[0]
+    raise ValueError("not enough data in stream to read int4")
+
+int4 = ArgumentDescriptor(
+           name='int4',
+           n=4,
+           reader=read_int4,
+           doc="Four-byte signed integer, little-endian, 2's complement.")
+
+
+def read_uint4(f):
+    r"""
+    >>> import io
+    >>> read_uint4(io.BytesIO(b'\xff\x00\x00\x00'))
+    255
+    >>> read_uint4(io.BytesIO(b'\x00\x00\x00\x80')) == 2**31
+    True
+    """
+
+    data = f.read(4)
+    if len(data) == 4:
+        return _unpack("<I", data)[0]
+    raise ValueError("not enough data in stream to read uint4")
+
+uint4 = ArgumentDescriptor(
+            name='uint4',
+            n=4,
+            reader=read_uint4,
+            doc="Four-byte unsigned integer, little-endian.")
+
+
+def read_uint8(f):
+    r"""
+    >>> import io
+    >>> read_uint8(io.BytesIO(b'\xff\x00\x00\x00\x00\x00\x00\x00'))
+    255
+    >>> read_uint8(io.BytesIO(b'\xff' * 8)) == 2**64-1
+    True
+    """
+
+    data = f.read(8)
+    if len(data) == 8:
+        return _unpack("<Q", data)[0]
+    raise ValueError("not enough data in stream to read uint8")
+
+uint8 = ArgumentDescriptor(
+            name='uint8',
+            n=8,
+            reader=read_uint8,
+            doc="Eight-byte unsigned integer, little-endian.")
+
+
+def read_stringnl(f, decode=True, stripquotes=True, *, encoding='latin-1'):
+    r"""
+    >>> import io
+    >>> read_stringnl(io.BytesIO(b"'abcd'\nefg\n"))
+    'abcd'
+
+    >>> read_stringnl(io.BytesIO(b"\n"))
+    Traceback (most recent call last):
+    ...
+    ValueError: no string quotes around b''
+
+    >>> read_stringnl(io.BytesIO(b"\n"), stripquotes=False)
+    ''
+
+    >>> read_stringnl(io.BytesIO(b"''\n"))
+    ''
+
+    >>> read_stringnl(io.BytesIO(b'"abcd"'))
+    Traceback (most recent call last):
+    ...
+    ValueError: no newline found when trying to read stringnl
+
+    Embedded escapes are undone in the result.
+    >>> read_stringnl(io.BytesIO(br"'a\n\\b\x00c\td'" + b"\n'e'"))
+    'a\n\\b\x00c\td'
+    """
+
+    data = f.readline()
+    if not data.endswith(b'\n'):
+        raise ValueError("no newline found when trying to read stringnl")
+    data = data[:-1]    # lose the newline
+
+    if stripquotes:
+        for q in (b'"', b"'"):
+            if data.startswith(q):
+                if not data.endswith(q):
+                    raise ValueError("strinq quote %r not found at both "
+                                     "ends of %r" % (q, data))
+                data = data[1:-1]
+                break
+        else:
+            raise ValueError("no string quotes around %r" % data)
+
+    if decode:
+        data = codecs.escape_decode(data)[0].decode(encoding)
+    return data
+
+stringnl = ArgumentDescriptor(
+               name='stringnl',
+               n=UP_TO_NEWLINE,
+               reader=read_stringnl,
+               doc="""A newline-terminated string.
+
+                   This is a repr-style string, with embedded escapes, and
+                   bracketing quotes.
+                   """)
+
+def read_stringnl_noescape(f):
+    return read_stringnl(f, stripquotes=False, encoding='utf-8')
+
+stringnl_noescape = ArgumentDescriptor(
+                        name='stringnl_noescape',
+                        n=UP_TO_NEWLINE,
+                        reader=read_stringnl_noescape,
+                        doc="""A newline-terminated string.
+
+                        This is a str-style string, without embedded escapes,
+                        or bracketing quotes.  It should consist solely of
+                        printable ASCII characters.
+                        """)
+
+def read_stringnl_noescape_pair(f):
+    r"""
+    >>> import io
+    >>> read_stringnl_noescape_pair(io.BytesIO(b"Queue\nEmpty\njunk"))
+    'Queue Empty'
+    """
+
+    return "%s %s" % (read_stringnl_noescape(f), read_stringnl_noescape(f))
+
+stringnl_noescape_pair = ArgumentDescriptor(
+                             name='stringnl_noescape_pair',
+                             n=UP_TO_NEWLINE,
+                             reader=read_stringnl_noescape_pair,
+                             doc="""A pair of newline-terminated strings.
+
+                             These are str-style strings, without embedded
+                             escapes, or bracketing quotes.  They should
+                             consist solely of printable ASCII characters.
+                             The pair is returned as a single string, with
+                             a single blank separating the two strings.
+                             """)
+
+
+def read_string1(f):
+    r"""
+    >>> import io
+    >>> read_string1(io.BytesIO(b"\x00"))
+    ''
+    >>> read_string1(io.BytesIO(b"\x03abcdef"))
+    'abc'
+    """
+
+    n = read_uint1(f)
+    assert n >= 0
+    data = f.read(n)
+    if len(data) == n:
+        return data.decode("latin-1")
+    raise ValueError("expected %d bytes in a string1, but only %d remain" %
+                     (n, len(data)))
+
+string1 = ArgumentDescriptor(
+              name="string1",
+              n=TAKEN_FROM_ARGUMENT1,
+              reader=read_string1,
+              doc="""A counted string.
+
+              The first argument is a 1-byte unsigned int giving the number
+              of bytes in the string, and the second argument is that many
+              bytes.
+              """)
+
+
+def read_string4(f):
+    r"""
+    >>> import io
+    >>> read_string4(io.BytesIO(b"\x00\x00\x00\x00abc"))
+    ''
+    >>> read_string4(io.BytesIO(b"\x03\x00\x00\x00abcdef"))
+    'abc'
+    >>> read_string4(io.BytesIO(b"\x00\x00\x00\x03abcdef"))
+    Traceback (most recent call last):
+    ...
+    ValueError: expected 50331648 bytes in a string4, but only 6 remain
+    """
+
+    n = read_int4(f)
+    if n < 0:
+        raise ValueError("string4 byte count < 0: %d" % n)
+    data = f.read(n)
+    if len(data) == n:
+        return data.decode("latin-1")
+    raise ValueError("expected %d bytes in a string4, but only %d remain" %
+                     (n, len(data)))
+
+string4 = ArgumentDescriptor(
+              name="string4",
+              n=TAKEN_FROM_ARGUMENT4,
+              reader=read_string4,
+              doc="""A counted string.
+
+              The first argument is a 4-byte little-endian signed int giving
+              the number of bytes in the string, and the second argument is
+              that many bytes.
+              """)
+
+
+def read_bytes1(f):
+    r"""
+    >>> import io
+    >>> read_bytes1(io.BytesIO(b"\x00"))
+    b''
+    >>> read_bytes1(io.BytesIO(b"\x03abcdef"))
+    b'abc'
+    """
+
+    n = read_uint1(f)
+    assert n >= 0
+    data = f.read(n)
+    if len(data) == n:
+        return data
+    raise ValueError("expected %d bytes in a bytes1, but only %d remain" %
+                     (n, len(data)))
+
+bytes1 = ArgumentDescriptor(
+              name="bytes1",
+              n=TAKEN_FROM_ARGUMENT1,
+              reader=read_bytes1,
+              doc="""A counted bytes string.
+
+              The first argument is a 1-byte unsigned int giving the number
+              of bytes, and the second argument is that many bytes.
+              """)
+
+
+def read_bytes4(f):
+    r"""
+    >>> import io
+    >>> read_bytes4(io.BytesIO(b"\x00\x00\x00\x00abc"))
+    b''
+    >>> read_bytes4(io.BytesIO(b"\x03\x00\x00\x00abcdef"))
+    b'abc'
+    >>> read_bytes4(io.BytesIO(b"\x00\x00\x00\x03abcdef"))
+    Traceback (most recent call last):
+    ...
+    ValueError: expected 50331648 bytes in a bytes4, but only 6 remain
+    """
+
+    n = read_uint4(f)
+    assert n >= 0
+    if n > sys.maxsize:
+        raise ValueError("bytes4 byte count > sys.maxsize: %d" % n)
+    data = f.read(n)
+    if len(data) == n:
+        return data
+    raise ValueError("expected %d bytes in a bytes4, but only %d remain" %
+                     (n, len(data)))
+
+bytes4 = ArgumentDescriptor(
+              name="bytes4",
+              n=TAKEN_FROM_ARGUMENT4U,
+              reader=read_bytes4,
+              doc="""A counted bytes string.
+
+              The first argument is a 4-byte little-endian unsigned int giving
+              the number of bytes, and the second argument is that many bytes.
+              """)
+
+
+def read_bytes8(f):
+    r"""
+    >>> import io, struct, sys
+    >>> read_bytes8(io.BytesIO(b"\x00\x00\x00\x00\x00\x00\x00\x00abc"))
+    b''
+    >>> read_bytes8(io.BytesIO(b"\x03\x00\x00\x00\x00\x00\x00\x00abcdef"))
+    b'abc'
+    >>> bigsize8 = struct.pack("<Q", sys.maxsize//3)
+    >>> read_bytes8(io.BytesIO(bigsize8 + b"abcdef"))  #doctest: +ELLIPSIS
+    Traceback (most recent call last):
+    ...
+    ValueError: expected ... bytes in a bytes8, but only 6 remain
+    """
+
+    n = read_uint8(f)
+    assert n >= 0
+    if n > sys.maxsize:
+        raise ValueError("bytes8 byte count > sys.maxsize: %d" % n)
+    data = f.read(n)
+    if len(data) == n:
+        return data
+    raise ValueError("expected %d bytes in a bytes8, but only %d remain" %
+                     (n, len(data)))
+
+bytes8 = ArgumentDescriptor(
+              name="bytes8",
+              n=TAKEN_FROM_ARGUMENT8U,
+              reader=read_bytes8,
+              doc="""A counted bytes string.
+
+              The first argument is an 8-byte little-endian unsigned int giving
+              the number of bytes, and the second argument is that many bytes.
+              """)
+
+
+def read_bytearray8(f):
+    r"""
+    >>> import io, struct, sys
+    >>> read_bytearray8(io.BytesIO(b"\x00\x00\x00\x00\x00\x00\x00\x00abc"))
+    bytearray(b'')
+    >>> read_bytearray8(io.BytesIO(b"\x03\x00\x00\x00\x00\x00\x00\x00abcdef"))
+    bytearray(b'abc')
+    >>> bigsize8 = struct.pack("<Q", sys.maxsize//3)
+    >>> read_bytearray8(io.BytesIO(bigsize8 + b"abcdef"))  #doctest: +ELLIPSIS
+    Traceback (most recent call last):
+    ...
+    ValueError: expected ... bytes in a bytearray8, but only 6 remain
+    """
+
+    n = read_uint8(f)
+    assert n >= 0
+    if n > sys.maxsize:
+        raise ValueError("bytearray8 byte count > sys.maxsize: %d" % n)
+    data = f.read(n)
+    if len(data) == n:
+        return bytearray(data)
+    raise ValueError("expected %d bytes in a bytearray8, but only %d remain" %
+                     (n, len(data)))
+
+bytearray8 = ArgumentDescriptor(
+              name="bytearray8",
+              n=TAKEN_FROM_ARGUMENT8U,
+              reader=read_bytearray8,
+              doc="""A counted bytearray.
+
+              The first argument is an 8-byte little-endian unsigned int giving
+              the number of bytes, and the second argument is that many bytes.
+              """)
+
+def read_unicodestringnl(f):
+    r"""
+    >>> import io
+    >>> read_unicodestringnl(io.BytesIO(b"abc\\uabcd\njunk")) == 'abc\uabcd'
+    True
+    """
+
+    data = f.readline()
+    if not data.endswith(b'\n'):
+        raise ValueError("no newline found when trying to read "
+                         "unicodestringnl")
+    data = data[:-1]    # lose the newline
+    return str(data, 'raw-unicode-escape')
+
+unicodestringnl = ArgumentDescriptor(
+                      name='unicodestringnl',
+                      n=UP_TO_NEWLINE,
+                      reader=read_unicodestringnl,
+                      doc="""A newline-terminated Unicode string.
+
+                      This is raw-unicode-escape encoded, so consists of
+                      printable ASCII characters, and may contain embedded
+                      escape sequences.
+                      """)
+
+
+def read_unicodestring1(f):
+    r"""
+    >>> import io
+    >>> s = 'abcd\uabcd'
+    >>> enc = s.encode('utf-8')
+    >>> enc
+    b'abcd\xea\xaf\x8d'
+    >>> n = bytes([len(enc)])  # little-endian 1-byte length
+    >>> t = read_unicodestring1(io.BytesIO(n + enc + b'junk'))
+    >>> s == t
+    True
+
+    >>> read_unicodestring1(io.BytesIO(n + enc[:-1]))
+    Traceback (most recent call last):
+    ...
+    ValueError: expected 7 bytes in a unicodestring1, but only 6 remain
+    """
+
+    n = read_uint1(f)
+    assert n >= 0
+    data = f.read(n)
+    if len(data) == n:
+        return str(data, 'utf-8', 'surrogatepass')
+    raise ValueError("expected %d bytes in a unicodestring1, but only %d "
+                     "remain" % (n, len(data)))
+
+unicodestring1 = ArgumentDescriptor(
+                    name="unicodestring1",
+                    n=TAKEN_FROM_ARGUMENT1,
+                    reader=read_unicodestring1,
+                    doc="""A counted Unicode string.
+
+                    The first argument is a 1-byte little-endian signed int
+                    giving the number of bytes in the string, and the second
+                    argument-- the UTF-8 encoding of the Unicode string --
+                    contains that many bytes.
+                    """)
+
+
+def read_unicodestring4(f):
+    r"""
+    >>> import io
+    >>> s = 'abcd\uabcd'
+    >>> enc = s.encode('utf-8')
+    >>> enc
+    b'abcd\xea\xaf\x8d'
+    >>> n = bytes([len(enc), 0, 0, 0])  # little-endian 4-byte length
+    >>> t = read_unicodestring4(io.BytesIO(n + enc + b'junk'))
+    >>> s == t
+    True
+
+    >>> read_unicodestring4(io.BytesIO(n + enc[:-1]))
+    Traceback (most recent call last):
+    ...
+    ValueError: expected 7 bytes in a unicodestring4, but only 6 remain
+    """
+
+    n = read_uint4(f)
+    assert n >= 0
+    if n > sys.maxsize:
+        raise ValueError("unicodestring4 byte count > sys.maxsize: %d" % n)
+    data = f.read(n)
+    if len(data) == n:
+        return str(data, 'utf-8', 'surrogatepass')
+    raise ValueError("expected %d bytes in a unicodestring4, but only %d "
+                     "remain" % (n, len(data)))
+
+unicodestring4 = ArgumentDescriptor(
+                    name="unicodestring4",
+                    n=TAKEN_FROM_ARGUMENT4U,
+                    reader=read_unicodestring4,
+                    doc="""A counted Unicode string.
+
+                    The first argument is a 4-byte little-endian signed int
+                    giving the number of bytes in the string, and the second
+                    argument-- the UTF-8 encoding of the Unicode string --
+                    contains that many bytes.
+                    """)
+
+
+def read_unicodestring8(f):
+    r"""
+    >>> import io
+    >>> s = 'abcd\uabcd'
+    >>> enc = s.encode('utf-8')
+    >>> enc
+    b'abcd\xea\xaf\x8d'
+    >>> n = bytes([len(enc)]) + b'\0' * 7  # little-endian 8-byte length
+    >>> t = read_unicodestring8(io.BytesIO(n + enc + b'junk'))
+    >>> s == t
+    True
+
+    >>> read_unicodestring8(io.BytesIO(n + enc[:-1]))
+    Traceback (most recent call last):
+    ...
+    ValueError: expected 7 bytes in a unicodestring8, but only 6 remain
+    """
+
+    n = read_uint8(f)
+    assert n >= 0
+    if n > sys.maxsize:
+        raise ValueError("unicodestring8 byte count > sys.maxsize: %d" % n)
+    data = f.read(n)
+    if len(data) == n:
+        return str(data, 'utf-8', 'surrogatepass')
+    raise ValueError("expected %d bytes in a unicodestring8, but only %d "
+                     "remain" % (n, len(data)))
+
+unicodestring8 = ArgumentDescriptor(
+                    name="unicodestring8",
+                    n=TAKEN_FROM_ARGUMENT8U,
+                    reader=read_unicodestring8,
+                    doc="""A counted Unicode string.
+
+                    The first argument is an 8-byte little-endian signed int
+                    giving the number of bytes in the string, and the second
+                    argument-- the UTF-8 encoding of the Unicode string --
+                    contains that many bytes.
+                    """)
+
+
+def read_decimalnl_short(f):
+    r"""
+    >>> import io
+    >>> read_decimalnl_short(io.BytesIO(b"1234\n56"))
+    1234
+
+    >>> read_decimalnl_short(io.BytesIO(b"1234L\n56"))
+    Traceback (most recent call last):
+    ...
+    ValueError: invalid literal for int() with base 10: b'1234L'
+    """
+
+    s = read_stringnl(f, decode=False, stripquotes=False)
+
+    # There's a hack for True and False here.
+    if s == b"00":
+        return False
+    elif s == b"01":
+        return True
+
+    return int(s)
+
+def read_decimalnl_long(f):
+    r"""
+    >>> import io
+
+    >>> read_decimalnl_long(io.BytesIO(b"1234L\n56"))
+    1234
+
+    >>> read_decimalnl_long(io.BytesIO(b"123456789012345678901234L\n6"))
+    123456789012345678901234
+    """
+
+    s = read_stringnl(f, decode=False, stripquotes=False)
+    if s[-1:] == b'L':
+        s = s[:-1]
+    return int(s)
+
+
+decimalnl_short = ArgumentDescriptor(
+                      name='decimalnl_short',
+                      n=UP_TO_NEWLINE,
+                      reader=read_decimalnl_short,
+                      doc="""A newline-terminated decimal integer literal.
+
+                          This never has a trailing 'L', and the integer fit
+                          in a short Python int on the box where the pickle
+                          was written -- but there's no guarantee it will fit
+                          in a short Python int on the box where the pickle
+                          is read.
+                          """)
+
+decimalnl_long = ArgumentDescriptor(
+                     name='decimalnl_long',
+                     n=UP_TO_NEWLINE,
+                     reader=read_decimalnl_long,
+                     doc="""A newline-terminated decimal integer literal.
+
+                         This has a trailing 'L', and can represent integers
+                         of any size.
+                         """)
+
+
+def read_floatnl(f):
+    r"""
+    >>> import io
+    >>> read_floatnl(io.BytesIO(b"-1.25\n6"))
+    -1.25
+    """
+    s = read_stringnl(f, decode=False, stripquotes=False)
+    return float(s)
+
+floatnl = ArgumentDescriptor(
+              name='floatnl',
+              n=UP_TO_NEWLINE,
+              reader=read_floatnl,
+              doc="""A newline-terminated decimal floating literal.
+
+              In general this requires 17 significant digits for roundtrip
+              identity, and pickling then unpickling infinities, NaNs, and
+              minus zero doesn't work across boxes, or on some boxes even
+              on itself (e.g., Windows can't read the strings it produces
+              for infinities or NaNs).
+              """)
+
+def read_float8(f):
+    r"""
+    >>> import io, struct
+    >>> raw = struct.pack(">d", -1.25)
+    >>> raw
+    b'\xbf\xf4\x00\x00\x00\x00\x00\x00'
+    >>> read_float8(io.BytesIO(raw + b"\n"))
+    -1.25
+    """
+
+    data = f.read(8)
+    if len(data) == 8:
+        return _unpack(">d", data)[0]
+    raise ValueError("not enough data in stream to read float8")
+
+
+float8 = ArgumentDescriptor(
+             name='float8',
+             n=8,
+             reader=read_float8,
+             doc="""An 8-byte binary representation of a float, big-endian.
+
+             The format is unique to Python, and shared with the struct
+             module (format string '>d') "in theory" (the struct and pickle
+             implementations don't share the code -- they should).  It's
+             strongly related to the IEEE-754 double format, and, in normal
+             cases, is in fact identical to the big-endian 754 double format.
+             On other boxes the dynamic range is limited to that of a 754
+             double, and "add a half and chop" rounding is used to reduce
+             the precision to 53 bits.  However, even on a 754 box,
+             infinities, NaNs, and minus zero may not be handled correctly
+             (may not survive roundtrip pickling intact).
+             """)
+
+# Protocol 2 formats
+
+from pickle import decode_long
+
+def read_long1(f):
+    r"""
+    >>> import io
+    >>> read_long1(io.BytesIO(b"\x00"))
+    0
+    >>> read_long1(io.BytesIO(b"\x02\xff\x00"))
+    255
+    >>> read_long1(io.BytesIO(b"\x02\xff\x7f"))
+    32767
+    >>> read_long1(io.BytesIO(b"\x02\x00\xff"))
+    -256
+    >>> read_long1(io.BytesIO(b"\x02\x00\x80"))
+    -32768
+    """
+
+    n = read_uint1(f)
+    data = f.read(n)
+    if len(data) != n:
+        raise ValueError("not enough data in stream to read long1")
+    return decode_long(data)
+
+long1 = ArgumentDescriptor(
+    name="long1",
+    n=TAKEN_FROM_ARGUMENT1,
+    reader=read_long1,
+    doc="""A binary long, little-endian, using 1-byte size.
+
+    This first reads one byte as an unsigned size, then reads that
+    many bytes and interprets them as a little-endian 2's-complement long.
+    If the size is 0, that's taken as a shortcut for the long 0L.
+    """)
+
+def read_long4(f):
+    r"""
+    >>> import io
+    >>> read_long4(io.BytesIO(b"\x02\x00\x00\x00\xff\x00"))
+    255
+    >>> read_long4(io.BytesIO(b"\x02\x00\x00\x00\xff\x7f"))
+    32767
+    >>> read_long4(io.BytesIO(b"\x02\x00\x00\x00\x00\xff"))
+    -256
+    >>> read_long4(io.BytesIO(b"\x02\x00\x00\x00\x00\x80"))
+    -32768
+    >>> read_long1(io.BytesIO(b"\x00\x00\x00\x00"))
+    0
+    """
+
+    n = read_int4(f)
+    if n < 0:
+        raise ValueError("long4 byte count < 0: %d" % n)
+    data = f.read(n)
+    if len(data) != n:
+        raise ValueError("not enough data in stream to read long4")
+    return decode_long(data)
+
+long4 = ArgumentDescriptor(
+    name="long4",
+    n=TAKEN_FROM_ARGUMENT4,
+    reader=read_long4,
+    doc="""A binary representation of a long, little-endian.
+
+    This first reads four bytes as a signed size (but requires the
+    size to be >= 0), then reads that many bytes and interprets them
+    as a little-endian 2's-complement long.  If the size is 0, that's taken
+    as a shortcut for the int 0, although LONG1 should really be used
+    then instead (and in any case where # of bytes < 256).
+    """)
+
+
+##############################################################################
+# Object descriptors.  The stack used by the pickle machine holds objects,
+# and in the stack_before and stack_after attributes of OpcodeInfo
+# descriptors we need names to describe the various types of objects that can
+# appear on the stack.
+
+class StackObject(object):
+    __slots__ = (
+        # name of descriptor record, for info only
+        'name',
+
+        # type of object, or tuple of type objects (meaning the object can
+        # be of any type in the tuple)
+        'obtype',
+
+        # human-readable docs for this kind of stack object; a string
+        'doc',
+    )
+
+    def __init__(self, name, obtype, doc):
+        assert isinstance(name, str)
+        self.name = name
+
+        assert isinstance(obtype, type) or isinstance(obtype, tuple)
+        if isinstance(obtype, tuple):
+            for contained in obtype:
+                assert isinstance(contained, type)
+        self.obtype = obtype
+
+        assert isinstance(doc, str)
+        self.doc = doc
+
+    def __repr__(self):
+        return self.name
+
+
+pyint = pylong = StackObject(
+    name='int',
+    obtype=int,
+    doc="A Python integer object.")
+
+pyinteger_or_bool = StackObject(
+    name='int_or_bool',
+    obtype=(int, bool),
+    doc="A Python integer or boolean object.")
+
+pybool = StackObject(
+    name='bool',
+    obtype=bool,
+    doc="A Python boolean object.")
+
+pyfloat = StackObject(
+    name='float',
+    obtype=float,
+    doc="A Python float object.")
+
+pybytes_or_str = pystring = StackObject(
+    name='bytes_or_str',
+    obtype=(bytes, str),
+    doc="A Python bytes or (Unicode) string object.")
+
+pybytes = StackObject(
+    name='bytes',
+    obtype=bytes,
+    doc="A Python bytes object.")
+
+pybytearray = StackObject(
+    name='bytearray',
+    obtype=bytearray,
+    doc="A Python bytearray object.")
+
+pyunicode = StackObject(
+    name='str',
+    obtype=str,
+    doc="A Python (Unicode) string object.")
+
+pynone = StackObject(
+    name="None",
+    obtype=type(None),
+    doc="The Python None object.")
+
+pytuple = StackObject(
+    name="tuple",
+    obtype=tuple,
+    doc="A Python tuple object.")
+
+pylist = StackObject(
+    name="list",
+    obtype=list,
+    doc="A Python list object.")
+
+pydict = StackObject(
+    name="dict",
+    obtype=dict,
+    doc="A Python dict object.")
+
+pyset = StackObject(
+    name="set",
+    obtype=set,
+    doc="A Python set object.")
+
+pyfrozenset = StackObject(
+    name="frozenset",
+    obtype=set,
+    doc="A Python frozenset object.")
+
+pybuffer = StackObject(
+    name='buffer',
+    obtype=object,
+    doc="A Python buffer-like object.")
+
+anyobject = StackObject(
+    name='any',
+    obtype=object,
+    doc="Any kind of object whatsoever.")
+
+markobject = StackObject(
+    name="mark",
+    obtype=StackObject,
+    doc="""'The mark' is a unique object.
+
+Opcodes that operate on a variable number of objects
+generally don't embed the count of objects in the opcode,
+or pull it off the stack.  Instead the MARK opcode is used
+to push a special marker object on the stack, and then
+some other opcodes grab all the objects from the top of
+the stack down to (but not including) the topmost marker
+object.
+""")
+
+stackslice = StackObject(
+    name="stackslice",
+    obtype=StackObject,
+    doc="""An object representing a contiguous slice of the stack.
+
+This is used in conjunction with markobject, to represent all
+of the stack following the topmost markobject.  For example,
+the POP_MARK opcode changes the stack from
+
+    [..., markobject, stackslice]
+to
+    [...]
+
+No matter how many object are on the stack after the topmost
+markobject, POP_MARK gets rid of all of them (including the
+topmost markobject too).
+""")
+
+##############################################################################
+# Descriptors for pickle opcodes.
+
+class OpcodeInfo(object):
+
+    __slots__ = (
+        # symbolic name of opcode; a string
+        'name',
+
+        # the code used in a bytestream to represent the opcode; a
+        # one-character string
+        'code',
+
+        # If the opcode has an argument embedded in the byte string, an
+        # instance of ArgumentDescriptor specifying its type.  Note that
+        # arg.reader(s) can be used to read and decode the argument from
+        # the bytestream s, and arg.doc documents the format of the raw
+        # argument bytes.  If the opcode doesn't have an argument embedded
+        # in the bytestream, arg should be None.
+        'arg',
+
+        # what the stack looks like before this opcode runs; a list
+        'stack_before',
+
+        # what the stack looks like after this opcode runs; a list
+        'stack_after',
+
+        # the protocol number in which this opcode was introduced; an int
+        'proto',
+
+        # human-readable docs for this opcode; a string
+        'doc',
+    )
+
+    def __init__(self, name, code, arg,
+                 stack_before, stack_after, proto, doc):
+        assert isinstance(name, str)
+        self.name = name
+
+        assert isinstance(code, str)
+        assert len(code) == 1
+        self.code = code
+
+        assert arg is None or isinstance(arg, ArgumentDescriptor)
+        self.arg = arg
+
+        assert isinstance(stack_before, list)
+        for x in stack_before:
+            assert isinstance(x, StackObject)
+        self.stack_before = stack_before
+
+        assert isinstance(stack_after, list)
+        for x in stack_after:
+            assert isinstance(x, StackObject)
+        self.stack_after = stack_after
+
+        assert isinstance(proto, int) and 0 <= proto <= pickle.HIGHEST_PROTOCOL
+        self.proto = proto
+
+        assert isinstance(doc, str)
+        self.doc = doc
+
+I = OpcodeInfo
+opcodes = [
+
+    # Ways to spell integers.
+
+    I(name='INT',
+      code='I',
+      arg=decimalnl_short,
+      stack_before=[],
+      stack_after=[pyinteger_or_bool],
+      proto=0,
+      doc="""Push an integer or bool.
+
+      The argument is a newline-terminated decimal literal string.
+
+      The intent may have been that this always fit in a short Python int,
+      but INT can be generated in pickles written on a 64-bit box that
+      require a Python long on a 32-bit box.  The difference between this
+      and LONG then is that INT skips a trailing 'L', and produces a short
+      int whenever possible.
+
+      Another difference is due to that, when bool was introduced as a
+      distinct type in 2.3, builtin names True and False were also added to
+      2.2.2, mapping to ints 1 and 0.  For compatibility in both directions,
+      True gets pickled as INT + "I01\\n", and False as INT + "I00\\n".
+      Leading zeroes are never produced for a genuine integer.  The 2.3
+      (and later) unpicklers special-case these and return bool instead;
+      earlier unpicklers ignore the leading "0" and return the int.
+      """),
+
+    I(name='BININT',
+      code='J',
+      arg=int4,
+      stack_before=[],
+      stack_after=[pyint],
+      proto=1,
+      doc="""Push a four-byte signed integer.
+
+      This handles the full range of Python (short) integers on a 32-bit
+      box, directly as binary bytes (1 for the opcode and 4 for the integer).
+      If the integer is non-negative and fits in 1 or 2 bytes, pickling via
+      BININT1 or BININT2 saves space.
+      """),
+
+    I(name='BININT1',
+      code='K',
+      arg=uint1,
+      stack_before=[],
+      stack_after=[pyint],
+      proto=1,
+      doc="""Push a one-byte unsigned integer.
+
+      This is a space optimization for pickling very small non-negative ints,
+      in range(256).
+      """),
+
+    I(name='BININT2',
+      code='M',
+      arg=uint2,
+      stack_before=[],
+      stack_after=[pyint],
+      proto=1,
+      doc="""Push a two-byte unsigned integer.
+
+      This is a space optimization for pickling small positive ints, in
+      range(256, 2**16).  Integers in range(256) can also be pickled via
+      BININT2, but BININT1 instead saves a byte.
+      """),
+
+    I(name='LONG',
+      code='L',
+      arg=decimalnl_long,
+      stack_before=[],
+      stack_after=[pyint],
+      proto=0,
+      doc="""Push a long integer.
+
+      The same as INT, except that the literal ends with 'L', and always
+      unpickles to a Python long.  There doesn't seem a real purpose to the
+      trailing 'L'.
+
+      Note that LONG takes time quadratic in the number of digits when
+      unpickling (this is simply due to the nature of decimal->binary
+      conversion).  Proto 2 added linear-time (in C; still quadratic-time
+      in Python) LONG1 and LONG4 opcodes.
+      """),
+
+    I(name="LONG1",
+      code='\x8a',
+      arg=long1,
+      stack_before=[],
+      stack_after=[pyint],
+      proto=2,
+      doc="""Long integer using one-byte length.
+
+      A more efficient encoding of a Python long; the long1 encoding
+      says it all."""),
+
+    I(name="LONG4",
+      code='\x8b',
+      arg=long4,
+      stack_before=[],
+      stack_after=[pyint],
+      proto=2,
+      doc="""Long integer using four-byte length.
+
+      A more efficient encoding of a Python long; the long4 encoding
+      says it all."""),
+
+    # Ways to spell strings (8-bit, not Unicode).
+
+    I(name='STRING',
+      code='S',
+      arg=stringnl,
+      stack_before=[],
+      stack_after=[pybytes_or_str],
+      proto=0,
+      doc="""Push a Python string object.
+
+      The argument is a repr-style string, with bracketing quote characters,
+      and perhaps embedded escapes.  The argument extends until the next
+      newline character.  These are usually decoded into a str instance
+      using the encoding given to the Unpickler constructor. or the default,
+      'ASCII'.  If the encoding given was 'bytes' however, they will be
+      decoded as bytes object instead.
+      """),
+
+    I(name='BINSTRING',
+      code='T',
+      arg=string4,
+      stack_before=[],
+      stack_after=[pybytes_or_str],
+      proto=1,
+      doc="""Push a Python string object.
+
+      There are two arguments: the first is a 4-byte little-endian
+      signed int giving the number of bytes in the string, and the
+      second is that many bytes, which are taken literally as the string
+      content.  These are usually decoded into a str instance using the
+      encoding given to the Unpickler constructor. or the default,
+      'ASCII'.  If the encoding given was 'bytes' however, they will be
+      decoded as bytes object instead.
+      """),
+
+    I(name='SHORT_BINSTRING',
+      code='U',
+      arg=string1,
+      stack_before=[],
+      stack_after=[pybytes_or_str],
+      proto=1,
+      doc="""Push a Python string object.
+
+      There are two arguments: the first is a 1-byte unsigned int giving
+      the number of bytes in the string, and the second is that many
+      bytes, which are taken literally as the string content.  These are
+      usually decoded into a str instance using the encoding given to
+      the Unpickler constructor. or the default, 'ASCII'.  If the
+      encoding given was 'bytes' however, they will be decoded as bytes
+      object instead.
+      """),
+
+    # Bytes (protocol 3 and higher)
+
+    I(name='BINBYTES',
+      code='B',
+      arg=bytes4,
+      stack_before=[],
+      stack_after=[pybytes],
+      proto=3,
+      doc="""Push a Python bytes object.
+
+      There are two arguments:  the first is a 4-byte little-endian unsigned int
+      giving the number of bytes, and the second is that many bytes, which are
+      taken literally as the bytes content.
+      """),
+
+    I(name='SHORT_BINBYTES',
+      code='C',
+      arg=bytes1,
+      stack_before=[],
+      stack_after=[pybytes],
+      proto=3,
+      doc="""Push a Python bytes object.
+
+      There are two arguments:  the first is a 1-byte unsigned int giving
+      the number of bytes, and the second is that many bytes, which are taken
+      literally as the string content.
+      """),
+
+    I(name='BINBYTES8',
+      code='\x8e',
+      arg=bytes8,
+      stack_before=[],
+      stack_after=[pybytes],
+      proto=4,
+      doc="""Push a Python bytes object.
+
+      There are two arguments:  the first is an 8-byte unsigned int giving
+      the number of bytes in the string, and the second is that many bytes,
+      which are taken literally as the string content.
+      """),
+
+    # Bytearray (protocol 5 and higher)
+
+    I(name='BYTEARRAY8',
+      code='\x96',
+      arg=bytearray8,
+      stack_before=[],
+      stack_after=[pybytearray],
+      proto=5,
+      doc="""Push a Python bytearray object.
+
+      There are two arguments:  the first is an 8-byte unsigned int giving
+      the number of bytes in the bytearray, and the second is that many bytes,
+      which are taken literally as the bytearray content.
+      """),
+
+    # Out-of-band buffer (protocol 5 and higher)
+
+    I(name='NEXT_BUFFER',
+      code='\x97',
+      arg=None,
+      stack_before=[],
+      stack_after=[pybuffer],
+      proto=5,
+      doc="Push an out-of-band buffer object."),
+
+    I(name='READONLY_BUFFER',
+      code='\x98',
+      arg=None,
+      stack_before=[pybuffer],
+      stack_after=[pybuffer],
+      proto=5,
+      doc="Make an out-of-band buffer object read-only."),
+
+    # Ways to spell None.
+
+    I(name='NONE',
+      code='N',
+      arg=None,
+      stack_before=[],
+      stack_after=[pynone],
+      proto=0,
+      doc="Push None on the stack."),
+
+    # Ways to spell bools, starting with proto 2.  See INT for how this was
+    # done before proto 2.
+
+    I(name='NEWTRUE',
+      code='\x88',
+      arg=None,
+      stack_before=[],
+      stack_after=[pybool],
+      proto=2,
+      doc="Push True onto the stack."),
+
+    I(name='NEWFALSE',
+      code='\x89',
+      arg=None,
+      stack_before=[],
+      stack_after=[pybool],
+      proto=2,
+      doc="Push False onto the stack."),
+
+    # Ways to spell Unicode strings.
+
+    I(name='UNICODE',
+      code='V',
+      arg=unicodestringnl,
+      stack_before=[],
+      stack_after=[pyunicode],
+      proto=0,  # this may be pure-text, but it's a later addition
+      doc="""Push a Python Unicode string object.
+
+      The argument is a raw-unicode-escape encoding of a Unicode string,
+      and so may contain embedded escape sequences.  The argument extends
+      until the next newline character.
+      """),
+
+    I(name='SHORT_BINUNICODE',
+      code='\x8c',
+      arg=unicodestring1,
+      stack_before=[],
+      stack_after=[pyunicode],
+      proto=4,
+      doc="""Push a Python Unicode string object.
+
+      There are two arguments:  the first is a 1-byte little-endian signed int
+      giving the number of bytes in the string.  The second is that many
+      bytes, and is the UTF-8 encoding of the Unicode string.
+      """),
+
+    I(name='BINUNICODE',
+      code='X',
+      arg=unicodestring4,
+      stack_before=[],
+      stack_after=[pyunicode],
+      proto=1,
+      doc="""Push a Python Unicode string object.
+
+      There are two arguments:  the first is a 4-byte little-endian unsigned int
+      giving the number of bytes in the string.  The second is that many
+      bytes, and is the UTF-8 encoding of the Unicode string.
+      """),
+
+    I(name='BINUNICODE8',
+      code='\x8d',
+      arg=unicodestring8,
+      stack_before=[],
+      stack_after=[pyunicode],
+      proto=4,
+      doc="""Push a Python Unicode string object.
+
+      There are two arguments:  the first is an 8-byte little-endian signed int
+      giving the number of bytes in the string.  The second is that many
+      bytes, and is the UTF-8 encoding of the Unicode string.
+      """),
+
+    # Ways to spell floats.
+
+    I(name='FLOAT',
+      code='F',
+      arg=floatnl,
+      stack_before=[],
+      stack_after=[pyfloat],
+      proto=0,
+      doc="""Newline-terminated decimal float literal.
+
+      The argument is repr(a_float), and in general requires 17 significant
+      digits for roundtrip conversion to be an identity (this is so for
+      IEEE-754 double precision values, which is what Python float maps to
+      on most boxes).
+
+      In general, FLOAT cannot be used to transport infinities, NaNs, or
+      minus zero across boxes (or even on a single box, if the platform C
+      library can't read the strings it produces for such things -- Windows
+      is like that), but may do less damage than BINFLOAT on boxes with
+      greater precision or dynamic range than IEEE-754 double.
+      """),
+
+    I(name='BINFLOAT',
+      code='G',
+      arg=float8,
+      stack_before=[],
+      stack_after=[pyfloat],
+      proto=1,
+      doc="""Float stored in binary form, with 8 bytes of data.
+
+      This generally requires less than half the space of FLOAT encoding.
+      In general, BINFLOAT cannot be used to transport infinities, NaNs, or
+      minus zero, raises an exception if the exponent exceeds the range of
+      an IEEE-754 double, and retains no more than 53 bits of precision (if
+      there are more than that, "add a half and chop" rounding is used to
+      cut it back to 53 significant bits).
+      """),
+
+    # Ways to build lists.
+
+    I(name='EMPTY_LIST',
+      code=']',
+      arg=None,
+      stack_before=[],
+      stack_after=[pylist],
+      proto=1,
+      doc="Push an empty list."),
+
+    I(name='APPEND',
+      code='a',
+      arg=None,
+      stack_before=[pylist, anyob=˜  >˜  ?˜  @˜  A˜  B˜  C˜  D˜  E˜  F˜  G˜                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      ject],
+      stack_after=[pylist],
+      proto=0,
+      doc="""Append an object to a list.
+
+      Stack before:  ... pylist anyobject
+      Stack after:   ... pylist+[anyobject]
+
+      although pylist is really extended in-place.
+      """),
+
+    I(name='APPENDS',
+      code='e',
+      arg=None,
+      stack_before=[pylist, markobject, stackslice],
+      stack_after=[pylist],
+      proto=1,
+      doc="""Extend a list by a slice of stack objects.
+
+      Stack before:  ... pylist markobject stackslice
+      Stack after:   ... pylist+stackslice
+
+      although pylist is really extended in-place.
+      """),
+
+    I(name='LIST',
+      code='l',
+      arg=None,
+      stack_before=[markobject, stackslice],
+      stack_after=[pylist],
+      proto=0,
+      doc="""Build a list out of the topmost stack slice, after markobject.
+
+      All the stack entries following the topmost markobject are placed into
+      a single Python list, which single list object replaces all of the
+      stack from the topmost markobject onward.  For example,
+
+      Stack before: ... markobject 1 2 3 'abc'
+      Stack after:  ... [1, 2, 3, 'abc']
+      """),
+
+    # Ways to build tuples.
+
+    I(name='EMPTY_TUPLE',
+      code=')',
+      arg=None,
+      stack_before=[],
+      stack_after=[pytuple],
+      proto=1,
+      doc="Push an empty tuple."),
+
+    I(name='TUPLE',
+      code='t',
+      arg=None,
+      stack_before=[markobject, stackslice],
+      stack_after=[pytuple],
+      proto=0,
+      doc="""Build a tuple out of the topmost stack slice, after markobject.
+
+      All the stack entries following the topmost markobject are placed into
+      a single Python tuple, which single tuple object replaces all of the
+      stack from the topmost markobject onward.  For example,
+
+      Stack before: ... markobject 1 2 3 'abc'
+      Stack after:  ... (1, 2, 3, 'abc')
+      """),
+
+    I(name='TUPLE1',
+      code='\x85',
+      arg=None,
+      stack_before=[anyobject],
+      stack_after=[pytuple],
+      proto=2,
+      doc="""Build a one-tuple out of the topmost item on the stack.
+
+      This code pops one value off the stack and pushes a tuple of
+      length 1 whose one item is that value back onto it.  In other
+      words:
+
+          stack[-1] = tuple(stack[-1:])
+      """),
+
+    I(name='TUPLE2',
+      code='\x86',
+      arg=None,
+      stack_before=[anyobject, anyobject],
+      stack_after=[pytuple],
+      proto=2,
+      doc="""Build a two-tuple out of the top two items on the stack.
+
+      This code pops two values off the stack and pushes a tuple of
+      length 2 whose items are those values back onto it.  In other
+      words:
+
+          stack[-2:] = [tuple(stack[-2:])]
+      """),
+
+    I(name='TUPLE3',
+      code='\x87',
+      arg=None,
+      stack_before=[anyobject, anyobject, anyobject],
+      stack_after=[pytuple],
+      proto=2,
+      doc="""Build a three-tuple out of the top three items on the stack.
+
+      This code pops three values off the stack and pushes a tuple of
+      length 3 whose items are those values back onto it.  In other
+      words:
+
+          stack[-3:] = [tuple(stack[-3:])]
+      """),
+
+    # Ways to build dicts.
+
+    I(name='EMPTY_DICT',
+      code='}',
+      arg=None,
+      stack_before=[],
+      stack_after=[pydict],
+      proto=1,
+      doc="Push an empty dict."),
+
+    I(name='DICT',
+      code='d',
+      arg=None,
+      stack_before=[markobject, stackslice],
+      stack_after=[pydict],
+      proto=0,
+      doc="""Build a dict out of the topmost stack slice, after markobject.
+
+      All the stack entries following the topmost markobject are placed into
+      a single Python dict, which single dict object replaces all of the
+      stack from the topmost markobject onward.  The stack slice alternates
+      key, value, key, value, ....  For example,
+
+      Stack before: ... markobject 1 2 3 'abc'
+      Stack after:  ... {1: 2, 3: 'abc'}
+      """),
+
+    I(name='SETITEM',
+      code='s',
+      arg=None,
+      stack_before=[pydict, anyobject, anyobject],
+      stack_after=[pydict],
+      proto=0,
+      doc="""Add a key+value pair to an existing dict.
+
+      Stack before:  ... pydict key value
+      Stack after:   ... pydict
+
+      where pydict has been modified via pydict[key] = value.
+      """),
+
+    I(name='SETITEMS',
+      code='u',
+      arg=None,
+      stack_before=[pydict, markobject, stackslice],
+      stack_after=[pydict],
+      proto=1,
+      doc="""Add an arbitrary number of key+value pairs to an existing dict.
+
+      The slice of the stack following the topmost markobject is taken as
+      an alternating sequence of keys and values, added to the dict
+      immediately under the topmost markobject.  Everything at and after the
+      topmost markobject is popped, leaving the mutated dict at the top
+      of the stack.
+
+      Stack before:  ... pydict markobject key_1 value_1 ... key_n value_n
+      Stack after:   ... pydict
+
+      where pydict has been modified via pydict[key_i] = value_i for i in
+      1, 2, ..., n, and in that order.
+      """),
+
+    # Ways to build sets
+
+    I(name='EMPTY_SET',
+      code='\x8f',
+      arg=None,
+      stack_before=[],
+      stack_after=[pyset],
+      proto=4,
+      doc="Push an empty set."),
+
+    I(name='ADDITEMS',
+      code='\x90',
+      arg=None,
+      stack_before=[pyset, markobject, stackslice],
+      stack_after=[pyset],
+      proto=4,
+      doc="""Add an arbitrary number of items to an existing set.
+
+      The slice of the stack following the topmost markobject is taken as
+      a sequence of items, added to the set immediately under the topmost
+      markobject.  Everything at and after the topmost markobject is popped,
+      leaving the mutated set at the top of the stack.
+
+      Stack before:  ... pyset markobject item_1 ... item_n
+      Stack after:   ... pyset
+
+      where pyset has been modified via pyset.add(item_i) = item_i for i in
+      1, 2, ..., n, and in that order.
+      """),
+
+    # Way to build frozensets
+
+    I(name='FROZENSET',
+      code='\x91',
+      arg=None,
+      stack_before=[markobject, stackslice],
+      stack_after=[pyfrozenset],
+      proto=4,
+      doc="""Build a frozenset out of the topmost slice, after markobject.
+
+      All the stack entries following the topmost markobject are placed into
+      a single Python frozenset, which single frozenset object replaces all
+      of the stack from the topmost markobject onward.  For example,
+
+      Stack before: ... markobject 1 2 3
+      Stack after:  ... frozenset({1, 2, 3})
+      """),
+
+    # Stack manipulation.
+
+    I(name='POP',
+      code='0',
+      arg=None,
+      stack_before=[anyobject],
+      stack_after=[],
+      proto=0,
+      doc="Discard the top stack item, shrinking the stack by one item."),
+
+    I(name='DUP',
+      code='2',
+      arg=None,
+      stack_before=[anyobject],
+      stack_after=[anyobject, anyobject],
+      proto=0,
+      doc="Push the top stack item onto the stack again, duplicating it."),
+
+    I(name='MARK',
+      code='(',
+      arg=None,
+      stack_before=[],
+      stack_after=[markobject],
+      proto=0,
+      doc="""Push markobject onto the stack.
+
+      markobject is a unique object, used by other opcodes to identify a
+      region of the stack containing a variable number of objects for them
+      to work on.  See markobject.doc for more detail.
+      """),
+
+    I(name='POP_MARK',
+      code='1',
+      arg=None,
+      stack_before=[markobject, stackslice],
+      stack_after=[],
+      proto=1,
+      doc="""Pop all the stack objects at and above the topmost markobject.
+
+      When an opcode using a variable number of stack objects is done,
+      POP_MARK is used to remove those objects, and to remove the markobject
+      that delimited their starting position on the stack.
+      """),
+
+    # Memo manipulation.  There are really only two operations (get and put),
+    # each in all-text, "short binary", and "long binary" flavors.
+
+    I(name='GET',
+      code='g',
+      arg=decimalnl_short,
+      stack_before=[],
+      stack_after=[anyobject],
+      proto=0,
+      doc="""Read an object from the memo and push it on the stack.
+
+      The index of the memo object to push is given by the newline-terminated
+      decimal string following.  BINGET and LONG_BINGET are space-optimized
+      versions.
+      """),
+
+    I(name='BINGET',
+      code='h',
+      arg=uint1,
+      stack_before=[],
+      stack_after=[anyobject],
+      proto=1,
+      doc="""Read an object from the memo and push it on the stack.
+
+      The index of the memo object to push is given by the 1-byte unsigned
+      integer following.
+      """),
+
+    I(name='LONG_BINGET',
+      code='j',
+      arg=uint4,
+      stack_before=[],
+      stack_after=[anyobject],
+      proto=1,
+      doc="""Read an object from the memo and push it on the stack.
+
+      The index of the memo object to push is given by the 4-byte unsigned
+      little-endian integer following.
+      """),
+
+    I(name='PUT',
+      code='p',
+      arg=decimalnl_short,
+      stack_before=[],
+      stack_after=[],
+      proto=0,
+      doc="""Store the stack top into the memo.  The stack is not popped.
+
+      The index of the memo location to write into is given by the newline-
+      terminated decimal string following.  BINPUT and LONG_BINPUT are
+      space-optimized versions.
+      """),
+
+    I(name='BINPUT',
+      code='q',
+      arg=uint1,
+      stack_before=[],
+      stack_after=[],
+      proto=1,
+      doc="""Store the stack top into the memo.  The stack is not popped.
+
+      The index of the memo location to write into is given by the 1-byte
+      unsigned integer following.
+      """),
+
+    I(name='LONG_BINPUT',
+      code='r',
+      arg=uint4,
+      stack_before=[],
+      stack_after=[],
+      proto=1,
+      doc="""Store the stack top into the memo.  The stack is not popped.
+
+      The index of the memo location to write into is given by the 4-byte
+      unsigned little-endian integer following.
+      """),
+
+    I(name='MEMOIZE',
+      code='\x94',
+      arg=None,
+      stack_before=[anyobject],
+      stack_after=[anyobject],
+      proto=4,
+      doc="""Store the stack top into the memo.  The stack is not popped.
+
+      The index of the memo location to write is the number of
+      elements currently present in the memo.
+      """),
+
+    # Access the extension registry (predefined objects).  Akin to the GET
+    # family.
+
+    I(name='EXT1',
+      code='\x82',
+      arg=uint1,
+      stack_before=[],
+      stack_after=[anyobject],
+      proto=2,
+      doc="""Extension code.
+
+      This code and the similar EXT2 and EXT4 allow using a registry
+      of popular objects that are pickled by name, typically classes.
+      It is envisioned that through a global negotiation and
+      registration process, third parties can set up a mapping between
+      ints and object names.
+
+      In order to guarantee pickle interchangeability, the extension
+      code registry ought to be global, although a range of codes may
+      be reserved for private use.
+
+      EXT1 has a 1-byte integer argument.  This is used to index into the
+      extension registry, and the object at that index is pushed on the stack.
+      """),
+
+    I(name='EXT2',
+      code='\x83',
+      arg=uint2,
+      stack_before=[],
+      stack_after=[anyobject],
+      proto=2,
+      doc="""Extension code.
+
+      See EXT1.  EXT2 has a two-byte integer argument.
+      """),
+
+    I(name='EXT4',
+      code='\x84',
+      arg=int4,
+      stack_before=[],
+      stack_after=[anyobject],
+      proto=2,
+      doc="""Extension code.
+
+      See EXT1.  EXT4 has a four-byte integer argument.
+      """),
+
+    # Push a class object, or module function, on the stack, via its module
+    # and name.
+
+    I(name='GLOBAL',
+      code='c',
+      arg=stringnl_noescape_pair,
+      stack_before=[],
+      stack_after=[anyobject],
+      proto=0,
+      doc="""Push a global object (module.attr) on the stack.
+
+      Two newline-terminated strings follow the GLOBAL opcode.  The first is
+      taken as a module name, and the second as a class name.  The class
+      object module.class is pushed on the stack.  More accurately, the
+      object returned by self.find_class(module, class) is pushed on the
+      stack, so unpickling subclasses can override this form of lookup.
+   

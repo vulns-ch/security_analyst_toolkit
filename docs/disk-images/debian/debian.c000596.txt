@@ -1,0 +1,875 @@
+U
+
+Files: saslauthd/auth_httpform.h
+Copyright: 2005 Pyx Engineering AG
+License: BSD-2-clause
+
+Files: saslauthd/auth_ldap.*
+Copyright: 2002-2002 Igor Brezac
+License: BSD-2-clause
+
+Files: saslauthd/auth_pam.*
+Copyright: 2000 Fabian Knittel.  All rights reserved.
+License: BSD-2.2-clause
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ *
+ * 1. Redistributions of source code must retain any existing copyright
+ *    notice, and this entire permission notice in its entirety,
+ *    including the disclaimer of warranties.
+ *
+ * 2. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in
+ *    the documentation and/or other materials provided with the
+ *    distribution.
+ *
+ * 2. Redistributions in binary form must reproduce all prior and current
+ *    copyright notices, this list of conditions, and the following
+ *    disclaimer in the documentation and/or other materials provided
+ *    with the distribution.
+ *
+ * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESS OR IMPLIED
+ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+ * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
+ * IN NO EVENT SHALL THE AUTHOR(S) BE LIABLE FOR ANY DIRECT, INDIRECT,
+ * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+ * BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS
+ * OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR
+ * TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
+ * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
+ * DAMAGE.
+
+Files: saslauthd/auth_rimap.c
+Copyright: 1998 Messaging Direct Ltd.
+           2013 Sebastian Pipping <sebastian@pipping.org>
+           1998, 1999 Carnegie Mellon University
+License: BSD-2-clause and MIT-CMU
+
+Files: saslauthd/lak.*
+Copyright: 2002-2003 Igor Brezac
+License: BSD-2-clause
+
+Files: saslauthd/auth_dce.*
+Copyright: 1997-2000 Messaging Direct Ltd.
+License: BSD-2-clause
+
+Files: saslauthd/auth_getpwent.*
+       saslauthd/auth_krb*
+       saslauthd/auth_rimap.h
+       saslauthd/auth_sasldb.*
+       saslauthd/auth_shadow.*
+       saslauthd/auth_sia.*
+       saslauthd/globals.h
+       saslauthd/mechanisms.*
+Copyright: 1997-2000 Messaging Direct Ltd.
+License: BSD-2-clause
+
+Files: saslauthd/cache.*
+       saslauthd/saslcache.c
+Copyright: 2003 Jeremy Rumpf
+License: BSD-2-clause
+
+Files: saslauthd/ipc_doors.c
+       saslauthd/ipc_unix.c
+       saslauthd/saslauthd-main.*
+       saslauthd/utils.*
+Copyright: 1997-2000 Messaging Direct Ltd.
+           2003 Jeremy Rumpf
+License: BSD-2-clause
+
+Files: sasldb/db_lmdb.c
+Copyright: 2011-2012 Howard Chu, All rights reserved. <hyc@symas.com>
+License: BSD-3-Clause-Attribution
+
+License: FSFULLR
+ This Makefile.in is free software; the Free Software Foundation
+ gives unlimited permission to copy and/or distribute it,
+ with or without modifications, as long as this notice is preserved.
+ .
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY, to the extent permitted by law; without
+ even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+ PARTICULAR PURPOSE.
+
+License: GPL-3+
+ This program is free software: you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation, either version 3 of the License, or
+ (at your option) any later version.
+ .
+ This program is distributed in the hope that it will be useful, but
+ WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ General Public License for more details.
+ .
+ You should have received a copy of the GNU General Public License
+ along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ .
+ On Debian systems, the full text of the GNU General Public License
+ version 3 can be found in the file `/usr/share/common-licenses/GPL-3'.
+
+License: GPL-3
+ On Debian systems, the full text of the GNU General Public License
+ version 3 can be found in the file `/usr/share/common-licenses/GPL-3'.
+
+License: MIT-Export
+ * Export of this software from the United States of America may
+ * require a specific license from the United States Government.
+ * It is the responsibility of any person or organization contemplating
+ * export to obtain such a license before exporting.
+ *
+ * WITHIN THAT CONSTRAINT, permission to use, copy, modify, and
+ * distribute this software and its documentation for any purpose and
+ * without fee is hereby granted, provided that the above copyright
+ * notice appear in all copies and that both that copyright notice and
+ * this permission notice appear in supporting documentation, and that
+ * the name of M.I.T. not be used in advertising or publicity pertaining
+ * to distribution of the software without specific, written prior
+ * permission.  Furthermore if you modify this software you must label
+ * your software as modified software and not distribute it in such a
+ * fashion that it might be confused with the original M.I.T. software.
+ * M.I.T. makes no representations about the suitability of
+ * this software for any purpose.  It is provided "as is" without express
+ * or implied warranty.
+
+License: MIT-CMU
+ * Permission to use, copy, modify, and distribute this software and its
+ * documentation for any purpose and without fee is hereby granted,
+ * provided that the above copyright notice appear in all copies and that
+ * both that copyright notice and this permission notice appear in
+ * supporting documentation, and that the name of Carnegie Mellon
+ * University not be used in advertising or publicity pertaining to
+ * distribution of the software without specific, written prior
+ * permission.
+ *
+ * CARNEGIE MELLON UNIVERSITY DISCLAIMS ALL WARRANTIES WITH REGARD TO
+ * THIS SOFTWARE, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND
+ * FITNESS, IN NO EVENT SHALL CARNEGIE MELLON UNIVERSITY BE LIABLE FOR
+ * ANY SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+ * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+ * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
+ * OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+
+License: MIT-OpenVision
+ * Permission to use, copy, modify, distribute, and sell this software
+ * and its documentation for any purpose is hereby granted without fee,
+ * provided that the above copyright notice appears in all copies and
+ * that both that copyright notice and this permission notice appear in
+ * supporting documentation, and that the name of OpenVision not be used
+ * in advertising or publicity pertaining to distribution of the software
+ * without specific, written prior permission. OpenVision makes no
+ * representations about the suitability of this software for any
+ * purpose.  It is provided "as is" without express or implied warranty.
+ *
+ * OPENVISION DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE,
+ * INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS, IN NO
+ * EVENT SHALL OPENVISION BE LIABLE FOR ANY SPECIAL, INDIRECT OR
+ * CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF
+ * USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
+ * OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+ * PERFORMANCE OF THIS SOFTWARE.
+
+License: BSD-3-Clause-Attribution
+ Copyright (c) 1998-2003 Carnegie Mellon University.  All rights reserved.
+ .
+ Redistribution and use in source and binary forms, with or without
+ modification, are permitted provided that the following conditions
+ are met:
+ .
+ 1. Redistributions of source code must retain the above copyright
+    notice, this list of conditions and the following disclaimer.
+ .
+ 2. Redistributions in binary form must reproduce the above copyright
+    notice, this list of conditions and the following disclaimer in
+    the documentation and/or other materials provided with the
+    distribution.
+ .
+ 3. The name "Carnegie Mellon University" must not be used to
+    endorse or promote products derived from this software without
+    prior written permission. For permission or any other legal
+    details, please contact
+      Office of Technology Transfer
+      Carnegie Mellon University
+      5000 Forbes Avenue
+      Pittsburgh, PA  15213-3890
+      (412) 268-4387, fax: (412) 268-7395
+      tech-transfer@andrew.cmu.edu
+ .
+ 4. Redistributions of any form whatsoever must retain the following
+    acknowledgment:
+    "This product includes software developed by Computing Services
+     at Carnegie Mellon University (http://www.cmu.edu/computing/)."
+ .
+ CARNEGIE MELLON UNIVERSITY DISCLAIMS ALL WARRANTIES WITH REGARD TO
+ THIS SOFTWARE, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
+ AND FITNESS, IN NO EVENT SHALL CARNEGIE MELLON UNIVERSITY BE LIABLE
+ FOR ANY SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+ WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN
+ AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING
+ OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+
+License: BSD-4-clause-UC
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 1. Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
+ * 3. <deleted>
+ * 4. Neither the name of the University nor the names of its contributors
+ *    may be used to endorse or promote products derived from this software
+ *    without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
+ * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+ * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+ * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+ * SUCH DAMAGE.
+
+License: BSD-3-clause
+ Redistribution and use in source and binary forms, with or without
+ modification, are permitted provided that the following conditions
+ are met:
+ 1. Redistributions of source code must retain the above copyright
+    notice, this list of conditions and the following disclaimer.
+ 2. Redistributions in binary form must reproduce the above copyright
+    notice, this list of conditions and the following disclaimer in the
+    documentation and/or other materials provided with the distribution.
+ 3. Neither the name of the University nor the names of its contributors
+    may be used to endorse or promote products derived from this software
+    without specific prior written permission.
+ .
+ THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
+ ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
+ FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+ OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+ OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+ SUCH DAMAGE.
+
+License: BSD-3-clause-JANET
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ *
+ * 1. Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ *
+ * 2. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
+ *
+ * 3. Neither the name of JANET(UK) nor the names of its contributors
+ *    may be used to endorse or promote products derived from this software
+ *    without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+ * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+ * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+ * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+ * SUCH DAMAGE.
+
+License: BSD-3-clause-PADL
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ *
+ * 1. Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ *
+ * 2. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
+ *
+ * 3. Neither the name of PADL Software nor the names of its contributors
+ *    may be used to endorse or promote products derived from this software
+ *    without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY PADL SOFTWARE AND CONTRIBUTORS ``AS IS'' AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED.  IN NO EVENT SHALL PADL SOFTWARE OR CONTRIBUTORS BE LIABLE
+ * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+ * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+ * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+ * SUCH DAMAGE.
+
+License: BSD-2-clause
+ Redistribution and use in source and binary forms, with or without
+ modification, are permitted provided that the following conditions
+ are met:
+ 1. Redistributions of source code must retain the above copyright
+    notice, this list of conditions and the following disclaimer.
+ 2. Redistributions in binary form must reproduce the above copyright
+    notice, this list of conditions and the following disclaimer in the
+    documentation and/or other materials provided with the distribution.
+ .
+ THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
+ ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
+ FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+ OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+ OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+ SUCH DAMAGE.
+
+License: RSA-MD
+ License to copy and use this software is granted provided that it
+ is identified as the "RSA Data Security, Inc. MD5 Message-Digest
+ Algorithm" in all material mentioning or referencing this software
+ or this function.
+ .
+ License is also granted to make and use derivative works provided
+ that such works are identified as "derived from the RSA Data
+ Security, Inc. MD5 Message-Digest Algorithm" in all material
+ mentioning or referencing the derived work.
+ .
+ RSA Data Security, Inc. makes no representations concerning either
+ the merchantability of this software or the suitability of this
+ software for any particular purpose. It is provided "as is"
+ without express or implied warranty of any kind.
+ These notices must be retained in any copies of any part of this
+ documentation and/or software.
+
+License: IBM-as-is
+ This module contains code made available by IBM
+ Corporation on an AS IS basis.  Any one receiving the
+ module is considered to be licensed under IBM copyrights
+ to use the IBM-provided source code in any way he or she
+ deems fit, including copying it, compiling it, modifying
+ it, and redistributing it, with or without
+ modifications.  No license under any IBM patents or
+ patent applications is to be implied from this copyright
+ license.
+ .
+ A user of the module should understand that IBM cannot
+ provide technical support for the module and will not be
+ responsible for any consequences of use of the program.
+ .
+ Any notices, including this one, are not to be removed
+ from the module without the prior written consent of
+ IBM.
+
+License: OpenLDAP
+ The OpenLDAP Public License
+ Version 2.8, 17 August 2003
+ .
+ Redistribution and use of this software and associated documentation
+ ("Software"), with or without modification, are permitted provided
+ that the following conditions are met:
+ .
+ 1. Redistributions in source form must retain copyright statements
+    and notices,
+ .
+ 2. Redistributions in binary form must reproduce applicable copyright
+    statements and notices, this list of conditions, and the following
+    disclaimer in the documentation and/or other materials provided
+    with the distribution, and
+ .
+ 3. Redistributions must contain a verbatim copy of this document.
+ .
+ The OpenLDAP Foundation may revise this license from time to time.
+ Each revision is distinguished by a version number.  You may use
+ this Software under terms of this license revision or under the
+ terms of any subsequent revision of the license.
+ .
+ THIS SOFTWARE IS PROVIDED BY THE OPENLDAP FOUNDATION AND ITS
+ CONTRIBUTORS ``AS IS'' AND ANY EXPRESSED OR IMPLIED WARRANTIES,
+ INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY
+ AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.  IN NO EVENT
+ SHALL THE OPENLDAP FOUNDATION, ITS CONTRIBUTORS, OR THE AUTHOR(S)
+ OR OWNER(S) OF THE SOFTWARE BE LIABLE FOR ANY DIRECT, INDIRECT,
+ INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+ BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+ ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ POSSIBILITY OF SUCH DAMAGE.
+ .
+ The names of the authors and copyright holders must not be used in
+ advertising or otherwise to promote the sale, use or other dealing
+ in this Software without specific, written prior permission.  Title
+ to copyright in this Software shall at all times remain with copyright
+ holders.
+ .
+ OpenLDAP is a registered trademark of the OpenLDAP Foundation.
+ .
+ Copyright 1999-2003 The OpenLDAP Foundation, Redwood City,
+ California, USA.  All Rights Reserved.  Permission to copy and
+ distribute verbatim copies of this document is granted.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                .   ë   ..  €   changelog.Debian.gz    changelog.gz‚  ¸	copyright                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       ‹     µYÛnã8}ÏW˜‡íìFnvlí›t:º{I÷ÎÃ`À¡%Ê&"‘’Jâùú­"%[NìİÁA|‘Xªë©SåJÌÏsU7ä]<šŒÂ >%­4–Í+şwÒê—ùêŸ5/D[ŸœòWòµ©+ˆUëûFîûkağy`ÕBYÀea‰åÆš3"ì_‘Ê‚p©ÚÅÒ|¿äZ¯‚Fä÷¤mŒÕœÕ¤OÜdpÀ¡š×êS»ä´lÿü“kZjUS¼H'q`D0/©ÕL–[¡¤5ÌæËNÌ’™%Á!rKY%˜rA¿^Q!é§VÃuw‰º©xÍ¥e(fK
+k„âıFùS£´¥ó¦¤5¯©jm Ê`®ZY Î¬èNŸ  7¼Oä?|Å5ùG¹À×|.˜)½ø!_–í‰Cò‰ix‰Ç$³şRò·0
+Ã““êEÄ¢S:p-œ¾Õî¨}æçj^qføˆ¼{_)~&?Dát:KÆ§>”Z5dÎò{´Œ¤RJ.Ğ·“”8c8„”5M%àb/u´9Ú¬ìRIz^*„±­•¡×¼Ñ<wşü…i	~÷Ù'ékS0Ë‰YÕsUHˆ>Ñ@,yÄ“ƒïny©¹YnL4b ÷|eº[Z9HI"$˜¢YUñjt`ln´€Ø¤äG&7±	³q´;6ãÑøõjºå\ÛŒ\¯$«Eú¬ˆ¹a­UÍıÂ+û¸ä’@â;İ‰n¥Y…ÙµêÜg\zög¸w5Ğ%î{é!ğä‚_¸ sHRÒšÖ=Áÿµp¯…»òå;ç>:aË¿àyÅ4wz	£*Ú fù2ÔÀûÿªË'bÚÆ½–
+d¯Ú:4(òkÉ+ò0Eq ó1ar+û¼)Ã¬GIœœvöÒhër‡ZE?
+Ù>Qn±GV´„èØÒĞî,"L8ñ€²FÈ\ÂÑIÌ…¥Q¿Kü²³lÇ“¾½Py¯ıí‡ËëO(¸€ÖL6l¸§ô1;†…÷¨ázoU GÑ6DËx¶ã’ÕŠ¶†Ó¹Z´È¶smöuÎ€²*W œ²¨NUÙŸÙ¹ó(Şôº@ƒhàK9¬`İ}ó&–ÑÖÑuÔ¿vQ‡ğõÚ»Êsn['‚Ï¬£@ù®•®ğ?«,ü”ÄQ6N³h²¿ğ£×
+' Ó$Â5¥$šfñTÚ§Oú:=CÕí"'ãY×ŞŒS=¼¸èíÂ)×B ÔøæËÕÍyv	bmÛX½â™òéÅtz†ï’d’F=V@E×§^Cî Ù nàf  =ƒõ
+åZlüğæçÂ‚ãæ­¨Š àÀ/Q²“—JÌù)·˜	‰ÆY”dát"üÿ3ÈeãØKŒ2N€À€>ñ.}’×óWrYñ'ÄL³ùmxï2Òù %ö=İ«s®Û
+2:JÉÄ5øÜ¡ï]=ŠÂ“®A^©êw©´ÉœÙlùrzŒåÑ´‡ˆˆDÙß‰ä¼mÀ´<#È„	ŠƒøÌ‘ç!:0™˜T™L˜déäô&>”ŞZ4ÆõòF=rİä¤n++€b£V“¾ô8pƒ#€GÓ
+ ‚%UámE)§ãÓcê%Lúz‰$g&Îöågü½õ2`°C®z`2µÔ¼ w¼é"Á%é>5£·¨é	Ğ'3ˆáX2Psş’¡fÈ'%\ó		Òå0KÂ})Ék†ÇÅÆ»“»H s˜şà;(l¨Ÿ=ü ÎbfCÂÁ¥„¢œ@iİJ Yám¡ ã	C¸F°ºó,‹£ıv÷ÜıÂ=ìöˆë=®7¾Y;Å]:WğZ.E!ñ‚†ø Eıe€TxxmvpH¤€·’YG[·şg, ¤…xÍ]qzâöF×³t–¥ßpí›€»zÖ¯ ¬ì/îSoİ¾b»dö%Õ‡ ïÔĞ¹Z˜üa’¾ş:é!ŸÏ×üÙ<reš6Ë9•ÊŠRxîCKˆ˜ÌùsªmyMs€j(ÕêGÖ ~TL±ó í`bšdc ´Óİx—Bc¾`[W3#O$®İ#‘4xà¹Ä·›°×ÜÂb‘W´—[Ş(ƒw¯Îïƒ+­{ôü¶€«v\Ã8qŸ¹Owí¼v(®Soè¥ß^ƒlõ(`C‡…ñ‹(-™·ú`pmt‹ûvãĞ*L|IítòævsdQ8t	@Ì*€‰€Ò»Ï·ôéé)è n”vßÁ°ç¦ÇK»ÔÜa¨#(¶`Bî©¦á–‹©«A×7€ŒäÎÁC"2“éd8]ì®ÚcèdÜ¯C$*	rûİ(—¾ÎÅ~ë@#‹%ğa©—L¶Ë³ÂÓåÌõ‡FY@IÁ* Ä7Ww„•¸*[äšˆy«óXqnÏshZU)6»¿Øw—¼¬qç\ˆ€‚Ué>äÜÃ”´/û;øÎJhâïzÅŒÁÁ&5Iy…´Åï©´º÷c¨æÏVO/¸İæ$ñÉ0ˆßa9u\v’¼5p·c$ Wä~8E{‡»í£VÑ¸ëvÑ'ı(ÎÆßÈƒè»ó`WÍ'ÔœŸ‹JØ•7Kr óİÖÎ|ç>°CŞTÆ1|šÎ.€§÷şu©Rœ7çİ(…ŒÍ©Úû–¼“j£M_VëLu›"7ßù90M	„á¾O5€bU@câ÷	™WmÑ­HqIÊÉÒZà‚ççâ^Œ6.?ÿÙÉë^@êúÁÍù÷ƒ«¬îáYà"¾D@=¦ëIº¯\zuHLæõ`ãö”LfÑÅy¶8„cŒÆ¯i;9Iw’Ãí¡Ùø/ “M6†aél_6F‡Lˆ‡—99||JâgÅîlWXóàÑfÓo1e‚[`<Bã¥lF¤:®gäÇ¶ÚìÆÒ·c] AM-yÿß>1˜MgÉ0àq:I'§»‡7ôUÃ°÷8?ô}ì¸	(òüG–çÌvír\Œ´01)Í¿šl~I)–7À¿è…îÁ8í¯Ö5¹ŞÎ€°®À]â¢Lâg±ğÃ\i]íXnÏxñ%¹¾t 0X>âCäĞ­İÃ³!‡÷ 77v‰KÉ­k&¯Š _ ©RU§ÇB³‚û¶1_ò
+Ø†ÄßÅÃ¾Qœ):ƒÁã¨ôzoÕûÍ\7Bï/@¬¶¦ÙŠ-û]à½¤®³šãêúb“â¸IüûòSUÀi`W¸Ææ”-ú¡Câ‡ƒJ-Fpìî×pjuÆU!¢ë;.ıÜ|µ©¦ø÷ÑÉÿ  °š€                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   ‹     ­Zİrã¸•¾ï§@¹*ÕİË¶$ÛÓ=›\xÔv6v·Ëöô&¹QA$$aL@Êv.¶ö5öõò$ùÎşXv:[;3’8ÀùûÎw”é¥SIbòò'q£2%roşøÿûÏ›MU•î§ÃÃµ®6õò »†M³¸ÿ›7¿ß”uÚbrpzp$Fâ?eQKû$&Ó}19šœ¼‰_ËTVJT%Ü“Kd–‰J.3%VÆŠK]Ôb{z0âÓ³4®.Kc+~[¨!m²Qî'q[—Êş"2]UX+‹T,õZ¨"Õ²Ø—Æë3|ºO¯Ş1Œ–ºW¦2ÖdRœ~8::
+[äuVé2S*Gên›«â¾WóëÛı°;××3š™Â™L³nôÔé¼ÌôêIlğ™.ÖÂ¬víävèI¶¹=ŸÍ¾^]/.æ—wç7‹‹Ë³Ï‹ÿ:›ß-ş4¿¼<ûùò|qs>û&V™\ï’`eádRÁN<ÀkŞŞŞQ‹ÎÛ…«¤­Ş½ß‡v½Æƒ\Ó{¯Ô/¬úM%øBœ]Ïedü²´Šş[WÊ!*#ÖªP6Æ€ÿPü|}!V:«”¥Õ¤‚é)32… <n¨GRv±,W‹\åïŞï0ÂR{•U*ˆö¶0uõ¯¬¯l¡²üÏÿ:A~T¹**IêŠş\+8§k|4ÿ:»»\|ùz7¿XÌ?-¾]Î?Á×OØ¯ £¤İ}¬ª¬V[zL[¦Ò+ø]p\%Rå«KD,„ÍóÒš-â¦2†Ã	†Ü¨¬$W'÷ƒTª9Çpö‚Eû¬ò:AÔ/‘JœÏ¿à¤BY‹Ã¬¬É;š‹‡òk_ˆ9¡@kej—=	:Nù€AØîB?¶!j7”2(¬«íj}X $í·T¤¹U«•«°gfS$*îµ¬×Qº€ç™5á…ˆGì%¦Î€ô‡µuIÒXg>Ãn¶&dISí]"5‡mQš
+¡!±gcÀİûÆÚq¿\rÍ¡C¹ßì^ÈÒmLE¢~­t¦ÿ®ÄÌ	r‡öú¤ÚU5^GöÉí‹öâ‰Ÿ"\a2Ê8¶)6¸’â¶âìÍ)˜)ŠèLŸ­ô£rÍ—©Iê6ÒŸ}¢ªó''ÀùO*Qù‡3ÎO¿çÙd:”x‰g@LL¼¼ÉwÊ;9ÿ\”ëÏ9¬vá€lB¡DjñK•—ÕS÷6
+ËxÅ*ºH²:õ1YiÛ¤rP¡¿3xf¨Ûº}!d­ÖnüıÚíºzí**ÈX tÈd„£5ià-BiKg s~
+ZQ¸UU)äy`m.ŸH«Úbt~6›ßîØ›ck<-¥Ó‰ÿ÷‚…O`aœxGàŸ©-Nôqò~h–	¹¼^×7ÿ»V9FıKÏª.¸2í£ĞTF™§Å*¥ iK¾&‘%Ò©0¯ p·Êï¢±ØÓéÑ]¡@Ö–ñ[1±Mfb–ş+‚5c|Ç‡DOğåE¡’Eà¯ªPÑ|°ñN;À1¯LJ$†¶Lï:÷ <3kĞYâ±Ø®^æ[‡B¢‡šÁÉG”®v’+êëõt0ãnM8dvT€ƒğ°o
+,Â~XO¥Mñ˜ùÒş¼§­_ÙÙSSƒ°ÕğSMÌ ”0ü„¦ÂkóáISğeYä’ˆÉí8›İ5BÈ6j 79IßM)C‹–£“gÒ6nø@¢ÅroÅçëÏ0üÓ3Ìfn^Cåvñ nÕîiŠä”
+®mrF5	¸?|Ê¤ôVí~åJS¤xyA1×²o]àÏ¼›0Ã¾ XÛ”•ÎõßƒEK`µ$Ş¾ßjD‡ÌdA€H@ıº‹¢^Ş—wgw7ŠÇ¯×wó«ù_Ï›­dş¶³Ç„¨×JbO¹¹™ßÎFßzø€×Êòzœ®_i<7IYR—b€«á+Lî]/p)¶jÙˆÛÈÔ<ô;Ê@İËM2cîëÒ-UÁkkĞìd-=¢!{¨[™Qm`¹lp6eH…ŠÇoZ‚msíTËm½¦MÀO?ù<¾
+¶T©ÃkÏgºzõ„vİÄ-fõ™çÔ¯fĞ5fQÚ¯<ŞæpE]rsÂ_7ušıBÅg·ß„ŠW*ËíÃÁJûa©âF·ÖÀ°ÎLÕJBs®şÃéÁã¥Rí`³­Kc˜>'&%ş»ÅÙ	÷ møS|œş"Î>ÿ•[íˆ:6”Éø!)rOù@e™œgª_ìBøóºp¥â˜[-E¶®r"ôQé˜¹Ñ	Ç=T"E±£oŒcNo<ê@›½.¤/®8ÿÍùÙ§«óƒ<mH`5tğĞbm¡˜:ôå6ùï»İàı68ˆ€9ñíGG'|¨s‚şÔY7Ûá'ûbqûåfäÏ²Öñ¦¶›&¦Xéum=\A¤­øuYU-Æ‚c"jÚ±'2 §(½—½/[QíàTÿİ~¯¥(ôzSQ£ŞÅå¼ú•¶&¥‡+«/ŸDè\7M‰K€àÔ‚;³I†t«ôäÔñÇïæuDëÈ·•)½aÉ‹¬úØ -ˆ¤—©ljŠ·•€Ë]u  ,§§,ì‚k#8fOıC…†ŒT­)5<o…ö¦®²{;]›Qm}#Ğ¡* _V»+ôm`#åbÃé”ƒÈÃJ…ÌUç>»'é[²ûQ#&`.È©>9¶IHÅ^0Í GAMB“Ù›ä“¢¨‹©_oæwAvyş‡ıl3p¸}¸qëtÏÌhÎà’¾î·ê¡cGT†JŞ+¢ZøKë2#Bš —%ØÆı³#E,ÿ›q×`/|¬væ‚FC‘ÅõÍWtF·=^÷Ú¢Ë¯ŸÃ·ìí!Çà×¯ˆÒÔ#©…)æ;/îÏ‹éäİÁÁÁû÷,+‹øòô¸yi×d0yè(–db‹c$Ä!·kD&à¶.°+2ÀXœØà^Ó‘'¾ ğŸTW¢]T?–è‘Ñrc0i`Ÿ/î$>ıP9:\S–z¦xpw2I?f,íë§¯W‚-Ä^¨Ç.¯¢²Ş9o—]±°¢fc]ªSƒ(¼a0ª—Ä+dOôÎPb¬
+½…e+x³
+´+kú‚˜”!×³n~„™T³‘v~:ª+ª‚ûHÎ“*†<2òxÛRƒåÉP¿ƒ®ÊØÙ‡2‰ g‚U¨JEâˆfÃ-mè«Iàoôğğ’™â”ûÎÚæµıO§İøB%ÓÎ\0ğÂÔÏ\sï·$„À	 şß'¿û?ÍS_4ãú Û²Ã³¬)3æÎbÌ­ÑøC<Gú:p öNx1I5ğB-­¿ñxÈÓ
+„šbæYCù&ÓLüã¼~6Ÿ‹ŸÉJ×–0õ€ÒtmeS©5³ÂèíÏºú¥^ Kã4Zô§¸¢OúèË¼.îº7)&#útÔ|ºOèË¤ˆé};ã¸¿¼ÿ‹VäU>[[
+Ÿş@1Ùé“’ñ´ón=é=CÛÙ4FQ™Ñ¸ÍÕ³¶à²¸»ıÓüºÓÌñ`›šØš³B±v˜9;Bjèò¶şùşz|ê³[Ñ|
+.„Î¹?c@ôÇ§€Šä^U½3¹
+LÂE	a}PR—IoI+ğ…an‘kû=×P©£^Œzí®ƒşmw!xVBÊdßwû¯6:Şö·/DT{r|@ùùç–µ†@ÈQfcU:Kª-ÕÇ^ò¶¾è’ƒCQ!K7H^yíğ-ábÌ§B|ßã'•Ü‡I^¨VrF…&-4üô> <*Uq%SzXÚ¤Êèú¬h,	jë‹æ¢¦ô¨ÎfÕFçƒ´ˆİ‰ÇMš'}à°8‰t¯ìosP:¯ÎÛN¬İ\ÅÓäN¹§¯Éõ¤ÚİUúúwâ4³~hÛ_ávtø8ÀJ[“ñşÂÊôY¬½°‰&bİş±™?R‹5—i•,Q&Şê9"6Õ«ÂÀcæ±¨FÓ×,ĞCõB…ız`†= ñØÒ‡:bß'mF…U=Å8ú·DŞhÒßŠï¤§ïÈ}Ã÷ÅÌğÙ˜5^}F±.]oz6°C}Æ“hŒ+½¶±ªøÓ…Ö‹è[]îÔ_Dœ8ÆèÏávL7*ûüï üß©?è(²Ôk”ú4üR!Ğaöu·ª]¼VŒN.¼¶ÕÆR‚»§"¡Šè‡”;˜ªğ+à
+1jÙÇ(¬_ùšÎ´À×NÃ÷ë,òø™#’JBápÖ¸Ê4!@ê®ñÑÆ´÷qıˆ¶ïŞ©u¿ç£6rG%sú|E†=÷KüË’Ÿ»Ò’®~´×0ÔîÛşy‘lF³t}ä]‡ |‚7J™Üƒ4Y¶%R¤éı9B»ç'“ƒ€»>ƒßºÖIÌòá<¹¤ÁÃF'Š- FBm“ÁÃÁ†ìĞ !6óvlà'YıSºê)S‡>«Nå!BØ³ö÷V!
++ù¸Ã"¥îà˜{SŒÊz™1hæKÚZZOû7AV4cŒ¦Èüé/.
+%Æ­3wMÙ	Û)˜Ç†ˆ¾k::¨r=Oweó¿àÁ±å*½$ÓSãfêª¬«îZ·û	!—ç^ÃÈ»Ó(ÆuH¦tÎhDFèWØÃ&t0Óò–pç×—Èƒ"è…G+<İ€äùäÉƒaª€U}[õÀõ!šû‚æúòÏšvÒœ¥ªø—Á¬B¢€Ûäš¥ÍÆÏ®Yé’µmİ_,ÓZæ:½|.Ë2 æYã‘!Öt~•ã+<éøâ
+á$mŠtäuÿÒŠgÙš¦M–H[EéJ×†á0tóÂH¸‘¶ QaÇ}H”şi¨˜“'XğÏG(±æ á¼eä˜ığCqûäİõ{ˆø~×7ofÆZ?H¢Xy>zˆ„¬SÛ5ƒæ…;°æÇ\ş,í»:7°E¼ï5`Ò¿îÉÅL=V#ù Xú¡2§óo©¸…Œõ’CDÓ—%÷Ş5£µJ‡±Vä:ñ¶ûˆÑ+ô;ë~Œf/¿™¥ïö˜3~û°ç]Ü„vŸ¹B¸pŞûöÇñ^lÒjNï €^½nªèĞ/2|¾Ö`ÖµäQ€?DCÎÍ—nÿáŞÄ$“*                                                                                                    Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: libseccomp
+Source: https://sourceforge.net/projects/libseccomp/
+
+Files: *
+Copyright: 2012 Paul Moore <pmoore@redhat.com>
+ 2012 Ashley Lai <adlai@us.ibm.com>
+ 2012 Corey Bryant <coreyb@linux.vnet.ibm.com>
+ 2012 Eduardo Otubo <otubo@linux.vnet.ibm.com>
+ 2012 Eric Paris <eparis@redhat.com>
+License: LGPL-2.1
+
+Files: tests/22-sim-basic_chains_array.tests
+Copyright: 2013 Vitaly Shukela <vi0oss@gmail.com>
+License: LGPL-2.1
+
+Files: src/hash.*
+Copyright: 2006 Bob Jenkins <bob_jenkins@burtleburtle.net>
+License: LGPL-2.1
+
+Files: debian/*
+Copyright: 2012 Kees Cook <kees@debian.org>
+License: LGPL-2.1
+
+License: LGPL-2.1
+ This library is free software; you can redistribute it and/or modify it
+ under the terms of version 2.1 of the GNU Lesser General Public License as
+ published by the Free Software Foundation.
+ .
+ This library is distributed in the hope that it will be useful, but WITHOUT
+ ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public License
+ for more details.
+ .
+ You should have received a copy of the GNU Lesser General Public License
+ along with this library; if not, see <http://www.gnu.org/licenses>.
+ .
+ On Debian systems, the complete text of the GNU Lesser General
+ Public License can be found in "/usr/share/common-licenses/LGPL-2.1".
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           ƒ   .   ë   ..  „   changelog.Debian.gz …  Ì	copyright                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           ‹     ½ZmsÛ6şŞ_q?œ}µh¾é×vjÇ›LÜz,§™^§£B$$!&	 ÚVç¦?ëşÀı±Û@™²©¨ÊLïC‰"İ»Ï>»LÎgŠå¼¬Éaä¼ ‘ºTšÎröRË+ÓÕ7Ëx]|ñ!'?°RWJKF"YÎ¨bÇäc­4I—´\0rÏ¤â¢$e]Ì˜$¯r¡˜JÈ—?F#³Ê„UÎçœe$c,X®—dÎs6ME©Ù£VdÆKs>­ì²À[õ’°y¶öØ{=rS+ğ*'¯Äìÿµ´_¿Kñ«—ŠÂ£õ·„Lêò˜rE%	ı°O‚Qâ‡‰?&_Kå›àôâ]Ğ¼æh©„Òî$ZRhR+×ÁpÿPM¨dåß4Á[hm7FÃQÿ…o£Q84[œfÜ_QVB’Ç($ª®*!5®]Ş)r&W şHÁ’5âQ°>·5œ+ÀòšÍ>Ã$&q¸Ÿh>W4c› =y8˜‹)yX2iï™»( TšC¸e+ƒK*¤d©ÎWğ©¨ :²}¼úÀ28õğÉ«ĞOúqDÛ¼
+wyõÊD}fŒ6W"ïeìÌjcxW¬ÌÆB“°¬yò¦.Éb…Èêœ‘ŞÙ¡s¶Ó2l!­¹©$»ç¢VÍ,¥Ubn!1&˜=’—'!T
+ª÷>ı hş(‰ƒ$lÃi'qØĞ-À¹ŠK¤À%‰uñì#•%'oÊ'—\åT‰21¾-˜/!¸ÚÁú1şÄYÚıó yz*dA•5´2Í¹Ò/ÍŠ´r¶*iÁ:îëCÀr=uÎeÇZ#»9WÍ]SV"0YÇ­#€²RzÙáHß-´ošBj§wæ
+SOltA`İ7dÁtÑ&ÑË§âòğˆL..‚ˆ³ñ;ùğærÍ'éŠÙ¤{À´,˜Ä@oØ¯pZÖÇÄ´Â©ŸøN~w8w“í•5æ‡«÷æë-½c„6Ìˆ!µà†€ç@ÊÔz	©÷Ìy¼²RšÊ”ãêäâ1#ãÊœYİá8ìÇ­¬'²ÎmŞÙd‡õŠZå=ãH–+ƒ,Ğâ3 ,xJ…30­Ê©Æ´TÏÉ~4ôƒÁ^…Œj“ªo!µÖD&Áh¶‘·»Ê‹²WP^jø[×U.hæ™Ÿ26ã´<qa•Óª×Ö’À€Ş¢b*»zà{‘ç“Cç­ñc6¢àÈ3_omƒçOsöH®j)éÊ¢1a3
+u¼¼¡MÊ¯•t¿³fyB.H ‰5$ş8éC¸ä+¿’]€Ü0 _íhê7p°/yZ'0œv?]Â+Ö«N1CvæPÌ *V:[÷ô n”ÓB@0ñÒÛçô_K~L NëºCqKúı$Dãw¹şÉÌj¥Ò÷,/jM.¥X–}t ¼ôŞxûu¾(™4œL6ç/=F$×ªÏë›¬Q¬)_SWĞ¼Q³ƒds€9ÈØœÖ¹>0j
+4Ê¦kCvàmdVûƒ¦µD”d•„œ"$M"ÏIµÒKQF=gîq£¯Ş‚ç
+WàP£'ï ã½U(èÓñÅHŒ~´íø>K oÁµ©ÄG)%äªU¡eŞ×šçêP5ÃÓ¦?
+5Sµ‰Å÷…úYŠ‚™Ú³ÔºRÉÉ	°ğ²¡¿'X¯¥ø›¶v„#–ôÉfÅ%ªü;¶2ÇsÍ´$ïh­åR}oUg.Ğb40ê·¿+7~!WR•åäŒ³YN~µù¨¶b`ÿOj%×DG¾qì"à$†E¢¼j`n%G­­´òtQ™(è)/È‰¬KÈ  dàúøsç«¥ä–*/ÿû­0äñ3Û[QA7Yd;Œûz†Ÿ7Öèh@Ô1,@$a”DÃn†íïŠÛO ²% 	é5€!OH‘'6¯×y«ëJ‘+[„İåŠWN>;wËœÕEµ©İô¬zG[ñ¡o¿íŞÇO…­r¦tÔ>Aµ*f`„5®dP,Ù#
+,ˆ|÷[ûğOO\ô <ªRç\=ƒt4©Iúe2ù'”À²½„%	D«˜„í 	cªk8INW¢ÖkAh‘!¶i¯³†Õà3Ñ #•™êıäúÀ!ö^HK(÷µ4êÆõ"GƒI¤…©)…ØÖ×ĞàÿÛüÓƒôaZøû·¨ğD1¨m¼l¥_×øëÛWg¯'	0«•±©ùeiYÅy‹!avòa¥éªlmäE8ÄÖ“ÉºÉfĞÓ×à˜«P:0A½Ícö.ÛÏœh¹dĞƒ•eËÒƒ7%MÓZR=[µ’|±Ôfàq°±Z†£ıÒÓ”LŞÖ9¦gD 7û>ÈBHÏğezÆMz¾Ì+›VYÿEYua/ry}i’ææ<££òwZ›EmÙa½=7;"»qàWç©- pT ”Dq¬ ³’¥L)*!Íx™¢~ "­¶ı
+@ÏíÀÅ¿ëâÁĞ§•°sX°"O½ı•®<\QşAŸûİí©FQ»šÆCŒï½O9ÚvÊûrßÍ9û w%0EFĞêÜ#röQ”Äãî
+"rbLòV§ù^êkOœÂ8=à	y_eÈxÓû›w¦íy.,O-š.H{n„+8nwq'\ë¦Ó<óÌµc3¹,Cl!$Û?0AœVÒÂDØ•ú[3ØÕ‚ıÒ%jİ„2û^Ê½UÁó^±&…A!ñÊAwrsqz~uáòd„Î°Ò2åèSÓû¢†o•€ÌtOnÆ%xºdy…¡­	5ƒ†:Ä¼ì|`K ÷½àÅóiwÌÀv?»:ï(®÷k;ÖµŞ&¥wÙ¢µSª‹ç`Òöšs–gj÷Ÿ?¸mğYqVç¹b+fÌÁ_ÕJ¥`üÜôi-6ÇC¿äµÊ~ÜÌ“ ºü$€ßïNŞ`·²ß%Ê7ÏóyçÛÊa8Û&É×3° ¨a ’¤¿C5Úªú×Õí§u­p—ğå¡÷”çæ8Á#©›·'†g`«?ÚàúA4Ø\ÖƒF<ø8ûGI¿¿-u?·'}ÁŠÁ§i1ØI‹.ØQôæ¥€& 4—æ©S•Bqí’xõúİéådÿÀâ6cà43lëÄæ™¦rüB~uo²dp–?	¸ØHyBìì>î#Ä
+·1ásÀşãS’l¢(L¥p/ä³Øqê:ï¯¾ışÇ¦“‹Û÷×ÓÓ›Ë	®éú³iº’ëJœ,{Ş”ì’·8Ùn¥H	5ĞaÀÇ^µ^WJ·ïúî4[ƒ|å5O·V3¯ìÌü»Ä +y2kCí	×¼F’fÈ5ÏkµœBï®Ô4ÅI%P ]ÙÎÅÎ/®G6^gTAg§¾[tÄôN¸Um^QÛˆÌx™™×Šè±{¡âfùÆf’R;¡²gcp¥éÑ<ğÔfÎ«ÖsÊ¾–]™[ÛÛ›®dK¢­ß?
+è¨àÈĞNoy$¾İÌ;It!pƒKônØ¿j.ñƒ:sÛ[ö·©AÓ·ÁFëjİsÕºI°rC {ëGÖyT0M!p¨«‡hÉ¢wfæ½÷3œ"äªı¹g@?“âA±O7«vfäçgÓ³÷oŞO¯o~|ıæİÅä›RØ4h7—ãx0
+‚£ÏĞb„ĞÊ‘–™ƒãnÒòÿo„îÿ%]>lEîIubœ–"csµ]Ûšğ§Yæò¹õä&?yï7ZSÛT¶F+Öü½£9ş”$ìŸ|Æs®¨A¸ÿ/@*§AœD£$êlBo¼û5‰ı‰¿Ã5ß´8ŒƒÑgÈ½ t½ê'q˜ô£m†î|ÉñŞ¼ÑBÌšû:OêŠÊ;;–j–§Š\Õ¹æ½S‰˜¢ûŒÉÌĞ	t%ÀÉ´ğ.¿$?æ.¬%90ï’BAš1†­Œà›w2æU’\,<xìßËĞlı_ r†s¥æS£•n]j¥ÖoŞÿa…¨ $                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Comment:
+ This is the Debian package for libselinux.
+ .
+ This package was debianized by Colin Walters <walters@debian.org> on
+ Thu,  3 Jul 2003 17:10:57 -0400.
+Source: https://github.com/SELinuxProject/selinux/wiki/Releases
+
+Files: *
+Copyright: NSA
+License: public-domain
+ This library (libselinux) is public domain software, i.e. not copyrighted.
+ .
+ Warranty Exclusion
+ ------------------
+ You agree that this software is a
+ non-commercially developed program that may contain "bugs" (as that
+ term is used in the industry) and that it may not function as intended.
+ The software is licensed "as is". NSA makes no, and hereby expressly
+ disclaims all, warranties, express, implied, statutory, or otherwise
+ with respect to the software, including noninfringement and the implied
+ warranties of merchantability and fitness for a particular purpose.
+ .
+ Limitation of Liability
+ -----------------------
+ In no event will NSA be liable for any damages, including loss of data,
+ lost profits, cost of cover, or other special, incidental,
+ consequential, direct or indirect damages arising from the software or
+ the use thereof, however caused and on any theory of liability. This
+ limitation will apply even if NSA has been advised of the possibility
+ of such damage. You acknowledge that this is a reasonable allocation of
+ risk.
+
+Files: utils/avcstat.c
+Copyright: 2004 Red Hat, Inc., James Morris <jmorris@redhat.com>
+License: GPL-2
+
+Files: debian/*
+Copyright: Â© 2005, 2006, Manoj Srivastava <srivasta@debian.org>
+License: GPL-2
+
+License: GPL-2
+ This program is free software; you can redistribute it and/or modify
+ it under the terms of the GNU General Public License version 2,
+ as published by the Free Software Foundation.
+Comment:
+ On Debian GNU/Linux systems, the complete text of the GNU General
+ Public License version 2 can be found in `/usr/share/common-licenses/GPL-2'.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           †   .   ë   ..  ‡   changelog.Debian.gz ˆ  Ì	copyright                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           ‹     ÍXëRãÈşÏSœÚı3d‘äX™¤ÌBfjØ‚™LUR)¶-µ¥^Zj¥»¸vóZy¼XÎi]lÀÆ8;?RE[RwŸËw¾óI13¼`%Ë8¼øÇ~è…ûP—Æ²™ä„Zg¼L*x*êboààƒº2VsV€æ’3Ã âz®4n–p˜‹÷ìIšBÅl’Ş‚î(?QåüÍhæZpúÓ¥€we&àBÉŒ*q1ÀT*Ãcøv2
+ÂÉxù;&ã ¡5Wµ1\J˜ª[®á­n~~ŸĞO<§ğYıg€ëº<€p—LCD#ãá8#ø.ƒ`oO>	Ä«Âğ,»˜ô)¯ Ã9Ÿ5&EQ<:Šƒ`ƒIG^´Í¤KvËae™—ò;HyÅËTÙÜ‘¢¬Bº³‹±çZÀ €“:#c‡âá0ĞØ`­±[ã÷#¿?º1ÍY™=÷Ãªµ®8O:¨ñ«ÙrW#²R”Üò…ÃßGn5|`µÕ3–änÕ/ÔİãÃĞéB•¾ ë10x
+w«)4‚•€!¦3nv &¹`Æômàh[ ÿNh^Z8™*ï„”şñRd<Œà]8Ôµä&†ZaÑÊ¦›sè}fU[ç5]®6Ç *ÅuwÂJ¶ZÉNë¢‚_gµ©÷¯&Qh±à†W8
+(Ñ®ÕD·[t¦¶éò0]>3IÜ°G=“"q)TsxOä c¨Õ-[qmY™2ï¯\Ğ„¡?ö#xS*˜×Ò8œ™ıµah€‘a4ïÖ^ñJ²ó¾qAï÷XÆ(šˆšÙ~sÿ<QZ®+Íñó€lª–©A”YÜ¯Éì_¸,0üZåe—Ôsñ çŸ¦§ç×1‚©ª”¶he¸˜ÌÛ4¡óÍ©X¼$ÿïÎxãÔ8¢Éøh¿9î”:.8±w¹rà7ïJ–$µf–C¢ª…Y°’óh·Ax4q»a=¬åÛ}ÿ¾	™¯t†q©ˆ‘x_K*ˆ~ÄÃAÁwA´¦ †ÿ3£|´®l²bXä›E1SÒ4XÅ%’ÂNÉá)´÷œm?”d7\|¼pP¾cR¤Ì6ÕTc½á–!;I¹S0¯™Å^2Ä`–ÌÂIñ`´!˜ƒíì2ÍµhañŸ[k’¼Cbz˜	+ÙÌK„¿(0˜Ÿ‡3g,U[İO¢ç\VTxª@M@‘–üKì%kl(ãŠÍe¼Üãs•lsUpbëövË|m:  ÇC81ÏÚg¼/ÄˆŞ×[2Å¬pªÄÚ’èá25O9ã‰dš÷âÇ«­Nt’Ë‹	†&ß/qúS ÷ÔİöÄn\¢+%#Çåœ¥„¯îbø¼LîÚĞ"&¾:±¿’•ƒ×³ò—ìÁ•Kk7VÙÎm[80˜	»;+Çğ£º£B
+!ÅAÆXHëDYD…„Ïµ(p{&_ÁL­é_“™Ü"
+vGVğFW‡´":€”:ÓÓ›ôÛÉªŠ%·}y4¶ÜÓ)}Ñ“Ÿ¯>Ğfs%¥ºwWÈË²ŒúSıvk5míÓÔ)8D¦HhÍœÕÒRÿrn=¹]ÈG×MÜâ¤qc¹±Æ¯³‰ˆÉÂs¥ï©°S²sÙmW:íüŠ¢í¤Ò-,ñ(ŠÃãünç×–0ß³RX”YM•BÒŒ×{"ƒ	â¾»{*­gQ¯eÑ®€E‰( Ğœ9Ì˜å’x·SÊZ¢"¬eŞ^˜¹ùå2dÌbõ»çrqªÕ½A3~¯ğü=¬²İ—ëzVë¯ÂäI«"p&ƒé»ÕÇZÊŸâi¥CP3Q’°j$V#‡©´!7¨árahÖušÜB6ÃäÙ¹Ñt' ›"{/p8^*§É(‚ıu–ĞAi~ƒÃŠºIœYØ+1Ís¸ÇC°g”Ê.¥+—Ö®ÙÍ¹İŠF4L×4ÅÜ’ŞGÓ4Åe3@Ò,Ôù¦)¿ƒ8à´î°6šäàÉa[kËRuEG{WüŸµĞôE)£Ñ¬óæ¥òÜÉV$­P&¶}‚‚8=ÿprqıBõ|Ñ¬©04³ò®é&Re€€Õ‚Nı±6iÎt©/¦Vhhp×‘ÙÄß‰8¾ğUî¨S¹“xt‡ãÄü¨ÜÃê9©Ò0@9p;õ¤İ í´kOá Œ‡¢P&]–ZµÆ¹õ’F¾$ùÖŠK±¬Â0r5óúÖâ×Ã§òÎ=©Ô­+ï§pÂÑ„ŸUÄ“/->jcMJ°Fe÷ö-ª©À b‹ä¹ív¦±yºÜË¢0"1‰8
+'†ñğ5şZ]ùo°G. ÍÈèõK[¢:èfÉˆLşá§n¨¥²qÄƒ}µzMŞ6h»%4M	¡ë¨ÇFaÖ–¹¾õ=ÙçJ*TÆhc÷ÜZ»dúvõÍ{kÖ×Ë aL.Q¸4=¶—‚ï&.èÕÎ½½ƒÑ ¦×“ÃÎÁoá'™bøZ
+Ã$ KÏ8§q‹Ş^¥]%b®zÂóqÙ'¬S„jÉiï)±F5ô3«ìÊ¥çïÁ~ö÷şĞ™D/%                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Comment: This is the Debian package for libsemanage.
+Source: https://github.com/SELinuxProject/selinux/wiki/Releases
+
+Files: *
+Copyright: (C) 2004-2007, 2009 Tresys Technology, LLC
+           (C) 2005 Red Hat, Inc.
+           (C) 2005-2021 Red Hat, Inc.
+           (C) 2017 Mellanox Technologies Inc.
+License: LGPL-2.1+
+    This library is free software; you can redistribute it and/or
+    modify it under the terms of the GNU Lesser General Public
+    License as published by the Free Software Foundation; either
+    version 2.1 of the License, or (at your option) any later version.
+ .
+    This library is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+    Lesser General Public License for more details.
+ .
+    You should have received a copy of the GNU Lesser General Public
+    License along with this library; if not, write to the Free Software
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1
+Comment:
+ On Debian GNU/Linux systems, the complete text of the Lesser GNU General
+ Public License version 2.1 can be found in `/usr/share/common-licenses/LGPL-2.1'.
+
+Files: debian/*
+Copyright: Â© 2005-2009, Manoj Srivastava <srivasta@debian.org>
+License: GPL-2
+    The Debian specific changes are distributed under the terms of the
+    GNU General Public License, version 2.
+ .
+    A copy of the GNU General Public License is also available at
+    <URL:http://www.gnu.org/copyleft/gpl.html>.  You may also obtain
+    it by writing to the Free Software Foundation, Inc., 51 Franklin
+    St, Fifth Floor, Boston, MA 02110-1301, USA.
+Comment:
+ On Debian GNU/Linux systems, the complete text of the GNU General
+ Public License version 2 can be found in `/usr/share/common-licenses/GPL-2'.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               ‰   .   ë   ..  Š   changelog.Debian.gz ‹  Ì	copyright                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           ‹     ÍXëRãÈşÏSœÚı3d‘äX™¤ÌBfjØ‚™LUR)¶-µ¥^Zj¥»¸vóZy¼XÎi]lÀÆ8;?RE[RwŸËw¾óI13¼`%Ë8¼øÇ~è…ûP—Æ²™ä„Zg¼L*x*êboààƒº2VsV€æ’3Ã âz®4n–p˜‹÷ìIšBÅl’Ş‚î(?QåüÍhæZpúÓ¥€we&àBÉŒ*q1ÀT*Ãcøv2
+ÂÉxù;&ã ¡5Wµ1\J˜ª[®á­n~~ŸĞO<§ğYıg€ëº<€p—LCD#ãá8#ø.ƒ`oO>	Ä«Âğ,»˜ô)¯ Ã9Ÿ5&EQ<:Šƒ`ƒIG^´Í¤KvËae™—ò;HyÅËTÙÜ‘¢¬Bº³‹±çZÀ €“:#c‡âá0ĞØ`­±[ã÷#¿?º1ÍY™=÷Ãªµ®8O:¨ñ«ÙrW#²R”Üò…ÃßGn5|`µÕ3–änÕ/ÔİãÃĞéB•¾ ë10x
+w«)4‚•€!¦3nv &¹`Æômàh[ ÿNh^Z8™*ï„”şñRd<Œà]8Ôµä&†ZaÑÊ¦›sè}fU[ç5]®6Ç *ÅuwÂJ¶ZÉNë¢‚_gµ©÷¯&Qh±à†W8
+(Ñ®ÕD·[t¦¶éò0]>3IÜ°G=“"q)TsxOä c¨Õ-[qmY™2ï¯\Ğ„¡?ö#xS*˜×Ò8œ™ıµah€‘a4ïÖ^ñJ²ó¾qAï÷XÆ(šˆšÙ~sÿ<QZ®+Íñó€lª–©A”YÜ¯Éì_¸,0üZåe—Ôsñ çŸ¦§ç×1‚©ª”¶he¸˜ÌÛ4¡óÍ©X¼$ÿïÎxãÔ8¢Éøh¿9î”:.8±w¹rà7ïJ–$µf–C¢ª…Y°’óh·Ax4q»a=¬åÛ}ÿ¾	™¯t†q©ˆ‘x_K*ˆ~ÄÃAÁwA´¦ †ÿ3£|´®l²bXä›E1SÒ4XÅ%’ÂNÉá)´÷œm?”d7\|¼pP¾cR¤Ì6ÕTc½á–!;I¹S0¯™Å^2Ä`–ÌÂIñ`´!˜ƒíì2ÍµhañŸ[k’¼Cbz˜	+ÙÌK„¿(0˜Ÿ‡3g,U[İO¢ç\VTxª@M@‘–üKì%kl(ãŠÍe¼Üãs•lsUpbëövË|m:  ÇC81ÏÚg¼/ÄˆŞ×[2Å¬pªÄÚ’èá25O9ã‰dš÷âÇ«­Nt’Ë‹	†&ß/qúS ÷ÔİöÄn\¢+%#Çåœ¥„¯îbø¼LîÚĞ"&¾:±¿’•ƒ×³ò—ìÁ•Kk7VÙÎm[80˜	»;+Çğ£º£B
+!ÅAÆXHëDYD…„Ïµ(p{&_ÁL­é_“™Ü"
+vGVğFW‡´":€”:ÓÓ›ôÛÉªŠ%·}y4¶ÜÓ)}Ñ“Ÿ¯>Ğfs%¥ºwWÈË²ŒúSıvk5míÓÔ)8D¦HhÍœÕÒRÿrn=¹]ÈG×MÜâ¤qc¹±Æ¯³‰ˆÉÂs¥ï©°S²sÙmW:íüŠ¢í¤Ò-,ñ(ŠÃãünç×–0ß³RX”YM•BÒŒ×{"ƒ	â¾»{*­gQ¯eÑ®€E‰( Ğœ9Ì˜å’x·SÊZ¢"¬eŞ^˜¹ùå2dÌbõ»çrqªÕ½A3~¯ğü=¬²İ—ëzVë¯ÂäI«"p&ƒé»ÕÇZÊŸâi¥CP3Q’°j$V#‡©´!7¨árahÖušÜB6ÃäÙ¹Ñt' ›"{/p8^*§É(‚ıu–ĞAi~ƒÃŠºIœYØ+1Ís¸ÇC°g”Ê.¥+—Ö®ÙÍ¹İŠF4L×4ÅÜ’ŞGÓ4Åe3@Ò,Ôù¦)¿ƒ8à´î°6šäàÉa[kËRuEG{WüŸµĞôE)£Ñ¬óæ¥òÜÉV$­P&¶}‚‚8=ÿprqıBõ|Ñ¬©04³ò®é&Re€€Õ‚Nı±6iÎt©/¦Vhhp×‘ÙÄß‰8¾ğUî¨S¹“xt‡ãÄü¨ÜÃê9©Ò0@9p;õ¤İ í´kOá Œ‡¢P&]–ZµÆ¹õ’F¾$ùÖŠK±¬Â0r5óúÖâ×Ã§òÎ=©Ô­+ï§pÂÑ„ŸUÄ“/->jcMJ°Fe÷ö-ª©À b‹ä¹ív¦±yºÜË¢0"1‰8
+'†ñğ5şZ]ùo°G. ÍÈèõK[¢:èfÉˆLşá§n¨¥²qÄƒ}µzMŞ6h»%4M	¡ë¨ÇFaÖ–¹¾õ=ÙçJ*TÆhc÷ÜZ»dúvõÍ{kÖ×Ë aL.Q¸4=¶—‚ï&.èÕÎ½½ƒÑ ¦×“ÃÎÁoá'™bøZ
+Ã$ KÏ8§q‹Ş^¥]%b®zÂóqÙ'¬S„jÉiï)±F5ô3«ìÊ¥ÕÙögï¿Qº¬Å                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Comment: This is the Debian package for libsemanage.
+Source: https://github.com/SELinuxProject/selinux/wiki/Releases
+
+Files: *
+Copyright: (C) 2004-2007, 2009 Tresys Technology, LLC
+           (C) 2005 Red Hat, Inc.
+           (C) 2005-2021 Red Hat, Inc.
+           (C) 2017 Mellanox Technologies Inc.
+License: LGPL-2.1+
+    This library is free software; you can redistribute it and/or
+    modify it under the terms of the GNU Lesser General Public
+    License as published by the Free Software Foundation; either
+    version 2.1 of the License, or (at your option) any later version.
+ .
+    This library is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+    Lesser General Public License for more details.
+ .
+    You should have received a copy of the GNU Lesser General Public
+    License along with this library; if not, write to the Free Software
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1
+Comment:
+ On Debian GNU/Linux systems, the complete text of the Lesser GNU General
+ Public License version 2.1 can be found in `/usr/share/common-licenses/LGPL-2.1'.
+
+Files: debian/*
+Copyright: Â© 2005-2009, Manoj Srivastava <srivasta@debian.org>
+License: GPL-2
+    The Debian specific changes are distributed under the terms of the
+    GNU General Public License, version 2.
+ .
+    A copy of the GNU General Public License is also available at
+    <URL:http://www.gnu.org/copyleft/gpl.html>.  You may also obtain
+    it by writing to the Free Software Foundation, Inc., 51 Franklin
+    St, Fifth Floor, Boston, MA 02110-1301, USA.
+Comment:
+ On Debian GNU/Linux systems, the complete text of the GNU General
+ Public License version 2 can be found in `/usr/share/common-licenses/GPL-2'.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               Œ   .   ë   ..     changelog.Debian.gz   Ì	copyright                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           ‹     ­XínÛÆıï§´?jßŠ4I‘’Å¦E»	$ma;Ğ¢hWäZZxÉew—¶õç>V_à¾Ø=»$eÙVâÈ-à¹3sÎœ™‘sÃ%i…qP[Ëæ’C­^ğºX}[ñR´ÕŞÑèG~Mmc¬æ¬"Í%g†HÕrEW\¡jªÛjÎ5KV/8v¶Æp)éX]âÍ3İ}ı¾p_ÃBU!k¿#:këÅzÇ4%Q’Q<Í“qÏèë8¢½=¹iíÓlÍñÆİÔ4J[ªeeÄo,¯K^RÃu%ŒsÂøeÏK<SR+*XÃæB
+»¢š[)êË?nÜr¿aé¼PšüC¢¦BÕ¥°8Éî$ÁÍ.!9_¶#Š&ô’ÏûÌò$Íãé¶Lƒä±¼oJfáé°-	Íªš+i¼İvÉIâ½±Äk«Wµ5~£â¤ÙmDXÔ¢^Ğ%_ùİ?s«é-k­³b¹‹—/µQ2¦çíÂy™R|”GQ¥ğ2zèå“€÷/Ny¥®à¾sT·T±šJ¡ya•^íKË=,kƒ“$fyt´ÍàìqXŞÁª5&¡QaBVÑaktè	v{å$•ªæ½ÕHºıka—ªµÔ‡E¹üÃ­³
+[ˆzíÖeá1(ëÏºæ_Á¿%Ãi¸P]zŞb¡ßØ‚‡´,•á&§/ã(ËfI|Ğ…ğjPƒ^ˆ…ª¯„”œÍİçïK>¬•^¬MéGuåâ3¦8ËÓI>F|¢øa|
+(Q@'Z5T6‡ˆ{çâ&¸bR€îÈ¾@]­á:(y!™öÏL ê Re6ÌËNËM#(2\çïïœ;öÔ@ı™"ï”¢#Á}:¨zÃ´ğWmA°ZÉœ^´UCg–Õ%Ó¥	~éÅ¤áøï×Š.Z¦RjvÃàŒYpôˆŞ´²Ã M!`ÜÇ ’ğqÈŠAğVµT¬ı«—â†¾x]³¢h]İkVZ,–ĞC!ùwø4§³£Ş—s‹ø¢ 9Ï,¾İuâ/=‘Ş±UO¤Ióhü's´ [Z8œ-h“N¶-$7#òÔ ƒùwHAw|Š“,ï†w-Î€Oí\K’Á»£í®ı“é¹÷@ô;ŞÖüBÂoœÀÇş?ó‡ÚİG¯~~åi}7rND×ZÕ—ò	Tş-ª§·¡Œã<Nòd¶-”ãÇCùñx9;¿kVñ!•«A9Ñ
+µˆ‰à!Ú#X°AÙÑ,§#|˜EY2Ññ/?ğ!Æ“è(yï<Ëî­¹¿gzğˆŸÀ|§ »n-š{}‰P·i|â‚Î]_$*œÍä¶ÀÿFÇK-ŒÅôê[k
+„÷÷ÎÃ…°’ÍƒB„«
+¤zo8x{@öB4¼_v—u°xÉeãˆ¥*$³#äW\R<Şºá#4ÍÂx;MïÑõW´To@‡şµvb’Ù4o…,Q€uÉ]Ùº&ø€dÂÿ¾åºÉ1`á(ÙE‹«.—¥éÂ·¹ß?EÄd“)×¾
+8b¿?}ë¼¿PRªëö8Ç²ÅÂµhù*fı	>r(wIğ5Ó+·?	}Ö}ïµn8µªüÒğVqÈ—‹1iT¿Á/éÏ^oÙL9`¾ï,¸1¸Øöş^šÃSŞHVp³»¦ ò<otGoJ:ÍÓd›¦Äÿ 'íÃßãï’3¸¨U`8:+
+t)–k”?F¸x:?_¾}şêì^šMâq2ÛM:}'§C—ùN-E"ouó¿ºˆ?/“ûÔ|Ãjæº§á9ö9
+º^
+Œ@‘w=Ä··ùôù:Eù…Ë›à„7ÖÌí–uP+n¸Ëú”p	½Nğ`îgT°Àşæç 'Šº6üsÏ<kç•°áÓrÎÇp´,Kœ†»q–Şï{’ç¸aŒ_o-´ÎôSÇ£à”ÿÕbDÀ¥lNµÚBµ…ç–cZ‹œ:$3+š1ããïqmˆ¨è’”I8U®0Z8í’ucokÂO€ÿA³†¤ÂœÊ»éØ«¨T?n
+gTÆI˜ İ+İŒnŒ­dq^Ç³çhWQ†pLóáÒ}<4šÈƒ(ãokı›İXüÙİØ.}Uú©‚µµ4Šşçl“Ñ ¾kv8€İté~ŠÖ={¼ÌÃr÷3‡íÊ„º!¶ÀÀ€ş¾l.^¹÷¿ûÖŞï`äéã#³NuCì
+á¡»–?#í¤ihX Ëxæ5mšCåt&I8ûœMÜ ã3¬{Bw:é%Ö™3Í3üeµ¾¤Ÿd	ú$èfó9çõºfö…‘Y§Lˆmç®H²®ò9%w£×:©0ÚĞŸ¬±ÖíàŸáŞÿü                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Comment:
+ This is the Debian package for libsepol.
+ .
+ This package was debianized by Russell Coker <russell@coker.com.au> on
+ Fri, 20 Aug 2004 17:26:18 +1000.
+Source: https://github.com/SELinuxProject/selinux/wiki/Releases
+
+Files: *
+Copyright: libsepol is
+ Copyright (C) 2003, 2004 Stephen Smalley <sds@epoch.ncsc.mil>
+ Copyright (C) 2003-2007  Red Hat, Inc.
+ Copyright (C) 2004, 2005 Trusted Computer Solutions, Inc.
+ Copyright (C) 2003-2008, 2011 Tresys Technology, LLC
+ Copyright (C) 2017 Mellanox Techonolgies Inc.
+ Copyright (c) 2008 NEC Corporation
+License: LGPL-2.1+
+    This library is free software; you can redistribute it and/or
+    modify it under the terms of the GNU Lesser General Public
+    License as published by the Free Software Foundation; either
+    version 2.1 of the License, or (at your option) any later version.
+ .
+    This library is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+    Lesser General Public License for more details.
+ .
+    You should have received a copy of the GNU Lesser General Public
+    License along with this library; if not, write to the Free Software
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+Comment:
+ On Debian GNU/Linux systems, the complete text of the Lesser GNU General
+ Public License version 2.1 can be found in `/usr/share/common-licenses/LGPL-2.1'.
+
+Files: cil/test/unit/CuTest.*
+Copyright: (c) 2003 Asim Jalis
+License: Zlib
+ This software is provided 'as-is', without any express or implied
+ warranty. In no event will the authors be held liable for any damages
+ arising from the use of this software.
+ .
+ Permission is granted to anyone to use this software for any purpose,
+ including commercial applications, and to alter it and redistribute it
+ freely, subject to the following restrictions:
+ .
+ 1. The origin of this software must not be misrepresented; you must not
+ claim that you wrote the original software. If you use this software in
+ a product, an acknowledgment in the product documentation would be
+ appreciated but is not required.
+ .
+ 2. Altered source versions must be plainly marked as such, and must not
+ be misrepresented as being the original software.
+ .
+ 3. This notice may not be removed or altered from any source
+ distribution.
+
+Files: debian/*
+Copyright: Â© 2005-2008, Manoj Srivastava <srivasta@debian.org>
+             2012-2022  Laurent Bigonville <bigon@debian.org>
+             2011-2018  Russell Coker <russell@coker.com.au>
+License: GPL-2
+    The Debian specific changes are distributed under the terms of the
+    GNU General Public License, version 2.
+ .
+    A copy of the GNU General Public License is also available at
+    <URL:http://www.gnu.org/copyleft/gpl.html>.  You may also obtain
+    it by writing to the Free Software Foundation, Inc., 51 Franklin
+    St, Fifth Floor, Boston, MA 02110-1301 USA
+Comment:
+ On Debian GNU/Linux systems, the complete text of the GNU General
+ Public License version 2 can be found in `/usr/share/common-licenses/GPL-2'.
+
+Files: man/*man8/chkcon.8
+       man/man8/genpolusers.8
+Copyright: (c) 1997 Manoj Srivastava <srivasta@debian.org>
+License: GPL-2+
+    This is free documentation; you can redistribute it and/or
+    modify it under the terms of the GNU General Public License as
+    published by the Free Software Foundation; either version 2 of
+    the License, or (at your option) any later version.
+Comment:
+ On Debian GNU/Linux systems, the complete text of the GNU General
+ Public License version 2 can be found in `/usr/share/common-licenses/GPL-2'.
+                                                                                                                                                                                                                                                                                                                                                             .   ë   ..     changelog.Debian.gz ‘   changelog.gz’  ¸	copyright                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       ‹     µYisÜ6ıî_Möƒ”)^£ƒ‘]«ËGÊZ«$9©ÔÖ–ƒ!1CXbB’Æ[›ß¾¯p‰²åÈ«ÒE€ º__¯1¥İˆÑŒm„şĞ¼À7Y[é†Jñkë‰¨²ùó©Èe;}öŒ±Ø?UåM¹¬üˆšµ³RñÜ·SâÏº©Ÿ²Z”‚kagŞ›·X£›ûØÍóØ¡š·¼b¿ñjÂöGsüùG.F’W¾ª'/»,ÚöØÏx)
+¢!·Óh'BæÃ xö¬\SàÏ:I‰?Åíšà·¨åT@ØòiÚœ­+d…ÜÊTÕÔªLÙ©ºlÆ³+>˜ÔY-gT©¬U[gËY-2š¡}€Éy#ØHV¼÷m Ï2Uç²š”ó;gÏæµœMÊÎÅ¸º`²«zÊ»í¯Îx“BoI¿,=ç’^â¥×(Ujß¼²÷Õ¸ıô‰5I‹‘Gé‚7&ìXdd¤„Eq:Òx§ÇHÉ“½¬Ï—VtŒf>Ì2NÙ…hØD6U ÈF5¯²‚U|*4«²T74||r&Õµ­àCvÊçV×`/Mâ4I kÒ¯ë7wÆ>Ot&NÙq­fÌ=±©À1ùbe¿ï‹YÉÉA¯&!''ìF6=Ócÿ¢Ãv:c¯r^çÚûEÔÚ¹{âïøÁ#ÑüUä@3\C3ˆÒ`»ÍØ€fòÏ¹«Ãú›·VußåWª‘ã1µ²ÌÙ¬VcY
+èeÂu¯L|˜i/3V* >Íëä.Œ¶ñ¡Z}µ|Ûì‚—hÏ×éı¿İà…MG¥Òd×ïÃ`8LâdóqÈ¾¬%ØK1²È†C“8“˜´ÈÆO@ö¥¼Eò¹æ¥Ìñ7«…us )J]Ş˜]ùëÚDI²³¹X^‰Û†I½Øf¦p¹) ë¯btvÁÇâÙKelÌe©+!s#3@ÎËù'ZÁë
+gjçƒ¼¼æª0«L2ÕŠígôRÙƒY!qÌ³ØÄv˜†»ìÇ êÅ,ú†Şxçl*µ&¸à)¢Êi·Î£Œ³<AºàõlŞ^ÓP“Dñp¸ùáK…á$Ã½4Œ¿o¸ÿ¢˜aÄi´û°˜”s£'ä\Ìı‹½‚c*Š)H<å“Š³›u%¼ÈÕSæsFYµz‚m¬¶§ü
+µ¾…ÛİVğk›2“Ü:df^Éé‡œr)Û'J÷ÌÅÉnô5±WğJÈ“àóxı?j3'Xu~›³·]%–]Ö«=@ĞKÌŞH`;Ë·r³c\ƒEÍxMÔéØh~‡AéõT“{;Á¦âè—Pñ’İí˜2NèÉå«ÀsW^ÙÆÛ3,‚xEÁf?Éxå¤Bzñ¬NÏ/ë–êã×
+i¬”SÙFÆTe$XÅØáĞ›œ¸¦·U% ’&µ¤ËØš·2LÎƒğ@%_á¶¡ìÒ·rYô»7OåÄ kŞÖsİˆ)©“MáĞ÷aÌ¡ÆÁnÜ|0›•sv~vpùz!R¡š1ÒõHŒ)CÛB”€‚ej
+¾ÂJq-JFDl)q—ºcÙôn
+¬ç"ÎÅMu¼†ğJJõ](‚7)†Â»iWTğjM§ój>…ÔfsdhP†#àpZe°¢Äj0e£9Nó¶lÖ­[¤ˆÎ¬'DÕ±ç­àüÜ‚¼jyxK)3°Xeû	Ï¥NErRQb4>ëfDÆˆx*0:’.^F‹2²Ğ-ÄòéA0oÕdsMä\eš"1fr‚UähnéçäC­~ ñp¬”pUDªìèà³ô´ëY:À‚ =ú[©í7·÷Æõ3fØ;2nŒÆãuVŸ{ Ü57
+ò*3@¢wÆ¶¶´ë]&'Å°‹lĞ­!‰/¢¦éü;ÈiaËZ-(+²S^zXMôŞ ÒÆŒ
+øjTö5rG…R4±S‹›Z6 Ø”C”J ”xNÖg‹5FÛõ}MKnmQ¢(ÅwÜW"?ùËÌĞÖPĞß9Z—¼­%šW>/NŞŸ¿¹ü½?;>¸<IÙkÁÁ¢Ûñëá¹õ½i~HÑñãS^]’Faï®—¬%õ®¥lóîİ!# ©Š8ÓİÛ’ÎÑu¶…d±u=Û-?à?¬I3Xté…¦Ú,t«°}0Oİª¾©Âw¢¯ 5îîìn»"ßO>öáwmÓj5Áš_0l¸ƒ¾İi}µ†í¥¯Üê‹µş¤¢¼zPÎ
+ş†h:¸wÊ2ÔÍ« Ş‹ÑÕQ×ª†’ÎáŞŞŞæ=vãpó/ñõp¯ëÏép÷A…¿ÙíÖµëwÍÆëD'‡–,Ğ„ØqJÎqµé”LÚ¤à¥ŠbZÁã“3/LÌòKŠoAÁßPô£‰"?®%§…n›šòhëÂBDƒñÙ«³­Wg¯P²à<”ÇHp9–6wY"‹„øK¦½ÃZİh¨L[Ñó+Ôœ±(M”^¤ ì£¹Yjî –uü½°ÚÚYÏUùç,Œ-<ç¦F¡*ÿiäµèe(j¤åÄ®mN¼•Lê6²Ÿ]=®…˜”m/ÛnlH#4°€â»sªÒŞ¹ø£•5ı£òr¥¾[±chK¸Ùö#¶Q:™âº¦ôâÏTM´èN&CÒBÙÒRhÔz
+3ğNßœ]›:nŒJÏKªó®Œ’åw5¾Õyÿ59iì4üØêfµº;ãv×œ'Ç§'$½ıÏŸÒ–¦úÓî-‡ãnıà‡ÎV×[ÄÃÄã'4s+ÎJ·ŸQ	4ºà JÒyñ¡ë|m¾0ûİcˆèKIŠv¶°	5·şşŸã“Ã¯ß]\~8}ÿöòÍÁùÑëÿÒÌ~ÉW,®æ-š¯NË•V…p7«ó<ê7°¬/˜´DßáRjŠe¸ø L\ƒ°Šè[ŠØ‰íH©Sö-²u,.3Vèµš~-Y¾—Şâœq>ßVL¼ô+ÄÆåh—ZP^òVÑw¤°öG&µ¶ÒˆGA—7°áx]¨×/‹˜™÷¬çÈ¶·1<Œã9\–+»ƒMu8¨šBUsöR]±ı±ºâë%áTU†Jà>/ˆY°F»i4¹Ù¹W"ïğ¥¼¥[T9ÓÆîK>0k Ô€¨şİ ¡cÙ²ÛA°ç*ÚÏb<f‡µ0¿`ûù¨çZşºDrGDÊâí4‰ûË…ìÁc«S#è”óôé¸®O›OÚà« ±d&Xì¥1}İ{€„ŞÎ—+»ËÃú'WÌL¿¶¼Œ¢[ÄxC\]+Ûñ jki?Ny¬àæ²*Üî.^#sYÙËª>Á·sëB×œİ‡C]/–)ç€†,:U+ºÿ•@/"&¢;@ğ(sß'ïãn‰z½ï±"uA|ĞNH¤>ô’4Ú»jlèEOâu„í”Z6t^ôáú4l¨m×­Ó—%°á®áÇƒµgdÔõç°ãøoÇÑî w›0¾³,¬¯Û[ƒ;Û¸áğÎk‘úTA‘OèFEQŠªP€}ÿãtÚóÑ]0d?·•ƒ16L‡;…ş½+s Fé[
+ín2W®l4Ip‘²},»¤ÂJŒ±°•Ç°eRG¹a¿óY³2´zó»ÿì°¬ñ›                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       ‹     ¤}is¹í÷ş¨ù‰j »±¸’©'Kò˜/–ä§eœI*ÅÂ*1æ–nR²&5ÿıİtsÑbQ“T2C‘4–»œsïb'+ëK²˜9=÷äôøËE¦-½¤”Ì}3oöÃâ·ß|½ÿöÑÎ‘ñ°i†“kò—f^Ã¿·C÷Nìhá|&JërÆ=ÁFƒÅ|8jzÖ¾#aø˜Åpäˆ¯ëiMîö¿¿ÿ<8?>º:<\ôÿqœéœ	­UAÆ‹oçñŸz6¤·/;ÙûÒÜh7½#wºÀû3Vy*,—İoôäÚš^“çúú¹¥½ª—ïÕ–¾É´f\–ÁnÌ¶àŠ²ä0¾ñŒÜúºN'd>%±af½×2Şµ9¸ºüxv~‘ù2­BN†ãkvçÍ,-îFLs1Y4Ş‘él}65¥U\râëkO~ø\Og¾İ{ãíW2¿ñŞ¡I3üÍ}­‡“f¿õè$ÄçıàùÅäë°ê0Ì1<–)_yt ÿ[—™Ó¹SVÀ6}ÓãÙÈ7ïàÓpûôp´¨=|šL‰®¯›,Ø$·‚ü÷zva~o×¡¹ŸX²7&7~4ƒç-~›Ám©e	ãìwkÖ£«§çşÛ¼{ºGÉŸôÚ>”9/ŠŠ*”Úk—d?áJÃ4Ì"Ø9ò©‡!ÄÙf¥••“<'÷‹ÛŞÍ»nÏ~ÿ—½Ÿ~½ú…Ø©ah‡~2o`-áïñ>g¹6B*Ÿ·Ûd£D5¤Ï]ğ.¸j·Ï
+Á=svmò‚¼¬ròßá´ÙıfC­ÇşnZı=Ê}¯¹Iƒ†—Ì†#³ı»:O(Ï8õÌ§aRØˆ8÷‹·ói}üŸÁÅÅ1Ë„qºpŞ<z ıÌœÓ:äš|€wÜêz¨ÍÈ“	Œ!NíâF×³_·‡ğöÅÜN'­ ŸhPão™.ŒæøDõa8ò½ÛVáº] £áäkÒŞ,(¥œ*ÃòÇ$û{¾e Ë½¿7ñºŒ¦M2Ôd°jÖˆ :Áï~èµ‹WÄy;ÒuZ°4c=9nÖ$½Õj|é^@›Jõ&Ò;.ûšÂÌP2pÚıÉ¼ÖåçÚ»fpz|vš¹ŠrÍ¥'¯A&E™s•—İúãYo"nj(4©Hâj¥7—¸·®®ÁÆ”×%,Zø‚ëİ¾aJÉ<”5Ê)c?UÜ´ÜíÌT…sÅ.éõzëBhúkÉë‡—Q®\0°GnØDáy´x c•7J×Ìöa—Á#€y#­%¿¸<ï^’ÿ,ôh†¾ÎXaŒÆÇÇ³
+¨ë­ŠJÑÊé%µo¬ùú…6Ö£,¸‰mº}¡M^ºÒ”¡ˆm@âç°/41ÔšBx›ø‰}iş9•ªô!>bõÒ€˜×Vj·ÓfşÂó²4”J»Ô©¨v
+{=œøz¯™yĞàÉ´C°ı“)xs°ª`å'Ó»I²÷Q©×3¯À
+•,?Ü[ÆXî}Å¹ `o¢4 $È$iˆ‹€\Mø~LÌpŞ€úrªJ!Ée}[X]S'4±—ä¶æàáîÁëêkŸÑ2ä
+¬õÓÃ­ı´v¾n=à9&ÓBÚ
+ô‰œû1*ŠÆµF±u¦6¾póeÆ–Š
+^t~îƒÓYM,'è‘ÖW´(ƒb 0¢ßûoôn»ûûı¬ÂÎ0‰÷Î»êéxÍ’<P‘$Ï¿.Ó•Dƒ`Ò2t
+°‡‹;S8n×Û0Ü“f:öiòàøÈ¥UÓ“áx ’N©gÆ$yå$7¬™”’)Zí›geîK«Á9ãĞšÁµ‡m‹Fª7vKWı|¨‹â­4 ŸUBÊÂ‚¸l"¯=€,vg?€A{Ñ	¯à—•Şh%–wAÍÆ~>´Í&¶İéíÀ¸´ED“D“1@Ä9 M’,çš8ãŒ{„	Ú›Mai2U:àh‰õ>ÄÅøí7ÄÔk¾´°wôşªÿéhpññ  ñàSÿıÅ_éúWÔ)Y°äÜ_Ó	 0YÜÈõQ4èlô“a´BÒJúÜZZZò½€Á—–œ‘óãƒ£“ã¸u¸·‹z8¿‡MŸMa©ĞZ Â©|n´Êùå³üô¹[Èæô_ƒÃß´/\+
+/¹Q¦/g+vû
+˜‡4Ú¬5¢š)ğ@^|Uæœr…99š¾ıÁà-hj˜óŸÈd1À§†Ì4Jú‹L›²¢ºTkÍ—Í‚aô³~‡D¤7Óó@ÎJ—èÜÉ/ë…?™¢xî^Pş{t´Ë€øLÏı5¸,Y”Ú>B¬²E®•ßíçš*,ßí—6HU‰jİ)Ğ7¦ÃVbeäŸ2Ø ÆY`ÒÊHÂ÷<tq=‰Ì¿  ‚ó¿Û\Òøõ­¥ñÒ3EmˆæŞá°K|B@)€Àr›Sg@;6±0ê&ù‰MBÀÎ`~C€1›¸‹9î,El³]ãÌjXR_™Î$E¥ƒîâ °¥ı
+¾Ø* ãJòú¥ÈÀå[é,'_.NŞ‘ãI_(­ƒ«‹ãÁ‡ƒ‹ËÁ§³ƒ£,äà± Şµºédg>öóñé1 „Áåùñqæ}PyáòÍ.y‰{MŞ÷//ˆÕö=gŠ[x=ÎÑş&cön©0ıöÛsßøùJ[‚qà‘'7Ãf>½uØlöég?ÿØıt¢Ô6´`CUVñÍf›C=²àEş“¿õ£Cø½ùç¿ºv¥g’v“Û™œ_×ápÆš&‹’Vê_)_á×äæ qã¨q .æ‹ät2+psS=½ßk¤*¦•Tf¢Ö^İli°ÒÓkØ§ˆbVbC.ó”V`_×E¦©Õ˜@Ô›!t¤å|ºÚñı z‡2ø¬€=+YÎ¸/…GzQZÀHoÔN×GÈ„c%÷İ\;/ˆ;ğA7ó‹OÓköÀ®ÏL <ÈQË.ÆÍõ êJ0ŒİÎoße@r4-Áá]Áÿo¡'s¢÷ Ë¾ÆM‰àŞ|<±?~ùxI`‹ê1L7˜¼òòdrp @”—äÔ£9Á¸Æ'Z—”Ì`Jærë†IX²’jôoÉŒu^ùÆOZÂS‹ÓÕ9üóŸA…Ê²4\‘m2³ ]T¨hì<‚Ó³£şÅáÁùQ‡¨â#è¹‹`eœ—¹´Ì’‹»!pØhé6ôµwC>÷¾Jƒy,iî:Qù0GÏOæXq#9Òà[–[y‰ñ£éd‰LÀj†À¨q4Eçß†ş’†¼¾Ç§ÁÄîa‹^ÆeUhé«N¶Nğ½ãirh¢G$E#›-¸ˆõQÆæÊ™ò9á|A6Áwjéã½xj+œÉ­Qôh›Qf°¦2t97ínõÄz÷0¶‰Z`l ûÇˆÍÙÙIŠá­Ô–:†ıóbNr¢7ByĞÅÈÏÁI¡(¸´ò°ß8BØ“Ü[™k@áGÀsĞ“ÁÑûdÁÇA;?šw½kwB ¯yf‹Ê
+Ÿ'¸Y„  ¾]$|Œ÷WX%¼³NŞcv‰pAÚ`n0¼û^¦¬W’·ÄÀ):ıÄxØšDòk©Õøaaæ;GÖª'÷í¶‘.4—y{Ê¨!#D¸j8B†İ›h£j®^š)?¹ßË˜Õ0¬¥Ë,O@ÍÏB ‰¾Â˜Úš©XaNÇYYùå¸÷W‘B\ÔØ×2ÑÆÖÃ " -qWª<¥*òÇm×9º®!.à<RÈ4òÓp<LbÓœ´šiBM/+ËsÚØÚ$É–|¥ê¼¤ ÌM2´íV{Ü»ÎıÀzg¹Ê«À©MšÓš„4¯Hz»©DÖxW+¸_HQÉ¸ñüú¿úV·m7B\Ø`#)Å§12J.;t788,V|C£ w¦¼ÏÁØEÅÿá0FÍÁDÅB¸ßûàã‚sMø5ŞVÔVj{H	òàŠåK·F²™T°“Û¿Œš@•Ô¬ìå£ƒøh’n7Ñ
+ÀZ.ê$Üàª"Ã_À™ÕŒF ñ 'ˆypzñáìüd¡¤¶vZÇ8<ôc6 z‡}¤ó  zËŠèË<éŸîŸ^¼ü¸ìfÿãÕ‡'§oRw¸íDÏ Ïê! ÂL«œrĞÏUdéÇ¢ÁYòØ-´«qÅ@ÇS‘İ|N¥§K<óï™¿¸2%q Ï£âŸ}ØGvÛºôâ¢¼P\j²eÛÌEYUÖÅPĞËfÿıÕÏğÈç³óËşéÏ$ş™i YÕk³1)ƒæcÑdŞY&U®È*´:øï€ÊnÓ€ÿ½Sh Ô1R½LšV;]ZàAãëşôj>Yëßµ‰£0÷£ êÚÜøgU•W²scs}Mvni¯ìå;™,+W•‚'Ïí’i=³ÿz´‡ëª2f#gƒ°•®À×ÖÓÛ!¢%rŒ	Ngó½éb¾£ûøË&
+fQ”LÂf|w)has)y|gZ&lL´ª*˜g'·)¸„¿ßEõÎa"¬kƒJDƒ°^oı¤ø4/¹%¯ë#³Ì9ÚX•À­¬Od(ñ]•°…”F>ÌPšÂQÃ¬y.à¡Ôš±İ¾, ”n1¡{GÁL¬¡"Á(ÇUz’Óâ„Àµµ±Uîı¸ïìı„ÿ";o0*È9÷)(9øw³ÿ¶w3Ú,˜€‡Íf(YXQ‹nt÷N7cP÷äâèƒW 9t$Œô5¨RU U)DjúŒK=hÜ¨…ÜH±GC_ìMëkì -fÆm)êrˆ~ùX’¦7ÿ6ßŒ FéJµã¿ƒ¥ºh0¹[VE¶]
+3¶DHá<,Ò·fo¦kØiØ¨Á=.¨\S
+òşÅ›Ï'‹o@‘qíZ«1xÑ€7 RYiØ¸U˜,e<wS“Oo Ø\Îsòİx••Îù¨o“ûØKØÉ‘·	 `İdô"%/*¹9í.sm0õJÁ™ÜèÛaÌïÃ`Ä}oÖLêÌğ[Úšçõ³‘k´£è÷Œh~Cv€Ö†¾Ş–Ë]‘?×¸E’Äñ¯ıÃ:’µ,^QÊ–ìàá¾Ïf˜/GAÚC×¨7–U€Ëá–š·˜İ“ÃÄåZ{ƒ+9^Œ 2Z··–®wå™bÌ—ËB‚]f¼XƒH¼ËÊœŸõïûË„îFP8§N1Q’W¨'03Î<yy!€D12œ/C}QVpDØmPu£QúÉ¼šÅÜï,4À (Ìæv`(ğü~3Æ\J!y®ÉÿÚi&=øLiT}ÌêÆ²°€…Ç)a…Õ°Vüå¯9úï¼Âıë÷€cP
+•Ã›Èhb7 %úÍÈd:Ù‹É£$²ÔÿƒÉp|ó$uFƒQ¡p“é®3­Çˆ~î8ÎnÁ¤àKÁ¯A˜¬¬p†ÇXZø›ı‹ƒÓşå¯ƒÃÇ‡Û?JÿÊBi€"+ÆÊÈŞÿ€à^ãÇÃ½f>w¸ É-€e/I4c–ğNç¦gqò>³ÆKVùrİÇ´Õıâm·‹ö£ÙIHkŠ¼ò*Ğ6œŸğ’4‹î6 øàxfìv™¬>n`Áú—,?6‘ Ä4û™ˆMwÛePC“ÁW°75ÿ×¬ó*ç.–_¯~N	>‚ì<’aŞ.•­Œ¢¢ü÷8‰‰Ş\Æ¨GÂIŒÙ»ş|xHÅL`xÆtw5x€‡é@`á@İ–yÇÑìF/7™Á`åk±3-œ²ëƒˆ,`V:ØÅ–©u ı%ğ}Sq ‘ü/CÏtÉ”:¸\Îwmh~Ş¢ë)Æ^1v0İ¿»õÇ0µÃŒ.ï¸õµ¹œşŠ-Û´t vÒÒ¾Ñt:ËŠB±‚Zû >aş<ÁYBI‰m²PqE.rAíu|`1ŞUAÍÃUÁ¨âh¯c&°˜I—8Î0Kcáõ‘0$zR¾ÒçDGæÓŸõx¬cde>ı4Äò–Ûš;°šŞM[÷±âíùÉ˜fjx”æù†¤•¦E®üF2åÙäŒK±›(ıÄŒtJºoú…Òjˆ|o™`Èœ´@ì–1 ¢õ×äôêÓ§$"0+åÀÏä‚ü¡aaf¿@Z¥íBY2«òİ¾ç^Y¥×óT¾Èu%eùÂ;[´»Yë”åÊÂzrùİÜTG‹ˆPxO®..‘	__oh«´¦6'ÃiÍØzaWü"ÙšNjÉòGÀY:hÅø³X‚\mÌ& t†Q
+‚ôú¡gÖ€İÚ'a¾ŸMqó1Èë¦6¹¦!b¸dD¢eGı7Xr%1ı´ŠÜÚÙ×ë6FƒN·^$u ÃXe¨ŠeÙÉ)1Hƒ1H şƒ‹ËƒË«‹ÁÅÕÅçãÓ£ã#b4˜Et…«—oè@Qyª„qäv–qZ–´Ú†2‡­Gm¥İú€ÌzY(pü¸J,;bá¸våEªŒ}õ…ş¤­	OÜ ßª$Í+r˜ß]=EËÂdcmëi2ÔıÓÃOWGÇƒ£>1KCpJ/³—1‘`hËp>‡*¶j}at¡x¥Jù(iÃ™4F»}+T w©vû Irb£0#÷ÊO[¦­¶A¹jœ­¤Æ0NEwÓ$¦É–bÅRà?i×zëeeQXá¬^/ 44º_?@ jÁmxO(zl'³º(‹ç¨<<÷&£@*!7«yyÁÀÅ–ì	®`A+¯«ÜµµÅ48K€´Nòg	Dd À1/İJÇSêÓÙJ¦ãŒ‹Øàìì}ô¡1ÌüÈ÷2•3@dTmõ°0º,a3ÉÇéxzí'úa0 ÷5Û)Ê8rƒÛ†ü ß­¾É¸ô ]õıú¨.ºÔqéûéëW
+0ö¨Ø€ëÒå:/wûÆ ’_wfÖª2¨*­G~Wëbl¿{Ìqÿ-y»{¥­sÔ¯=c1ñ¯îñLk[ÙÊåw(VNa©ØÄ!–˜,ÆÉÕg½ß4-a×ÌyV¾uÑÃøfÃ¡·-’å!÷ÛM¿ùQ,“ c\P­åM×Ã3_§¼XUTZÚ—J5b}nÀ¤Î·¥õ ®kEz‹±ÁÂÚœZZçœ(xi—`¥MuE[ãæÖ.•u#ÿÄØ
+XÍï5ÈrÍ¬v}Zê"B;nşb‘–EVãœ”…—fn§£i=À*Oö~JÆ¢Ø1/ª¼*Å#Á-.»,¥ğ;.|Ê™ç¼b»}^JY%×&Ë…Ö2³Å&DÁ3˜‚n2pİÌ£×
+öÚ´î”Æ"ìâ[ÀŒà½Øo‰Ç©Æ:ıÂ)¼ÜB¶"Lï,Òã¥ º*¶–ê(<±B´·êÑLLplY‘±‹ê¹Ìµ¼Ãly¬@Nç=RÌº­CÈ!œô9–¬*:p°˜y½ğóH|“iA­§ HDSaaGDÓÂ§ŞŸ¹Û?n:¦ ½*MÁİKz_{h€Î#EîZ‘Ä	b]›ôß²¦2±ü»¡›ßt"—y/SJ$’·šd·0Ùµ¹æ¹¤\É >»œg, rí">,Xj=‰+‚O¦ĞÂşˆlª ‰ò™"Ğ{ğŞÂn!Õ	2›B3‚&Ç†Š³ê%lC>ÿpHD	0	½ëÁûÓ·Ü˜øú^ãuš×ÒŠ¡h2¦Œò«|úR»ŒL—Á&sfub½øDX@ãÒ=ròÑ‡Œõ·AÜ!ãçƒX%lõÈfFë0ºxRö&Ó‡qœ@äã¹¾ÛŸ¬„‘€aAšgÅ³àZÁÌEí³ÊúóUµÒ±õªQµ÷ßÆ‚Ä¿¾İïJA<œdYÛ¸ˆk°V3FÈRôêÛ ¹›é(TQ.^$1Ñ,[Á¶…á$Æ¾3¯ma\eWÑæÎ&“Ñ f"±Ê7†ob. ’"àh„îĞU´Bõ2F×ñ­64ĞJ* OÆ˜ÉsşVÒŒUxdüB¿«ãI1û'8?Œ	mÄ#c´*4ŠO]^ä¹*Än¿rFWÖø$ŒÔÌ–ÁwÂ”àe¨`@-xZ£dJz%ø»´,\]ZØ³Åœ¸,°0~‹Âc^{7 ~©…Ä@æKêœ|ú‡ä=ğ/pó¨Haé²E Vg»nNÀÎâlp@QWİ^”N¾\:_ÏxG›¡wàÑ«íBËÖ)œJáƒƒcÔ~—uĞ½Ú²]²öÅ›ÌSXQà›4ÄPÆ_/éÔ uüı£úyz–KÇsøïV‹¸†sWË§)û’]‡%k%ê‰½™ÖHØğ­	&¥W>éIÀW­üG ÁLŠ zî»fÉ³ï5D{ , ¼d7ĞğöÛªÍnÖ|;€*­œ	æEw«°9F„b<7——’*+ìšî‹á–Ÿkï'éHXÉÒ±åİ/ÈÉúèÙŸó•VŞëi·Øä³®›çÛCT©Úœ§§z?Á#—©
+ztÛş6_É*¥™¡ ²+@ğëÕ/]Ò~±»ÇrÁ÷/né™Íë&;ÃÁ@rˆÕ+³ÉõàœZ²‰5)‚Ûxµ#	ÉÜ`µîM¼ÌaYÜ3µÍÏ L/½+¨X&p—æäCÿÓåñùàôìô8•SÕşzŠ\MÒ¬ş+ŠÉF^³Ğø¦|Y°WdáfÜæÌ–…°BëZoA}1õ³Dó×õ¾GgJ….è6ˆÉ/»¤*x3o¦=¶ƒ‘h—ñDì\Ë¤©ª’Uz;™O¼ó[Iä™²*0÷C'˜®m+x’	kÀ|å,p°F¯Û6p@µÏ×D¸İ–Ï'­¾åÀğ¥Ô³‘O0ÕÀcaSA-b)ù0]Ô‡‡MÍ¨Ôá™†OOQ„\%U/Ú{0ñFáñ$ãº‰´ êÂ“‘&
+vµ2¥;û *£EEtß÷@ÈGc=ËJn,À¶e`µMêD;…åğñÔTÆÄ²ÀS<ß{q¼™[eÒ”ÖçäÕ½d!à±¥Väìôò¼ÿş
+K“–G{A·îÁ¶îoä‰Óy@ ïU‘ƒÂÅ'{ëôf÷™v°¡­Á[Ç²Ïx”W¹ÄÈõşÓÑ«1 ¶9IG}µË“e¶àÊ–&¬Z>+üGMU…¨5Ôù¢BøìkWÇ.vì¢®£8îdÆä\SîŸo7‹6¡Í.Ã6øIã3@†õ[ŒõÉöB[ÃdÏ¿VßN1lÙó=ò'â{×€‘^X·Å;7öEÁ9¯–BÚØâAÄÁ¼ºä@ @×`Ó|¬GÄgÒÇ)- }	Pry219n C¡õŞà“¬âŠƒÍ°z2`ùš±ñ„œ0­yıˆ2éœÌ}ë—VÜ¼Suşõ|ùù[Ê‡ßí\hĞ®@¥0*<{2‚Ü41Ç õ(VdÈc‘A_}8Syt¢7œ´eÓİ™×] ˆ0J®·Ë	¶YÕvvÜıDA­v6YåĞ]ÖÀ\`&4Á<\\,DãıUµl,MgNÜt0¿›nœÇÃŠ?Ï°ød<Ã<èÆ2Å§¾ğÄŞFÑ–\j[2<èBşÈË3
+<ÇêÈ[ŒÌ;&À4Q‚%’›0<UEh¥Æ§GX3¹fôKE°³Åf³Æ_GÛén< ª¥ËLæ2&‚Î?ò2“´¢ ğ2…@ù,±ìóUÜàÆµ°|Ø…Í€|W¥Ä³X\¾±Ä«šÎ®HK»DnLñ‰Rıwİ©j<PËšªÒ§`o±¤­cÙ®~ËfUËK[¾&ê½ŞU–sÅR‰WLBNJ­—Â+ÒôÚª”N&IÙIËßÈÃS`íy©‹-[g¥-œÈ©|1VÛÓø–Zí%Ãµ—²o\çÊllÉÚú`‹MVå Mau²9ŸNúÅ3Rwûƒ“A¬­9>Ü0ºF Õ1Åø
+º‹X\õ(Išk<å'y¡ë¬(U °S<Œ'•¯¸ÙíÛ
+Nånë•9§åº¼ d¤…ëeÌQEÛiGºørğy@ùûşåàğâswºÄÎJS½BR`D.8&èëpF¬ˆïH1ŸxÓÉıe²Rª Èyê÷;Ï’ù8é›éÈe`ğĞî£h¥-¤Ò ±Xx«¬uB­K"˜•ïbéÎ­'Àr·ßZ7bÃuÆ‚gÂµv*~EåãM<Ó1‚%jæ€w¦§°âÖaóÆ–Ô"İ G—Û?Ù/=w«ãÁŸSÄïbZÏOÀY‡¡wÿğ“ëÍÈg¤Æ´ÏS¦[öòd¸ YnXíÅh¾÷“¹{¦'TÛk²ı@²’†àórY•Ó&Çïõ,´ 8&
+~°7ğ¯ábüÚ¯ğç6İ¤rŠñŠ¼¢=ä Hròº)g´(¦ÂŠEá6Ãë(ÛéyB+fxÈÛdõ†’ &<yÖ+§0[[¸æ@;S•Q?[€¦üíxĞ?½¸<øôipşùàòc{>c ~<›ßoÔŒPË¤íoßıßİxgØ.üï÷ŞÌFŒuÊ€Ì›uŸ{³zx‹ÕşNé*¯ÂuàÛ'3.…Ë‹GáæAU	!ø÷ùe<°OÌßd¹ÑB°róJ6/xáõO’Í<cZrÉW›ud“+©„íê¯~x»0q5€úŞ¸+<ïÎ{ E>=úÛàüììr#ã[yYR»,GOu—ïÓÎ.§GŸpmàÆ?6Î4[äbuòñaåT<ç§srpxvñ÷Áá,õ¯—ƒ“şéà—ãó‹şÙéz‡0?ªUPd»Yd®ğ¸l$: Àaw»³kVàLºI JTLsÆÉ÷ç™qoğvCşĞ¬€fV²•I²×İ b»,gkR¼^Ì§à£Cæ«€„Ù­sg­YÇÜĞu­g7ˆO½÷Ú¨-Ìhâ"¸MWwä€©u[^5ÔEÁÒ‰,£Ø¼-¦*¸¬V•FïÈÅÕûËóƒÃËÁÏçÇÇ§¸Ò›ß¬œaEa©„/· LÃÉm[0ÿÆ€ëR€5÷çÚrÁÜ½ ‰A3<Ø¬+1•È˜­÷£­ÓØ· ‰s\§TÅí¤wÒRJ^½¦`Â½ÍŠ+•¨ÀãU»ı`¥U…»}nµ°•ã»}æ¥ã<À¯À–K!ŒÜ8S k¨ê©Ñl1_˜~­.k©—¾@ ıÉÃhŞ²©Û:ê/è¿¦_ÿj]ëXNÙF\Ğ7.Ëí7õ™~ªÒ‡§¾?änçŒ5€ºEdÎà2@j]”PˆÚ&Qßu1‹I†¶n*h—{ë™M°†¿×¦å›	8ÀÉ<¬Ÿ¥hÒWÀuEá¯{¯W·]ı%yßdÖ3¼M…?¬Øî²Z5è™NÖ·\ NÛœËU‰¾kfÈ1À=ÇãêËï#÷X^.ªŒX¤Uö8Á‚	EdÊ±bã›ÊæŞ˜ççÔoÊ•^ºº·Œ¨ã)(ƒ6è„‡ÎÑ“ÀWøSûõFÀ…«B‚Ê%&ÿLÒOçL	ä÷İØö—_ÿÜrĞu¦¼7gLjï,˜ñW/³%d^a¤£Q‹Şcß‘îœÍ$Ášõ–^Ø’²ĞúÑâàğ Y½ÿJOŞíŸ\ü²A>Y©$ÆK^Ñ>Ó–!\¥«[Êôè¾6éâ­nEãuKI~ÚàÍFU<W P`Ù¶mğ¡Ê(µ]h¤;ù›'¢"Îæ˜xtSqcs^X,ß•2/¹ «­<•¾Ò`µ½)ò%^ìTÒÜ0ù°„@Läx†éÙä\¼d(£ÃDñ|7|g‘©‰ÂPexùœó™ãyÀÆ×·xîrèG®Y–›§3ı.«Í©+^ÊÚw‘ö¯×Ûéür)à	$¼!´`¾|¶R5]ÄµJğ6‰ù5©“Tn-šı¶MÅaRr†%‹èœv—•’‚.¯Šœ¼zG3(fX®e|(jèxğx/^£‡Næm¯ûv/^[xÇûïŸcÄwL>N\»J‚©
+øbî¹ÜŞè7İAôø	¸>öT¡ræœÏÜ’Ø&n<Ş®€÷=ïÑ2pSyÿİ3Ï®>-Ï ÜíœöOÚúDêÀ—Ï£\v7G>#WLæZÒüÁ—mÌ ›>¼Ÿû¿æ ÄØ2÷Ü.ŸnØò£(Úˆ¦j®æÁ#7ÎÜ½pÎ4Ú%ñV«xl ¾/ˆõ-^7Lã	Üe4Öµm˜* ¡`ôAìáK{JrÜºˆÈFãµZ¥6É±yĞtœb%%yİ˜ kçÎˆŠ“?4‚Ì—¹p¥)ìî¸ïÏŸ®.× {ğ¶Âóƒó_A†ğ»wïğŸ™6 G_†uŸL£ (Å\Ïê®˜/o°£y³áx*™‹°º"h©ÀÉècI.˜‰t 4Q¯øù)z”mlÛÒ Æ|õx2Ã4h¬6w»o²Ù`àFåApC}:ı0_­™¥­f’¦Áåx¶¤¡ÇİïÅ°	~Õ§t÷hz.Á€êx±í.Æj²¼…gocôˆ—ŠëâFc5H€ë¹ğóaéÒ^nO–î „îfaà‹x»5È­´¢zË¼qî\©Õ„£6ÿçìôÓ¯éÒÿP—µIÈ‹	şÑq&…ğÂ ÀBXíDìI//-¹ç¢„ïÍ«BjõĞK«ÊÊ şS³^</vûÊYÀnıöJ/¬Ì+ÈlhÑ‰l3ë@KëñhR6«³×AÊ Ş
+ì¶æ=ŒĞé›ŞMÆÅ©\;ºëF£î 6(>ó®”vÙÍn÷|[IsğàÕç-3¦twX9ƒeÊj¦s¸ˆå—w“°ßq
+ã¸1º÷¾í.K¹÷9o#;Q–Vÿ§´w³üH§ÚğÈbr@Nğ{7êD)âJıÖµıOÀ#À#Z³Ä²x7?NÎfú?ßVÍµ9 ¬`Ù(PR–º²6­æ~üÒG±àn‰¥ZcÍİ½N
+†Î+60²Ë© …LâÇNÌ=™`ç@0lQß&`ôx}^ñ´²†«[JĞª}N]~ÔMÌÈb‚ìØ£Ê,OSE®ÖôÓMœriØ=ºŞ,ÏCPx‰Ë²ïÀ¹‹Xp±0±T¯€?y¯ÈŞ‚*mÜŞiÍw[R¦,ÈÚhùb+°Lzñú÷Uy!ğªìtäaaş?iWÖÇ‘­ßëWtèÁX–Ü*3Kw®#„l&„¤ ìÑ7ˆ\¡Gİ4Ó#ÿ÷{NfVuUÓlò“ Õ’•ËÙÏ÷­ª±Y÷õì&ì_úãàPöÁ±T¢a$Ğğ”=:á­ACOR¥b.¥6³dŞ´ŞZé†¹H8¿Û«öğ}Ü€{g¥ä¾OÀØş‘Q*"÷ÄÜY—ßLÃõ½«i¤£¤q“ïÚ“•“LåëÉÓF¥¥\4n-ÀvÅVå¨">òŞ8|ƒeua¨	wM‚ììÜÿ›Ë5Æ€Æ#(” ½ö¤[AÒHY-H?ÀÈ^VÑYÇÀ9èsçàFıÔ™iXAê®{\™º™_ÌUq&ªÂ¡ÏÏ[Ëââfév˜Îfk~z6'Z²MôAS¶	 	>¢R†˜¦ÁÔı“_9"¸“G†Z™©«Eâ Øş¦åğÚ¤`09>ŸŸ¹ÿ\·SÊôY;å¬˜ÆÖğâ@t/ggéå^Ã´å‘{ÁÌù©"ıÈ^‚©ÆdÃj7¶§¢©%8Æ	aÍÒ0Ş<ıeà‡ƒ
+”.Ü?§Õÿ©ÿÊÆè•·Z­é£›'™­}0‚`ÛÊV†%§o¤C(vù=Úú’{#–_oxp®\”M|¼VøÃÛxfÉ¹/¨	ğ¸¨Tcƒ®{˜ÜŞÒS”R8‘jûP+æÀ©q#‡O«Fs3ù¾¯¯¹¡ìN†2`f€$Ü>¬Œ‚¯÷<¦‚“ÄD‰Á%C3f³J
+®_É®î^¹>T×ï‰ª!gU+åC@„üá% õå|'ÛÛ©ÁE³0È¢qï×x
+r”¡­lpÌ¡mpÿ$¡­•Ô×¯¹LñÃËg‹óÛÊˆÀV‡Ç_œ!Ìö¶>}šl€š($"z`‹OÏ/®SYl!Ä4ÕÅÚÈ#÷ßY¤İÖ—p›*•Û­\|š†áÇsUâv.({øË‡²+`wÎMû,¼6©ÓJ	DÄ±6×ŸÒ‚ÉÙéâ(Ì+XgZ[9Fµ­i9…cÑá'ØYØUQ¹èß/8]¤—!Ôˆ¨ûÜTV4Æt.)ºmK,ŠÌ0¨ğäÓ²ÿ‚3ÛVˆù'K
+Š;s‹aä¢*ÖtLh¨€‘;û±l„y€ãCœtô_w+Æ©õÑªÉÏ®l;¤û§Ó-–èÆv§h~ó-E¶Q_¯Gô_ô|…E:pÎº›»ĞxšŒìÊc)~VgÈ¨"_çXzŠÄğQÉ}ãŸ§2<¡Ë¿#u¶–DmÀÑáÅ·*î„!ÑÆ­ş²ª%,„L"4(Çìq¾a9l˜èó‹Úzÿğ#s€¡œºƒ‰à-óM~¼¯5"8Ö$ÜZ§‡BŸ± Sø,­¤Ÿ¶ oqKt8h`ÁåîÈœ%•Â¸ºÛ…oHmrÿÍš)­±‡dd²ºã”bÖ© 9Ç°±éJ4Ğ1]°“6Úb¼"‘U¼Y¯DqT‚UgÜ¶‡Ú0ß°Şl~QÆ+†g»>³àÔaSåºà¯9i9
+t‚òÖÈ¯÷Ü‡T¦V×u?Š;Z¬ûĞRì;.hàÖÛšM»	tX$^5ªßÙù4v¨;ÿ” ï$›bgÕÆ$ˆ€¿ö8gŠÏUªßàø°7
+¶şø%ÉG«©£6½ˆ€#}–1ZÎº´XÏS×:s¹“£»Hã„=:(†G¶:3Rqßh± t'®€ùş»0 dg_Ÿ¥ã¨®G9°Ù[A¤—ºé£“ıã]&b”ròŒU¨ğx-ÉdôØ*¸Üf6Œ”•hØÓùÍ¼4$mjõÖÜÈÈG@ŞÚÉwLcU‡1®h5Œií+ê¦mé•:ÇÜÕßw~eè±=Êx'RÖ¯\—OÜSpfY† 'LjñKë%zø›´^XV{ÆNGkFŒ’¨ ÖÚw°bR:kA€g¨e»#2 ¦ËD:Ç‹¯»àø9ÊÆe ´K×å·±¬‚	J5Ø$fxñ Ç<üğîcN1·)?–¹3×W.›@;6'1õO:úíó$¬S’ÅŞzHu»icMxAF2ì¯/®D}xÄmùİo>•<ÉáÁI¸—ÄÂ«WåDyBGrwW¥™Ë‹i””ìQ¶Ge2u–ç6ub¤?¦¿`XatÔ98½Ø=ñ—XÕÜEĞ·ÍZ—ñïˆA ¢®„WFÍ_÷p`Á™Ãbv†F÷ì¶O1÷»²
+¦‘Š4wÂù†Àæ5µ}f¹RÔÄ‘±L ;äŸÛY°Û‡ 8TÄ4á •ˆš#V˜…bÃ×í"1g´1“tpRƒVÙ¨ëº‘ó@Äº‰Fñ;J3(r\²¿\¨dRßyòsúöØ\¿ÂHÃÍ£=ç*
+µtR6æàñu˜wgœEÆ¼yÂå[¨²­I{9½ºSFŒ²~JÁßLº÷H©G²J´œüÑ.^¼ıôx§@@á¾œØ±U>:‚oÈf¨µèõ´Æ¦œ[UJİ-%*ü°§j@Ò¤V¡OQÂâÏ=à©›»×l)zĞ™ğ}ˆºÜ­ˆÓ–9¬şJæàM¢£Lïì¡m<BGPø”?z(şí†ÿÏ5·
+Ğîüªya]U¶?Cô÷ãò‹›Tõjoó¥„£› °Û]âŒš„›óˆø®£tİ±+Ö0
+ÕËRZ’ è’şM\ÑEîÜ£³CI,Rš&÷È,Ñ,ûy’	RG.ˆ ÚI6yÎª†-d‹¹^ı°Mòá YŞ|ğïRó¾ÔÑÈ‹õRğ(ï`kŠšaµu.½ªÅˆNGCj0:;2ëÜß~O°±=ˆåºj£Ußûğ`Íw~^[q¬`Ò†€z]{…½i,¿î‚q}|ı“JsÕ`¦â;¦,ƒ.W÷šöiáİcŠ²€¦Û÷„Âœaßâ“î‹)Kê»Nb£b$˜^\I¯i`„¹¦ÖšKp­¶àıÒŞ0—ê¡Özvøáğ»XûtëhchPP¶÷¨VC¡1¡AíñFK!ŠÀ5D1s0-=åvˆæ§0âW|+.—Üœ«ğ''×7~º@®›“¬ütÌ”A‰«aïë!Ì±aÖ	/İD¥™°º€¹ŞîèŸ«æœvÕéº˜âñ“ƒoÈ]Ié7™!An÷—ç‰¦İÔØÑ+’¹JqÕ6¾!EÓjÀpñÎ£¹™]ã…?U#é:Ø¿„ëç¸§Tz•œV¸NùÑF3mêÆNîŞğ«i/Ş\ÀŒ½¢qáãåìvó›1Ç£ÉéÃÜ(t’TÑæË·Î‘0yÖVÄ…âÔN¶+ÒÔàüË&‘…õxg nS+Rò¤®cı&?Ê‘¬U”°³ØJSÖ;îTªÕÖàÇ¥lûZøª‘ÄÊÉ_|f%ÁÜ‹„Ël¯¯ĞÛĞ¤ƒåÎ¤Šşğ!§d)ÔşøŒ©aS˜É{…cì”,Á.~$LÀJ™K¤£/dô=áå¼0rsa-çÌİ%›HõkÆb•Ro!O6ª\îIhxMİ³ŒºÌ	œ{KßEhÛT¿ŒUùrÇ=Áb¶FíˆÙ©-.M¿0ÓøàİxâkXXß©‘,/.Æ0Ñ9†…ñŒhRÀõJIëz÷(ùF(Öâ$sÕ× î6Í>ş* Î:ï³ï‘¨uäÑá§PLåŒ|x p¢¯°®c¯à¥®¾L«NàƒÅCÍˆglïhÿÃá»ƒ“ÓWG¯Ş"¦(Ğ6¯MfÍÀw×Tuß¶‚!hF’˜æªøší^‰%®
+ Kï;r¤U•ÒrÏ(âØ&Ğ±ÿæN+xp|<|÷¶|Â›Ìo›ådlÆ,J?Áˆ=Î âÍ›„^–çƒı5ç`¬Âv›]¢ø-Rwâe¨lãYlœG"ôËë®Òâ!ôà¨Ò‘e#Vç|™ú[‹/(˜.Ç«ãæfÅ$åS¼³’õêÍÇ“ÓTë
+?§>dünS*º
+t(xpƒŸ¾¯´¶ÑïKmvæøà7²äNØœm!0€0.¦pøn×Ÿ–0[Ír.E¿‘´))¢+wee‰Ñ’èæÁø8{YC¬ÖŒ•e•vN&é<]|	—ï‹«_ö+€¡iØ—*N^}šôØÔ=ŸÙª¶¢•·¬ÔŠ'?œiT\õi¿êø=Ö,ngW¹ş:Í­*Y?K0eò;nK Ù
+|şñ/S¤çkêŸ2! Ïë féÃ«‚hu/+¤Œ„ªQ¬ÎH$çI·tİ¨^ÊE‰«–*Ğ(>5\õıçííåâ
+üƒ11;µÄÑÚÛŸIH“°*…yÒ£G˜è¬aèÁğdàşgƒ/cK¡—¨7@‰_&‰üo;=ßÁßâŒ"LBì#íD*I¥µËi›"Tƒ»‚²jÅ÷ù¼·ìx¡µT I;r°JÁaîy#75%1Àê%=µ“Ä<B°b}çÄßd"¡PX]`ZyíYn@
+á´ÒŒkzçÚi›òH¬2`‚H)âz©¶à•`àh,è²zXGúÇÑÉş6ªÕ?»˜,ÊèT0vê˜3°Ÿó D†	lsÛod”ks!t®d®œ2D¯Çs‹ûûèoRş­t,ı¥2‚Çú:¨‹ëëû ‚3ÖÎ
+×§å–ÑuÿÀs¬%í:4F”÷ïn.İkrÕ
+LD†wÂÈ1~ü2ın!r¥§Úñqº¥Ğ=Ï1a'-çR{½ÂùëïÂy}±ƒÙ·î¶ıíãí_¶_¿²SnlgÏ[5eäÒKØ$ƒªI×(Wâ†¼§biÀ;+´0c+ceÈ”úvämdà>®ÒÒììÎöb°ğgíÅâfæÏ–7—?¾ÃM¨„Eüá'İ[qØÓ‚ÃñøG@[ íMgt•záÙ^„ÙlEfÙCı2ê™€íğPáUúú­ğáå3yÁŒuù·´ó`4=/ø‹OÏäU7Cã6©¹Gqó¨‡Ô “+¢k-&=¿rÌEi~ÏCMqVóå¥ÜMtLÈh7võéÉÒ»E§¶«’í¹›_‚_§¤«Õºœk/âüºRÖ*X<5ş¿ı´n0ı…R üŠYÜ--ÜëeŠáX½TF¼íÓÔ›¾¹í?zò¯¬ZÉ–aD*ßş„È>eÏz˜ˆwKD9[±Ü– ½a7éùı„Úü­lå¤~[q­j§|ØØ!Ñ‡ˆWò˜ïªŠ	î&g3ÁMœ Œ|	&'Üè0oSğorºÄjÉvÄÍ‡J‚ø_	qãu• ÃÆ€ŸÓ³qƒƒ¶Y÷ÜL±¼G•:K˜ÏuÃLÌÛÅê>^7¡7f–·ÃVœ¸FRg¤ÁbÃ¾WIvWâ·×G‡§]È*4²u¬×t‰©akó‡H@z¸ŸÖZÒ‘1Ön»t{«L¦«­ã’‰'\ZsÔ’st›±Fÿ¦8eBZóğ(³ÁèYM"C«g~xW¿îÿ‰)<WÖ…	ßºPJÆW4N#şûnçFxœY–YvßæªZ…Z°ˆ…9kÖB LPºês(&ı^IÇââÿ=çt?œ¿Ûsğs—\Ns<¸#…è§?¬ÂÔÒ[OVîW¨òwvü´Å#»ƒû{HÜ»K÷0n fnc8CM7u)öÔåZ³ñ—J05ùçá›B™²¬2µ+YuJ¯…$
+Qê´ï¶z
+ùmâù 6GÏy@%¤×Ã¸P²\äİ2—idÃ2gxù.U»äo£~½F{† MkAìã¾±aÛ‡¦ª6LĞEÁëWµÇRëõøéá`g*DV0ü3ö**¢iãÃ*TÚ‹ãAõŸ½Åì>FfAªÀ¬`ÃĞBèQq±Op1ÛÜ]•7K†Ì»LP–Uã#ã>#¹uO™gLS›[¬ØRöÔßhlÉØç¹Gİ•ùlgì
+ïZû€ŒöbUyh§×gËdŸM/gPóÖ<á‡ÍnKÛŞh	F~pÆ`åxJ0j¼ì£Tˆ’“Ê¡H¤<§&ßñªŠ)å9Q"C_H=»^E·@ò§cu\Şò	|ã­5õä™“V<hMIøfˆ:\mÄ
+ón×mêp8æ<TŠÅP³X\ÀÌ±{Ob¿zJ¥g¼vÃ[r¸$ÿìÏ’çÒıïÿ­(aAlˆÚò0¬º}sô‰•”-ˆàÊR°µŠ¥:eí¥p(b5ğÀdMy®Ñ_óC:y`<“×Óëã´rÈoÍVWÏóêS>°Ç‹¯íŠÇ|¸H…Üö¶‚Íb…5úZ÷‡¯K¹">7sŸwú‘çÃ#Šê$]Óş†Ö¶­óg%P#“Òúãø—×ÛÿóÛïv;eO½¯Ã!ƒNo`f,˜İ®î6k2»Ì·LÄÑA¶}İ»À‰}rv´ÿyUN˜Ö [{xÚ„bÿ±¼<	ÙÔÖ#æAjäÜ;˜ãçGâTÂ÷ó0»v§X‘%I¿ÚºöDñğĞg¾m°…l¸ò\[OJ¶äİlzõú&ÆÁÍá_Ş½‘’&F8Ó“2%íhÿıûo`ÁË°Õ>… °’Á|]ĞRk2½á[aÀÇæ9ıóEb_šcò¬…ıB˜6Í½˜ìÏ2ĞÚ`ïcR.®:§µ±¶¯º{ÑÕo$bÜô¦§=Áƒ²¸¥Z ¥–Úİ/ª`¸îşNÙ‘3ÜÚ¨êíCÍ¢fM-*­3u
+€¥píä §˜°]²Ku…„‚Êa`}D0€c:øüéãñéÁÛ³ãß>œœ€Ñôö$»uğ}ÛFµœ§ÏÈ´«—ƒáW«†òf2Báñ¦V½Û­ÉŞdknÀÖ^n!£ÄæËuBáë
+õ°<&­áØ¨Ÿ‚KbVË&ÍÈ³§dxÏŞ»\\P´çUÊQMz6 80-<ï²üı?¹¤w:ïyÁúÕ]·.•¿å¦)&HF,¯|úğªF[êĞ&	öáÎõE²I¿r?\k©T‚	’dï¼ \Nâr+_,|ªÓ‘íVZ»†8Qg€÷1ê{îx*EİÑŠãŠz8&R€"Í§'Æ"UóYi.ğìl-”=¯
+µ ÌÁY$™Š”ìb1«¸¥<qñø½˜ş¼ß\7u40Ñ}¶69ÔoàÂ·ı@ÏÓ´:‚è,ÁÔ\fE^.Úv'O2·º‰š¶©÷I¡9·Æ±û†Õ™õ`ó/æš3½g™$ÿ §R&È»ä¬±:åŞïÌ’èÖĞåïc>ØfÌk°õªö¨pŠ—òÂ$Ã~|™téàV
+üSCA+ü´;€”i–@‰s¸²ªaoiÙ0mµÛ.†].¬6A*Ë7?S‘_Ê&µÓ9‚š'|ŸÔGP{ÆZï•)Éád4íüv«"ÔrÄ$%°(o3›jó>şÜ—çµˆşÿ¤][S·¶~×¯èC°½¹HêÖJRv¨mc—ÁIv:E©Õ™=ÆÿûYK—î8<CK­î–Öõ[ßj‘‚[[7½£÷æãàú÷x®^À,§àìòSÛç„‚€ôÌ§ğ/Ş½ìãlãà%ŒFjäiÖZË 9­¾=1	ÖÃÇejX÷e‹hƒSì´2»:Â"ÁùçÔot5WÈ1K#«0®$Í7.ß}‡ïeƒh”d.áÖÄ¹ş(\e÷«£æx°-k°×vºÚ ëZmš¡8š_øVÃ¾Ş•¬‘% /´àY-xõ¨[’Va°Ïš1Ğîæ*ãš«T¨V-?LÂ5`¯ŒQ ‚«o\î°uÏ€ß{‡•}¹Äİóüå»}<(`ªìÂÏI‚n'\Ö « —‡pàÁ¤]§è7TÜaÇqBÇXg9o{¢ˆ«‹. a¨¨_)(ZëÜ\ıv~?ğÏ§ğÍUšóêoÌB¨tÌ+îcï¬Ï$18Çì]ÈÍÑ†fëØ/Œ2ŠÔ
+yd›RG‹ÄƒÍØAŞ`Kx,~aQàD±ÔÜš(aZIä.WnÌœı„B'1‰áÒyÃY¹4İ)×ıõ®h²¶áê.1®!ãdo¤.G«æ@Ö¿ã—üşâ«"
+²	ÒWIòÆÏ÷r`¶:È¤ËùEçj¡”7£p[dJÄ@[k—kİ–„Ò¦S*„;Ñ@º	Gµ³ ¡İ7ãlHû[´¿iá›X­XÂ›Ä­qîÎ—˜²ó…€'sÂÎ“°CÀŸìZÜ#†haŒPÌäP‚ÿ–€BÅòIKp=Œ*øê\¡CÜ¹C.¡‹Š¹K¹Ûåšy-#Y)¦
+µ˜ßès*_&³å¸ú×A‰DHhÎr*,Ÿ&_*Öúô	ˆøÊˆÒÕL£r vŸÖ2[|.\Ö!wù ` JÖ¨îaW#ŠÃxæ¿±XbçK	Ğ“Ì!º•¶åæŞşF:‰@¢{^,l—(¶äÃ~¤]€=×²M&¸ó²®ë•*×.²/ŞC¥X?Zw!¤š‚İk‘rÆ3~trğæğèİùşóãBfŒ3À&f0…æ˜n³b=+k.´æõ½kïÏ²³WA‹Ä>gÆ·\Öš¯>k©>™¹x$Ÿ¼<yœÊád±|
+rÖ«Ö#£şÈ(J»QÃÎn¯àá?Læ(ùá¤/¶ñ7]$ƒSåÀnõu½šb´WÕfÌ2¢„¬¾qš7‹ sÆÖAÚ;XlÏM0Iá9Ñ¸¼E„_6Ö°—–Ÿ19‹:ØF2êµ{ì,÷ê®5:.ê¾¬uSBÍÉ—ÎÑªT@÷5V`À¦:=~}i¦û &È° ´ây#“p/+Ö®ÚÔîôsÊLmàX­S†è` ÊõUÑˆš¦¿ß!JÂ¡`Y&‹õ.Ú0£Ó4­ãc’¨×*Y”E´É¿cwŸ¼W÷Ÿ¿Âòä×‡?0b$5Æ*SıùÓôç…Ğü0J=V·»¿¦Vqş
+›ÜÌD7º±ÎØC‡Nµ2w§¹h@ĞN¨õÖ±÷¼S`ŠZ:ÍB Õ¸úzŸk/&F+RXE•.>Ú/‹ÿİ”À‹Ô-å¶7dz´,ĞÇÄbÚ'q7À:¯— \™ˆ˜ƒLôäWXŒ
+2º«Ä¶¼£Úêê\÷¿Åºp]M±‰á,ch'#‚çªÆŞoXXå
+ÙòCŠäş6ğæ¢úQ#8iÚÚI#êê0AX`[œ¢ {§Qæş¯ğÆaQ—á|n?Og¶K=€«#S¡‹ÑÅ(KŸúû°›a:™oö}ÈÆ:0eÔš…7†oŒû5Aûß%ØfH€•]í?"-ê«†‰®D.XI›í—Q›á­Ü#úk/o¯i’6-¼ü'O—‰Ë§ÁÆ”¬ını€†iUoK¥nö/“T ²Ú9+Ó¢‚Áš:K¾Æ0:©´öjíâ¨F‡Ş»9ˆşêøäˆ4wxñšãË‹ãâı1lŒë¾3öë„¯1Z'“™h×‚÷[Ë²¢âYiNõ9ø»»!MSw-ZIş¯k®çàDZéıPPÌtA>TÀ_ìö½>À‡qlË0Fü7¤»w_^#lIuO÷v=›M—ç=L°”ÿ'ğu!Üj;ÓPCmõ …t£¯O‘¾0ÿóïO¢ÇƒÂ/±Ø7~-Ÿm!…öÌ‡°üJ.‘z‘¢ÿ1`AQÃ¾~‹ÅqË  Î½9—P$êÛè†½<~1„oG9ÿbëÿ}Åş¢lÀË(\](¶#ˆè|¾¼J=£WÔ¸ÀÄ:'ÿSÑØiòŸêÇ*%âï·/+A@J36>ºšå@‘ƒC8äüúş]hf$Æ¿ ª1V#“ôs¼Ó¢Ô°õ‘2ÇÑÁJÁÀ@CYÏH‡Æé£áR~…i³8ïí{•©vR§ÌÚÑÛ½3B òZwÀò­C ¾.d±{U²õQçü@K‰İĞ¡Ñ†ÛÒÆ¿ÚÇ¹1ñÂ‚ğÿ|‡´8}Ûùı‚^è"8¿FôForà(¦róNL[SÏ†[lĞ$Cc‹¿C‰…Ò‚ ­…6:l›‘)oû‡§BŠ!>^lc TQ.åÑË]Œï bß½™'t—p!E°:üÑ½à;ƒS±(5>$Z½tÚŞ¼xqztvşöìŠK­lK©¯¾4[z‹É¯±^``Òúòñ.¯N	kvìá“ñÊ-‹”²èY§‰¨Cİi‡y<+¶tx¸lE–Â]şÉ]	W Ş1ÂüGßzÍi‡3}}şJÉì7;iFñ|‘b¿ûçp80f›×h'%\QŒ\ÃqàSaDç_›€pî‘KÃİI¦ª©ë'û?=­l."Ë55ŠIC‘ã/‹vs±e«a·¦ÒŒæ?èîÂ?öS®·Q×`cZ<ÊXöVo½ØgEÀĞ9m:Z½=yİ›Ì{hbô	±·bJÿ×lHÄ]õ ‹A‡Qïr†A²F‚o~·ÕXÜ¼yÅ;şS*T ÉIåuıàë©jœ«~hMh‚İã‡¢i•”ñİëN¤¯Á/©]Zó|»;ğ§Ôõ——lÀû«’øÛ¼H±:Á
+¼Ş}z½À	“®TwÓ’1…s¤³%‘J¸¡]GÛ¦´ÿ“Ëi¬ÉX'k:‚öÚÿ=MñªĞMS\Ç$ÇÊ,ÄÉV	ËLõ—ÆÃ¢…x(q­ïŸŸîŸôÛÚs¡„§(Mô“¤¥`zô5³,IÚ7Ù è% Ğ#º‹\_6‹ÃúFÔÁÔZ»ZÏ4ü
+vÃœĞıw¯så6i[Õº†¶=®¯]Ú\tî£ÖšµJ9ºA¼0µ¤½h‚4(;vÍF ‹"Tà4¯=á9°şµ ^ÊNòıá!ÛKXE†§æ·†°t[!<X8›£vŸæ³{5Ù@Hb_¬†˜,íÉSì×!–ËWG4òP€€/,#»X‰‰ëFÛ>'–Æ¡R÷xa°._l‚:šr¶úåÓl±	°m»ÜƒœvŠì/³å[wI™L¹+ğs¯ó°­üíä¢ª1/Í	õî´6è§¬Ÿ‚Íˆ¶š¯·>'2¢fú9#Û:Â›;×6Õ`äå'Œuh 'áµœ½ûêì_oH°­”ÜıÚ³Môøgn’R¸¦aµö´oï=ÔÈ‚Fp“ù¸“&v°A²Rd ã¶£˜7]‘|ŒkUKŞŞ#ù`Q­‘Ú9¾.ùL'ÁMÏW7[ºÉtš>İÈ²S,òËÊb”ê¶èR3*“u°èV?Kû>µ¶Ë¡!äRºİ=úõìİ~ü+1¼k¯ÕJ<}¥îL]åî¥ZQfJuÌ¬\aï&Ä=¾š6¢ALHnl~'0%ÑRf¢–nü]1OQİ¶“k¬´„ë,ˆ¶1úñ‹ğÒîDŸGxØ ÇœC¢1[q6WŞ×<¶7Óãzßµ˜6V`Aãf¸f8¼!Æ­D21ïô¨š÷îH#¹rlÙZM~!õtyÊŞãÂ¹úY°šEÕV®Ì2Î)¦Á97ºD¬UJ¨¨2’–úÆÕHÓƒıqŠMiŒ‚œZøiä¡JTôYªÅ
+—È*L¨T¨!ñğdŠÁ‘¯ºŠ"¥æ»¦zÌı‰ûÃ[0Èÿâ}‘'>0t\ãPq±c¾F2Œ×Øï²“Ö´^y)
+Ù`ŞI±~'`V&'èÖFdr]rŞOÁ÷Ã©C’é~GfˆÀ%@Aô¢6H×ÕØæ×VFj¸BÊ'7îIŒ€%	Ñßùîl6Ş–ÈÉƒŞçÚûòÌiëÚ¾öîãĞ­ÖŸì¦¶CÔlÿ–î\B¸—Š×h¤N®ÏoØ'}ö­Óü÷¬äÎq®9
+î.ªÀş5d-y>ÿ^ÉÌmç`-P|uXÉQÒ?)@ìÓà\tÇ”ïX38Qoo®_}ar‹7_²¢P£Rƒ=®«Ç%LÔm[[:’/SĞ…Ûª¿d/†6X7=ÆˆN¤İLüdmlõS)ÎIÈÓëVKĞ(¹`>~LÑ\!Ì+acÁ8¡­urhHÚ'ª.sŸ„Mÿ	<¬ÍÊ‘İÒ+{•EÖ38Õ÷ŒyWıÕ)ˆv58DÁÜIn/VºGb¿¸\æ†#É\³S\èŒS‘g¨¡ö06Şv¼<B´Ñİ‚9\lrxÕå’¸ÄÙ•º¥£9F¨ÄÊJoSAÍÍ<ÃòÿMa’ÂxÚ{Ä0ëbHoËfæQ¬Šˆ5Íñóìaµ·ñ÷ ©±Y®”ğºVP`Há±¥®j/}ìcrÂ7sã[x_zµˆ» o6¿l0KX›Æ·]cİŠ±È_Àqûy~æ`ÛÀ­¬Ó„èL£ÈÃH$Uy;ù4ÔÄ×4áscc¨ä`ÙÓé6š?„·Š³Æ¶ÕCî	6Hƒåw²¿%¼¸Û[;YàeóàûªŠN:›2h1.¸aDÆ¥_Cí¦æHè‘;D¶ C±×pvOŸì¿û×ÑI†tFzXì”İ@Ø¼5º†~Ó®åëv-–ù3_+Ş®“+G[z¯]Ë‰`®1Tuw<z)[xb¹Êo²HørÙöä%‰[Hæ:çEu0Jæv3—xğæ_d#l>¤”¯†~³\¹ùıwxÛ)ãák€dÃ5(îÎW+d¯àÀşUÁ˜¸Ø6Üx:U#À­B¸:^¾ Ã{xi¤'ÉÿGÒL4ˆ3®V5º­­hú«"@ş*ñ)¦.òD‚ÈŞ²¸ò›+´ñSQ	&ğÃ¢.YvSô8Au·|hZ^fM‰œxƒh8‚-ïUH‰:Q¬dMÏlDuw i˜àÌb	^ÉÛDPĞ¸àäè7/ÏÏbŞUƒDKÏ›1&4]cëP¥H|.$“¼”ƒÙk::%XÓæ?ŸÿŒÙŒ°ÆHWF†¿Å@½ªèf™–;ÄkÑÕ5«¿¹µÙj0Œb^°š3ğPãçÃ.3À[^öª)’ºÏæŸc£xÃ ªÎ”` ÷ıÇ‰¿İ)§hŒ¹b ‚jQ¸ŸJÒ`<­öß“ºõ`C¸zÛÈ†ÕJl£EZ†Ç.¾q v4ïşt~×¶³aåÜa…a`àÜwîé$øÕÈõÓöÍ|oÄNxëÓŠÔÉ/ï¿çr¼o@¼)Ámşö<Ô	T˜r]Õ y×ÙJ"}~:'JH8§Ïljg¨…iøªNT‡…À.á¨}.à:ğÊÛ}Weà3|(’ÿÃäâœğ~
+>ÖÅÄe*1¦Rr+˜üßh/$ËÌMÿ†Ó¿-8Ê’#ó ÿKê?È Û?{@ğuj¯ù;(k®Œ¶~Œ}øs‚‚âÓkõ{ÕûÌŠ^¨Abö4"§Ót»?é†µÕƒÇ£™2ÈËq†ÛM,ª³7‡o–ÄÖJzÕšÇ~/×Í£EŸïÿü+O.ÀöÂÈiMA¦Rÿ¹ÎøÏã“Ÿ«>wƒXdñ­+ª•`@Ô´ß²rR]SY=âÄFMÓöU…Û=Ús­È²ên""wCŠİDw<XÆB‹1Šµ ë şzyü"¯G1 ™Ô2ñŞSÚJY=úŞğzj-Ó{˜âkAŞdk‰ª„¯\æô5ì¹Ú³º³ª­p5®6"°nx¸q÷Â*ü˜°Š¿+YŒRÄ¿Fr~Æ‘HúÙÉñkË(,l(¦B$ıÂxÃ,LBãšq²ÈewŒ–ÿèd¦0FplÛÆÏñu,¥
+«UKx3²n‚=ÃmP–Ó¢»ğyj"ßaMG9£Ebš;±8‚=ğ,‡¶#ßÍ$BAb† B³¿~¨ˆ»µ°|â°‚h&BH×²¡×gVmÈ­0ª„MÄñ¿Q8… ÂÃré}cª]Í<µTpH3îà0‚›ç°Àœ^*»l;³ó“·ıJsŠ¨q=5ôY“Û]xÔ9¶:%Úì|"­Ôğ–õ×ÆzÁ„õìQ3 :]cãG”4iK_bÓ”¾¯Š´(mº`ü'”E?§zîÄ	’\±.4ß½;›æ<GÁvêNqUıAMjÂM_ÜØE×#£(5Ûn”èKÊ]$eó×øŸ“YÜ<	y¾$¯a3¨$Oaw¥Å¶©)Z>;¼Nu0Õ/v’¬é˜&N,é9Öİa±<H²¶@ÆØÉU2‰dcÚÚõËÃãw§)siÛ‘ÃEJÛN(;Ğå]LQ,bDì1\?a“ÙéÎÄZÃÛ´´X81Ø/]Nˆ È½DV“eq‡3\$.dD&¥àŠ/åS}˜ere»YX÷™p¥µò>^šˆJš Š„yD`|bş™ˆ@ƒptÌ!+¿Ni¦ï(F&"l.G:±IBfqãôq?­jŞ¦$œO;!»J {´ëj™øœ¾o`+Ñ~?µXÛ¢L…¬¨°HZã<ˆÚ)?ö6aj<	ùç~Q8¢9'†
+'[ÂàÄT:¾¬Y¨ÚÙÅÍrzäºq­±ğ¸A4²3vu_¥“¾í¶{€ÄíÌ±Á;RŞß¯iÕ`}ˆĞIAË'}È b<h‰àYqOgg°ã}ñ'$7l}
+RL1ÓÕaÓˆ7ÎZ³´Z–s
+{A‘‡mk>7Æˆk »É·`ªx%«GŒ"¬nË±â¢°™m5rİ‡$Ò ÛI2vßÏ÷"!6¶›Ü`K{Jvıíc°Ÿ=ÆöAí,qAæ±¢&¦9¹SÔv£•§ÖŠC•Iü †rhäQ BJYÎK?vÉ"sÍ1Ušû·` “8!-åxâSpçò·Ì ûæ`ÿÕy*Ã=?(Ä§ æ7-X:‘Ô“0wBùÌ‘¼Å“6"…d¶i¯×‘Üë­òéƒ	‚ÙÀ;¹C>½õÌş?k×Ú\·­]¿óW°úÆ±€ Afš;£È²­¹~U’¯3M3¼h«WÒQuc{:ıïİ{ãARo9ıtuc‚Ä!ıZkÍê}ÛvŞoÇ£qvq
+Aüy÷# Ê*´œĞ¾GËÃg¯~|2RŒ¥„C!¨G®CÜo1q¬|×wjJ±qÏ´*Ô»ñ¢+ L4•ÖäJ&ÂÂT¸şÙĞpbê{®¬„é}PàÚÓé@G÷åçÓ$G\˜ú‡ô7ÆÇ1sRi¼nÜĞåö±`T¶$ìy.Ä³ k¯°P$…&ÈüŠxBlıÒ*Õ¨
+3d°ªeıŠ0-ÉUÈÅş,Ôœ!ÄyWlÙĞû±Q—1}ÕX'@ÉöÒ¦:-ÛôaıbMoy;Ÿ“4™ËÊic¸€‰ÆÔ_¡¢Í^åWª1ğ®e«°Gªïl×Iyg‡=©:¯8ÓŠßD6N*ÊiùÔÂù‹Å©ĞZÁ[²+€~q„!,ÎˆgOpqoÏ‡×¿üR³
+¡ÆŠ¢ÊşÀ—^aí÷Lxğø!ªı®	[æú¶lRí£[ÄT@vö³Z3}÷+GpÛpİÕ`¼lG|`î%®·oè-§SÛAqñĞëw¶kMÜFHu0mC$|mPZÁê›´ÏíıúşEäÇ‰j›¤~>ø*‹Õ·3»<­úŞ†¾c\¤›Êô˜ÙH>ûÅE½ü¼†°©
+\ˆ  ´¾ïÂÂåLY³TóÌ÷ÈïìŸw\¦xác®KÅ˜nûsr£ıB˜Ü5Fwv)úI€@lëİªà€â
+UÇ¦ßIĞƒ	©?­ÏN«õä0¼¿oˆ'•ú†AtPHŞ“dúf%ŒÅw×ÖFÕñV…Vß×UÍ€¢Õ^å¬@¤õ—ßˆ”.&^àYğuË¦xğ;í¼FŒ¼®ÿÇ‡Íÿ{uİög«T¨@¹RŞvÏtmÁÖğg‹p—FôÌÊœDGñşi‘´Ò(,Ñ£¨\ôMÊ©²95‘z0P°n¥İØ}v×ÛÚ¨$kšÀ½¾û¥Û.$Ú;V	WÆHŒqî[%Š™öÆºk9YÔ`r°z~ß}¾ÿGW©¤¹n³BPİ…à„zĞÅNi+tÓŞ˜´f•³F Ö|–èv=ë½jø•îezM7Ør4å¯{{'¡àZÊÆÍa@w©l«…õƒ™rz=ôğğÆôæé'c	ÌìOs
+l¦Øà=ÌÏWò¸g|sà[
+ó²Ë€k•˜ç¢wÛ“7`ÑrÊœ«¿ÿ&k•…x‚>T.•$`Ş‡çáµ˜¡|N/~|R9T´ç²x¯¯‰ x8”/¦è»3vë›¦aıLòãŞa°6à¤¹&*“4¾o,da€ë´ú&ZyøËI,¯²ÂÛ}á¨0m/øJ¨ÄøîÍ‹Lä~ÛiÑQëÿ:»¨´„½\;%oK€1”Ab¬¡Ñ1Q1U ÇÈ*¶´ãçRÁ·/>ŞÕƒë2Ğ·ƒ³k£â‚
+ëPW–*Èz_ÃL%áH^D}?lé‰	š˜‚†3¹—\Ôß1ç*ˆv¬më;æŠ”xà²‰k²o^Yi "ÚÜ7‚¹ ®#66ŠÉ¡şÎŸSq¤v²«sZ4Dy‡±á#:Pè¥W[×.Şé¸pMüzòq/şæÖª”â½ì‚ÉL)å^	‘F‹Ò«Û‡Ó‘1%m¨)ßğxÿ	Õ·ì{ÌC›9I9íµğ5gßêâèdÉmSCÛ{‡ò.s3Ñ¶¿½Û;Ø½÷æ‚Úç{;GïöaWiNºWõÃQÒc•¬­ï½wÕKÓ5à5–wóîp.¨Ú“&XèBØÛ¨¶Kƒc}@:ï³À
+ÇÂgÏç'`s×Ÿ~w^SPºUµşuHí‡* ØUâ.YØÏëx^Ô5ÚÔ“»5ÑMŞ=|‡hà¦ÂZÎÕÈ¹XL!]Ãß•¸SL¹Aä3™²™¤.ÜäAÆ„åºPælUR™Îª¼‘95†Ó1
+¼ {´š.ŒÑ3Ø¤ñ-%,ÊÇ×;9‰¥zgauck¥æ}R>ZàwşLs4§_Ì7°¹ºkxgÄ¹Üuëªm¥Üû›Î_rNĞ}ÿWøPß÷TlA­<W_»K¥4We#È
+!q$Cùı¨zš÷]ÎKPB*šïÊ	°¦CS&ğl÷–	DLQy!;TÕ·v`Ú):7ò¨z…—¿ßşGjë^ä¶nX=ƒ€,’?¤Sdù´J4s;+mà{âÑ4Ë™Ğ9&¾œíQÒl»bj s+0Â^á®!Òå¡å/õ°=®ä§o_#üæé!*+D9}9ˆß—ñ™mÓz]År2zßÎ‹:G×¤áæ?+6A*ŞªéM}ç]Á´k«0‹¿û=Jš|
+“Ÿ²Z9#î8F’£€ã¦‹	>j›"?eÚÑÁ|½0Mô'ş2`Â×7C˜òGPª?ïãb¿§EvÛöïÌè|`Â„d¡ñä 6xtdH†U÷Â„JpIÁGæ›Ë¦/<7ˆ½W¢oö.Æ‘‚Ñ¼g•îkXì‰¬9u&}¾Èª(HIÑv.èú£*ÛÌ”™¥~ØV‹J­Õ3{·tİ8¯Ú^aÂğŠÙ¤&È]3•ğËTÜÌ£¤ÁccWi0œ=î™sô±ñwş¢X;ÎŒì—s<™ÿ"Jh¦bZ‘¹ËàÂ31/eÛºHñr¼^Æ¾±ÉG@ôŠCxd‡ÎÖWWÁø(¬¦eÓHÆQÛ‘³~"äpCèŠ¸7!luïîÔ
+«®ElôR*œ³|LF²› ÁyÛô©ç*Î¦hF¯ÓIï,ÍQî4[«‚;^Ä}£jøÀû~”‡'z¤“lXROÇP¿4+ªsÿö~¦cØpëëû/®Xn¨D}óà×(İA`4¶9LA%ÙQb÷_’òãH¹şbÿù6Àé“:ŒùµéşTßxÍMÔÊŸââÄ-ş†«mò±éå%óğlÿ0ò«íVJr®û‘ñmÖÍ?/p¤ç³LøZ)£á`~üà*«¬±z’>œÍ¯CAÕÍ{u.ÂÌ)ıÑÓÇGHÕ ¥?]úêíÎ³î«¤üÊáÑÛƒ½î+v8€{™ºö°Ûn#µH}Ù2“µ¿M…¹ä&¢ö3øußPş‚wW²­)v†€òly>»z{«¦Èå¤ŒƒC*Áh$¿ûúĞ"Mé„¨¢Pâá–—bE»§ÿ©[r¤¡ï& ô_îuŸÿŒt†RB3Ô¹7œÖŞ„½Êd‰İŸ#ó7œvRÈØÀ÷öL…ú£ªÆD‚&~(ˆÂË˜Ò+?jiWËÓ@œIk˜Ö¬!$è·&×¸^¶ä3)È•\LD¼¢¾ZÕ*ŒSjÎ€‡-‹hèÈã&·l…p•¯ÜáËêà‘ôàújä…éªè¢—3ÓM§õL­vôëÀ†9ÙC¨ªoÆRERèÔš~úz2¶~ï+üDDøp¶éN„úÑc+a„fûúÑ3¯>ÈF»â¯gò	ãşÿ¶ ŞÂ±Éâ_Ç[ø¥CÁ“ié§Kìu8;Z¾'t[ùìë˜"Œ\Óp”3iÁçñ1Uñ€•Õ½æìõÊË#6ÇÁ?Şx›_¶I£%Á›[_Kv‰v¬òDb›±ş‘õ×4Ö*mcÙp[¿Í
+ºÁT¸š	1\ƒÿ7¸Í}­¤hŒµ˜4o­ÜÜç-wÆpøK
+E@³YomGíYÓX.1Iî"„-¶jßaxê¯¢b3ï;>ñ½ïXy‹ªFeèû/7¶wBÁö)ôê÷é›À¬èÇxÿ!ìÈ
+sìãıã¤ÔVV*QoÜ¬å·Ş“ Â4ñówi-×¤4;²€sàáä¤ãû“±¡ø0ÁíßuyËƒjÔÀ¯`õ±•ÄÄ¨Î-äVG5)Œs/Ïª¶³"àìÆÂuzSª.%øø¡¤ˆ1‡%êçâ¶#ã‹°Ş¢=<\x‚Ñøl¿SËCBTÖ÷ uÉÖØï›ƒ2¯-²Õ¢ŠY8÷¨Õ‰x..—¤ÄæO0j‘MßkÁëïĞJ³n¦n›«|DİEC†ÏèíŠ¹°647-7-Ä…¸âÉ{ç—ê7¦¦[íşQ¬s­/Âlğ.ï¿^uÂp«ô¸×î#·„erß7/D¬0WqÆâ¾åİ6ìGıĞË-xkÚM¼›;]).Çğë»>)Š!vÎt>iÙ”t#Óæ'95ù¨‹rBâ¬|oŒoŸŞ0á&kÕ³ÀÚi÷|,õ‚?]z´iVì¾{_²©Ç/±‡gĞM›Ê>°2Jğ6$Úk¬@É-ÚÂ–½®ÇJ}¡Ñ£Úõ³à
+„[&éŒEP:^©;…XRÉH5É”¦<!_ÄfJÊÅJ,¸O£Å)­ÄÂ«^ùæzqhôWoJ¶äÜ·•I¤ó{ÜÀjĞ7qWlùÚ}µóæÅñ»ƒ½ƒ½'§8z
+Şüıxçàíû7Ï_ìî’¶P÷\?'†N±VÈµ¼Dıo÷w±e,ZàşiÕµê5Ê‘Í«~?NË~Oæ"\¸l‘#%Ñ_†^B8Ø	ºÅî»wÏ_í¼8Ì]Ÿ»ôÿ*izl~ùuÍm›g'é<#\CİĞÓ½äj£’ƒõ®lıà1KÎISŸ€:Dú¤ @|_±Ãe;ß×3$2å„­¿º0± İ¶C/Ã0–Ó®WgÑs]’ûJ[©æWDa–k·jƒ5Ò0™d›’Äu=é"€hE
+Á›2Ù[™Ê^»Ğ­€Sòö[U
+WÚ Ç"o kâT!ªB,©,ş6YÿCo]ŒÚÄ°QˆÓ|D>u$ÂŸ{<,OÁíşı±Óu;é‡> 	jDc×*QÿÅ;_é0÷0IJoN/‹U¬ÒötE Yô%Ã’à·mM©/Ö‹ *ëZiå&³UÉ×BZ!d·IÇ…[[mv÷”¡nH¸eÜĞiõĞßÜ?P36,³( Š!)„¯¯:Ø¦Mh„¼>°¡¹ëC‹¡|†ÅLB§–Ï©¦è3î Ö›`.3n=)ÂV‚™^ò®M”E›ïv^Oe©â•7=J |N„3DŒzFöøâkÕHŞ03„¹ÚÔ"?R8İƒsRøÎK¹çÖÃÌ.ë¦½«r9œ€IÕú1O·ÿz:"Ï³Q•’Ck°!sæšlM©T°T4"¯1ğ›ºc¿Ãß‚oïû1ÆCëZ2â¤Q‚rN;„—uà1Áô(ˆ˜@ù©!"3%«Œds±™‚zGÁ²« &3AøiO\*ş.Ì·¯FérÃ-Œ¨¤<'„AáàŸk°¬¸Ê±$tNà$äÏp—}ˆ]ßÈ	R×_ª3Üó²ğÃ·B) 
+xÌ°ŠKÎ!]^ì‘–ï¾a\:À§‹ŞóÒ¯¿,ÀÕö”Ÿtt–JkbÑ$ñGˆFûÛ\3ôFê±ğê?´Şª¸	ƒD:ˆÇİ°²]'8Üí§fi—_é¶±Ş¦…ÿ›UÓß/Ã¦Ø”V‚ß€ÅIA)©HSÁÂŞG·ŒØóŞŒïïJäª‰ö)ğ#a˜t9s]c:[R~Ô33~¡´Ébb)î<üÊØMó€ÙTmÛ˜Ö#c×y¦Øyu´wğfçhª“±ëóóŠôõØZƒ ğêÖ9€ëÈmÛWßùÃ*–§CXÎÈ~2_wó»"F­±Lİ®Õ93Å9³QLÇ»xÃmBÛ—†Q¹ßrûşşø½7*8É&òÆ¯L	‰›'ÏIÏ…ÇQ÷Ç'›ôĞÍ:¬.ë …5“T·=³jnlËÎëŸ¶Ü/f…:V|h5«ÿÒÔ¸¬‚ô7‰˜>ôÍ"	kç¥ĞW¨\üìÕ1²!Ãe¢ô ”º†›øyZ"¦"3¸ä1\C'»Öˆ™(œ­±ícñ¤pª^ôhYŸùü©(ÿÜşãcôœáß/ÃŸ­ra.BzëP÷6|gİöuÉ…Úùqöß<{û
+EÇ¿îf†Í`dÀğY Ÿ›Yû½ƒãçû¿¡;z|€ Å­°W»6K'-y;ànJio à‡ğ‹´M'¬Xö"ñ®±‡C;õØ®U/è‰à}¦<Î¨©.5wXŒªı\°pèq}Mœ GØ}™ou²ÂbÀ€Y,°¡Öq×•®ğèñÊñtÈî¿ÆN™°Ö­ñØÔÖñè:£ƒŠ˜’»ïÒJûVÌ¯1Œ–KBf®GFo0‚ÁĞ®Éms·HˆpÅMr†Š+N­ô\¨;zû÷½7Ç¿¾ş|ï`ÚnEs/T«ëÇ®à—ÀÆ„p¢è‹ÿÂåxàYûL˜/_,ÆÂàms©J3aî£F³IøŸ,ì qVöRÔ·\Q5¶„X1W¤sHÉĞNÎÿÌ Brhg˜x3ÒQyÒåõv-ºèç$¼y¬i+øÁı8iìD‹*kÙµË¢q¯/¿‘	ÄV}s]DffÃ*ğF0-†ú¯ß¬R^XŒDc0Ş¨XDØâ§OñG0¶OßbãÚûÀ7\„Ü50Â¯%µÄÔÈ6m¸*Ú‰üs¯LÓëø/	Å—®Doƒ°XRhHL"‰|?Å‘~ƒ]ˆ­0ƒùŸ<äfO”Ì0l.ç/â?^F]Óóğ%¾®ÓåòŸ¹Mú,i{À‹¡Ó*œ|üd——Ÿ–K¢ç60«¯á4RAÁ:ZX6ÕïÏ‘[ª~7rÇs¶YsN'.`A*7Äİÿ¯3¨×ç1ä˜ˆL×ñ~>‹¨ãËpQª}4DÓt/>€#¥&ù¡íë{Ó4QÌEı.m5Ö$Ô{Ÿë\Í½LQ…ğI—–n¤ÙŠy˜ræ °fÏÛ1—¨MĞ‹YDa°|rD>ô–¢mùåœ¶şV%ûÎßÈz7E%K^ëµ;lUA+U7¦6oËPÛö¬¤ Ï—cÆõ“¹¸ç©ã46m!©¯f&:)šåÑB„@ß­ODoG•Éõ'³Æ¾çpA¹4Ì±Ş}YÇØQÏ‰¶>Ÿ¹·k	a4*½µ…­?çã±ñœ~rîw±?cµ~v²‚9#A«Ofÿ$vp™Õ?']é¼k­ëí¨°X^ÒzyJDŒE¼{ù?øªÃ„Ğ„ôàñÏû£;iB˜3”İ}£üJ–pş3ÕŒµM}×\+¬`1i'İˆå¢9s½S–Aå=’¼;W#ytÎ J¿ÑrÃB]ÔÉ9YÕÿV¯“Œ:Jú¾ë‚…s.~ıí€œaY|H\Á‹V.ÖËE#
+¯¬7Ö„Î{Èr34I×^®òL‹ô_%çº•Ó7‘ÏÖk¼±´°Iš‘‹¿áñ‰"®ï¼®Ÿ-İ\((µùfæş·K
+ğH»?ºcs¶¢ùiF{Ï3ˆd»KÖ7õ×µĞŞaÉ/¦å~.Ã«û"2Tfèú†Øcr\RRœÜÅÈí¹QÉ‡‡‰¾å˜Ä•iª/)!RÖ3ƒd.SF62*öjÕÔ~:ÂOæ`È÷>µ‚¹+Ù²k|¯à-ÿI4AÈ»"¥+;Åác÷ÊÖºH­Y¦Mñ*
+ª\%½flÊT¢FÉÄ‚å'Ñ%XnBşi×ÚÇe¿×¯((˜•Õ£HÖs0	à(vVË,ÛI°X|•Ô¹[PKvœİÙß¾÷\’UÕ-ÙîV8ZÍz’—÷uÎy³ø2¥²<Äô;
+DÉ7‹·ïøwü°“õº/¥$ïï¯(3¨ƒÖ½Î£FŞÄ)
+3. |u®®¼s{Xz£ŞflÎñuYÚªªâ d_îHÉ¦ƒŒ­A‡“v£ç3Ü•3]x¬ƒ×¤o“xGb¸VÏ÷&Oş'³éäirE6ĞUÑ9ÅS—„îlS?¬×h ÂvÃlçgÏNN_>?Kº&‹ÔZ°İ•²‹‘#H$è¸—‰ª[A3:dY…èê|t¿¢“Ë‘ùW.”Œ¼µ¾2zü"{¯7äc®Œøxø}®rîğËÃë?h±®­L?ê*³¾©[)Ú.¤ĞÖ«VG‡µ¬µ;Bí­¬JYòô~ 7–ó3 êö{û®”Å„ê¨î(r ™İ³Ø~¢Œû~¼÷"¯ÒÑ×´¯@Ñ•Ïá‡ë’—{ùZÎmÕ”­ñ)gOó0Šëv 'ºÎ~6…Â;
+œì{ÚM<˜LÓ[C{
+4¤_Ï}sô¹™+LS#½' Ûcß¹P¥W¢ìóéÇyWèğ	8#¾ª¿®àÈsƒË{­U7\BÚhH&-ùEÚÈ‰‰…üÄn‰öË»÷:ĞOp”i¡2#šJwjìodî2‰¿ÄÎ¼¼dïY„'‚±AÖã®«v$¶Øâ\ŒN.Á*³:ÕÈ‰­M+Ñ¸İ	3ŒÑ}D`måÈE@İ­P¨Îjæm‹œÚ+LŸ‡wË›CvşÏÕÌìÍæö_äƒw0¶Âb>2÷^”ò£C\hÖÁÊo.Ì3¶÷´‡{i
+SSÏ•çv¢Ó@Ë<x
+á¥÷ÚºÅ;ÇkBÌ{‘çšÌXâñfG¶/$škZH¾Î?{š¬“™é2Ö~íúAi®È}ëùA²
+/½0 ì4Ê Ù#_Úˆ|ëË&ûXÓt³b¼:‚ºôÕDfi
+¨ò‹å9{2´'· ´èÇ¦m†cÆˆÊ•bÅY cd¿YÁjÑ›íªº­¼‡¹a€0à3 ÎY©"ùÛğT>pÂ¯îiQU¬µš´È`!¬ÿx¹H<M.V„*İzƒ(ˆVBB¬8BãËèmhÛˆ»ZO¢UÃD¼{UQ2`_{2´t¦(EoûD²†‚“Ê¸Ğá:=Ö/=ŒYí)î‹:ÿùú–&åŸ÷	¹ñĞzP¶Ïó	Êä¾ïi­ÃM˜Pî,Å İ¥1• Q²6c‚„
+­İ§ûßî:<•1Ì¾¶DW4éã»»:¼;Œğ£»FÀGšÊ¶æ&¿ƒ©Ü¤ôÍ3-dëz²;½eú¦ôùEi|lˆJ.Cğeä‡cÓáÍDA¹!éIğ†¦¬[¼UsôÿYõ€øÏµÒ]]ç<B& gêd¨‡ó$º=],Wô4xmG’ç¬¨på¡ÃŸN²LÅª›H¯ØIa(¼4ƒ¢¨\UWCÂyhìúõ×_¹{ŒŒˆíâ{Ÿœ½>>}óü‚îóÉ:ï•„ÊÈ¤»}ÿŸgŸèÆ\Õ?õ>JP[ŠIu×7¦	íL›ËÚºÕšü°üÔß°%yxò2—'×agûÕŸhîÕ©~¤%aè &9Ç„Y5¬~Œ BwÀ(¤ñ:ñs²5bÜMàŒWY´È]ƒvÌ†Ò––‘	â›œøÂ—´]õ~ÿR½ ½´ JŒD¤$oDJHùÆc2Ôàº§ÏÃäA²‘3€ePƒl½½ş”õ¢Ru¡&‰ş„ú­ÈAGk6k2¯ûƒì%¹ôdkrŸd'òGÏªÆµÎPÍéÖÆEaŸƒŞÌÌŸıø’¹Ö\éMÚ>ĞF¼Ëƒü…©û^0ÔüC ~§ÕéíÚÖ0p?¦Cø8çŒàÇÑéÈşÎïh2’'x•z›˜·¡±MÛvõå¦Ä3kà<˜JF7¬ƒªiëéğiãbâ\89#­Põ‚W~«“dZ·êDö™ƒgJèNúi½Ò"4¸S¯Nb@ãFßQ$¥óm†eu%ËŞº:ßè=CËR–šb½5J¬Ñ!fè)•Ê•š~ÖA¿Å.(n…nG…œ!²Å^¾¸™]Ìæ‡üÛS4¹5½×E$P^åuâ>¨`<ÂŸ®&”üĞ<è) ÷_>c ;SèS‘r„êÉ€”¢¼'e©¤§;’õïĞäşßù"u™jÚ$~÷ŸÂo;Éa•è
+³Òİ½áØĞjX:áXİü	ü™ä©¼‡&ÖxÌÀ_ ŒùÚ×ÀmœÕ[]áZ_Tm;!¡G&é64O‡àp¾Ø§?ÂwN¾è2#g¯*°¼4Gb×èØ-ÏYèS’Ú)ƒŞ¯½4ˆ™”•hŠÎ—´NÛ6!'òÀ½%ÈV‡
+«“b:«¹Ãj„¡Løäi"´Ô¹¡Ğ0³òKVåPU­¼ƒ©“qKäò5Üœ€¢Ÿ\=HmKéuù Dº ğºìZŠÖ'"í‹¾Mã==×£?}ˆğÜ'$mbóSÖ¡æãå°+Â`ÜØÈ«Î9Ñ9wä\ÇacÓM{D?°r*‹«äšøÔmg½¨t(ªsKS•¿]şt7çò··ï&ÚUYÓòœ{‘‚û€ÑñT\Ü-ó³÷úæcxsãtı–y# b¥if]ÑWÉJGÂ ïœ¿ºÕçålt,
+°f‡¥£pn*$¹z‹°sª/„Î7}| óÂ¹’sX	€·Ç Ìı=¿@Ç˜‡5˜ºbïiákÓô#ìŠïC¸¤i»èÛ¸¨ÑyÒïê¾[S£Ûl48-+E3 æ³—©rIÁ×ü"È³FõU$[‚iL)ØõûunÂÆ“µ¥œ¨ı¥˜q	FŸ»¹Wjşo+rÅÜNCã»®®Ì˜~¹GF2Œ‡¾ñŞ=ÅcÚNË¶ Õæ›^tF+rÚ]¾İÅ‚İÀ³îï¶™iE¶”Üw¨ëÆ÷ &u3»F!:ÃQ¸±.t¾b9@jò>x\‡€Š¬S}C¦gªw5è·ESš¶›È´o84kÊN—•şlaeJ½ÌŸ\Òîÿ'S¯Q&Ûwx÷°§;t4[TÊ¬ön=4õÇ«iØJ^œVš.rğ´âË¢p}Š•
+W¥¾ÖiÜC¥ÙùN	[çåN²¶«Ë"ßøÈ(MnJş¸+§õå*¯| )Š¯g98®©çuw™ª¤?z{ŠŞâeæíŞ€¼%oS/ÄÉ8BŞŸ¿zşúøèüÍëçÏi«°ä¶eÀ0éœüüÛĞ’^ÍR„‰[¯ş|ò4ë©lÙ¨ü+GÎÚŞéªrº{éü÷3zlgôÌTªx…35?š½5¹D²¬òM¾5V6Mç»•æ&€?İkq"Âªj#~I-(‹–\"úÚ^„‡ÍõÍÍâãÄ€_g‹ºlµ•ù¶CÁèSõ5E@eñ·¼çH+çÒW×O¢†E¤vè\!ÛÂİ›³©øæîØa;)×”­¾­zn_û{.ªál_DNh«±+K‘ M#©6¦eÛ“[Yúx|õ¥»ÁT)Km,ÀiÂ†ÎŸà$pN·u/ßGA+p!ù¸İ@Šßƒ&dËc)dÌÛ–¬£¨eÔÛÂ"aó¸éŞá¦j€,×!Á9”ÿ¸à®¦@7¥ï2³‹>Ÿû¸îŞ¢ıĞ$ämAK°ïí¦:ª	‡Ê'Î"Y8tÛ0‹i¶·²…~…T×.€›ÿÊ¿UÂ]ì*áÓïÒGYQ˜¢EÇëŠ-§ÇD„”ùwÈ•!¿ºAIÿí°h*ıĞ¬™ó0¾×sûi„–HÔÖt"ÿâ÷ÈPšZA‘ö(ˆ†P1ZG¬e¼–KhÀŒ• \„1ËàEÙ1LlV_i›ª×½“Bòwh¾âN®}H«Q‘jJr$üÓÇ' †>n®H„örÔîB°W”Ş¨À*EÑÕÜ`‹æ‹°ùÖœÊ¹+“íæ—DóÊwu[~)(«XnrĞäãfZ7M	ÒøèËÀxA3säŒ!+› PcS¹êàZ~1£×;tg­+‹äÄİ¸j]C- „Ë`Èu©[_õ*µ”„
+®Õóz›Š*@#¯LVÓnQéQˆxãº4Áä„7"ÒÛ«¥n‹± ÊW3ƒÏruĞ9²¬œÙ7 ıÓ ²ÒHš J8àïÂ–i\\ĞæMÂ5!½ˆŞQVµAeå(Ç}¾û†T'7’íòdÛeãuşÌ¹»´–öĞLÌËˆî±ƒ˜"fOMñøKsèÜ"£ò(Ë:¶rÕ÷ÙË—?¿<>9~“Umo«¢õ—SoíÙ™n‹¼ÛïOûµ¡/Gº¨›|óAäsjÑ«ÊµškWMöŠŒvÒèÅz¥7|ı›—™8oÛ<1)YL‡Qÿi/ÿk¢û‹Ô`aÑ›ŠØmÖ¹M²qÊV+ü„›=hò’=miE?bİKBÖ=
+!“’9ß¸º*×Åh)Ì:x¯gWïõu&EVx,OiOìÃ¤-[—h{¹Õ„"×MhÓÆ~3Sır)*¨±>âİ’¡“ª De“û¢IiDñ°}”*èi•Ær?Ú­lSKñ`ÖaƒìÀ¯×•!ïv(ŠÌpù7‚;É¯ôl¾”¿ O"šG/a6.¬EÇGà¯§Á>(ğë=Ã6íÁiÔi_5ªC'ry>ÚÇŸüŸüÛÓ´CNÎî±¾kŒkòM‡P°_×ˆ‚“'<zªÓ¯	œõıŠm;
+3‚Î°ü}vª“^ğÎ´¼3ûø£YÓePç<ÈÊ¢m«VÁ±dÖÖÄu:ÙÿäéëÅGò…«Š²vbû×m½md!ÊM÷Û¶W-Hë…rñÂbşô··ï½Y úEQ%3y)«;Õwùò=7ì„–	Ç˜ll`zíi]ú$XøäihµûßƒÙù­‰ç´Z½è
+
+İ"B±o?.v’+äÔºsÊ3èân÷¿Çÿ§IÆ¾Fwµâ·ğ7Ã½³æ)wÙÓ_âĞîîcŸ%gØ“íšÒ“Ëõ -:k$Ñ¶F÷²ÿ=åL÷ş’ªÇVØæ_Ô­Ø¿zOûD\=ÕyÍuä·øÎô|™u«ûÖ&rĞ(Î¥ïnûÚı÷İò–é<»}X‹{Dóå|v}ío‡Áñ+ÿ1Îº~¶ìDÓöã6tãkÉÅYHP’åà-°Ãü”Û¬«ºŠœŒb${Á^q`WÔVy$&L,DI±~~5ŞvUÙ‡q7Å¶EòlF„N?7éüAL»5¦—ÿC+™ë&]Û¥ª>V³Ã$™Í g¿<;=õ S>;¥@]{%¥­ƒöüõİşĞ‹¡õ‰6¥m‹ªâİ.³œy<©ˆ›s.N'o)NQÁí‡™ó+å¿xµó	r‘¹< ¨¥(Je´ˆ	=;©–™`0½¯
+@ëBhûı‡Ù2z¢ß]Îí;™qµÒJèäGÜÁÙû	]l6AãÚ‘KŞ¢qUİŠ40.¿V¾4`â	ÊtáĞ¸X¥K~'Ï~=çmš¡…'ÏO~~ı[Rá¬BWyÜ%™ÂÅ®	5øé³×oßÿüª)0*z‘¢¢wâŸĞ˜r0×3Ëx«·ï˜…—»~ˆ}[?ÿö:˜hav¶©œqQ‘…¢ôzyLêZš\‘¢²C—;ËQòJãÚÇd÷Ğ¨×ÑäæìÀ’¹KÜş˜Éºïµìj­ ;Cï‹>=¡ß?¬4ºh•F7$­¬RÔœ6âíg¾‚èYåˆòIÆ—¬ä!àUô"…²½p´?üˆÆÊßY³Œ¬jàĞf#s7¿€2Ôjxïco:
+:â{$©.o»‹½kÁèØ"ùé[p KIá…2Í:Œš»•yÁŒ Ü@ö	w£Æ¦bÚ§ÖódS·E‘Ñ2Bêb‚)e¤gÈ¥]xÅw)AO¢ôM•ékÍI©Tasµ_=äWT{ù75ıkxØ7äÏaM³Uêx$}Ÿ“ç’FN/xòUWšÆ!5²Æâ–ò¹¥u’ÇÓ=F)«‘#u?$RdLÜ˜$€S/dù¹ëÉBßµ¶ÊÔê>’`ÈÈŒzÃ0Šj@véKŸo6 “¾¶¦¦¸ş'ØX'»¿ò$Š¯Àş;¹ÈØ^†YÉÌHO’ƒišŒKE!³ù:8u9­–¦(«èÉm=¬©wz'ÆÚ{ä*xjc¨	S„³ü3{ ów%D²yb,!
+¾KàĞĞ‘‚ÓeªI³B}WP\ĞùNşu—\Ÿ² İ;üå[ŞHò‰V)RvÉ_õ7ó]˜Fòs/ñ=;{•ÕMKwQ3¿÷†¡y…´ ]W¬!–¸q`×íC¼¸ÀM†œ´‹¨9Kƒ-ÔÔ”‚ì²ö<¦Ì»«)~™(GkgÔœÚîl]î´€ª‹-OAÍã­všw: è;Ú‚—ÆŠÖÄÄ¨9%

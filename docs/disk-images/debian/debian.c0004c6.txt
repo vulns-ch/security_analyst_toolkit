@@ -1,0 +1,3216 @@
+n and method decorators were introduced. Class decorators
+     were introduced in **PEP 3129**.
+
+
+Class definitions
+=================
+
+A class definition defines a class object (see section The standard
+type hierarchy):
+
+   classdef    ::= [decorators] "class" classname [type_params] [inheritance] ":" suite
+   inheritance ::= "(" [argument_list] ")"
+   classname   ::= identifier
+
+A class definition is an executable statement.  The inheritance list
+usually gives a list of base classes (see Metaclasses for more
+advanced uses), so each item in the list should evaluate to a class
+object which allows subclassing.  Classes without an inheritance list
+inherit, by default, from the base class "object"; hence,
+
+   class Foo:
+       pass
+
+is equivalent to
+
+   class Foo(object):
+       pass
+
+The class’s suite is then executed in a new execution frame (see
+Naming and binding), using a newly created local namespace and the
+original global namespace. (Usually, the suite contains mostly
+function definitions.)  When the class’s suite finishes execution, its
+execution frame is discarded but its local namespace is saved. [5] A
+class object is then created using the inheritance list for the base
+classes and the saved local namespace for the attribute dictionary.
+The class name is bound to this class object in the original local
+namespace.
+
+The order in which attributes are defined in the class body is
+preserved in the new class’s "__dict__".  Note that this is reliable
+only right after the class is created and only for classes that were
+defined using the definition syntax.
+
+Class creation can be customized heavily using metaclasses.
+
+Classes can also be decorated: just like when decorating functions,
+
+   @f1(arg)
+   @f2
+   class Foo: pass
+
+is roughly equivalent to
+
+   class Foo: pass
+   Foo = f1(arg)(f2(Foo))
+
+The evaluation rules for the decorator expressions are the same as for
+function decorators.  The result is then bound to the class name.
+
+Changed in version 3.9: Classes may be decorated with any valid
+"assignment_expression". Previously, the grammar was much more
+restrictive; see **PEP 614** for details.
+
+A list of type parameters may be given in square brackets immediately
+after the class’s name. This indicates to static type checkers that
+the class is generic. At runtime, the type parameters can be retrieved
+from the class’s "__type_params__" attribute. See Generic classes for
+more.
+
+Changed in version 3.12: Type parameter lists are new in Python 3.12.
+
+**Programmer’s note:** Variables defined in the class definition are
+class attributes; they are shared by instances.  Instance attributes
+can be set in a method with "self.name = value".  Both class and
+instance attributes are accessible through the notation “"self.name"”,
+and an instance attribute hides a class attribute with the same name
+when accessed in this way.  Class attributes can be used as defaults
+for instance attributes, but using mutable values there can lead to
+unexpected results.  Descriptors can be used to create instance
+variables with different implementation details.
+
+See also:
+
+  **PEP 3115** - Metaclasses in Python 3000
+     The proposal that changed the declaration of metaclasses to the
+     current syntax, and the semantics for how classes with
+     metaclasses are constructed.
+
+  **PEP 3129** - Class Decorators
+     The proposal that added class decorators.  Function and method
+     decorators were introduced in **PEP 318**.
+
+
+Coroutines
+==========
+
+Added in version 3.5.
+
+
+Coroutine function definition
+-----------------------------
+
+   async_funcdef ::= [decorators] "async" "def" funcname "(" [parameter_list] ")"
+                     ["->" expression] ":" suite
+
+Execution of Python coroutines can be suspended and resumed at many
+points (see *coroutine*). "await" expressions, "async for" and "async
+with" can only be used in the body of a coroutine function.
+
+Functions defined with "async def" syntax are always coroutine
+functions, even if they do not contain "await" or "async" keywords.
+
+It is a "SyntaxError" to use a "yield from" expression inside the body
+of a coroutine function.
+
+An example of a coroutine function:
+
+   async def func(param1, param2):
+       do_stuff()
+       await some_coroutine()
+
+Changed in version 3.7: "await" and "async" are now keywords;
+previously they were only treated as such inside the body of a
+coroutine function.
+
+
+The "async for" statement
+-------------------------
+
+   async_for_stmt ::= "async" for_stmt
+
+An *asynchronous iterable* provides an "__aiter__" method that
+directly returns an *asynchronous iterator*, which can call
+asynchronous code in its "__anext__" method.
+
+The "async for" statement allows convenient iteration over
+asynchronous iterables.
+
+The following code:
+
+   async for TARGET in ITER:
+       SUITE
+   else:
+       SUITE2
+
+Is semantically equivalent to:
+
+   iter = (ITER)
+   iter = type(iter).__aiter__(iter)
+   running = True
+
+   while running:
+       try:
+           TARGET = await type(iter).__anext__(iter)
+       except StopAsyncIteration:
+           running = False
+       else:
+           SUITE
+   else:
+       SUITE2
+
+See also "__aiter__()" and "__anext__()" for details.
+
+It is a "SyntaxError" to use an "async for" statement outside the body
+of a coroutine function.
+
+
+The "async with" statement
+--------------------------
+
+   async_with_stmt ::= "async" with_stmt
+
+An *asynchronous context manager* is a *context manager* that is able
+to suspend execution in its *enter* and *exit* methods.
+
+The following code:
+
+   async with EXPRESSION as TARGET:
+       SUITE
+
+is semantically equivalent to:
+
+   manager = (EXPRESSION)
+   aenter = type(manager).__aenter__
+   aexit = type(manager).__aexit__
+   value = await aenter(manager)
+   hit_except = False
+
+   try:
+       TARGET = value
+       SUITE
+   except:
+       hit_except = True
+       if not await aexit(manager, *sys.exc_info()):
+           raise
+   finally:
+       if not hit_except:
+           await aexit(manager, None, None, None)
+
+See also "__aenter__()" and "__aexit__()" for details.
+
+It is a "SyntaxError" to use an "async with" statement outside the
+body of a coroutine function.
+
+See also:
+
+  **PEP 492** - Coroutines with async and await syntax
+     The proposal that made coroutines a proper standalone concept in
+     Python, and added supporting syntax.
+
+
+Type parameter lists
+====================
+
+Added in version 3.12.
+
+Changed in version 3.13: Support for default values was added (see
+**PEP 696**).
+
+   type_params  ::= "[" type_param ("," type_param)* "]"
+   type_param   ::= typevar | typevartuple | paramspec
+   typevar      ::= identifier (":" expression)? ("=" expression)?
+   typevartuple ::= "*" identifier ("=" expression)?
+   paramspec    ::= "**" identifier ("=" expression)?
+
+Functions (including coroutines), classes and type aliases may contain
+a type parameter list:
+
+   def max[T](args: list[T]) -> T:
+       ...
+
+   async def amax[T](args: list[T]) -> T:
+       ...
+
+   class Bag[T]:
+       def __iter__(self) -> Iterator[T]:
+           ...
+
+       def add(self, arg: T) -> None:
+           ...
+
+   type ListOrSet[T] = list[T] | set[T]
+
+Semantically, this indicates that the function, class, or type alias
+is generic over a type variable. This information is primarily used by
+static type checkers, and at runtime, generic objects behave much like
+their non-generic counterparts.
+
+Type parameters are declared in square brackets ("[]") immediately
+after the name of the function, class, or type alias. The type
+parameters are accessible within the scope of the generic object, but
+not elsewhere. Thus, after a declaration "def func[T](): pass", the
+name "T" is not available in the module scope. Below, the semantics of
+generic objects are described with more precision. The scope of type
+parameters is modeled with a special function (technically, an
+annotation scope) that wraps the creation of the generic object.
+
+Generic functions, classes, and type aliases have a "__type_params__"
+attribute listing their type parameters.
+
+Type parameters come in three kinds:
+
+* "typing.TypeVar", introduced by a plain name (e.g., "T").
+  Semantically, this represents a single type to a type checker.
+
+* "typing.TypeVarTuple", introduced by a name prefixed with a single
+  asterisk (e.g., "*Ts"). Semantically, this stands for a tuple of any
+  number of types.
+
+* "typing.ParamSpec", introduced by a name prefixed with two asterisks
+  (e.g., "**P"). Semantically, this stands for the parameters of a
+  callable.
+
+"typing.TypeVar" declarations can define *bounds* and *constraints*
+with a colon (":") followed by an expression. A single expression
+after the colon indicates a bound (e.g. "T: int"). Semantically, this
+means that the "typing.TypeVar" can only represent types that are a
+subtype of this bound. A parenthesized tuple of expressions after the
+colon indicates a set of constraints (e.g. "T: (str, bytes)"). Each
+member of the tuple should be a type (again, this is not enforced at
+runtime). Constrained type variables can only take on one of the types
+in the list of constraints.
+
+For "typing.TypeVar"s declared using the type parameter list syntax,
+the bound and constraints are not evaluated when the generic object is
+created, but only when the value is explicitly accessed through the
+attributes "__bound__" and "__constraints__". To accomplish this, the
+bounds or constraints are evaluated in a separate annotation scope.
+
+"typing.TypeVarTuple"s and "typing.ParamSpec"s cannot have bounds or
+constraints.
+
+All three flavors of type parameters can also have a *default value*,
+which is used when the type parameter is not explicitly provided. This
+is added by appending a single equals sign ("=") followed by an
+expression. Like the bounds and constraints of type variables, the
+default value is not evaluated when the object is created, but only
+when the type parameter’s "__default__" attribute is accessed. To this
+end, the default value is evaluated in a separate annotation scope. If
+no default value is specified for a type parameter, the "__default__"
+attribute is set to the special sentinel object "typing.NoDefault".
+
+The following example indicates the full set of allowed type parameter
+declarations:
+
+   def overly_generic[
+      SimpleTypeVar,
+      TypeVarWithDefault = int,
+      TypeVarWithBound: int,
+      TypeVarWithConstraints: (str, bytes),
+      *SimpleTypeVarTuple = (int, float),
+      **SimpleParamSpec = (str, bytearray),
+   ](
+      a: SimpleTypeVar,
+      b: TypeVarWithDefault,
+      c: TypeVarWithBound,
+      d: Callable[SimpleParamSpec, TypeVarWithConstraints],
+      *e: SimpleTypeVarTuple,
+   ): ...
+
+
+Generic functions
+-----------------
+
+Generic functions are declared as follows:
+
+   def func[T](arg: T): ...
+
+This syntax is equivalent to:
+
+   annotation-def TYPE_PARAMS_OF_func():
+       T = typing.TypeVar("T")
+       def func(arg: T): ...
+       func.__type_params__ = (T,)
+       return func
+   func = TYPE_PARAMS_OF_func()
+
+Here "annotation-def" indicates an annotation scope, which is not
+actually bound to any name at runtime. (One other liberty is taken in
+the translation: the syntax does not go through attribute access on
+the "typing" module, but creates an instance of "typing.TypeVar"
+directly.)
+
+The annotations of generic functions are evaluated within the
+annotation scope used for declaring the type parameters, but the
+function’s defaults and decorators are not.
+
+The following example illustrates the scoping rules for these cases,
+as well as for additional flavors of type parameters:
+
+   @decorator
+   def func[T: int, *Ts, **P](*args: *Ts, arg: Callable[P, T] = some_default):
+       ...
+
+Except for the lazy evaluation of the "TypeVar" bound, this is
+equivalent to:
+
+   DEFAULT_OF_arg = some_default
+
+   annotation-def TYPE_PARAMS_OF_func():
+
+       annotation-def BOUND_OF_T():
+           return int
+       # In reality, BOUND_OF_T() is evaluated only on demand.
+       T = typing.TypeVar("T", bound=BOUND_OF_T())
+
+       Ts = typing.TypeVarTuple("Ts")
+       P = typing.ParamSpec("P")
+
+       def func(*args: *Ts, arg: Callable[P, T] = DEFAULT_OF_arg):
+           ...
+
+       func.__type_params__ = (T, Ts, P)
+       return func
+   func = decorator(TYPE_PARAMS_OF_func())
+
+The capitalized names like "DEFAULT_OF_arg" are not actually bound at
+runtime.
+
+
+Generic classes
+---------------
+
+Generic classes are declared as follows:
+
+   class Bag[T]: ...
+
+This syntax is equivalent to:
+
+   annotation-def TYPE_PARAMS_OF_Bag():
+       T = typing.TypeVar("T")
+       class Bag(typing.Generic[T]):
+           __type_params__ = (T,)
+           ...
+       return Bag
+   Bag = TYPE_PARAMS_OF_Bag()
+
+Here again "annotation-def" (not a real keyword) indicates an
+annotation scope, and the name "TYPE_PARAMS_OF_Bag" is not actually
+bound at runtime.
+
+Generic classes implicitly inherit from "typing.Generic". The base
+classes and keyword arguments of generic classes are evaluated within
+the type scope for the type parameters, and decorators are evaluated
+outside that scope. This is illustrated by this example:
+
+   @decorator
+   class Bag(Base[T], arg=T): ...
+
+This is equivalent to:
+
+   annotation-def TYPE_PARAMS_OF_Bag():
+       T = typing.TypeVar("T")
+       class Bag(Base[T], typing.Generic[T], arg=T):
+           __type_params__ = (T,)
+           ...
+       return Bag
+   Bag = decorator(TYPE_PARAMS_OF_Bag())
+
+
+Generic type aliases
+--------------------
+
+The "type" statement can also be used to create a generic type alias:
+
+   type ListOrSet[T] = list[T] | set[T]
+
+Except for the lazy evaluation of the value, this is equivalent to:
+
+   annotation-def TYPE_PARAMS_OF_ListOrSet():
+       T = typing.TypeVar("T")
+
+       annotation-def VALUE_OF_ListOrSet():
+           return list[T] | set[T]
+       # In reality, the value is lazily evaluated
+       return typing.TypeAliasType("ListOrSet", VALUE_OF_ListOrSet(), type_params=(T,))
+   ListOrSet = TYPE_PARAMS_OF_ListOrSet()
+
+Here, "annotation-def" (not a real keyword) indicates an annotation
+scope. The capitalized names like "TYPE_PARAMS_OF_ListOrSet" are not
+actually bound at runtime.
+
+-[ Footnotes ]-
+
+[1] The exception is propagated to the invocation stack unless there
+    is a "finally" clause which happens to raise another exception.
+    That new exception causes the old one to be lost.
+
+[2] In pattern matching, a sequence is defined as one of the
+    following:
+
+    * a class that inherits from "collections.abc.Sequence"
+
+    * a Python class that has been registered as
+      "collections.abc.Sequence"
+
+    * a builtin class that has its (CPython) "Py_TPFLAGS_SEQUENCE" bit
+      set
+
+    * a class that inherits from any of the above
+
+    The following standard library classes are sequences:
+
+    * "array.array"
+
+    * "collections.deque"
+
+    * "list"
+
+    * "memoryview"
+
+    * "range"
+
+    * "tuple"
+
+    Note:
+
+      Subject values of type "str", "bytes", and "bytearray" do not
+      match sequence patterns.
+
+[3] In pattern matching, a mapping is defined as one of the following:
+
+    * a class that inherits from "collections.abc.Mapping"
+
+    * a Python class that has been registered as
+      "collections.abc.Mapping"
+
+    * a builtin class that has its (CPython) "Py_TPFLAGS_MAPPING" bit
+      set
+
+    * a class that inherits from any of the above
+
+    The standard library classes "dict" and "types.MappingProxyType"
+    are mappings.
+
+[4] A string literal appearing as the first statement in the function
+    body is transformed into the function’s "__doc__" attribute and
+    therefore the function’s *docstring*.
+
+[5] A string literal appearing as the first statement in the class
+    body is transformed into the namespace’s "__doc__" item and
+    therefore the class’s *docstring*.
+zcontext-managersu�  With Statement Context Managers
+*******************************
+
+A *context manager* is an object that defines the runtime context to
+be established when executing a "with" statement. The context manager
+handles the entry into, and the exit from, the desired runtime context
+for the execution of the block of code.  Context managers are normally
+invoked using the "with" statement (described in section The with
+statement), but can also be used by directly invoking their methods.
+
+Typical uses of context managers include saving and restoring various
+kinds of global state, locking and unlocking resources, closing opened
+files, etc.
+
+For more information on context managers, see Context Manager Types.
+The "object" class itself does not provide the context manager
+methods.
+
+object.__enter__(self)
+
+   Enter the runtime context related to this object. The "with"
+   statement will bind this method’s return value to the target(s)
+   specified in the "as" clause of the statement, if any.
+
+object.__exit__(self, exc_type, exc_value, traceback)
+
+   Exit the runtime context related to this object. The parameters
+   describe the exception that caused the context to be exited. If the
+   context was exited without an exception, all three arguments will
+   be "None".
+
+   If an exception is supplied, and the method wishes to suppress the
+   exception (i.e., prevent it from being propagated), it should
+   return a true value. Otherwise, the exception will be processed
+   normally upon exit from this method.
+
+   Note that "__exit__()" methods should not reraise the passed-in
+   exception; this is the caller’s responsibility.
+
+See also:
+
+  **PEP 343** - The “with” statement
+     The specification, background, and examples for the Python "with"
+     statement.
+�continuea�  The "continue" statement
+************************
+
+   continue_stmt ::= "continue"
+
+"continue" may only occur syntactically nested in a "for" or "while"
+loop, but not nested in a function or class definition within that
+loop.  It continues with the next cycle of the nearest enclosing loop.
+
+When "continue" passes control out of a "try" statement with a
+"finally" clause, that "finally" clause is executed before really
+starting the next loop cycle.
+�conversionsu�  Arithmetic conversions
+**********************
+
+When a description of an arithmetic operator below uses the phrase
+“the numeric arguments are converted to a common type”, this means
+that the operator implementation for built-in types works as follows:
+
+* If either argument is a complex number, the other is converted to
+  complex;
+
+* otherwise, if either argument is a floating-point number, the other
+  is converted to floating point;
+
+* otherwise, both must be integers and no conversion is necessary.
+
+Some additional rules apply for certain operators (e.g., a string as a
+left argument to the ‘%’ operator).  Extensions must define their own
+conversion behavior.
+�customizationu&9  Basic customization
+*******************
+
+object.__new__(cls[, ...])
+
+   Called to create a new instance of class *cls*.  "__new__()" is a
+   static method (special-cased so you need not declare it as such)
+   that takes the class of which an instance was requested as its
+   first argument.  The remaining arguments are those passed to the
+   object constructor expression (the call to the class).  The return
+   value of "__new__()" should be the new object instance (usually an
+   instance of *cls*).
+
+   Typical implementations create a new instance of the class by
+   invoking the superclass’s "__new__()" method using
+   "super().__new__(cls[, ...])" with appropriate arguments and then
+   modifying the newly created instance as necessary before returning
+   it.
+
+   If "__new__()" is invoked during object construction and it returns
+   an instance of *cls*, then the new instance’s "__init__()" method
+   will be invoked like "__init__(self[, ...])", where *self* is the
+   new instance and the remaining arguments are the same as were
+   passed to the object constructor.
+
+   If "__new__()" does not return an instance of *cls*, then the new
+   instance’s "__init__()" method will not be invoked.
+
+   "__new__()" is intended mainly to allow subclasses of immutable
+   types (like int, str, or tuple) to customize instance creation.  It
+   is also commonly overridden in custom metaclasses in order to
+   customize class creation.
+
+object.__init__(self[, ...])
+
+   Called after the instance has been created (by "__new__()"), but
+   before it is returned to the caller.  The arguments are those
+   passed to the class constructor expression.  If a base class has an
+   "__init__()" method, the derived class’s "__init__()" method, if
+   any, must explicitly call it to ensure proper initialization of the
+   base class part of the instance; for example:
+   "super().__init__([args...])".
+
+   Because "__new__()" and "__init__()" work together in constructing
+   objects ("__new__()" to create it, and "__init__()" to customize
+   it), no non-"None" value may be returned by "__init__()"; doing so
+   will cause a "TypeError" to be raised at runtime.
+
+object.__del__(self)
+
+   Called when the instance is about to be destroyed.  This is also
+   called a finalizer or (improperly) a destructor.  If a base class
+   has a "__del__()" method, the derived class’s "__del__()" method,
+   if any, must explicitly call it to ensure proper deletion of the
+   base class part of the instance.
+
+   It is possible (though not recommended!) for the "__del__()" method
+   to postpone destruction of the instance by creating a new reference
+   to it.  This is called object *resurrection*.  It is
+   implementation-dependent whether "__del__()" is called a second
+   time when a resurrected object is about to be destroyed; the
+   current *CPython* implementation only calls it once.
+
+   It is not guaranteed that "__del__()" methods are called for
+   objects that still exist when the interpreter exits.
+   "weakref.finalize" provides a straightforward way to register a
+   cleanup function to be called when an object is garbage collected.
+
+   Note:
+
+     "del x" doesn’t directly call "x.__del__()" — the former
+     decrements the reference count for "x" by one, and the latter is
+     only called when "x"’s reference count reaches zero.
+
+   **CPython implementation detail:** It is possible for a reference
+   cycle to prevent the reference count of an object from going to
+   zero.  In this case, the cycle will be later detected and deleted
+   by the *cyclic garbage collector*.  A common cause of reference
+   cycles is when an exception has been caught in a local variable.
+   The frame’s locals then reference the exception, which references
+   its own traceback, which references the locals of all frames caught
+   in the traceback.
+
+   See also: Documentation for the "gc" module.
+
+   Warning:
+
+     Due to the precarious circumstances under which "__del__()"
+     methods are invoked, exceptions that occur during their execution
+     are ignored, and a warning is printed to "sys.stderr" instead.
+     In particular:
+
+     * "__del__()" can be invoked when arbitrary code is being
+       executed, including from any arbitrary thread.  If "__del__()"
+       needs to take a lock or invoke any other blocking resource, it
+       may deadlock as the resource may already be taken by the code
+       that gets interrupted to execute "__del__()".
+
+     * "__del__()" can be executed during interpreter shutdown.  As a
+       consequence, the global variables it needs to access (including
+       other modules) may already have been deleted or set to "None".
+       Python guarantees that globals whose name begins with a single
+       underscore are deleted from their module before other globals
+       are deleted; if no other references to such globals exist, this
+       may help in assuring that imported modules are still available
+       at the time when the "__del__()" method is called.
+
+object.__repr__(self)
+
+   Called by the "repr()" built-in function to compute the “official”
+   string representation of an object.  If at all possible, this
+   should look like a valid Python expression that could be used to
+   recreate an object with the same value (given an appropriate
+   environment).  If this is not possible, a string of the form
+   "<...some useful description...>" should be returned. The return
+   value must be a string object. If a class defines "__repr__()" but
+   not "__str__()", then "__repr__()" is also used when an “informal”
+   string representation of instances of that class is required.
+
+   This is typically used for debugging, so it is important that the
+   representation is information-rich and unambiguous. A default
+   implementation is provided by the "object" class itself.
+
+object.__str__(self)
+
+   Called by "str(object)", the default "__format__()" implementation,
+   and the built-in function "print()", to compute the “informal” or
+   nicely printable string representation of an object.  The return
+   value must be a str object.
+
+   This method differs from "object.__repr__()" in that there is no
+   expectation that "__str__()" return a valid Python expression: a
+   more convenient or concise representation can be used.
+
+   The default implementation defined by the built-in type "object"
+   calls "object.__repr__()".
+
+object.__bytes__(self)
+
+   Called by bytes to compute a byte-string representation of an
+   object. This should return a "bytes" object. The "object" class
+   itself does not provide this method.
+
+object.__format__(self, format_spec)
+
+   Called by the "format()" built-in function, and by extension,
+   evaluation of formatted string literals and the "str.format()"
+   method, to produce a “formatted” string representation of an
+   object. The *format_spec* argument is a string that contains a
+   description of the formatting options desired. The interpretation
+   of the *format_spec* argument is up to the type implementing
+   "__format__()", however most classes will either delegate
+   formatting to one of the built-in types, or use a similar
+   formatting option syntax.
+
+   See Format Specification Mini-Language for a description of the
+   standard formatting syntax.
+
+   The return value must be a string object.
+
+   The default implementation by the "object" class should be given an
+   empty *format_spec* string. It delegates to "__str__()".
+
+   Changed in version 3.4: The __format__ method of "object" itself
+   raises a "TypeError" if passed any non-empty string.
+
+   Changed in version 3.7: "object.__format__(x, '')" is now
+   equivalent to "str(x)" rather than "format(str(x), '')".
+
+object.__lt__(self, other)
+object.__le__(self, other)
+object.__eq__(self, other)
+object.__ne__(self, other)
+object.__gt__(self, other)
+object.__ge__(self, other)
+
+   These are the so-called “rich comparison” methods. The
+   correspondence between operator symbols and method names is as
+   follows: "x<y" calls "x.__lt__(y)", "x<=y" calls "x.__le__(y)",
+   "x==y" calls "x.__eq__(y)", "x!=y" calls "x.__ne__(y)", "x>y" calls
+   "x.__gt__(y)", and "x>=y" calls "x.__ge__(y)".
+
+   A rich comparison method may return the singleton "NotImplemented"
+   if it does not implement the operation for a given pair of
+   arguments. By convention, "False" and "True" are returned for a
+   successful comparison. However, these methods can return any value,
+   so if the comparison operator is used in a Boolean context (e.g.,
+   in the condition of an "if" statement), Python will call "bool()"
+   on the value to determine if the result is true or false.
+
+   By default, "object" implements "__eq__()" by using "is", returning
+   "NotImplemented" in the case of a false comparison: "True if x is y
+   else NotImplemented". For "__ne__()", by default it delegates to
+   "__eq__()" and inverts the result unless it is "NotImplemented".
+   There are no other implied relationships among the comparison
+   operators or default implementations; for example, the truth of
+   "(x<y or x==y)" does not imply "x<=y". To automatically generate
+   ordering operations from a single root operation, see
+   "functools.total_ordering()".
+
+   By default, the "object" class provides implementations consistent
+   with Value comparisons: equality compares according to object
+   identity, and order comparisons raise "TypeError". Each default
+   method may generate these results directly, but may also return
+   "NotImplemented".
+
+   See the paragraph on "__hash__()" for some important notes on
+   creating *hashable* objects which support custom comparison
+   operations and are usable as dictionary keys.
+
+   There are no swapped-argument versions of these methods (to be used
+   when the left argument does not support the operation but the right
+   argument does); rather, "__lt__()" and "__gt__()" are each other’s
+   reflection, "__le__()" and "__ge__()" are each other’s reflection,
+   and "__eq__()" and "__ne__()" are their own reflection. If the
+   operands are of different types, and the right operand’s type is a
+   direct or indirect subclass of the left operand’s type, the
+   reflected method of the right operand has priority, otherwise the
+   left operand’s method has priority.  Virtual subclassing is not
+   considered.
+
+   When no appropriate method returns any value other than
+   "NotImplemented", the "==" and "!=" operators will fall back to
+   "is" and "is not", respectively.
+
+object.__hash__(self)
+
+   Called by built-in function "hash()" and for operations on members
+   of hashed collections including "set", "frozenset", and "dict".
+   The "__hash__()" method should return an integer. The only required
+   property is that objects which compare equal have the same hash
+   value; it is advised to mix together the hash values of the
+   components of the object that also play a part in comparison of
+   objects by packing them into a tuple and hashing the tuple.
+   Example:
+
+      def __hash__(self):
+          return hash((self.name, self.nick, self.color))
+
+   Note:
+
+     "hash()" truncates the value returned from an object’s custom
+     "__hash__()" method to the size of a "Py_ssize_t".  This is
+     typically 8 bytes on 64-bit builds and 4 bytes on 32-bit builds.
+     If an object’s   "__hash__()" must interoperate on builds of
+     different bit sizes, be sure to check the width on all supported
+     builds.  An easy way to do this is with "python -c "import sys;
+     print(sys.hash_info.width)"".
+
+   If a class does not define an "__eq__()" method it should not
+   define a "__hash__()" operation either; if it defines "__eq__()"
+   but not "__hash__()", its instances will not be usable as items in
+   hashable collections.  If a class defines mutable objects and
+   implements an "__eq__()" method, it should not implement
+   "__hash__()", since the implementation of *hashable* collections
+   requires that a key’s hash value is immutable (if the object’s hash
+   value changes, it will be in the wrong hash bucket).
+
+   User-defined classes have "__eq__()" and "__hash__()" methods by
+   default (inherited from the "object" class); with them, all objects
+   compare unequal (except with themselves) and "x.__hash__()" returns
+   an appropriate value such that "x == y" implies both that "x is y"
+   and "hash(x) == hash(y)".
+
+   A class that overrides "__eq__()" and does not define "__hash__()"
+   will have its "__hash__()" implicitly set to "None".  When the
+   "__hash__()" method of a class is "None", instances of the class
+   will raise an appropriate "TypeError" when a program attempts to
+   retrieve their hash value, and will also be correctly identified as
+   unhashable when checking "isinstance(obj,
+   collections.abc.Hashable)".
+
+   If a class that overrides "__eq__()" needs to retain the
+   implementation of "__hash__()" from a parent class, the interpreter
+   must be told this explicitly by setting "__hash__ =
+   <ParentClass>.__hash__".
+
+   If a class that does not override "__eq__()" wishes to suppress
+   hash support, it should include "__hash__ = None" in the class
+   definition. A class which defines its own "__hash__()" that
+   explicitly raises a "TypeError" would be incorrectly identified as
+   hashable by an "isinstance(obj, collections.abc.Hashable)" call.
+
+   Note:
+
+     By default, the "__hash__()" values of str and bytes objects are
+     “salted” with an unpredictable random value.  Although they
+     remain constant within an individual Python process, they are not
+     predictable between repeated invocations of Python.This is
+     intended to provide protection against a denial-of-service caused
+     by carefully chosen inputs that exploit the worst case
+     performance of a dict insertion, *O*(*n*^2) complexity.  See
+     http://ocert.org/advisories/ocert-2011-003.html for
+     details.Changing hash values affects the iteration order of sets.
+     Python has never made guarantees about this ordering (and it
+     typically varies between 32-bit and 64-bit builds).See also
+     "PYTHONHASHSEED".
+
+   Changed in version 3.3: Hash randomization is enabled by default.
+
+object.__bool__(self)
+
+   Called to implement truth value testing and the built-in operation
+   "bool()"; should return "False" or "True".  When this method is not
+   defined, "__len__()" is called, if it is defined, and the object is
+   considered true if its result is nonzero.  If a class defines
+   neither "__len__()" nor "__bool__()" (which is true of the "object"
+   class itself), all its instances are considered true.
+�debuggeru�]  "pdb" — The Python Debugger
+***************************
+
+**Source code:** Lib/pdb.py
+
+======================================================================
+
+The module "pdb" defines an interactive source code debugger for
+Python programs.  It supports setting (conditional) breakpoints and
+single stepping at the source line level, inspection of stack frames,
+source code listing, and evaluation of arbitrary Python code in the
+context of any stack frame.  It also supports post-mortem debugging
+and can be called under program control.
+
+The debugger is extensible – it is actually defined as the class
+"Pdb". This is currently undocumented but easily understood by reading
+the source.  The extension interface uses the modules "bdb" and "cmd".
+
+See also:
+
+  Module "faulthandler"
+     Used to dump Python tracebacks explicitly, on a fault, after a
+     timeout, or on a user signal.
+
+  Module "traceback"
+     Standard interface to extract, format and print stack traces of
+     Python programs.
+
+The typical usage to break into the debugger is to insert:
+
+   import pdb; pdb.set_trace()
+
+Or:
+
+   breakpoint()
+
+at the location you want to break into the debugger, and then run the
+program. You can then step through the code following this statement,
+and continue running without the debugger using the "continue"
+command.
+
+Changed in version 3.7: The built-in "breakpoint()", when called with
+defaults, can be used instead of "import pdb; pdb.set_trace()".
+
+   def double(x):
+      breakpoint()
+      return x * 2
+   val = 3
+   print(f"{val} * 2 is {double(val)}")
+
+The debugger’s prompt is "(Pdb)", which is the indicator that you are
+in debug mode:
+
+   > ...(2)double()
+   -> breakpoint()
+   (Pdb) p x
+   3
+   (Pdb) continue
+   3 * 2 is 6
+
+Changed in version 3.3: Tab-completion via the "readline" module is
+available for commands and command arguments, e.g. the current global
+and local names are offered as arguments of the "p" command.
+
+You can also invoke "pdb" from the command line to debug other
+scripts.  For example:
+
+   python -m pdb [-c command] (-m module | pyfile) [args ...]
+
+When invoked as a module, pdb will automatically enter post-mortem
+debugging if the program being debugged exits abnormally.  After post-
+mortem debugging (or after normal exit of the program), pdb will
+restart the program.  Automatic restarting preserves pdb’s state (such
+as breakpoints) and in most cases is more useful than quitting the
+debugger upon program’s exit.
+
+-c, --command <command>
+
+   To execute commands as if given in a ".pdbrc" file; see Debugger
+   Commands.
+
+   Changed in version 3.2: Added the "-c" option.
+
+-m <module>
+
+   To execute modules similar to the way "python -m" does. As with a
+   script, the debugger will pause execution just before the first
+   line of the module.
+
+   Changed in version 3.7: Added the "-m" option.
+
+Typical usage to execute a statement under control of the debugger is:
+
+   >>> import pdb
+   >>> def f(x):
+   ...     print(1 / x)
+   >>> pdb.run("f(2)")
+   > <string>(1)<module>()
+   (Pdb) continue
+   0.5
+   >>>
+
+The typical usage to inspect a crashed program is:
+
+   >>> import pdb
+   >>> def f(x):
+   ...     print(1 / x)
+   ...
+   >>> f(0)
+   Traceback (most recent call last):
+     File "<stdin>", line 1, in <module>
+     File "<stdin>", line 2, in f
+   ZeroDivisionError: division by zero
+   >>> pdb.pm()
+   > <stdin>(2)f()
+   (Pdb) p x
+   0
+   (Pdb)
+
+Changed in version 3.13: The implementation of **PEP 667** means that
+name assignments made via "pdb" will immediately affect the active
+scope, even when running inside an *optimized scope*.
+
+The module defines the following functions; each enters the debugger
+in a slightly different way:
+
+pdb.run(statement, globals=None, locals=None)
+
+   Execute the *statement* (given as a string or a code object) under
+   debugger control.  The debugger prompt appears before any code is
+   executed; you can set breakpoints and type "continue", or you can
+   step through the statement using "step" or "next" (all these
+   commands are explained below).  The optional *globals* and *locals*
+   arguments specify the environment in which the code is executed; by
+   default the dictionary of the module "__main__" is used.  (See the
+   explanation of the built-in "exec()" or "eval()" functions.)
+
+pdb.runeval(expression, globals=None, locals=None)
+
+   Evaluate the *expression* (given as a string or a code object)
+   under debugger control.  When "runeval()" returns, it returns the
+   value of the *expression*.  Otherwise this function is similar to
+   "run()".
+
+pdb.runcall(function, *args, **kwds)
+
+   Call the *function* (a function or method object, not a string)
+   with the given arguments.  When "runcall()" returns, it returns
+   whatever the function call returned.  The debugger prompt appears
+   as soon as the function is entered.
+
+pdb.set_trace(*, header=None)
+
+   Enter the debugger at the calling stack frame.  This is useful to
+   hard-code a breakpoint at a given point in a program, even if the
+   code is not otherwise being debugged (e.g. when an assertion
+   fails).  If given, *header* is printed to the console just before
+   debugging begins.
+
+   Changed in version 3.7: The keyword-only argument *header*.
+
+   Changed in version 3.13: "set_trace()" will enter the debugger
+   immediately, rather than on the next line of code to be executed.
+
+pdb.post_mortem(t=None)
+
+   Enter post-mortem debugging of the given exception or traceback
+   object. If no value is given, it uses the exception that is
+   currently being handled, or raises "ValueError" if there isn’t one.
+
+   Changed in version 3.13: Support for exception objects was added.
+
+pdb.pm()
+
+   Enter post-mortem debugging of the exception found in
+   "sys.last_exc".
+
+The "run*" functions and "set_trace()" are aliases for instantiating
+the "Pdb" class and calling the method of the same name.  If you want
+to access further features, you have to do this yourself:
+
+class pdb.Pdb(completekey='tab', stdin=None, stdout=None, skip=None, nosigint=False, readrc=True)
+
+   "Pdb" is the debugger class.
+
+   The *completekey*, *stdin* and *stdout* arguments are passed to the
+   underlying "cmd.Cmd" class; see the description there.
+
+   The *skip* argument, if given, must be an iterable of glob-style
+   module name patterns.  The debugger will not step into frames that
+   originate in a module that matches one of these patterns. [1]
+
+   By default, Pdb sets a handler for the SIGINT signal (which is sent
+   when the user presses "Ctrl"-"C" on the console) when you give a
+   "continue" command. This allows you to break into the debugger
+   again by pressing "Ctrl"-"C".  If you want Pdb not to touch the
+   SIGINT handler, set *nosigint* to true.
+
+   The *readrc* argument defaults to true and controls whether Pdb
+   will load .pdbrc files from the filesystem.
+
+   Example call to enable tracing with *skip*:
+
+      import pdb; pdb.Pdb(skip=['django.*']).set_trace()
+
+   Raises an auditing event "pdb.Pdb" with no arguments.
+
+   Changed in version 3.1: Added the *skip* parameter.
+
+   Changed in version 3.2: Added the *nosigint* parameter. Previously,
+   a SIGINT handler was never set by Pdb.
+
+   Changed in version 3.6: The *readrc* argument.
+
+   run(statement, globals=None, locals=None)
+   runeval(expression, globals=None, locals=None)
+   runcall(function, *args, **kwds)
+   set_trace()
+
+      See the documentation for the functions explained above.
+
+
+Debugger Commands
+=================
+
+The commands recognized by the debugger are listed below.  Most
+commands can be abbreviated to one or two letters as indicated; e.g.
+"h(elp)" means that either "h" or "help" can be used to enter the help
+command (but not "he" or "hel", nor "H" or "Help" or "HELP").
+Arguments to commands must be separated by whitespace (spaces or
+tabs).  Optional arguments are enclosed in square brackets ("[]") in
+the command syntax; the square brackets must not be typed.
+Alternatives in the command syntax are separated by a vertical bar
+("|").
+
+Entering a blank line repeats the last command entered.  Exception: if
+the last command was a "list" command, the next 11 lines are listed.
+
+Commands that the debugger doesn’t recognize are assumed to be Python
+statements and are executed in the context of the program being
+debugged.  Python statements can also be prefixed with an exclamation
+point ("!").  This is a powerful way to inspect the program being
+debugged; it is even possible to change a variable or call a function.
+When an exception occurs in such a statement, the exception name is
+printed but the debugger’s state is not changed.
+
+Changed in version 3.13: Expressions/Statements whose prefix is a pdb
+command are now correctly identified and executed.
+
+The debugger supports aliases.  Aliases can have parameters which
+allows one a certain level of adaptability to the context under
+examination.
+
+Multiple commands may be entered on a single line, separated by ";;".
+(A single ";" is not used as it is the separator for multiple commands
+in a line that is passed to the Python parser.)  No intelligence is
+applied to separating the commands; the input is split at the first
+";;" pair, even if it is in the middle of a quoted string. A
+workaround for strings with double semicolons is to use implicit
+string concatenation "';'';'" or "";"";"".
+
+To set a temporary global variable, use a *convenience variable*. A
+*convenience variable* is a variable whose name starts with "$".  For
+example, "$foo = 1" sets a global variable "$foo" which you can use in
+the debugger session.  The *convenience variables* are cleared when
+the program resumes execution so it’s less likely to interfere with
+your program compared to using normal variables like "foo = 1".
+
+There are three preset *convenience variables*:
+
+* "$_frame": the current frame you are debugging
+
+* "$_retval": the return value if the frame is returning
+
+* "$_exception": the exception if the frame is raising an exception
+
+Added in version 3.12: Added the *convenience variable* feature.
+
+If a file ".pdbrc" exists in the user’s home directory or in the
+current directory, it is read with "'utf-8'" encoding and executed as
+if it had been typed at the debugger prompt, with the exception that
+empty lines and lines starting with "#" are ignored.  This is
+particularly useful for aliases.  If both files exist, the one in the
+home directory is read first and aliases defined there can be
+overridden by the local file.
+
+Changed in version 3.2: ".pdbrc" can now contain commands that
+continue debugging, such as "continue" or "next".  Previously, these
+commands had no effect.
+
+Changed in version 3.11: ".pdbrc" is now read with "'utf-8'" encoding.
+Previously, it was read with the system locale encoding.
+
+h(elp) [command]
+
+   Without argument, print the list of available commands.  With a
+   *command* as argument, print help about that command.  "help pdb"
+   displays the full documentation (the docstring of the "pdb"
+   module).  Since the *command* argument must be an identifier, "help
+   exec" must be entered to get help on the "!" command.
+
+w(here)
+
+   Print a stack trace, with the most recent frame at the bottom.  An
+   arrow (">") indicates the current frame, which determines the
+   context of most commands.
+
+d(own) [count]
+
+   Move the current frame *count* (default one) levels down in the
+   stack trace (to a newer frame).
+
+u(p) [count]
+
+   Move the current frame *count* (default one) levels up in the stack
+   trace (to an older frame).
+
+b(reak) [([filename:]lineno | function) [, condition]]
+
+   With a *lineno* argument, set a break at line *lineno* in the
+   current file. The line number may be prefixed with a *filename* and
+   a colon, to specify a breakpoint in another file (possibly one that
+   hasn’t been loaded yet).  The file is searched on "sys.path".
+   Accepatable forms of *filename* are "/abspath/to/file.py",
+   "relpath/file.py", "module" and "package.module".
+
+   With a *function* argument, set a break at the first executable
+   statement within that function. *function* can be any expression
+   that evaluates to a function in the current namespace.
+
+   If a second argument is present, it is an expression which must
+   evaluate to true before the breakpoint is honored.
+
+   Without argument, list all breaks, including for each breakpoint,
+   the number of times that breakpoint has been hit, the current
+   ignore count, and the associated condition if any.
+
+   Each breakpoint is assigned a number to which all the other
+   breakpoint commands refer.
+
+tbreak [([filename:]lineno | function) [, condition]]
+
+   Temporary breakpoint, which is removed automatically when it is
+   first hit. The arguments are the same as for "break".
+
+cl(ear) [filename:lineno | bpnumber ...]
+
+   With a *filename:lineno* argument, clear all the breakpoints at
+   this line. With a space separated list of breakpoint numbers, clear
+   those breakpoints. Without argument, clear all breaks (but first
+   ask confirmation).
+
+disable bpnumber [bpnumber ...]
+
+   Disable the breakpoints given as a space separated list of
+   breakpoint numbers.  Disabling a breakpoint means it cannot cause
+   the program to stop execution, but unlike clearing a breakpoint, it
+   remains in the list of breakpoints and can be (re-)enabled.
+
+enable bpnumber [bpnumber ...]
+
+   Enable the breakpoints specified.
+
+ignore bpnumber [count]
+
+   Set the ignore count for the given breakpoint number.  If *count*
+   is omitted, the ignore count is set to 0.  A breakpoint becomes
+   active when the ignore count is zero.  When non-zero, the *count*
+   is decremented each time the breakpoint is reached and the
+   breakpoint is not disabled and any associated condition evaluates
+   to true.
+
+condition bpnumber [condition]
+
+   Set a new *condition* for the breakpoint, an expression which must
+   evaluate to true before the breakpoint is honored.  If *condition*
+   is absent, any existing condition is removed; i.e., the breakpoint
+   is made unconditional.
+
+commands [bpnumber]
+
+   Specify a list of commands for breakpoint number *bpnumber*.  The
+   commands themselves appear on the following lines.  Type a line
+   containing just "end" to terminate the commands. An example:
+
+      (Pdb) commands 1
+      (com) p some_variable
+      (com) end
+      (Pdb)
+
+   To remove all commands from a breakpoint, type "commands" and
+   follow it immediately with "end"; that is, give no commands.
+
+   With no *bpnumber* argument, "commands" refers to the last
+   breakpoint set.
+
+   You can use breakpoint commands to start your program up again.
+   Simply use the "continue" command, or "step", or any other command
+   that resumes execution.
+
+   Specifying any command resuming execution (currently "continue",
+   "step", "next", "return", "jump", "quit" and their abbreviations)
+   terminates the command list (as if that command was immediately
+   followed by end). This is because any time you resume execution
+   (even with a simple next or step), you may encounter another
+   breakpoint—which could have its own command list, leading to
+   ambiguities about which list to execute.
+
+   If you use the "silent" command in the command list, the usual
+   message about stopping at a breakpoint is not printed.  This may be
+   desirable for breakpoints that are to print a specific message and
+   then continue.  If none of the other commands print anything, you
+   see no sign that the breakpoint was reached.
+
+s(tep)
+
+   Execute the current line, stop at the first possible occasion
+   (either in a function that is called or on the next line in the
+   current function).
+
+n(ext)
+
+   Continue execution until the next line in the current function is
+   reached or it returns.  (The difference between "next" and "step"
+   is that "step" stops inside a called function, while "next"
+   executes called functions at (nearly) full speed, only stopping at
+   the next line in the current function.)
+
+unt(il) [lineno]
+
+   Without argument, continue execution until the line with a number
+   greater than the current one is reached.
+
+   With *lineno*, continue execution until a line with a number
+   greater or equal to *lineno* is reached.  In both cases, also stop
+   when the current frame returns.
+
+   Changed in version 3.2: Allow giving an explicit line number.
+
+r(eturn)
+
+   Continue execution until the current function returns.
+
+c(ont(inue))
+
+   Continue execution, only stop when a breakpoint is encountered.
+
+j(ump) lineno
+
+   Set the next line that will be executed.  Only available in the
+   bottom-most frame.  This lets you jump back and execute code again,
+   or jump forward to skip code that you don’t want to run.
+
+   It should be noted that not all jumps are allowed – for instance it
+   is not possible to jump into the middle of a "for" loop or out of a
+   "finally" clause.
+
+l(ist) [first[, last]]
+
+   List source code for the current file.  Without arguments, list 11
+   lines around the current line or continue the previous listing.
+   With "." as argument, list 11 lines around the current line.  With
+   one argument, list 11 lines around at that line.  With two
+   arguments, list the given range; if the second argument is less
+   than the first, it is interpreted as a count.
+
+   The current line in the current frame is indicated by "->".  If an
+   exception is being debugged, the line where the exception was
+   originally raised or propagated is indicated by ">>", if it differs
+   from the current line.
+
+   Changed in version 3.2: Added the ">>" marker.
+
+ll | longlist
+
+   List all source code for the current function or frame.
+   Interesting lines are marked as for "list".
+
+   Added in version 3.2.
+
+a(rgs)
+
+   Print the arguments of the current function and their current
+   values.
+
+p expression
+
+   Evaluate *expression* in the current context and print its value.
+
+   Note:
+
+     "print()" can also be used, but is not a debugger command — this
+     executes the Python "print()" function.
+
+pp expression
+
+   Like the "p" command, except the value of *expression* is pretty-
+   printed using the "pprint" module.
+
+whatis expression
+
+   Print the type of *expression*.
+
+source expression
+
+   Try to get source code of *expression* and display it.
+
+   Added in version 3.2.
+
+display [expression]
+
+   Display the value of *expression* if it changed, each time
+   execution stops in the current frame.
+
+   Without *expression*, list all display expressions for the current
+   frame.
+
+   Note:
+
+     Display evaluates *expression* and compares to the result of the
+     previous evaluation of *expression*, so when the result is
+     mutable, display may not be able to pick up the changes.
+
+   Example:
+
+      lst = []
+      breakpoint()
+      pass
+      lst.append(1)
+      print(lst)
+
+   Display won’t realize "lst" has been changed because the result of
+   evaluation is modified in place by "lst.append(1)" before being
+   compared:
+
+      > example.py(3)<module>()
+      -> pass
+      (Pdb) display lst
+      display lst: []
+      (Pdb) n
+      > example.py(4)<module>()
+      -> lst.append(1)
+      (Pdb) n
+      > example.py(5)<module>()
+      -> print(lst)
+      (Pdb)
+
+   You can do some tricks with copy mechanism to make it work:
+
+      > example.py(3)<module>()
+      -> pass
+      (Pdb) display lst[:]
+      display lst[:]: []
+      (Pdb) n
+      > example.py(4)<module>()
+      -> lst.append(1)
+      (Pdb) n
+      > example.py(5)<module>()
+      -> print(lst)
+      display lst[:]: [1]  [old: []]
+      (Pdb)
+
+   Added in version 3.2.
+
+undisplay [expression]
+
+   Do not display *expression* anymore in the current frame.  Without
+   *expression*, clear all display expressions for the current frame.
+
+   Added in version 3.2.
+
+interact
+
+   Start an interactive interpreter (using the "code" module) in a new
+   global namespace initialised from the local and global namespaces
+   for the current scope. Use "exit()" or "quit()" to exit the
+   interpreter and return to the debugger.
+
+   Note:
+
+     As "interact" creates a new dedicated namespace for code
+     execution, assignments to variables will not affect the original
+     namespaces. However, modifications to any referenced mutable
+     objects will be reflected in the original namespaces as usual.
+
+   Added in version 3.2.
+
+   Changed in version 3.13: "exit()" and "quit()" can be used to exit
+   the "interact" command.
+
+   Changed in version 3.13: "interact" directs its output to the
+   debugger’s output channel rather than "sys.stderr".
+
+alias [name [command]]
+
+   Create an alias called *name* that executes *command*.  The
+   *command* must *not* be enclosed in quotes.  Replaceable parameters
+   can be indicated by "%1", "%2", … and "%9", while "%*" is replaced
+   by all the parameters. If *command* is omitted, the current alias
+   for *name* is shown. If no arguments are given, all aliases are
+   listed.
+
+   Aliases may be nested and can contain anything that can be legally
+   typed at the pdb prompt.  Note that internal pdb commands *can* be
+   overridden by aliases.  Such a command is then hidden until the
+   alias is removed.  Aliasing is recursively applied to the first
+   word of the command line; all other words in the line are left
+   alone.
+
+   As an example, here are two useful aliases (especially when placed
+   in the ".pdbrc" file):
+
+      # Print instance variables (usage "pi classInst")
+      alias pi for k in %1.__dict__.keys(): print(f"%1.{k} = {%1.__dict__[k]}")
+      # Print instance variables in self
+      alias ps pi self
+
+unalias name
+
+   Delete the specified alias *name*.
+
+! statement
+
+   Execute the (one-line) *statement* in the context of the current
+   stack frame. The exclamation point can be omitted unless the first
+   word of the statement resembles a debugger command, e.g.:
+
+      (Pdb) ! n=42
+      (Pdb)
+
+   To set a global variable, you can prefix the assignment command
+   with a "global" statement on the same line, e.g.:
+
+      (Pdb) global list_options; list_options = ['-l']
+      (Pdb)
+
+run [args ...]
+restart [args ...]
+
+   Restart the debugged Python program.  If *args* is supplied, it is
+   split with "shlex" and the result is used as the new "sys.argv".
+   History, breakpoints, actions and debugger options are preserved.
+   "restart" is an alias for "run".
+
+q(uit)
+
+   Quit from the debugger.  The program being executed is aborted.
+
+debug code
+
+   Enter a recursive debugger that steps through *code* (which is an
+   arbitrary expression or statement to be executed in the current
+   environment).
+
+retval
+
+   Print the return value for the last return of the current function.
+
+exceptions [excnumber]
+
+   List or jump between chained exceptions.
+
+   When using "pdb.pm()"  or "Pdb.post_mortem(...)" with a chained
+   exception instead of a traceback, it allows the user to move
+   between the chained exceptions using "exceptions" command to list
+   exceptions, and "exceptions <number>" to switch to that exception.
+
+   Example:
+
+      def out():
+          try:
+              middle()
+          except Exception as e:
+              raise ValueError("reraise middle() error") from e
+
+      def middle():
+          try:
+              return inner(0)
+          except Exception as e:
+              raise ValueError("Middle fail")
+
+      def inner(x):
+          1 / x
+
+       out()
+
+   calling "pdb.pm()" will allow to move between exceptions:
+
+      > example.py(5)out()
+      -> raise ValueError("reraise middle() error") from e
+
+      (Pdb) exceptions
+        0 ZeroDivisionError('division by zero')
+        1 ValueError('Middle fail')
+      > 2 ValueError('reraise middle() error')
+
+      (Pdb) exceptions 0
+      > example.py(16)inner()
+      -> 1 / x
+
+      (Pdb) up
+      > example.py(10)middle()
+      -> return inner(0)
+
+   Added in version 3.13.
+
+-[ Footnotes ]-
+
+[1] Whether a frame is considered to originate in a certain module is
+    determined by the "__name__" in the frame globals.
+�dela�  The "del" statement
+*******************
+
+   del_stmt ::= "del" target_list
+
+Deletion is recursively defined very similar to the way assignment is
+defined. Rather than spelling it out in full details, here are some
+hints.
+
+Deletion of a target list recursively deletes each target, from left
+to right.
+
+Deletion of a name removes the binding of that name from the local or
+global namespace, depending on whether the name occurs in a "global"
+statement in the same code block.  If the name is unbound, a
+"NameError" exception will be raised.
+
+Deletion of attribute references, subscriptions and slicings is passed
+to the primary object involved; deletion of a slicing is in general
+equivalent to assignment of an empty slice of the right type (but even
+this is determined by the sliced object).
+
+Changed in version 3.2: Previously it was illegal to delete a name
+from the local namespace if it occurs as a free variable in a nested
+block.
+�dictu  Dictionary displays
+*******************
+
+A dictionary display is a possibly empty series of dict items
+(key/value pairs) enclosed in curly braces:
+
+   dict_display       ::= "{" [dict_item_list | dict_comprehension] "}"
+   dict_item_list     ::= dict_item ("," dict_item)* [","]
+   dict_item          ::= expression ":" expression | "**" or_expr
+   dict_comprehension ::= expression ":" expression comp_for
+
+A dictionary display yields a new dictionary object.
+
+If a comma-separated sequence of dict items is given, they are
+evaluated from left to right to define the entries of the dictionary:
+each key object is used as a key into the dictionary to store the
+corresponding value.  This means that you can specify the same key
+multiple times in the dict item list, and the final dictionary’s value
+for that key will be the last one given.
+
+A double asterisk "**" denotes *dictionary unpacking*. Its operand
+must be a *mapping*.  Each mapping item is added to the new
+dictionary.  Later values replace values already set by earlier dict
+items and earlier dictionary unpackings.
+
+Added in version 3.5: Unpacking into dictionary displays, originally
+proposed by **PEP 448**.
+
+A dict comprehension, in contrast to list and set comprehensions,
+needs two expressions separated with a colon followed by the usual
+“for” and “if” clauses. When the comprehension is run, the resulting
+key and value elements are inserted in the new dictionary in the order
+they are produced.
+
+Restrictions on the types of the key values are listed earlier in
+section The standard type hierarchy.  (To summarize, the key type
+should be *hashable*, which excludes all mutable objects.)  Clashes
+between duplicate keys are not detected; the last value (textually
+rightmost in the display) stored for a given key value prevails.
+
+Changed in version 3.8: Prior to Python 3.8, in dict comprehensions,
+the evaluation order of key and value was not well-defined.  In
+CPython, the value was evaluated before the key.  Starting with 3.8,
+the key is evaluated before the value, as proposed by **PEP 572**.
+zdynamic-featuresa�  Interaction with dynamic features
+*********************************
+
+Name resolution of free variables occurs at runtime, not at compile
+time. This means that the following code will print 42:
+
+   i = 10
+   def f():
+       print(i)
+   i = 42
+   f()
+
+The "eval()" and "exec()" functions do not have access to the full
+environment for resolving names.  Names may be resolved in the local
+and global namespaces of the caller.  Free variables are not resolved
+in the nearest enclosing namespace, but in the global namespace.  [1]
+The "exec()" and "eval()" functions have optional arguments to
+override the global and local namespace.  If only one namespace is
+specified, it is used for both.
+�elseaX  The "if" statement
+******************
+
+The "if" statement is used for conditional execution:
+
+   if_stmt ::= "if" assignment_expression ":" suite
+               ("elif" assignment_expression ":" suite)*
+               ["else" ":" suite]
+
+It selects exactly one of the suites by evaluating the expressions one
+by one until one is found to be true (see section Boolean operations
+for the definition of true and false); then that suite is executed
+(and no other part of the "if" statement is executed or evaluated).
+If all expressions are false, the suite of the "else" clause, if
+present, is executed.
+�
+exceptionsu�  Exceptions
+**********
+
+Exceptions are a means of breaking out of the normal flow of control
+of a code block in order to handle errors or other exceptional
+conditions.  An exception is *raised* at the point where the error is
+detected; it may be *handled* by the surrounding code block or by any
+code block that directly or indirectly invoked the code block where
+the error occurred.
+
+The Python interpreter raises an exception when it detects a run-time
+error (such as division by zero).  A Python program can also
+explicitly raise an exception with the "raise" statement. Exception
+handlers are specified with the "try" … "except" statement.  The
+"finally" clause of such a statement can be used to specify cleanup
+code which does not handle the exception, but is executed whether an
+exception occurred or not in the preceding code.
+
+Python uses the “termination” model of error handling: an exception
+handler can find out what happened and continue execution at an outer
+level, but it cannot repair the cause of the error and retry the
+failing operation (except by re-entering the offending piece of code
+from the top).
+
+When an exception is not handled at all, the interpreter terminates
+execution of the program, or returns to its interactive main loop.  In
+either case, it prints a stack traceback, except when the exception is
+"SystemExit".
+
+Exceptions are identified by class instances.  The "except" clause is
+selected depending on the class of the instance: it must reference the
+class of the instance or a *non-virtual base class* thereof. The
+instance can be received by the handler and can carry additional
+information about the exceptional condition.
+
+Note:
+
+  Exception messages are not part of the Python API.  Their contents
+  may change from one version of Python to the next without warning
+  and should not be relied on by code which will run under multiple
+  versions of the interpreter.
+
+See also the description of the "try" statement in section The try
+statement and "raise" statement in section The raise statement.
+
+-[ Footnotes ]-
+
+[1] This limitation occurs because the code that is executed by these
+    operations is not available at the time the module is compiled.
+�	execmodelu&6  Execution model
+***************
+
+
+Structure of a program
+======================
+
+A Python program is constructed from code blocks. A *block* is a piece
+of Python program text that is executed as a unit. The following are
+blocks: a module, a function body, and a class definition. Each
+command typed interactively is a block.  A script file (a file given
+as standard input to the interpreter or specified as a command line
+argument to the interpreter) is a code block.  A script command (a
+command specified on the interpreter command line with the "-c"
+option) is a code block. A module run as a top level script (as module
+"__main__") from the command line using a "-m" argument is also a code
+block. The string argument passed to the built-in functions "eval()"
+and "exec()" is a code block.
+
+A code block is executed in an *execution frame*.  A frame contains
+some administrative information (used for debugging) and determines
+where and how execution continues after the code block’s execution has
+completed.
+
+
+Naming and binding
+==================
+
+
+Binding of names
+----------------
+
+*Names* refer to objects.  Names are introduced by name binding
+operations.
+
+The following constructs bind names:
+
+* formal parameters to functions,
+
+* class definitions,
+
+* function definitions,
+
+* assignment expressions,
+
+* targets that are identifiers if occurring in an assignment:
+
+  * "for" loop header,
+
+  * after "as" in a "with" statement, "except" clause, "except*"
+    clause, or in the as-pattern in structural pattern matching,
+
+  * in a capture pattern in structural pattern matching
+
+* "import" statements.
+
+* "type" statements.
+
+* type parameter lists.
+
+The "import" statement of the form "from ... import *" binds all names
+defined in the imported module, except those beginning with an
+underscore. This form may only be used at the module level.
+
+A target occurring in a "del" statement is also considered bound for
+this purpose (though the actual semantics are to unbind the name).
+
+Each assignment or import statement occurs within a block defined by a
+class or function definition or at the module level (the top-level
+code block).
+
+If a name is bound in a block, it is a local variable of that block,
+unless declared as "nonlocal" or "global".  If a name is bound at the
+module level, it is a global variable.  (The variables of the module
+code block are local and global.)  If a variable is used in a code
+block but not defined there, it is a *free variable*.
+
+Each occurrence of a name in the program text refers to the *binding*
+of that name established by the following name resolution rules.
+
+
+Resolution of names
+-------------------
+
+A *scope* defines the visibility of a name within a block.  If a local
+variable is defined in a block, its scope includes that block.  If the
+definition occurs in a function block, the scope extends to any blocks
+contained within the defining one, unless a contained block introduces
+a different binding for the name.
+
+When a name is used in a code block, it is resolved using the nearest
+enclosing scope.  The set of all such scopes visible to a code block
+is called the block’s *environment*.
+
+When a name is not found at all, a "NameError" exception is raised. If
+the current scope is a function scope, and the name refers to a local
+variable that has not yet been bound to a value at the point where the
+name is used, an "UnboundLocalError" exception is raised.
+"UnboundLocalError" is a subclass of "NameError".
+
+If a name binding operation occurs anywhere within a code block, all
+uses of the name within the block are treated as references to the
+current block.  This can lead to errors when a name is used within a
+block before it is bound.  This rule is subtle.  Python lacks
+declarations and allows name binding operations to occur anywhere
+within a code block.  The local variables of a code block can be
+determined by scanning the entire text of the block for name binding
+operations. See the FAQ entry on UnboundLocalError for examples.
+
+If the "global" statement occurs within a block, all uses of the names
+specified in the statement refer to the bindings of those names in the
+top-level namespace.  Names are resolved in the top-level namespace by
+searching the global namespace, i.e. the namespace of the module
+containing the code block, and the builtins namespace, the namespace
+of the module "builtins".  The global namespace is searched first.  If
+the names are not found there, the builtins namespace is searched
+next. If the names are also not found in the builtins namespace, new
+variables are created in the global namespace. The global statement
+must precede all uses of the listed names.
+
+The "global" statement has the same scope as a name binding operation
+in the same block.  If the nearest enclosing scope for a free variable
+contains a global statement, the free variable is treated as a global.
+
+The "nonlocal" statement causes corresponding names to refer to
+previously bound variables in the nearest enclosing function scope.
+"SyntaxError" is raised at compile time if the given name does not
+exist in any enclosing function scope. Type parameters cannot be
+rebound with the "nonlocal" statement.
+
+The namespace for a module is automatically created the first time a
+module is imported.  The main module for a script is always called
+"__main__".
+
+Class definition blocks and arguments to "exec()" and "eval()" are
+special in the context of name resolution. A class definition is an
+executable statement that may use and define names. These references
+follow the normal rules for name resolution with an exception that
+unbound local variables are looked up in the global namespace. The
+namespace of the class definition becomes the attribute dictionary of
+the class. The scope of names defined in a class block is limited to
+the class block; it does not extend to the code blocks of methods.
+This includes comprehensions and generator expressions, but it does
+not include annotation scopes, which have access to their enclosing
+class scopes. This means that the following will fail:
+
+   class A:
+       a = 42
+       b = list(a + i for i in range(10))
+
+However, the following will succeed:
+
+   class A:
+       type Alias = Nested
+       class Nested: pass
+
+   print(A.Alias.__value__)  # <type 'A.Nested'>
+
+
+Annotation scopes
+-----------------
+
+Type parameter lists and "type" statements introduce *annotation
+scopes*, which behave mostly like function scopes, but with some
+exceptions discussed below. *Annotations* currently do not use
+annotation scopes, but they are expected to use annotation scopes in
+Python 3.13 when **PEP 649** is implemented.
+
+Annotation scopes are used in the following contexts:
+
+* Type parameter lists for generic type aliases.
+
+* Type parameter lists for generic functions. A generic function’s
+  annotations are executed within the annotation scope, but its
+  defaults and decorators are not.
+
+* Type parameter lists for generic classes. A generic class’s base
+  classes and keyword arguments are executed within the annotation
+  scope, but its decorators are not.
+
+* The bounds, constraints, and default values for type parameters
+  (lazily evaluated).
+
+* The value of type aliases (lazily evaluated).
+
+Annotation scopes differ from function scopes in the following ways:
+
+* Annotation scopes have access to their enclosing class namespace. If
+  an annotation scope is immediately within a class scope, or within
+  another annotation scope that is immediately within a class scope,
+  the code in the annotation scope can use names defined in the class
+  scope as if it were executed directly within the class body. This
+  contrasts with regular functions defined within classes, which
+  cannot access names defined in the class scope.
+
+* Expressions in annotation scopes cannot contain "yield", "yield
+  from", "await", or ":=" expressions. (These expressions are allowed
+  in other scopes contained within the annotation scope.)
+
+* Names defined in annotation scopes cannot be rebound with "nonlocal"
+  statements in inner scopes. This includes only type parameters, as
+  no other syntactic elements that can appear within annotation scopes
+  can introduce new names.
+
+* While annotation scopes have an internal name, that name is not
+  reflected in the *qualified name* of objects defined within the
+  scope. Instead, the "__qualname__" of such objects is as if the
+  object were defined in the enclosing scope.
+
+Added in version 3.12: Annotation scopes were introduced in Python
+3.12 as part of **PEP 695**.
+
+Changed in version 3.13: Annotation scopes are also used for type
+parameter defaults, as introduced by **PEP 696**.
+
+
+Lazy evaluation
+---------------
+
+The values of type aliases created through the "type" statement are
+*lazily evaluated*. The same applies to the bounds, constraints, and
+default values of type variables created through the type parameter
+syntax. This means that they are not evaluated when the type alias or
+type variable is created. Instead, they are only evaluated when doing
+so is necessary to resolve an attribute access.
+
+Example:
+
+   >>> type Alias = 1/0
+   >>> Alias.__value__
+   Traceback (most recent call last):
+     ...
+   ZeroDivisionError: division by zero
+   >>> def func[T: 1/0](): pass
+   >>> T = func.__type_params__[0]
+   >>> T.__bound__
+   Traceback (most recent call last):
+     ...
+   ZeroDivisionError: division by zero
+
+Here the exception is raised only when the "__value__" attribute of
+the type alias or the "__bound__" attribute of the type variable is
+accessed.
+
+This behavior is primarily useful for references to types that have
+not yet been defined when the type alias or type variable is created.
+For example, lazy evaluation enables creation of mutually recursive
+type aliases:
+
+   from typing import Literal
+
+   type SimpleExpr = int | Parenthesized
+   type Parenthesized = tuple[Literal["("], Expr, Literal[")"]]
+   type Expr = SimpleExpr | tuple[SimpleExpr, Literal["+", "-"], Expr]
+
+Lazily evaluated values are evaluated in annotation scope, which means
+that names that appear inside the lazily evaluated value are looked up
+as if they were used in the immediately enclosing scope.
+
+Added in version 3.12.
+
+
+Builtins and restricted execution
+---------------------------------
+
+**CPython implementation detail:** Users should not touch
+"__builtins__"; it is strictly an implementation detail.  Users
+wanting to override values in the builtins namespace should "import"
+the "builtins" module and modify its attributes appropriately.
+
+The builtins namespace associated with the execution of a code block
+is actually found by looking up the name "__builtins__" in its global
+namespace; this should be a dictionary or a module (in the latter case
+the module’s dictionary is used).  By default, when in the "__main__"
+module, "__builtins__" is the built-in module "builtins"; when in any
+other module, "__builtins__" is an alias for the dictionary of the
+"builtins" module itself.
+
+
+Interaction with dynamic features
+---------------------------------
+
+Name resolution of free variables occurs at runtime, not at compile
+time. This means that the following code will print 42:
+
+   i = 10
+   def f():
+       print(i)
+   i = 42
+   f()
+
+The "eval()" and "exec()" functions do not have access to the full
+environment for resolving names.  Names may be resolved in the local
+and global namespaces of the caller.  Free variables are not resolved
+in the nearest enclosing namespace, but in the global namespace.  [1]
+The "exec()" and "eval()" functions have optional arguments to
+override the global and local namespace.  If only one namespace is
+specified, it is used for both.
+
+
+Exceptions
+==========
+
+Exceptions are a means of breaking out of the normal flow of control
+of a code block in order to handle errors or other exceptional
+conditions.  An exception is *raised* at the point where the error is
+detected; it may be *handled* by the surrounding code block or by any
+code block that directly or indirectly invoked the code block where
+the error occurred.
+
+The Python interpreter raises an exception when it detects a run-time
+error (such as division by zero).  A Python program can also
+explicitly raise an exception with the "raise" statement. Exception
+handlers are specified with the "try" … "except" statement.  The
+"finally" clause of such a statement can be used to specify cleanup
+code which does not handle the exception, but is executed whether an
+exception occurred or not in the preceding code.
+
+Python uses the “termination” model of error handling: an exception
+handler can find out what happened and continue execution at an outer
+level, but it cannot repair the cause of the error and retry the
+failing operation (except by re-entering the offending piece of code
+from the top).
+
+When an exception is not handled at all, the interpreter terminates
+execution of the program, or returns to its interactive main loop.  In
+either case, it prints a stack traceback, except when the exception is
+"SystemExit".
+
+Exceptions are identified by class instances.  The "except" clause is
+selected depending on the class of the instance: it must reference the
+class of the instance or a *non-virtual base class* thereof. The
+instance can be received by the handler and can carry additional
+information about the exceptional condition.
+
+Note:
+
+  Exception messages are not part of the Python API.  Their contents
+  may change from one version of Python to the next without warning
+  and should not be relied on by code which will run under multiple
+  versions of the interpreter.
+
+See also the description of the "try" statement in section The try
+statement and "raise" statement in section The raise statement.
+
+-[ Footnotes ]-
+
+[1] This limitation occurs because the code that is executed by these
+    operations is not available at the time the module is compiled.
+�	exprlistsu�  Expression lists
+****************
+
+   starred_expression       ::= ["*"] or_expr
+   flexible_expression      ::= assignment_expression | starred_expression
+   flexible_expression_list ::= flexible_expression ("," flexible_expression)* [","]
+   starred_expression_list  ::= starred_expression ("," starred_expression)* [","]
+   expression_list          ::= expression ("," expression)* [","]
+   yield_list               ::= expression_list | starred_expression "," [starred_expression_list]
+
+Except when part of a list or set display, an expression list
+containing at least one comma yields a tuple.  The length of the tuple
+is the number of expressions in the list.  The expressions are
+evaluated from left to right.
+
+An asterisk "*" denotes *iterable unpacking*.  Its operand must be an
+*iterable*.  The iterable is expanded into a sequence of items, which
+are included in the new tuple, list, or set, at the site of the
+unpacking.
+
+Added in version 3.5: Iterable unpacking in expression lists,
+originally proposed by **PEP 448**.
+
+Added in version 3.11: Any item in an expression list may be starred.
+See **PEP 646**.
+
+A trailing comma is required only to create a one-item tuple, such as
+"1,"; it is optional in all other cases. A single expression without a
+trailing comma doesn’t create a tuple, but rather yields the value of
+that expression. (To create an empty tuple, use an empty pair of
+parentheses: "()".)
+�floatinga�  Floating-point literals
+***********************
+
+Floating-point literals are described by the following lexical
+definitions:
+
+   floatnumber   ::= pointfloat | exponentfloat
+   pointfloat    ::= [digitpart] fraction | digitpart "."
+   exponentfloat ::= (digitpart | pointfloat) exponent
+   digitpart     ::= digit (["_"] digit)*
+   fraction      ::= "." digitpart
+   exponent      ::= ("e" | "E") ["+" | "-"] digitpart
+
+Note that the integer and exponent parts are always interpreted using
+radix 10. For example, "077e010" is legal, and denotes the same number
+as "77e10". The allowed range of floating-point literals is
+implementation-dependent.  As in integer literals, underscores are
+supported for digit grouping.
+
+Some examples of floating-point literals:
+
+   3.14    10.    .001    1e100    3.14e-10    0e0    3.14_15_93
+
+Changed in version 3.6: Underscores are now allowed for grouping
+purposes in literals.
+�foru"  The "for" statement
+*******************
+
+The "for" statement is used to iterate over the elements of a sequence
+(such as a string, tuple or list) or other iterable object:
+
+   for_stmt ::= "for" target_list "in" starred_list ":" suite
+                ["else" ":" suite]
+
+The "starred_list" expression is evaluated once; it should yield an
+*iterable* object.  An *iterator* is created for that iterable. The
+first item provided by the iterator is then assigned to the target
+list using the standard rules for assignments (see Assignment
+statements), and the suite is executed.  This repeats for each item
+provided by the iterator.  When the iterator is exhausted, the suite
+in the "else" clause, if present, is executed, and the loop
+terminates.
+
+A "break" statement executed in the first suite terminates the loop
+without executing the "else" clause’s suite.  A "continue" statement
+executed in the first suite skips the rest of the suite and continues
+with the next item, or with the "else" clause if there is no next
+item.
+
+The for-loop makes assignments to the variables in the target list.
+This overwrites all previous assignments to those variables including
+those made in the suite of the for-loop:
+
+   for i in range(10):
+       print(i)
+       i = 5             # this will not affect the for-loop
+                         # because i will be overwritten with the next
+                         # index in the range
+
+Names in the target list are not deleted when the loop is finished,
+but if the sequence is empty, they will not have been assigned to at
+all by the loop.  Hint: the built-in type "range()" represents
+immutable arithmetic sequences of integers. For instance, iterating
+"range(3)" successively yields 0, 1, and then 2.
+
+Changed in version 3.11: Starred elements are now allowed in the
+expression list.
+�formatstringsu�j  Format String Syntax
+********************
+
+The "str.format()" method and the "Formatter" class share the same
+syntax for format strings (although in the case of "Formatter",
+subclasses can define their own format string syntax).  The syntax is
+related to that of formatted string literals, but it is less
+sophisticated and, in particular, does not support arbitrary
+expressions.
+
+Format strings contain “replacement fields” surrounded by curly braces
+"{}". Anything that is not contained in braces is considered literal
+text, which is copied unchanged to the output.  If you need to include
+a brace character in the literal text, it can be escaped by doubling:
+"{{" and "}}".
+
+The grammar for a replacement field is as follows:
+
+   replacement_field ::= "{" [field_name] ["!" conversion] [":" format_spec] "}"
+   field_name        ::= arg_name ("." attribute_name | "[" element_index "]")*
+   arg_name          ::= [identifier | digit+]
+   attribute_name    ::= identifier
+   element_index     ::= digit+ | index_string
+   index_string      ::= <any source character except "]"> +
+   conversion        ::= "r" | "s" | "a"
+   format_spec       ::= format-spec:format_spec
+
+In less formal terms, the replacement field can start with a
+*field_name* that specifies the object whose value is to be formatted
+and inserted into the output instead of the replacement field. The
+*field_name* is optionally followed by a  *conversion* field, which is
+preceded by an exclamation point "'!'", and a *format_spec*, which is
+preceded by a colon "':'".  These specify a non-default format for the
+replacement value.
+
+See also the Format Specification Mini-Language section.
+
+The *field_name* itself begins with an *arg_name* that is either a
+number or a keyword.  If it’s a number, it refers to a positional
+argument, and if it’s a keyword, it refers to a named keyword
+argument. An *arg_name* is treated as a number if a call to
+"str.isdecimal()" on the string would return true. If the numerical
+arg_names in a format string are 0, 1, 2, … in sequence, they can all
+be omitted (not just some) and the numbers 0, 1, 2, … will be
+automatically inserted in that order. Because *arg_name* is not quote-
+delimited, it is not possible to specify arbitrary dictionary keys
+(e.g., the strings "'10'" or "':-]'") within a format string. The
+*arg_name* can be followed by any number of index or attribute
+expressions. An expression of the form "'.name'" selects the named
+attribute using "getattr()", while an expression of the form
+"'[index]'" does an index lookup using "__getitem__()".
+
+Changed in version 3.1: The positional argument specifiers can be
+omitted for "str.format()", so "'{} {}'.format(a, b)" is equivalent to
+"'{0} {1}'.format(a, b)".
+
+Changed in version 3.4: The positional argument specifiers can be
+omitted for "Formatter".
+
+Some simple format string examples:
+
+   "First, thou shalt count to {0}"  # References first positional argument
+   "Bring me a {}"                   # Implicitly references the first positional argument
+   "From {} to {}"                   # Same as "From {0} to {1}"
+   "My quest is {name}"              # References keyword argument 'name'
+   "Weight in tons {0.weight}"       # 'weight' attribute of first positional arg
+   "Units destroyed: {players[0]}"   # First element of keyword argument 'players'.
+
+The *conversion* field causes a type coercion before formatting.
+Normally, the job of formatting a value is done by the "__format__()"
+method of the value itself.  However, in some cases it is desirable to
+force a type to be formatted as a string, overriding its own
+definition of formatting.  By converting the value to a string before
+calling "__format__()", the normal formatting logic is bypassed.
+
+Three conversion flags are currently supported: "'!s'" which calls
+"str()" on the value, "'!r'" which calls "repr()" and "'!a'" which
+calls "ascii()".
+
+Some examples:
+
+   "Harold's a clever {0!s}"        # Calls str() on the argument first
+   "Bring out the holy {name!r}"    # Calls repr() on the argument first
+   "More {!a}"                      # Calls ascii() on the argument first
+
+The *format_spec* field contains a specification of how the value
+should be presented, including such details as field width, alignment,
+padding, decimal precision and so on.  Each value type can define its
+own “formatting mini-language” or interpretation of the *format_spec*.
+
+Most built-in types support a common formatting mini-language, which
+is described in the next section.
+
+A *format_spec* field can also include nested replacement fields
+within it. These nested replacement fields may contain a field name,
+conversion flag and format specification, but deeper nesting is not
+allowed.  The replacement fields within the format_spec are
+substituted before the *format_spec* string is interpreted. This
+allows the formatting of a value to be dynamically specified.
+
+See the Format examples section for some examples.
+
+
+Format Specification Mini-Language
+==================================
+
+“Format specifications” are used within replacement fields contained
+within a format string to define how individual values are presented
+(see Format String Syntax and f-strings). They can also be passed
+directly to the built-in "format()" function.  Each formattable type
+may define how the format specification is to be interpreted.
+
+Most built-in types implement the following options for format
+specifications, although some of the formatting options are only
+supported by the numeric types.
+
+A general convention is that an empty format specification produces
+the same result as if you had called "str()" on the value. A non-empty
+format specification typically modifies the result.
+
+The general form of a *standard format specifier* is:
+
+   format_spec ::= [options][width][grouping]["." precision][type]
+   options     ::= [[fill]align][sign]["z"]["#"]["0"]
+   fill        ::= <any character>
+   align       ::= "<" | ">" | "=" | "^"
+   sign        ::= "+" | "-" | " "
+   width       ::= digit+
+   grouping    ::= "," | "_"
+   precision   ::= digit+
+   type        ::= "b" | "c" | "d" | "e" | "E" | "f" | "F" | "g"
+                   | "G" | "n" | "o" | "s" | "x" | "X" | "%"
+
+If a valid *align* value is specified, it can be preceded by a *fill*
+character that can be any character and defaults to a space if
+omitted. It is not possible to use a literal curly brace (”"{"” or
+“"}"”) as the *fill* character in a formatted string literal or when
+using the "str.format()" method.  However, it is possible to insert a
+curly brace with a nested replacement field.  This limitation doesn’t
+affect the "format()" function.
+
+The meaning of the various alignment options is as follows:
+
++-----------+------------------------------------------------------------+
+| Option    | Meaning                                                    |
+|===========|============================================================|
+| "'<'"     | Forces the field to be left-aligned within the available   |
+|           | space (this is the default for most objects).              |
++-----------+------------------------------------------------------------+
+| "'>'"     | Forces the field to be right-aligned within the available  |
+|           | space (this is the default for numbers).                   |
++-----------+------------------------------------------------------------+
+| "'='"     | Forces the padding to be placed after the sign (if any)    |
+|           | but before the digits.  This is used for printing fields   |
+|           | in the form ‘+000000120’. This alignment option is only    |
+|           | valid for numeric types, excluding "complex". It becomes   |
+|           | the default for numbers when ‘0’ immediately precedes the  |
+|           | field width.                                               |
++-----------+------------------------------------------------------------+
+| "'^'"     | Forces the field to be centered within the available       |
+|           | space.                                                     |
++-----------+------------------------------------------------------------+
+
+Note that unless a minimum field width is defined, the field width
+will always be the same size as the data to fill it, so that the
+alignment option has no meaning in this case.
+
+The *sign* option is only valid for number types, and can be one of
+the following:
+
++-----------+------------------------------------------------------------+
+| Option    | Meaning                                                    |
+|===========|============================================================|
+| "'+'"     | Indicates that a sign should be used for both positive as  |
+|           | well as negative numbers.                                  |
++-----------+------------------------------------------------------------+
+| "'-'"     | Indicates that a sign should be used only for negative     |
+|           | numbers (this is the default behavior).                    |
++-----------+------------------------------------------------------------+
+| space     | Indicates that a leading space should be used on positive  |
+|           | numbers, and a minus sign on negative numbers.             |
++-----------+------------------------------------------------------------+
+
+The "'z'" option coerces negative zero floating-point values to
+positive zero after rounding to the format precision.  This option is
+only valid for floating-point presentation types.
+
+Changed in version 3.11: Added the "'z'" option (see also **PEP
+682**).
+
+The "'#'" option causes the “alternate form” to be used for the
+conversion.  The alternate form is defined differently for different
+types.  This option is only valid for integer, float and complex
+types. For integers, when binary, octal, or hexadecimal output is
+used, this option adds the respective prefix "'0b'", "'0o'", "'0x'",
+or "'0X'" to the output value. For float and complex the alternate
+form causes the result of the conversion to always contain a decimal-
+point character, even if no digits follow it. Normally, a decimal-
+point character appears in the result of these conversions only if a
+digit follows it. In addition, for "'g'" and "'G'" conversions,
+trailing zeros are not removed from the result.
+
+The *width* is a decimal integer defining the minimum total field
+width, including any prefixes, separators, and other formatting
+characters. If not specified, then the field width will be determined
+by the content.
+
+When no explicit alignment is given, preceding the *width* field by a
+zero ("'0'") character enables sign-aware zero-padding for numeric
+types, excluding "complex".  This is equivalent to a *fill* character
+of "'0'" with an *alignment* type of "'='".
+
+Changed in version 3.10: Preceding the *width* field by "'0'" no
+longer affects the default alignment for strings.
+
+The *grouping* option after the *width* field specifies a digit group
+separator for the integral part of a number. It can be one of the
+following:
+
++-----------+------------------------------------------------------------+
+| Option    | Meaning                                                    |
+|===========|============================================================|
+| "','"     | Inserts a comma every 3 digits for integer presentation    |
+|           | type "'d'" and floating-point presentation types,          |
+|           | excluding "'n'". For other presentation types, this option |
+|           | is not supported.                                          |
++-----------+------------------------------------------------------------+
+| "'_'"     | Inserts an underscore every 3 digits for integer           |
+|           | presentation type "'d'" and floating-point presentation    |
+|           | types, excluding "'n'". For integer presentation types     |
+|           | "'b'", "'o'", "'x'", and "'X'", underscores are inserted   |
+|           | every 4 digits. For other presentation types, this option  |
+|           | is not supported.                                          |
++-----------+------------------------------------------------------------+
+
+For a locale aware separator, use the "'n'" presentation type instead.
+
+Changed in version 3.1: Added the "','" option (see also **PEP 378**).
+
+Changed in version 3.6: Added the "'_'" option (see also **PEP 515**).
+
+The *precision* is a decimal integer indicating how many digits should
+be displayed after the decimal point for presentation types "'f'" and
+"'F'", or before and after the decimal point for presentation types
+"'g'" or "'G'".  For string presentation types the field indicates the
+maximum field size - in other words, how many characters will be used
+from the field content.  The *precision* is not allowed for integer
+presentation types.
+
+Finally, the *type* determines how the data should be presented.
+
+The available string presentation types are:
+
+   +-----------+------------------------------------------------------------+
+   | Type      | Meaning                                                    |
+   |===========|============================================================|
+   | "'s'"     | String format. This is the default type for strings and    |
+   |           | may be omitted.                                            |
+   +-----------+------------------------------------------------------------+
+   | None      | The same as "'s'".                                         |
+   +-----------+------------------------------------------------------------+
+
+The available integer presentation types are:
+
+   +-----------+------------------------------------------------------------+
+   | Type      | Meaning                                                    |
+   |===========|============================================================|
+   | "'b'"     | Binary format. Outputs the number in base 2.               |
+   +-----------+------------------------------------------------------------+
+   | "'c'"     | Character. Converts the integer to the corresponding       |
+   |           | unicode character before printing.                         |
+   +-----------+------------------------------------------------------------+
+   | "'d'"     | Decimal Integer. Outputs the number in base 10.            |
+   +-----------+------------------------------------------------------------+
+   | "'o'"     | Octal format. Outputs the number in base 8.                |
+   +-----------+------------------------------------------------------------+
+   | "'x'"     | Hex format. Outputs the number in base 16, using lower-    |
+   |           | case letters for the digits above 9.                       |
+   +-----------+------------------------------------------------------------+
+   | "'X'"     | Hex format. Outputs the number in base 16, using upper-    |
+   |           | case letters for the digits above 9. In case "'#'" is      |
+   |           | specified, the prefix "'0x'" will be upper-cased to "'0X'" |
+   |           | as well.                                                   |
+   +-----------+------------------------------------------------------------+
+   | "'n'"     | Number. This is the same as "'d'", except that it uses the |
+   |           | current locale setting to insert the appropriate digit     |
+   |           | group separators.                                          |
+   +-----------+------------------------------------------------------------+
+   | None      | The same as "'d'".                                         |
+   +-----------+------------------------------------------------------------+
+
+In addition to the above presentation types, integers can be formatted
+with the floating-point presentation types listed below (except "'n'"
+and "None"). When doing so, "float()" is used to convert the integer
+to a floating-point number before formatting.
+
+The available presentation types for "float" and "Decimal" values are:
+
+   +-----------+------------------------------------------------------------+
+   | Type      | Meaning                                                    |
+   |===========|============================================================|
+   | "'e'"     | Scientific notation. For a given precision "p", formats    |
+   |           | the number in scientific notation with the letter ‘e’      |
+   |           | separating the coefficient from the exponent. The          |
+   |           | coefficient has one digit before and "p" digits after the  |
+   |           | decimal point, for a total of "p + 1" significant digits.  |
+   |           | With no precision given, uses a precision of "6" digits    |
+   |           | after the decimal point for "float", and shows all         |
+   |           | coefficient digits for "Decimal".  If "p=0", the decimal   |
+   |           | point is omitted unless the "#" option is used.            |
+   +-----------+------------------------------------------------------------+
+   | "'E'"     | Scientific notation. Same as "'e'" except it uses an upper |
+   |           | case ‘E’ as the separator character.                       |
+   +-----------+------------------------------------------------------------+
+   | "'f'"     | Fixed-point notation. For a given precision "p", formats   |
+   |           | the number as a decimal number with exactly "p" digits     |
+   |           | following the decimal point. With no precision given, uses |
+   |           | a precision of "6" digits after the decimal point for      |
+   |           | "float", and uses a precision large enough to show all     |
+   |           | coefficient digits for "Decimal".  If "p=0", the decimal   |
+   |           | point is omitted unless the "#" option is used.            |
+   +-----------+------------------------------------------------------------+
+   | "'F'"     | Fixed-point notation. Same as "'f'", but converts "nan" to |
+   |           | "NAN" and "inf" to "INF".                                  |
+   +-----------+------------------------------------------------------------+
+   | "'g'"     | General format.  For a given precision "p >= 1", this      |
+   |           | rounds the number to "p" significant digits and then       |
+   |           | formats the result in either fixed-point format or in      |
+   |           | scientific notation, depending on its magnitude. A         |
+   |           | precision of "0" is treated as equivalent to a precision   |
+   |           | of "1".  The precise rules are as follows: suppose that    |
+   |           | the result formatted with presentation type "'e'" and      |
+   |           | precision "p-1" would have exponent "exp".  Then, if "m <= |
+   |           | exp < p", where "m" is -4 for floats and -6 for            |
+   |           | "Decimals", the number is formatted with presentation type |
+   |           | "'f'" and precision "p-1-exp".  Otherwise, the number is   |
+   |           | formatted with presentation type "'e'" and precision       |
+   |           | "p-1". In both cases insignificant trailing zeros are      |
+   |           | removed from the significand, and the decimal point is     |
+   |           | also removed if there are no remaining digits following    |
+   |           | it, unless the "'#'" option is used.  With no precision    |
+   |           | given, uses a precision of "6" significant digits for      |
+   |           | "float". For "Decimal", the coefficient of the result is   |
+   |           | formed from the coefficient digits of the value;           |
+   |           | scientific notation is used for values smaller than "1e-6" |
+   |           | in absolute value and values where the place value of the  |
+   |           | least significant digit is larger than 1, and fixed-point  |
+   |           | notation is used otherwise.  Positive and negative         |
+   |           | infinity, positive and negative zero, and nans, are        |
+   |           | formatted as "inf", "-inf", "0", "-0" and "nan"            |
+   |           | respectively, regardless of the precision.                 |
+   +-----------+------------------------------------------------------------+
+   | "'G'"     | General format. Same as "'g'" except switches to "'E'" if  |
+   |           | the number gets too large. The representations of infinity |
+   |           | and NaN are uppercased, too.                               |
+   +-----------+------------------------------------------------------------+
+   | "'n'"     | Number. This is the same as "'g'", except that it uses the |
+   |           | current locale setting to insert the appropriate digit     |
+   |           | group separators for the integral part of a number.        |
+   +-----------+------------------------------------------------------------+
+   | "'%'"     | Percentage. Multiplies the number by 100 and displays in   |
+   |           | fixed ("'f'") format, followed by a percent sign.          |
+   +-----------+------------------------------------------------------------+
+   | None      | For "float" this is like the "'g'" type, except that when  |
+   |           | fixed- point notation is used to format the result, it     |
+   |           | always includes at least one digit past the decimal point, |
+   |           | and switches to the scientific notation when "exp >= p -   |
+   |           | 1".  When the precision is not specified, the latter will  |
+   |           | be as large as needed to represent the given value         |
+   |           | faithfully.  For "Decimal", this is the same as either     |
+   |           | "'g'" or "'G'" depending on the value of                   |
+   |           | "context.capitals" for the current decimal context.  The   |
+   |           | overall effect is to match the output of "str()" as        |
+   |           | altered by the other format modifiers.                     |
+   +-----------+------------------------------------------------------------+
+
+The result should be correctly rounded to a given precision "p" of
+digits after the decimal point.  The rounding mode for "float" matches
+that of the "round()" builtin.  For "Decimal", the rounding mode of
+the current context will be used.
+
+The available presentation types for "complex" are the same as those
+for "float" ("'%'" is not allowed).  Both the real and imaginary
+components of a complex number are formatted as floating-point
+numbers, according to the specified presentation type.  They are
+separated by the mandatory sign of the imaginary part, the latter
+being terminated by a "j" suffix.  If the presentation type is
+missing, the result will match the output of "str()" (complex numbers
+with a non-zero real part are also surrounded by parentheses),
+possibly altered by other format modifiers.
+
+
+Format examples
+===============
+
+This section contains examples of the "str.format()" syntax and
+comparison with the old "%"-formatting.
+
+In most of the cases the syntax is similar to the old "%"-formatting,
+with the addition of the "{}" and with ":" used instead of "%". For
+example, "'%03.2f'" can be translated to "'{:03.2f}'".
+
+The new format syntax also supports new and different options, shown
+in the following examples.
+
+Accessing arguments by position:
+
+   >>> '{0}, {1}, {2}'.format('a', 'b', 'c')
+   'a, b, c'
+   >>> '{}, {}, {}'.format('a', 'b', 'c')  # 3.1+ only
+   'a, b, c'
+   >>> '{2}, {1}, {0}'.format('a', 'b', 'c')
+   'c, b, a'
+   >>> '{2}, {1}, {0}'.format(*'abc')      # unpacking argument sequence
+   'c, b, a'
+   >>> '{0}{1}{0}'.format('abra', 'cad')   # arguments' indices can be repeated
+   'abracadabra'
+
+Accessing arguments by name:
+
+   >>> 'Coordinates: {latitude}, {longitude}'.format(latitude='37.24N', longitude='-115.81W')
+   'Coordinates: 37.24N, -115.81W'
+   >>> coord = {'latitude': '37.24N', 'longitude': '-115.81W'}
+   >>> 'Coordinates: {latitude}, {longitude}'.format(**coord)
+   'Coordinates: 37.24N, -115.81W'
+
+Accessing arguments’ attributes:
+
+   >>> c = 3-5j
+   >>> ('The complex number {0} is formed from the real part {0.real} '
+   ...  'and the imaginary part {0.imag}.').format(c)
+   'The complex number (3-5j) is formed from the real part 3.0 and the imaginary part -5.0.'
+   >>> class Point:
+   ...     def __init__(self, x, y):
+   ...         self.x, self.y = x, y
+   ...     def __str__(self):
+   ...         return 'Point({self.x}, {self.y})'.format(self=self)
+   ...
+   >>> str(Point(4, 2))
+   'Point(4, 2)'
+
+Accessing arguments’ items:
+
+   >>> coord = (3, 5)
+   >>> 'X: {0[0]};  Y: {0[1]}'.format(coord)
+   'X: 3;  Y: 5'
+
+Replacing "%s" and "%r":
+
+   >>> "repr() shows quotes: {!r}; str() doesn't: {!s}".format('test1', 'test2')
+   "repr() shows quotes: 'test1'; str() doesn't: test2"
+
+Aligning the text and specifying a width:
+
+   >>> '{:<30}'.format('left aligned')
+   'left aligned                  '
+   >>> '{:>30}'.format('right aligned')
+   '                 right aligned'
+   >>> '{:^30}'.format('centered')
+   '           centered           '
+   >>> '{:*^30}'.format('centered')  # use '*' as a fill char
+   '***********centered***********'
+
+Replacing "%+f", "%-f", and "% f" and specifying a sign:
+
+   >>> '{:+f}; {:+f}'.format(3.14, -3.14)  # show it always
+   '+3.140000; -3.140000'
+   >>> '{: f}; {: f}'.format(3.14, -3.14)  # show a space for positive numbers
+   ' 3.140000; -3.140000'
+   >>> '{:-f}; {:-f}'.format(3.14, -3.14)  # show only the minus -- same as '{:f}; {:f}'
+   '3.140000; -3.140000'
+
+Replacing "%x" and "%o" and converting the value to different bases:
+
+   >>> # format also supports binary numbers
+   >>> "int: {0:d};  hex: {0:x};  oct: {0:o};  bin: {0:b}".format(42)
+   'int: 42;  hex: 2a;  oct: 52;  bin: 101010'
+   >>> # with 0x, 0o, or 0b as prefix:
+   >>> "int: {0:d};  hex: {0:#x};  oct: {0:#o};  bin: {0:#b}".format(42)
+   'int: 42;  hex: 0x2a;  oct: 0o52;  bin: 0b101010'
+
+Using the comma or the underscore as a digit group separator:
+
+   >>> '{:,}'.format(1234567890)
+   '1,234,567,890'
+   >>> '{:_}'.format(1234567890)
+   '1_234_567_890'
+   >>> '{:_b}'.format(1234567890)
+   '100_1001_1001_0110_0000_0010_1101_0010'
+   >>> '{:_x}'.format(1234567890)
+   '4996_02d2'
+
+Expressing a percentage:
+
+   >>> points = 19
+   >>> total = 22
+   >>> 'Correct answers: {:.2%}'.format(points/total)
+   'Correct answers: 86.36%'
+
+Using type-specific formatting:
+
+   >>> import datetime
+   >>> d = datetime.datetime(2010, 7, 4, 12, 15, 58)
+   >>> '{:%Y-%m-%d %H:%M:%S}'.format(d)
+   '2010-07-04 12:15:58'
+
+Nesting arguments and more complex examples:
+
+   >>> for align, text in zip('<^>', ['left', 'center', 'right']):
+   ...     '{0:{fill}{align}16}'.format(text, fill=align, align=align)
+   ...
+   'left<<<<<<<<<<<<'
+   '^^^^^center^^^^^'
+   '>>>>>>>>>>>right'
+   >>>
+   >>> octets = [192, 168, 0, 1]
+   >>> '{:02X}{:02X}{:02X}{:02X}'.format(*octets)
+   'C0A80001'
+   >>> int(_, 16)
+   3232235521
+   >>>
+   >>> width = 5
+   >>> for num in range(5,12):
+   ...     for base in 'dXob':
+   ...         print('{0:{width}{base}}'.format(num, base=base, width=width), end=' ')
+   ...     print()
+   ...
+       5     5     5   101
+       6     6     6   110
+       7     7     7   111
+       8     8    10  1000
+       9     9    11  1001
+      10     A    12  1010
+      11     B    13  1011
+�functionu  Function definitions
+********************
+
+A function definition defines a user-defined function object (see
+section The standard type hierarchy):
+
+   funcdef                   ::= [decorators] "def" funcname [type_params] "(" [parameter_list] ")"
+                                 ["->" expression] ":" suite
+   decorators                ::= decorator+
+   decorator                 ::= "@" assignment_expression NEWLINE
+   parameter_list            ::= defparameter ("," defparameter)* "," "/" ["," [parameter_list_no_posonly]]
+                                 | parameter_list_no_posonly
+   parameter_list_no_posonly ::= defparameter ("," defparameter)* ["," [parameter_list_starargs]]
+                                 | parameter_list_starargs
+   parameter_list_starargs   ::= "*" [star_parameter] ("," defparameter)* ["," [parameter_star_kwargs]]
+                                 | "*" ("," defparameter)+ ["," [parameter_star_kwargs]]
+                                 | parameter_star_kwargs
+   parameter_star_kwargs     ::= "**" parameter [","]
+   parameter                 ::= identifier [":" expression]
+   star_parameter            ::= identifier [":" ["*"] expression]
+   defparameter              ::= parameter ["=" expression]
+   funcname                  ::= identifier
+
+A function definition is an executable statement.  Its execution binds
+the function name in the current local namespace to a function object
+(a wrapper around the executable code for the function).  This
+function object contains a reference to the current global namespace
+as the global namespace to be used when the function is called.
+
+The function definition does not execute the function body; this gets
+executed only when the function is called. [4]
+
+A function definition may be wrapped by one or more *decorator*
+expressions. Decorator expressions are evaluated when the function is
+defined, in the scope that contains the function definition.  The
+result must be a callable, which is invoked with the function object
+as the only argument. The returned value is bound to the function name
+instead of the function object.  Multiple decorators are applied in
+nested fashion. For example, the following code
+
+   @f1(arg)
+   @f2
+   def func(): pass
+
+is roughly equivalent to
+
+   def func(): pass
+   func = f1(arg)(f2(func))
+
+except that the original function is not temporarily bound to the name
+"func".
+
+Changed in version 3.9: Functions may be decorated with any valid
+"assignment_expression". Previously, the grammar was much more
+restrictive; see **PEP 614** for details.
+
+A list of type parameters may be given in square brackets between the
+function’s name and the opening parenthesis for its parameter list.
+This indicates to static type checkers that the function is generic.
+At runtime, the type parameters can be retrieved from the function’s
+"__type_params__" attribute. See Generic functions for more.
+
+Changed in version 3.12: Type parameter lists are new in Python 3.12.
+
+When one or more *parameters* have the form *parameter* "="
+*expression*, the function is said to have “default parameter values.”
+For a parameter with a default value, the corresponding *argument* may
+be omitted from a call, in which case the parameter’s default value is
+substituted.  If a parameter has a default value, all following
+parameters up until the “"*"” must also have a default value — this is
+a syntactic restriction that is not expressed by the grammar.
+
+**Default parameter values are evaluated from left to right when the
+function definition is executed.** This means that the expression is
+evaluated once, when the function is defined, and that the same “pre-
+computed” value is used for each call.  This is especially important
+to understand when a default parameter value is a mutable object, such
+as a list or a dictionary: if the function modifies the object (e.g.
+by appending an item to a list), the default parameter value is in
+effect modified.  This is generally not what was intended.  A way
+around this is to use "None" as the default, and explicitly test for
+it in the body of the function, e.g.:
+
+   def whats_on_the_telly(penguin=None):
+       if penguin is None:
+           penguin = []
+       penguin.append("property of the zoo")
+       return penguin
+
+Function call semantics are described in more detail in section Calls.
+A function call always assigns values to all parameters mentioned in
+the parameter list, either from positional arguments, from keyword
+arguments, or from default values.  If the form “"*identifier"” is
+present, it is initialized to a tuple receiving any excess positional
+parameters, defaulting to the empty tuple. If the form
+“"**identifier"” is present, it is initialized to a new ordered
+mapping receiving any excess keyword arguments, defaulting to a new
+empty mapping of the same type.  Parameters after “"*"” or
+“"*identifier"” are keyword-only parameters and may only be passed by
+keyword arguments.  Parameters before “"/"” are positional-only
+parameters and may only be passed by positional arguments.
+
+Changed in version 3.8: The "/" function parameter syntax may be used
+to indicate positional-only parameters. See **PEP 570** for details.
+
+Parameters may have an *annotation* of the form “": expression"”
+following the parameter name.  Any parameter may have an annotation,
+even those of the form "*identifier" or "**identifier". (As a special
+case, parameters of the form "*identifier" may have an annotation “":
+*expression"”.) Functions may have “return” annotation of the form
+“"-> expression"” after the parameter list.  These annotations can be
+any valid Python expression.  The presence of annotations does not
+change the semantics of a function.  The annotation values are
+available as values of a dictionary keyed by the parameters’ names in
+the "__annotations__" attribute of the function object.  If the
+"annotations" import from "__future__" is used, annotations are
+preserved as strings at runtime which enables postponed evaluation.
+Otherwise, they are evaluated when the function definition is
+executed.  In this case annotations may be evaluated in a different
+order than they appear in the source code.
+
+Changed in version 3.11: Parameters of the form “"*identifier"” may
+have an annotation “": *expression"”. See **PEP 646**.
+
+It is also possible to create anonymous functions (functions not bound
+to a name), for immediate use in expressions.  This uses lambda
+expressions, described in section Lambdas.  Note that the lambda
+expression is merely a shorthand for a simplified function definition;
+a function defined in a “"def"” statement can be passed around or
+assigned to another name just like a function defined by a lambda
+expression.  The “"def"” form is actually more powerful since it
+allows the execution of multiple statements and annotations.
+
+**Programmer’s note:** Functions are first-class objects.  A “"def"”
+statement executed inside a function definition defines a local
+function that can be returned or passed around.  Free variables used
+in the nested function can access the local variables of the function
+containing the def.  See section Naming and binding for details.
+
+See also:
+
+  **PEP 3107** - Function Annotations
+     The original specification for function annotations.
+
+  **PEP 484** - Type Hints
+     Definition of a standard meaning for annotations: type hints.
+
+  **PEP 526** - Syntax for Variable Annotations
+     Ability to type hint variable declarations, including class
+     variables and instance variables.
+
+  **PEP 563** - Postponed Evaluation of Annotations
+     Support for forward references within annotations by preserving
+     annotations in a string form at runtime instead of eager
+     evaluation.
+
+  **PEP 318** - Decorators for Functions and Methods
+     Function and method decorators were introduced. Class decorators
+     were introduced in **PEP 3129**.
+�globalu�  The "global" statement
+**********************
+
+   global_stmt ::= "global" identifier ("," identifier)*
+
+The "global" statement causes the listed identifiers to be interpreted
+as globals. It would be impossible to assign to a global variable
+without "global", although free variables may refer to globals without
+being declared global.
+
+The "global" statement applies to the entire scope of a function or
+class body. A "SyntaxError" is raised if a variable is used or
+assigned to prior to its global declaration in the scope.
+
+**Programmer’s note:** "global" is a directive to the parser.  It
+applies only to code parsed at the same time as the "global"
+statement. In particular, a "global" statement contained in a string
+or code object supplied to the built-in "exec()" function does not
+affect the code block *containing* the function call, and code
+contained in such a string is unaffected by "global" statements in the
+code containing the function call.  The same applies to the "eval()"
+and "compile()" functions.
+z
+id-classesu�  Reserved classes of identifiers
+*******************************
+
+Certain classes of identifiers (besides keywords) have special
+meanings.  These classes are identified by the patterns of leading and
+trailing underscore characters:
+
+"_*"
+   Not imported by "from module import *".
+
+"_"
+   In a "case" pattern within a "match" statement, "_" is a soft
+   keyword that denotes a wildcard.
+
+   Separately, the interactive interpreter makes the result of the
+   last evaluation available in the variable "_". (It is stored in the
+   "builtins" module, alongside built-in functions like "print".)
+
+   Elsewhere, "_" is a regular identifier. It is often used to name
+   “special” items, but it is not special to Python itself.
+
+   Note:
+
+     The name "_" is often used in conjunction with
+     internationalization; refer to the documentation for the
+     "gettext" module for more information on this convention.It is
+     also commonly used for unused variables.
+
+"__*__"
+   System-defined names, informally known as “dunder” names. These
+   names are defined by the interpreter and its implementation
+   (including the standard library). Current system names are
+   discussed in the Special method names section and elsewhere. More
+   will likely be defined in future versions of Python.  *Any* use of
+   "__*__" names, in any context, that does not follow explicitly
+   documented use, is subject to breakage without warning.
+
+"__*"
+   Class-private names.  Names in this category, when used within the
+   context of a class definition, are re-written to use a mangled form
+   to help avoid name clashes between “private” attributes of base and
+   derived classes. See section Identifiers (Names).
+�identifiersu�  Identifiers and keywords
+************************
+
+Identifiers (also referred to as *names*) are described by the
+following lexical definitions.
+
+The syntax of identifiers in Python is based on the Unicode standard
+annex UAX-31, with elaboration and changes as defined below; see also
+**PEP 3131** for further details.
+
+Within the ASCII range (U+0001..U+007F), the valid characters for
+identifiers include the uppercase and lowercase letters "A" through
+"Z", the underscore "_" and, except for the first character, the
+digits "0" through "9". Python 3.0 introduced additional characters
+from outside the ASCII range (see **PEP 3131**).  For these
+characters, the classification uses the version of the Unicode
+Character Database as included in the "unicodedata" module.
+
+Identifiers are unlimited in length.  Case is significant.
+
+   identifier   ::= xid_start xid_continue*
+   id_start     ::= <all characters in general categories Lu, Ll, Lt, Lm, Lo, Nl, the underscore, and characters with the Other_ID_Start property>
+   id_continue  ::= <all characters in id_start, plus characters in the categories Mn, Mc, Nd, Pc and others with the Other_ID_Continue property>
+   xid_start    ::= <all characters in id_start whose NFKC normalization is in "id_start xid_continue*">
+   xid_continue ::= <all characters in id_continue whose NFKC normalization is in "id_continue*">
+
+The Unicode category codes mentioned above stand for:
+
+* *Lu* - uppercase letters
+
+* *Ll* - lowercase letters
+
+* *Lt* - titlecase letters
+
+* *Lm* - modifier letters
+
+* *Lo* - other letters
+
+* *Nl* - letter numbers
+
+* *Mn* - nonspacing marks
+
+* *Mc* - spacing combining marks
+
+* *Nd* - decimal numbers
+
+* *Pc* - connector punctuations
+
+* *Other_ID_Start* - explicit list of characters in PropList.txt to
+  support backwards compatibility
+
+* *Other_ID_Continue* - likewise
+
+All identifiers are converted into the normal form NFKC while parsing;
+comparison of identifiers is based on NFKC.
+
+A non-normative HTML file listing all valid identifier characters for
+Unicode 15.1.0 can be found at
+https://www.unicode.org/Public/15.1.0/ucd/DerivedCoreProperties.txt
+
+
+Keywords
+========
+
+The following identifiers are used as reserved words, or *keywords* of
+the language, and cannot be used as ordinary identifiers.  They must
+be spelled exactly as written here:
+
+   False      await      else       import     pass
+   None       break      except     in         raise
+   True       class      finally    is         return
+   and        continue   for        lambda     try
+   as         def        from       nonlocal   while
+   assert     del        global     not        with
+   async      elif       if         or         yield
+
+
+Soft Keywords
+=============
+
+Added in version 3.10.
+
+Some identifiers are only reserved under specific contexts. These are
+known as *soft keywords*.  The identifiers "match", "case", "type" and
+"_" can syntactically act as keywords in certain contexts, but this
+distinction is done at the parser level, not when tokenizing.
+
+As soft keywords, their use in the grammar is possible while still
+preserving compatibility with existing code that uses these names as
+identifier names.
+
+"match", "case", and "_" are used in the "match" statement. "type" is
+used in the "type" statement.
+
+Changed in version 3.12: "type" is now a soft keyword.
+
+
+Reserved classes of identifiers
+===============================
+
+Certain classes of identifiers (besides keywords) have special
+meanings.  These classes are identified by the patterns of leading and
+trailing underscore characters:
+
+"_*"
+   Not imported by "from module import *".
+
+"_"
+   In a "case" pattern within a "match" statement, "_" is a soft
+   keyword that denotes a wildcard.
+
+   Separately, the interactive interpreter makes the result of the
+   last evaluation available in the variable "_". (It is stored in the
+   "builtins" module, alongside built-in functions like "print".)
+
+   Elsewhere, "_" is a regular identifier. It is often used to name
+   “special” items, but it is not special to Python itself.
+
+   Note:
+
+     The name "_" is often used in conjunction with
+     internationalization; refer to the documentation for the
+     "gettext" module for more information on this convention.It is
+     also commonly used for unused variables.
+
+"__*__"
+   System-defined names, informally known as “dunder” names. These
+   names are defined by the interpreter and its implementation
+   (including the standard library). Current system names are
+   discussed in the Special method names section and elsewhere. More
+   will likely be defined in future versions of Python.  *Any* use of
+   "__*__" names, in any context, that does not follow explicitly
+   documented use, is subject to breakage without warning.
+
+"__*"
+   Class-private names.  Names in this category, when used within the
+   context of a class definition, are re-written to use a mangled form
+   to help avoid name clashes between “private” attributes of base and
+   derived classes. See section Identifiers (Names).
+�if�	imaginarya5  Imaginary literals
+******************
+
+Imaginary literals are described by the following lexical definitions:
+
+   imagnumber ::= (floatnumber | digitpart) ("j" | "J")
+
+An imaginary literal yields a complex number with a real part of 0.0.
+Complex numbers are represented as a pair of floating-point numbers
+and have the same restrictions on their range.  To create a complex
+number with a nonzero real part, add a floating-point number to it,
+e.g., "(3+4j)".  Some examples of imaginary literals:
+
+   3.14j   10.j    10j     .001j   1e100j   3.14e-10j   3.14_15_93j
+�importu�"  The "import" statement
+**********************
+
+   import_stmt     ::= "import" module ["as" identifier] ("," module ["as" identifier])*
+                       | "from" relative_module "import" identifier ["as" identifier]
+                       ("," identifier ["as" identifier])*
+                       | "from" relative_module "import" "(" identifier ["as" identifier]
+                       ("," identifier ["as" identifier])* [","] ")"
+                       | "from" relative_module "import" "*"
+   module          ::= (identifier ".")* identifier
+   relative_module ::= "."* module | "."+
+
+The basic import statement (no "from" clause) is executed in two
+steps:
+
+1. find a module, loading and initializing it if necessary
+
+2. define a name or names in the local namespace for the scope where
+   the "import" statement occurs.
+
+When the statement contains multiple clauses (separated by commas) the
+two steps are carried out separately for each clause, just as though
+the clauses had been separated out into individual import statements.
+
+The details of the first step, finding and loading modules, are
+described in greater detail in the section on the import system, which
+also describes the various types of packages and modules that can be
+imported, as well as all the hooks that can be used to customize the
+import system. Note that failures in this step may indicate either
+that the module could not be located, *or* that an error occurred
+while initializing the module, which includes execution of the
+module’s code.
+
+If the requested module is retrieved successfully, it will be made
+available in the local namespace in one of three ways:
+
+* If the module name is followed by "as", then the name following "as"
+  is bound directly to the imported module.
+
+* If no other name is specified, and the module being imported is a
+  top level module, the module’s name is bound in the local namespace
+  as a reference to the imported module
+
+* If the module being imported is *not* a top level module, then the
+  name of the top level package that contains the module is bound in
+  the local namespace as a reference to the top level package. The
+  imported module must be accessed using its full qualified name
+  rather than directly
+
+The "from" form uses a slightly more complex process:
+
+1. find the module specified in the "from" clause, loading and
+   initializing it if necessary;
+
+2. for each of the identifiers specified in the "import" clauses:
+
+   1. check if the imported module has an attribute by that name
+
+   2. if not, attempt to import a submodule with that name and then
+      check the imported module again for that attribute
+
+   3. if the attribute is not found, "ImportError" is raised.
+
+   4. otherwise, a reference to that value is stored in the local
+      namespace, using the name in the "as" clause if it is present,
+      otherwise using the attribute name
+
+Examples:
+
+   import foo                 # foo imported and bound locally
+   import foo.bar.baz         # foo, foo.bar, and foo.bar.baz imported, foo bound locally
+   import foo.bar.baz as fbb  # foo, foo.bar, and foo.bar.baz imported, foo.bar.baz bound as fbb
+   from foo.bar import baz    # foo, foo.bar, and foo.bar.baz imported, foo.bar.baz bound as baz
+   from foo import attr       # foo imported and foo.attr bound as attr
+
+If the list of identifiers is replaced by a star ("'*'"), all public
+names defined in the module are bound in the local namespace for the
+scope where the "import" statement occurs.
+
+The *public names* defined by a module are determined by checking the
+module’s namespace for a variable named "__all__"; if defined, it must
+be a sequence of strings which are names defined or imported by that
+module.  The names given in "__all__" are all considered public and
+are required to exist.  If "__all__" is not defined, the set of public
+names includes all names found in the module’s namespace which do not
+begin with an underscore character ("'_'").  "__all__" should contain
+the entire public API. It is intended to avoid accidentally exporting
+items that are not part of the API (such as library modules which were
+imported and used within the module).
+
+The wild card form of import — "from module import *" — is only
+allowed at the module level.  Attempting to use it in class or
+function definitions will raise a "SyntaxError".
+
+When specifying what module to import you do not have to specify the
+absolute name of the module. When a module or package is contained
+within another package it is possible to make a relative import within
+the same top package without having to mention the package name. By
+using leading dots in the specified module or package after "from" you
+can specify how high to traverse up the current package hierarchy
+without specifying exact names. One leading dot means the current
+package where the module making the import exists. Two dots means up
+one package level. Three dots is up two levels, etc. So if you execute
+"from . import mod" from a module in the "pkg" package then you will
+end up importing "pkg.mod". If you execute "from ..subpkg2 import mod"
+from within "pkg.subpkg1" you will import "pkg.subpkg2.mod". The
+specification for relative imports is contained in the Package
+Relative Imports section.
+
+"importlib.import_module()" is provided to support applications that
+determine dynamically the modules to be loaded

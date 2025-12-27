@@ -1,0 +1,2829 @@
+      try:
+            headers = fp.info()
+            if filename:
+                tfp = open(filename, 'wb')
+            else:
+                garbage, path = _splittype(url)
+                garbage, path = _splithost(path or "")
+                path, garbage = _splitquery(path or "")
+                path, garbage = _splitattr(path or "")
+                suffix = os.path.splitext(path)[1]
+                (fd, filename) = tempfile.mkstemp(suffix)
+                self.__tempfiles.append(filename)
+                tfp = os.fdopen(fd, 'wb')
+            try:
+                result = filename, headers
+                if self.tempcache is not None:
+                    self.tempcache[url] = result
+                bs = 1024*8
+                size = -1
+                read = 0
+                blocknum = 0
+                if "content-length" in headers:
+                    size = int(headers["Content-Length"])
+                if reporthook:
+                    reporthook(blocknum, bs, size)
+                while block := fp.read(bs):
+                    read += len(block)
+                    tfp.write(block)
+                    blocknum += 1
+                    if reporthook:
+                        reporthook(blocknum, bs, size)
+            finally:
+                tfp.close()
+        finally:
+            fp.close()
+
+        # raise exception if actual size does not match content-length header
+        if size >= 0 and read < size:
+            raise ContentTooShortError(
+                "retrieval incomplete: got only %i out of %i bytes"
+                % (read, size), result)
+
+        return result
+
+    # Each method named open_<type> knows how to open that type of URL
+
+    def _open_generic_http(self, connection_factory, url, data):
+        """Make an HTTP connection using connection_class.
+
+        This is an internal method that should be called from
+        open_http() or open_https().
+
+        Arguments:
+        - connection_factory should take a host name and return an
+          HTTPConnection instance.
+        - url is the url to retrieval or a host, relative-path pair.
+        - data is payload for a POST request or None.
+        """
+
+        user_passwd = None
+        proxy_passwd= None
+        if isinstance(url, str):
+            host, selector = _splithost(url)
+            if host:
+                user_passwd, host = _splituser(host)
+                host = unquote(host)
+            realhost = host
+        else:
+            host, selector = url
+            # check whether the proxy contains authorization information
+            proxy_passwd, host = _splituser(host)
+            # now we proceed with the url we want to obtain
+            urltype, rest = _splittype(selector)
+            url = rest
+            user_passwd = None
+            if urltype.lower() != 'http':
+                realhost = None
+            else:
+                realhost, rest = _splithost(rest)
+                if realhost:
+                    user_passwd, realhost = _splituser(realhost)
+                if user_passwd:
+                    selector = "%s://%s%s" % (urltype, realhost, rest)
+                if proxy_bypass(realhost):
+                    host = realhost
+
+        if not host: raise OSError('http error', 'no host given')
+
+        if proxy_passwd:
+            proxy_passwd = unquote(proxy_passwd)
+            proxy_auth = base64.b64encode(proxy_passwd.encode()).decode('ascii')
+        else:
+            proxy_auth = None
+
+        if user_passwd:
+            user_passwd = unquote(user_passwd)
+            auth = base64.b64encode(user_passwd.encode()).decode('ascii')
+        else:
+            auth = None
+        http_conn = connection_factory(host)
+        headers = {}
+        if proxy_auth:
+            headers["Proxy-Authorization"] = "Basic %s" % proxy_auth
+        if auth:
+            headers["Authorization"] =  "Basic %s" % auth
+        if realhost:
+            headers["Host"] = realhost
+
+        # Add Connection:close as we don't support persistent connections yet.
+        # This helps in closing the socket and avoiding ResourceWarning
+
+        headers["Connection"] = "close"
+
+        for header, value in self.addheaders:
+            headers[header] = value
+
+        if data is not None:
+            headers["Content-Type"] = "application/x-www-form-urlencoded"
+            http_conn.request("POST", selector, data, headers)
+        else:
+            http_conn.request("GET", selector, headers=headers)
+
+        try:
+            response = http_conn.getresponse()
+        except http.client.BadStatusLine:
+            # something went wrong with the HTTP status line
+            raise URLError("http protocol error: bad status line")
+
+        # According to RFC 2616, "2xx" code indicates that the client's
+        # request was successfully received, understood, and accepted.
+        if 200 <= response.status < 300:
+            return addinfourl(response, response.msg, "http:" + url,
+                              response.status)
+        else:
+            return self.http_error(
+                url, response.fp,
+                response.status, response.reason, response.msg, data)
+
+    def open_http(self, url, data=None):
+        """Use HTTP protocol."""
+        return self._open_generic_http(http.client.HTTPConnection, url, data)
+
+    def http_error(self, url, fp, errcode, errmsg, headers, data=None):
+        """Handle http errors.
+
+        Derived class can override this, or provide specific handlers
+        named http_error_DDD where DDD is the 3-digit error code."""
+        # First check if there's a specific handler for this error
+        name = 'http_error_%d' % errcode
+        if hasattr(self, name):
+            method = getattr(self, name)
+            if data is None:
+                result = method(url, fp, errcode, errmsg, headers)
+            else:
+                result = method(url, fp, errcode, errmsg, headers, data)
+            if result: return result
+        return self.http_error_default(url, fp, errcode, errmsg, headers)
+
+    def http_error_default(self, url, fp, errcode, errmsg, headers):
+        """Default error handler: close the connection and raise OSError."""
+        fp.close()
+        raise HTTPError(url, errcode, errmsg, headers, None)
+
+    if _have_ssl:
+        def _https_connection(self, host):
+            if self.key_file or self.cert_file:
+                http_version = http.client.HTTPSConnection._http_vsn
+                context = http.client._create_https_context(http_version)
+                context.load_cert_chain(self.cert_file, self.key_file)
+                # cert and key file means the user wants to authenticate.
+                # enable TLS 1.3 PHA implicitly even for custom contexts.
+                if context.post_handshake_auth is not None:
+                    context.post_handshake_auth = True
+            else:
+                context = None
+            return http.client.HTTPSConnection(host, context=context)
+
+        def open_https(self, url, data=None):
+            """Use HTTPS protocol."""
+            return self._open_generic_http(self._https_connection, url, data)
+
+    def open_file(self, url):
+        """Use local file or FTP depending on form of URL."""
+        if not isinstance(url, str):
+            raise URLError('file error: proxy support for file protocol currently not implemented')
+        if url[:2] == '//' and url[2:3] != '/' and url[2:12].lower() != 'localhost/':
+            raise ValueError("file:// scheme is supported only on localhost")
+        else:
+            return self.open_local_file(url)
+
+    def open_local_file(self, url):
+        """Use local file."""
+        import email.utils
+        import mimetypes
+        host, file = _splithost(url)
+        localname = url2pathname(file)
+        try:
+            stats = os.stat(localname)
+        except OSError as e:
+            raise URLError(e.strerror, e.filename)
+        size = stats.st_size
+        modified = email.utils.formatdate(stats.st_mtime, usegmt=True)
+        mtype = mimetypes.guess_type(url)[0]
+        headers = email.message_from_string(
+            'Content-Type: %s\nContent-Length: %d\nLast-modified: %s\n' %
+            (mtype or 'text/plain', size, modified))
+        if not host:
+            urlfile = file
+            if file[:1] == '/':
+                urlfile = 'file://' + file
+            return addinfourl(open(localname, 'rb'), headers, urlfile)
+        host, port = _splitport(host)
+        if (not port
+           and socket.gethostbyname(host) in ((localhost(),) + thishost())):
+            urlfile = file
+            if file[:1] == '/':
+                urlfile = 'file://' + file
+            elif file[:2] == './':
+                raise ValueError("local file url may start with / or file:. Unknown url of type: %s" % url)
+            return addinfourl(open(localname, 'rb'), headers, urlfile)
+        raise URLError('local file error: not on local host')
+
+    def open_ftp(self, url):
+        """Use FTP protocol."""
+        if not isinstance(url, str):
+            raise URLError('ftp error: proxy support for ftp protocol currently not implemented')
+        import mimetypes
+        host, path = _splithost(url)
+        if not host: raise URLError('ftp error: no host given')
+        host, port = _splitport(host)
+        user, host = _splituser(host)
+        if user: user, passwd = _splitpasswd(user)
+        else: passwd = None
+        host = unquote(host)
+        user = unquote(user or '')
+        passwd = unquote(passwd or '')
+        host = socket.gethostbyname(host)
+        if not port:
+            import ftplib
+            port = ftplib.FTP_PORT
+        else:
+            port = int(port)
+        path, attrs = _splitattr(path)
+        path = unquote(path)
+        dirs = path.split('/')
+        dirs, file = dirs[:-1], dirs[-1]
+        if dirs and not dirs[0]: dirs = dirs[1:]
+        if dirs and not dirs[0]: dirs[0] = '/'
+        key = user, host, port, '/'.join(dirs)
+        # XXX thread unsafe!
+        if len(self.ftpcache) > MAXFTPCACHE:
+            # Prune the cache, rather arbitrarily
+            for k in list(self.ftpcache):
+                if k != key:
+                    v = self.ftpcache[k]
+                    del self.ftpcache[k]
+                    v.close()
+        try:
+            if key not in self.ftpcache:
+                self.ftpcache[key] = \
+                    ftpwrapper(user, passwd, host, port, dirs)
+            if not file: type = 'D'
+            else: type = 'I'
+            for attr in attrs:
+                attr, value = _splitvalue(attr)
+                if attr.lower() == 'type' and \
+                   value in ('a', 'A', 'i', 'I', 'd', 'D'):
+                    type = value.upper()
+            (fp, retrlen) = self.ftpcache[key].retrfile(file, type)
+            mtype = mimetypes.guess_type("ftp:" + url)[0]
+            headers = ""
+            if mtype:
+                headers += "Content-Type: %s\n" % mtype
+            if retrlen is not None and retrlen >= 0:
+                headers += "Content-Length: %d\n" % retrlen
+            headers = email.message_from_string(headers)
+            return addinfourl(fp, headers, "ftp:" + url)
+        except ftperrors() as exp:
+            raise URLError(f'ftp error: {exp}') from exp
+
+    def open_data(self, url, data=None):
+        """Use "data" URL."""
+        if not isinstance(url, str):
+            raise URLError('data error: proxy support for data protocol currently not implemented')
+        # ignore POSTed data
+        #
+        # syntax of data URLs:
+        # dataurl   := "data:" [ mediatype ] [ ";base64" ] "," data
+        # mediatype := [ type "/" subtype ] *( ";" parameter )
+        # data      := *urlchar
+        # parameter := attribute "=" value
+        try:
+            [type, data] = url.split(',', 1)
+        except ValueError:
+            raise OSError('data error', 'bad data URL')
+        if not type:
+            type = 'text/plain;charset=US-ASCII'
+        semi = type.rfind(';')
+        if semi >= 0 and '=' not in type[semi:]:
+            encoding = type[semi+1:]
+            type = type[:semi]
+        else:
+            encoding = ''
+        msg = []
+        msg.append('Date: %s'%time.strftime('%a, %d %b %Y %H:%M:%S GMT',
+                                            time.gmtime(time.time())))
+        msg.append('Content-type: %s' % type)
+        if encoding == 'base64':
+            # XXX is this encoding/decoding ok?
+            data = base64.decodebytes(data.encode('ascii')).decode('latin-1')
+        else:
+            data = unquote(data)
+        msg.append('Content-Length: %d' % len(data))
+        msg.append('')
+        msg.append(data)
+        msg = '\n'.join(msg)
+        headers = email.message_from_string(msg)
+        f = io.StringIO(msg)
+        #f.fileno = None     # needed for addinfourl
+        return addinfourl(f, headers, url)
+
+
+class FancyURLopener(URLopener):
+    """Derived class with handlers for errors we can handle (perhaps)."""
+
+    def __init__(self, *args, **kwargs):
+        URLopener.__init__(self, *args, **kwargs)
+        self.auth_cache = {}
+        self.tries = 0
+        self.maxtries = 10
+
+    def http_error_default(self, url, fp, errcode, errmsg, headers):
+        """Default error handling -- don't raise an exception."""
+        return addinfourl(fp, headers, "http:" + url, errcode)
+
+    def http_error_302(self, url, fp, errcode, errmsg, headers, data=None):
+        """Error 302 -- relocated (temporarily)."""
+        self.tries += 1
+        try:
+            if self.maxtries and self.tries >= self.maxtries:
+                if hasattr(self, "http_error_500"):
+                    meth = self.http_error_500
+                else:
+                    meth = self.http_error_default
+                return meth(url, fp, 500,
+                            "Internal Server Error: Redirect Recursion",
+                            headers)
+            result = self.redirect_internal(url, fp, errcode, errmsg,
+                                            headers, data)
+            return result
+        finally:
+            self.tries = 0
+
+    def redirect_internal(self, url, fp, errcode, errmsg, headers, data):
+        if 'location' in headers:
+            newurl = headers['location']
+        elif 'uri' in headers:
+            newurl = headers['uri']
+        else:
+            return
+        fp.close()
+
+        # In case the server sent a relative URL, join with original:
+        newurl = urljoin(self.type + ":" + url, newurl)
+
+        urlparts = urlparse(newurl)
+
+        # For security reasons, we don't allow redirection to anything other
+        # than http, https and ftp.
+
+        # We are using newer HTTPError with older redirect_internal method
+        # This older method will get deprecated in 3.3
+
+        if urlparts.scheme not in ('http', 'https', 'ftp', ''):
+            raise HTTPError(newurl, errcode,
+                            errmsg +
+                            " Redirection to url '%s' is not allowed." % newurl,
+                            headers, fp)
+
+        return self.open(newurl)
+
+    def http_error_301(self, url, fp, errcode, errmsg, headers, data=None):
+        """Error 301 -- also relocated (permanently)."""
+        return self.http_error_302(url, fp, errcode, errmsg, headers, data)
+
+    def http_error_303(self, url, fp, errcode, errmsg, headers, data=None):
+        """Error 303 -- also relocated (essentially identical to 302)."""
+        return self.http_error_302(url, fp, errcode, errmsg, headers, data)
+
+    def http_error_307(self, url, fp, errcode, errmsg, headers, data=None):
+        """Error 307 -- relocated, but turn POST into error."""
+        if data is None:
+            return self.http_error_302(url, fp, errcode, errmsg, headers, data)
+        else:
+            return self.http_error_default(url, fp, errcode, errmsg, headers)
+
+    def http_error_308(self, url, fp, errcode, errmsg, headers, data=None):
+        """Error 308 -- relocated, but turn POST into error."""
+        if data is None:
+            return self.http_error_301(url, fp, errcode, errmsg, headers, data)
+        else:
+            return self.http_error_default(url, fp, errcode, errmsg, headers)
+
+    def http_error_401(self, url, fp, errcode, errmsg, headers, data=None,
+            retry=False):
+        """Error 401 -- authentication required.
+        This function supports Basic authentication only."""
+        if 'www-authenticate' not in headers:
+            URLopener.http_error_default(self, url, fp,
+                                         errcode, errmsg, headers)
+        stuff = headers['www-authenticate']
+        match = re.match('[ \t]*([^ \t]+)[ \t]+realm="([^"]*)"', stuff)
+        if not match:
+            URLopener.http_error_default(self, url, fp,
+                                         errcode, errmsg, headers)
+        scheme, realm = match.groups()
+        if scheme.lower() != 'basic':
+            URLopener.http_error_default(self, url, fp,
+                                         errcode, errmsg, headers)
+        if not retry:
+            URLopener.http_error_default(self, url, fp, errcode, errmsg,
+                    headers)
+        name = 'retry_' + self.type + '_basic_auth'
+        if data is None:
+            return getattr(self,name)(url, realm)
+        else:
+            return getattr(self,name)(url, realm, data)
+
+    def http_error_407(self, url, fp, errcode, errmsg, headers, data=None,
+            retry=False):
+        """Error 407 -- proxy authentication required.
+        This function supports Basic authentication only."""
+        if 'proxy-authenticate' not in headers:
+            URLopener.http_error_default(self, url, fp,
+                                         errcode, errmsg, headers)
+        stuff = headers['proxy-authenticate']
+        match = re.match('[ \t]*([^ \t]+)[ \t]+realm="([^"]*)"', stuff)
+        if not match:
+            URLopener.http_error_default(self, url, fp,
+                                         errcode, errmsg, headers)
+        scheme, realm = match.groups()
+        if scheme.lower() != 'basic':
+            URLopener.http_error_default(self, url, fp,
+                                         errcode, errmsg, headers)
+        if not retry:
+            URLopener.http_error_default(self, url, fp, errcode, errmsg,
+                    headers)
+        name = 'retry_proxy_' + self.type + '_basic_auth'
+        if data is None:
+            return getattr(self,name)(url, realm)
+        else:
+            return getattr(self,name)(url, realm, data)
+
+    def retry_proxy_http_basic_auth(self, url, realm, data=None):
+        host, selector = _splithost(url)
+        newurl = 'http://' + host + selector
+        proxy = self.proxies['http']
+        urltype, proxyhost = _splittype(proxy)
+        proxyhost, proxyselector = _splithost(proxyhost)
+        i = proxyhost.find('@') + 1
+        proxyhost = proxyhost[i:]
+        user, passwd = self.get_user_passwd(proxyhost, realm, i)
+        if not (user or passwd): return None
+        proxyhost = "%s:%s@%s" % (quote(user, safe=''),
+                                  quote(passwd, safe=''), proxyhost)
+        self.proxies['http'] = 'http://' + proxyhost + proxyselector
+        if data is None:
+            return self.open(newurl)
+        else:
+            return self.open(newurl, data)
+
+    def retry_proxy_https_basic_auth(self, url, realm, data=None):
+        host, selector = _splithost(url)
+        newurl = 'https://' + host + selector
+        proxy = self.proxies['https']
+        urltype, proxyhost = _splittype(proxy)
+        proxyhost, proxyselector = _splithost(proxyhost)
+        i = proxyhost.find('@') + 1
+        proxyhost = proxyhost[i:]
+        user, passwd = self.get_user_passwd(proxyhost, realm, i)
+        if not (user or passwd): return None
+        proxyhost = "%s:%s@%s" % (quote(user, safe=''),
+                                  quote(passwd, safe=''), proxyhost)
+        self.proxies['https'] = 'https://' + proxyhost + proxyselector
+        if data is None:
+            return self.open(newurl)
+        else:
+            return self.open(newurl, data)
+
+    def retry_http_basic_auth(self, url, realm, data=None):
+        host, selector = _splithost(url)
+        i = host.find('@') + 1
+        host = host[i:]
+        user, passwd = self.get_user_passwd(host, realm, i)
+        if not (user or passwd): return None
+        host = "%s:%s@%s" % (quote(user, safe=''),
+                             quote(passwd, safe=''), host)
+        newurl = 'http://' + host + selector
+        if data is None:
+            return self.open(newurl)
+        else:
+            return self.open(newurl, data)
+
+    def retry_https_basic_auth(self, url, realm, data=None):
+        host, selector = _splithost(url)
+        i = host.find('@') + 1
+        host = host[i:]
+        user, passwd = self.get_user_passwd(host, realm, i)
+        if not (user or passwd): return None
+        host = "%s:%s@%s" % (quote(user, safe=''),
+                             quote(passwd, safe=''), host)
+        newurl = 'https://' + host + selector
+        if data is None:
+            return self.open(newurl)
+        else:
+            return self.open(newurl, data)
+
+    def get_user_passwd(self, host, realm, clear_cache=0):
+        key = realm + '@' + host.lower()
+        if key in self.auth_cache:
+            if clear_cache:
+                del self.auth_cache[key]
+            else:
+                return self.auth_cache[key]
+        user, passwd = self.prompt_user_passwd(host, realm)
+        if user or passwd: self.auth_cache[key] = (user, passwd)
+        return user, passwd
+
+    def prompt_user_passwd(self, host, realm):
+        """Override this in a GUI environment!"""
+        import getpass
+        try:
+            user = input("Enter username for %s at %s: " % (realm, host))
+            passwd = getpass.getpass("Enter password for %s in %s at %s: " %
+                (user, realm, host))
+            return user, passwd
+        except KeyboardInterrupt:
+            print()
+            return None, None
+
+
+# Utility functions
+
+_localhost = None
+def localhost():
+    """Return the IP address of the magic hostname 'localhost'."""
+    global _localhost
+    if _localhost is None:
+        _localhost = socket.gethostbyname('localhost')
+    return _localhost
+
+_thishost = None
+def thishost():
+    """Return the IP addresses of the current host."""
+    global _thishost
+    if _thishost is None:
+        try:
+            _thishost = tuple(socket.gethostbyname_ex(socket.gethostname())[2])
+        except socket.gaierror:
+            _thishost = tuple(socket.gethostbyname_ex('localhost')[2])
+    return _thishost
+
+_ftperrors = None
+def ftperrors():
+    """Return the set of errors raised by the FTP class."""
+    global _ftperrors
+    if _ftperrors is None:
+        import ftplib
+        _ftperrors = ftplib.all_errors
+    return _ftperrors
+
+_noheaders = None
+def noheaders():
+    """Return an empty email Message object."""
+    global _noheaders
+    if _noheaders is None:
+        _noheaders = email.message_from_string("")
+    return _noheaders
+
+
+# Utility classes
+
+class ftpwrapper:
+    """Class used by open_ftp() for cache of open FTP connections."""
+
+    def __init__(self, user, passwd, host, port, dirs, timeout=None,
+                 persistent=True):
+        self.user = user
+        self.passwd = passwd
+        self.host = host
+        self.port = port
+        self.dirs = dirs
+        self.timeout = timeout
+        self.refcount = 0
+        self.keepalive = persistent
+        try:
+            self.init()
+        except:
+            self.close()
+            raise
+
+    def init(self):
+        import ftplib
+        self.busy = 0
+        self.ftp = ftplib.FTP()
+        self.ftp.connect(self.host, self.port, self.timeout)
+        self.ftp.login(self.user, self.passwd)
+        _target = '/'.join(self.dirs)
+        self.ftp.cwd(_target)
+
+    def retrfile(self, file, type):
+        import ftplib
+        self.endtransfer()
+        if type in ('d', 'D'): cmd = 'TYPE A'; isdir = 1
+        else: cmd = 'TYPE ' + type; isdir = 0
+        try:
+            self.ftp.voidcmd(cmd)
+        except ftplib.all_errors:
+            self.init()
+            self.ftp.voidcmd(cmd)
+        conn = None
+        if file and not isdir:
+            # Try to retrieve as a file
+            try:
+                cmd = 'RETR ' + file
+                conn, retrlen = self.ftp.ntransfercmd(cmd)
+            except ftplib.error_perm as reason:
+                if str(reason)[:3] != '550':
+                    raise URLError(f'ftp error: {reason}') from reason
+        if not conn:
+            # Set transfer mode to ASCII!
+            self.ftp.voidcmd('TYPE A')
+            # Try a directory listing. Verify that directory exists.
+            if file:
+                pwd = self.ftp.pwd()
+                try:
+                    try:
+                        self.ftp.cwd(file)
+                    except ftplib.error_perm as reason:
+                        raise URLError('ftp error: %r' % reason) from reason
+                finally:
+                    self.ftp.cwd(pwd)
+                cmd = 'LIST ' + file
+            else:
+                cmd = 'LIST'
+            conn, retrlen = self.ftp.ntransfercmd(cmd)
+        self.busy = 1
+
+        ftpobj = addclosehook(conn.makefile('rb'), self.file_close)
+        self.refcount += 1
+        conn.close()
+        # Pass back both a suitably decorated object and a retrieval length
+        return (ftpobj, retrlen)
+
+    def endtransfer(self):
+        if not self.busy:
+            return
+        self.busy = 0
+        try:
+            self.ftp.voidresp()
+        except ftperrors():
+            pass
+
+    def close(self):
+        self.keepalive = False
+        if self.refcount <= 0:
+            self.real_close()
+
+    def file_close(self):
+        self.endtransfer()
+        self.refcount -= 1
+        if self.refcount <= 0 and not self.keepalive:
+            self.real_close()
+
+    def real_close(self):
+        self.endtransfer()
+        try:
+            self.ftp.close()
+        except ftperrors():
+            pass
+
+# Proxy handling
+def getproxies_environment():
+    """Return a dictionary of scheme -> proxy server URL mappings.
+
+    Scan the environment for variables named <scheme>_proxy;
+    this seems to be the standard convention.  If you need a
+    different way, you can pass a proxies dictionary to the
+    [Fancy]URLopener constructor.
+    """
+    # in order to prefer lowercase variables, process environment in
+    # two passes: first matches any, second pass matches lowercase only
+
+    # select only environment variables which end in (after making lowercase) _proxy
+    proxies = {}
+    environment = []
+    for name in os.environ:
+        # fast screen underscore position before more expensive case-folding
+        if len(name) > 5 and name[-6] == "_" and name[-5:].lower() == "proxy":
+            value = os.environ[name]
+            proxy_name = name[:-6].lower()
+            environment.append((name, value, proxy_name))
+            if value:
+                proxies[proxy_name] = value
+    # CVE-2016-1000110 - If we are running as CGI script, forget HTTP_PROXY
+    # (non-all-lowercase) as it may be set from the web server by a "Proxy:"
+    # header from the client
+    # If "proxy" is lowercase, it will still be used thanks to the next block
+    if 'REQUEST_METHOD' in os.environ:
+        proxies.pop('http', None)
+    for name, value, proxy_name in environment:
+        # not case-folded, checking here for lower-case env vars only
+        if name[-6:] == '_proxy':
+            if value:
+                proxies[proxy_name] = value
+            else:
+                proxies.pop(proxy_name, None)
+    return proxies
+
+def proxy_bypass_environment(host, proxies=None):
+    """Test if proxies should not be used for a particular host.
+
+    Checks the proxy dict for the value of no_proxy, which should
+    be a list of comma separated DNS suffixes, or '*' for all hosts.
+
+    """
+    if proxies is None:
+        proxies = getproxies_environment()
+    # don't bypass, if no_proxy isn't specified
+    try:
+        no_proxy = proxies['no']
+    except KeyError:
+        return False
+    # '*' is special case for always bypass
+    if no_proxy == '*':
+        return True
+    host = host.lower()
+    # strip port off host
+    hostonly, port = _splitport(host)
+    # check if the host ends with any of the DNS suffixes
+    for name in no_proxy.split(','):
+        name = name.strip()
+        if name:
+            name = name.lstrip('.')  # ignore leading dots
+            name = name.lower()
+            if hostonly == name or host == name:
+                return True
+            name = '.' + name
+            if hostonly.endswith(name) or host.endswith(name):
+                return True
+    # otherwise, don't bypass
+    return False
+
+
+# This code tests an OSX specific data structure but is testable on all
+# platforms
+def _proxy_bypass_macosx_sysconf(host, proxy_settings):
+    """
+    Return True iff this host shouldn't be accessed using a proxy
+
+    This function uses the MacOSX framework SystemConfiguration
+    to fetch the proxy information.
+
+    proxy_settings come from _scproxy._get_proxy_settings or get mocked ie:
+    { 'exclude_simple': bool,
+      'exceptions': ['foo.bar', '*.bar.com', '127.0.0.1', '10.1', '10.0/16']
+    }
+    """
+    from fnmatch import fnmatch
+    from ipaddress import AddressValueError, IPv4Address
+
+    hostonly, port = _splitport(host)
+
+    def ip2num(ipAddr):
+        parts = ipAddr.split('.')
+        parts = list(map(int, parts))
+        if len(parts) != 4:
+            parts = (parts + [0, 0, 0, 0])[:4]
+        return (parts[0] << 24) | (parts[1] << 16) | (parts[2] << 8) | parts[3]
+
+    # Check for simple host names:
+    if '.' not in host:
+        if proxy_settings['exclude_simple']:
+            return True
+
+    hostIP = None
+    try:
+        hostIP = int(IPv4Address(hostonly))
+    except AddressValueError:
+        pass
+
+    for value in proxy_settings.get('exceptions', ()):
+        # Items in the list are strings like these: *.local, 169.254/16
+        if not value: continue
+
+        m = re.match(r"(\d+(?:\.\d+)*)(/\d+)?", value)
+        if m is not None and hostIP is not None:
+            base = ip2num(m.group(1))
+            mask = m.group(2)
+            if mask is None:
+                mask = 8 * (m.group(1).count('.') + 1)
+            else:
+                mask = int(mask[1:])
+
+            if mask < 0 or mask > 32:
+                # System libraries ignore invalid prefix lengths
+                continue
+
+            mask = 32 - mask
+
+            if (hostIP >> mask) == (base >> mask):
+                return True
+
+        elif fnmatch(host, value):
+            return True
+
+    return False
+
+
+# Same as _proxy_bypass_macosx_sysconf, testable on all platforms
+def _proxy_bypass_winreg_override(host, override):
+    """Return True if the host should bypass the proxy server.
+
+    The proxy override list is obtained from the Windows
+    Internet settings proxy override registry value.
+
+    An example of a proxy override value is:
+    "www.example.com;*.example.net; 192.168.0.1"
+    """
+    from fnmatch import fnmatch
+
+    host, _ = _splitport(host)
+    proxy_override = override.split(';')
+    for test in proxy_override:
+        test = test.strip()
+        # "<local>" should bypass the proxy server for all intranet addresses
+        if test == '<local>':
+            if '.' not in host:
+                return True
+        elif fnmatch(host, test):
+            return True
+    return False
+
+
+if sys.platform == 'darwin':
+    from _scproxy import _get_proxy_settings, _get_proxies
+
+    def proxy_bypass_macosx_sysconf(host):
+        proxy_settings = _get_proxy_settings()
+        return _proxy_bypass_macosx_sysconf(host, proxy_settings)
+
+    def getproxies_macosx_sysconf():
+        """Return a dictionary of scheme -> proxy server URL mappings.
+
+        This function uses the MacOSX framework SystemConfiguration
+        to fetch the proxy information.
+        """
+        return _get_proxies()
+
+
+
+    def proxy_bypass(host):
+        """Return True, if host should be bypassed.
+
+        Checks proxy settings gathered from the environment, if specified,
+        or from the MacOSX framework SystemConfiguration.
+
+        """
+        proxies = getproxies_environment()
+        if proxies:
+            return proxy_bypass_environment(host, proxies)
+        else:
+            return proxy_bypass_macosx_sysconf(host)
+
+    def getproxies():
+        return getproxies_environment() or getproxies_macosx_sysconf()
+
+
+elif os.name == 'nt':
+    def getproxies_registry():
+        """Return a dictionary of scheme -> proxy server URL mappings.
+
+        Win32 uses the registry to store proxies.
+
+        """
+        proxies = {}
+        try:
+            import winreg
+        except ImportError:
+            # Std module, so should be around - but you never know!
+            return proxies
+        try:
+            internetSettings = winreg.OpenKey(winreg.HKEY_CURRENT_USER,
+                r'Software\Microsoft\Windows\CurrentVersion\Internet Settings')
+            proxyEnable = winreg.QueryValueEx(internetSettings,
+                                               'ProxyEnable')[0]
+            if proxyEnable:
+                # Returned as Unicode but problems if not converted to ASCII
+                proxyServer = str(winreg.QueryValueEx(internetSettings,
+                                                       'ProxyServer')[0])
+                if '=' not in proxyServer and ';' not in proxyServer:
+                    # Use one setting for all protocols.
+                    proxyServer = 'http={0};https={0};ftp={0}'.format(proxyServer)
+                for p in proxyServer.split(';'):
+                    protocol, address = p.split('=', 1)
+                    # See if address has a type:// prefix
+                    if not re.match('(?:[^/:]+)://', address):
+                        # Add type:// prefix to address without specifying type
+                        if protocol in ('http', 'https', 'ftp'):
+                            # The default proxy type of Windows is HTTP
+                            address = 'http://' + address
+                        elif protocol == 'socks':
+                            address = 'socks://' + address
+                    proxies[protocol] = address
+                # Use SOCKS proxy for HTTP(S) protocols
+                if proxies.get('socks'):
+                    # The default SOCKS proxy type of Windows is SOCKS4
+                    address = re.sub(r'^socks://', 'socks4://', proxies['socks'])
+                    proxies['http'] = proxies.get('http') or address
+                    proxies['https'] = proxies.get('https') or address
+            internetSettings.Close()
+        except (OSError, ValueError, TypeError):
+            # Either registry key not found etc, or the value in an
+            # unexpected format.
+            # proxies already set up to be empty so nothing to do
+            pass
+        return proxies
+
+    def getproxies():
+        """Return a dictionary of scheme -> proxy server URL mappings.
+
+        Returns settings gathered from the environment, if specified,
+        or the registry.
+
+        """
+        return getproxies_environment() or getproxies_registry()
+
+    def proxy_bypass_registry(host):
+        try:
+            import winreg
+        except ImportError:
+            # Std modules, so should be around - but you never know!
+            return False
+        try:
+            internetSettings = winreg.OpenKey(winreg.HKEY_CURRENT_USER,
+                r'Software\Microsoft\Windows\CurrentVersion\Internet Settings')
+            proxyEnable = winreg.QueryValueEx(internetSettings,
+                                               'ProxyEnable')[0]
+            proxyOverride = str(winreg.QueryValueEx(internetSettings,
+                                                     'ProxyOverride')[0])
+            # ^^^^ Returned as Unicode but problems if not converted to ASCII
+        except OSError:
+            return False
+        if not proxyEnable or not proxyOverride:
+            return False
+        return _proxy_bypass_winreg_override(host, proxyOverride)
+
+    def proxy_bypass(host):
+        """Return True, if host should be bypassed.
+
+        Checks proxy settings gathered from the environment, if specified,
+        or the registry.
+
+        """
+        proxies = getproxies_environment()
+        if proxies:
+            return proxy_bypass_environment(host, proxies)
+        else:
+            return proxy_bypass_registry(host)
+
+else:
+    # By default use environment variables
+    getproxies = getproxies_environment
+    proxy_bypass = proxy_bypass_environment
+                                                                                                                                            """Response classes used by urllib.
+
+The base class, addbase, defines a minimal file-like interface,
+including read() and readline().  The typical response object is an
+addinfourl instance, which defines an info() method that returns
+headers and a geturl() method that returns the url.
+"""
+
+import tempfile
+
+__all__ = ['addbase', 'addclosehook', 'addinfo', 'addinfourl']
+
+
+class addbase(tempfile._TemporaryFileWrapper):
+    """Base class for addinfo and addclosehook. Is a good idea for garbage collection."""
+
+    # XXX Add a method to expose the timeout on the underlying socket?
+
+    def __init__(self, fp):
+        super(addbase,  self).__init__(fp, '<urllib response>', delete=False)
+        # Keep reference around as this was part of the original API.
+        self.fp = fp
+
+    def __repr__(self):
+        return '<%s at %r whose fp = %r>' % (self.__class__.__name__,
+                                             id(self), self.file)
+
+    def __enter__(self):
+        if self.fp.closed:
+            raise ValueError("I/O operation on closed file")
+        return self
+
+    def __exit__(self, type, value, traceback):
+        self.close()
+
+
+class addclosehook(addbase):
+    """Class to add a close hook to an open file."""
+
+    def __init__(self, fp, closehook, *hookargs):
+        super(addclosehook, self).__init__(fp)
+        self.closehook = closehook
+        self.hookargs = hookargs
+
+    def close(self):
+        try:
+            closehook = self.closehook
+            hookargs = self.hookargs
+            if closehook:
+                self.closehook = None
+                self.hookargs = None
+                closehook(*hookargs)
+        finally:
+            super(addclosehook, self).close()
+
+
+class addinfo(addbase):
+    """class to add an info() method to an open file."""
+
+    def __init__(self, fp, headers):
+        super(addinfo, self).__init__(fp)
+        self.headers = headers
+
+    def info(self):
+        return self.headers
+
+
+class addinfourl(addinfo):
+    """class to add info() and geturl() methods to an open file."""
+
+    def __init__(self, fp, headers, url, code=None):
+        super(addinfourl, self).__init__(fp, headers)
+        self.url = url
+        self.code = code
+
+    @property
+    def status(self):
+        return self.code
+
+    def getcode(self):
+        return self.code
+
+    def geturl(self):
+        return self.url
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       """ robotparser.py
+
+    Copyright (C) 2000  Bastian Kleineidam
+
+    You can choose between two licenses when using this package:
+    1) GNU GPLv2
+    2) PSF license for Python 2.2
+
+    The robots.txt Exclusion Protocol is implemented as specified in
+    http://www.robotstxt.org/norobots-rfc.txt
+"""
+
+import collections
+import urllib.error
+import urllib.parse
+import urllib.request
+
+__all__ = ["RobotFileParser"]
+
+RequestRate = collections.namedtuple("RequestRate", "requests seconds")
+
+
+class RobotFileParser:
+    """ This class provides a set of methods to read, parse and answer
+    questions about a single robots.txt file.
+
+    """
+
+    def __init__(self, url=''):
+        self.entries = []
+        self.sitemaps = []
+        self.default_entry = None
+        self.disallow_all = False
+        self.allow_all = False
+        self.set_url(url)
+        self.last_checked = 0
+
+    def mtime(self):
+        """Returns the time the robots.txt file was last fetched.
+
+        This is useful for long-running web spiders that need to
+        check for new robots.txt files periodically.
+
+        """
+        return self.last_checked
+
+    def modified(self):
+        """Sets the time the robots.txt file was last fetched to the
+        current time.
+
+        """
+        import time
+        self.last_checked = time.time()
+
+    def set_url(self, url):
+        """Sets the URL referring to a robots.txt file."""
+        self.url = url
+        self.host, self.path = urllib.parse.urlparse(url)[1:3]
+
+    def read(self):
+        """Reads the robots.txt URL and feeds it to the parser."""
+        try:
+            f = urllib.request.urlopen(self.url)
+        except urllib.error.HTTPError as err:
+            if err.code in (401, 403):
+                self.disallow_all = True
+            elif err.code >= 400 and err.code < 500:
+                self.allow_all = True
+            err.close()
+        else:
+            raw = f.read()
+            self.parse(raw.decode("utf-8").splitlines())
+
+    def _add_entry(self, entry):
+        if "*" in entry.useragents:
+            # the default entry is considered last
+            if self.default_entry is None:
+                # the first default entry wins
+                self.default_entry = entry
+        else:
+            self.entries.append(entry)
+
+    def parse(self, lines):
+        """Parse the input lines from a robots.txt file.
+
+        We allow that a user-agent: line is not preceded by
+        one or more blank lines.
+        """
+        # states:
+        #   0: start state
+        #   1: saw user-agent line
+        #   2: saw an allow or disallow line
+        state = 0
+        entry = Entry()
+
+        self.modified()
+        for line in lines:
+            if not line:
+                if state == 1:
+                    entry = Entry()
+                    state = 0
+                elif state == 2:
+                    self._add_entry(entry)
+                    entry = Entry()
+                    state = 0
+            # remove optional comment and strip line
+            i = line.find('#')
+            if i >= 0:
+                line = line[:i]
+            line = line.strip()
+            if not line:
+                continue
+            line = line.split(':', 1)
+            if len(line) == 2:
+                line[0] = line[0].strip().lower()
+                line[1] = urllib.parse.unquote(line[1].strip())
+                if line[0] == "user-agent":
+                    if state == 2:
+                        self._add_entry(entry)
+                        entry = Entry()
+                    entry.useragents.append(line[1])
+                    state = 1
+                elif line[0] == "disallow":
+                    if state != 0:
+                        entry.rulelines.append(RuleLine(line[1], False))
+                        state = 2
+                elif line[0] == "allow":
+                    if state != 0:
+                        entry.rulelines.append(RuleLine(line[1], True))
+                        state = 2
+                elif line[0] == "crawl-delay":
+                    if state != 0:
+                        # before trying to convert to int we need to make
+                        # sure that robots.txt has valid syntax otherwise
+                        # it will crash
+                        if line[1].strip().isdigit():
+                            entry.delay = int(line[1])
+                        state = 2
+                elif line[0] == "request-rate":
+                    if state != 0:
+                        numbers = line[1].split('/')
+                        # check if all values are sane
+                        if (len(numbers) == 2 and numbers[0].strip().isdigit()
+                            and numbers[1].strip().isdigit()):
+                            entry.req_rate = RequestRate(int(numbers[0]), int(numbers[1]))
+                        state = 2
+                elif line[0] == "sitemap":
+                    # According to http://www.sitemaps.org/protocol.html
+                    # "This directive is independent of the user-agent line,
+                    #  so it doesn't matter where you place it in your file."
+                    # Therefore we do not change the state of the parser.
+                    self.sitemaps.append(line[1])
+        if state == 2:
+            self._add_entry(entry)
+
+    def can_fetch(self, useragent, url):
+        """using the parsed robots.txt decide if useragent can fetch url"""
+        if self.disallow_all:
+            return False
+        if self.allow_all:
+            return True
+        # Until the robots.txt file has been read or found not
+        # to exist, we must assume that no url is allowable.
+        # This prevents false positives when a user erroneously
+        # calls can_fetch() before calling read().
+        if not self.last_checked:
+            return False
+        # search for given user agent matches
+        # the first match counts
+        parsed_url = urllib.parse.urlparse(urllib.parse.unquote(url))
+        url = urllib.parse.urlunparse(('','',parsed_url.path,
+            parsed_url.params,parsed_url.query, parsed_url.fragment))
+        url = urllib.parse.quote(url)
+        if not url:
+            url = "/"
+        for entry in self.entries:
+            if entry.applies_to(useragent):
+                return entry.allowance(url)
+        # try the default entry last
+        if self.default_entry:
+            return self.default_entry.allowance(url)
+        # agent not found ==> access granted
+        return True
+
+    def crawl_delay(self, useragent):
+        if not self.mtime():
+            return None
+        for entry in self.entries:
+            if entry.applies_to(useragent):
+                return entry.delay
+        if self.default_entry:
+            return self.default_entry.delay
+        return None
+
+    def request_rate(self, useragent):
+        if not self.mtime():
+            return None
+        for entry in self.entries:
+            if entry.applies_to(useragent):
+                return entry.req_rate
+        if self.default_entry:
+            return self.default_entry.req_rate
+        return None
+
+    def site_maps(self):
+        if not self.sitemaps:
+            return None
+        return self.sitemaps
+
+    def __str__(self):
+        entries = self.entries
+        if self.default_entry is not None:
+            entries = entries + [self.default_entry]
+        return '\n\n'.join(map(str, entries))
+
+
+class RuleLine:
+    """A rule line is a single "Allow:" (allowance==True) or "Disallow:"
+       (allowance==False) followed by a path."""
+    def __init__(self, path, allowance):
+        if path == '' and not allowance:
+            # an empty value means allow all
+            allowance = True
+        path = urllib.parse.urlunparse(urllib.parse.urlparse(path))
+        self.path = urllib.parse.quote(path)
+        self.allowance = allowance
+
+    def applies_to(self, filename):
+        return self.path == "*" or filename.startswith(self.path)
+
+    def __str__(self):
+        return ("Allow" if self.allowance else "Disallow") + ": " + self.path
+
+
+class Entry:
+    """An entry has one or more user-agents and zero or more rulelines"""
+    def __init__(self):
+        self.useragents = []
+        self.rulelines = []
+        self.delay = None
+        self.req_rate = None
+
+    def __str__(self):
+        ret = []
+        for agent in self.useragents:
+            ret.append(f"User-agent: {agent}")
+        if self.delay is not None:
+            ret.append(f"Crawl-delay: {self.delay}")
+        if self.req_rate is not None:
+            rate = self.req_rate
+            ret.append(f"Request-rate: {rate.requests}/{rate.seconds}")
+        ret.extend(map(str, self.rulelines))
+        return '\n'.join(ret)
+
+    def applies_to(self, useragent):
+        """check if this entry applies to the specified agent"""
+        # split the name token and make it lower case
+        useragent = useragent.split("/")[0].lower()
+        for agent in self.useragents:
+            if agent == '*':
+                # we have the catch-all agent
+                return True
+            agent = agent.lower()
+            if agent in useragent:
+                return True
+        return False
+
+    def allowance(self, filename):
+        """Preconditions:
+        - our agent applies to this entry
+        - filename is URL decoded"""
+        for line in self.rulelines:
+            if line.applies_to(filename):
+                return line.allowance
+        return True
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    r"""UUID objects (universally unique identifiers) according to RFC 4122.
+
+This module provides immutable UUID objects (class UUID) and the functions
+uuid1(), uuid3(), uuid4(), uuid5() for generating version 1, 3, 4, and 5
+UUIDs as specified in RFC 4122.
+
+If all you want is a unique ID, you should probably call uuid1() or uuid4().
+Note that uuid1() may compromise privacy since it creates a UUID containing
+the computer's network address.  uuid4() creates a random UUID.
+
+Typical usage:
+
+    >>> import uuid
+
+    # make a UUID based on the host ID and current time
+    >>> uuid.uuid1()    # doctest: +SKIP
+    UUID('a8098c1a-f86e-11da-bd1a-00112444be1e')
+
+    # make a UUID using an MD5 hash of a namespace UUID and a name
+    >>> uuid.uuid3(uuid.NAMESPACE_DNS, 'python.org')
+    UUID('6fa459ea-ee8a-3ca4-894e-db77e160355e')
+
+    # make a random UUID
+    >>> uuid.uuid4()    # doctest: +SKIP
+    UUID('16fd2706-8baf-433b-82eb-8c7fada847da')
+
+    # make a UUID using a SHA-1 hash of a namespace UUID and a name
+    >>> uuid.uuid5(uuid.NAMESPACE_DNS, 'python.org')
+    UUID('886313e1-3b8a-5372-9b90-0c9aee199e5d')
+
+    # make a UUID from a string of hex digits (braces and hyphens ignored)
+    >>> x = uuid.UUID('{00010203-0405-0607-0809-0a0b0c0d0e0f}')
+
+    # convert a UUID to a string of hex digits in standard form
+    >>> str(x)
+    '00010203-0405-0607-0809-0a0b0c0d0e0f'
+
+    # get the raw 16 bytes of the UUID
+    >>> x.bytes
+    b'\x00\x01\x02\x03\x04\x05\x06\x07\x08\t\n\x0b\x0c\r\x0e\x0f'
+
+    # make a UUID from a 16-byte string
+    >>> uuid.UUID(bytes=x.bytes)
+    UUID('00010203-0405-0607-0809-0a0b0c0d0e0f')
+"""
+
+import os
+import sys
+
+from enum import Enum, _simple_enum
+
+
+__author__ = 'Ka-Ping Yee <ping@zesty.ca>'
+
+# The recognized platforms - known behaviors
+if sys.platform in {'win32', 'darwin', 'emscripten', 'wasi'}:
+    _AIX = _LINUX = False
+elif sys.platform == 'linux':
+    _LINUX = True
+    _AIX = False
+else:
+    import platform
+    _platform_system = platform.system()
+    _AIX     = _platform_system == 'AIX'
+    _LINUX   = _platform_system in ('Linux', 'Android')
+
+_MAC_DELIM = b':'
+_MAC_OMITS_LEADING_ZEROES = False
+if _AIX:
+    _MAC_DELIM = b'.'
+    _MAC_OMITS_LEADING_ZEROES = True
+
+RESERVED_NCS, RFC_4122, RESERVED_MICROSOFT, RESERVED_FUTURE = [
+    'reserved for NCS compatibility', 'specified in RFC 4122',
+    'reserved for Microsoft compatibility', 'reserved for future definition']
+
+int_ = int      # The built-in int type
+bytes_ = bytes  # The built-in bytes type
+
+
+@_simple_enum(Enum)
+class SafeUUID:
+    safe = 0
+    unsafe = -1
+    unknown = None
+
+
+class UUID:
+    """Instances of the UUID class represent UUIDs as specified in RFC 4122.
+    UUID objects are immutable, hashable, and usable as dictionary keys.
+    Converting a UUID to a string with str() yields something in the form
+    '12345678-1234-1234-1234-123456789abc'.  The UUID constructor accepts
+    five possible forms: a similar string of hexadecimal digits, or a tuple
+    of six integer fields (with 32-bit, 16-bit, 16-bit, 8-bit, 8-bit, and
+    48-bit values respectively) as an argument named 'fields', or a string
+    of 16 bytes (with all the integer fields in big-endian order) as an
+    argument named 'bytes', or a string of 16 bytes (with the first three
+    fields in little-endian order) as an argument named 'bytes_le', or a
+    single 128-bit integer as an argument named 'int'.
+
+    UUIDs have these read-only attributes:
+
+        bytes       the UUID as a 16-byte string (containing the six
+                    integer fields in big-endian byte order)
+
+        bytes_le    the UUID as a 16-byte string (with time_low, time_mid,
+                    and time_hi_version in little-endian byte order)
+
+        fields      a tuple of the six integer fields of the UUID,
+                    which are also available as six individual attributes
+                    and two derived attributes:
+
+            time_low                the first 32 bits of the UUID
+            time_mid                the next 16 bits of the UUID
+            time_hi_version         the next 16 bits of the UUID
+            clock_seq_hi_variant    the next 8 bits of the UUID
+            clock_seq_low           the next 8 bits of the UUID
+            node                    the last 48 bits of the UUID
+
+            time                    the 60-bit timestamp
+            clock_seq               the 14-bit sequence number
+
+        hex         the UUID as a 32-character hexadecimal string
+
+        int         the UUID as a 128-bit integer
+
+        urn         the UUID as a URN as specified in RFC 4122
+
+        variant     the UUID variant (one of the constants RESERVED_NCS,
+                    RFC_4122, RESERVED_MICROSOFT, or RESERVED_FUTURE)
+
+        version     the UUID version number (1 through 5, meaningful only
+                    when the variant is RFC_4122)
+
+        is_safe     An enum indicating whether the UUID has been generated in
+                    a way that is safe for multiprocessing applications, via
+                    uuid_generate_time_safe(3).
+    """
+
+    __slots__ = ('int', 'is_safe', '__weakref__')
+
+    def __init__(self, hex=None, bytes=None, bytes_le=None, fields=None,
+                       int=None, version=None,
+                       *, is_safe=SafeUUID.unknown):
+        r"""Create a UUID from either a string of 32 hexadecimal digits,
+        a string of 16 bytes as the 'bytes' argument, a string of 16 bytes
+        in little-endian order as the 'bytes_le' argument, a tuple of six
+        integers (32-bit time_low, 16-bit time_mid, 16-bit time_hi_version,
+        8-bit clock_seq_hi_variant, 8-bit clock_seq_low, 48-bit node) as
+        the 'fields' argument, or a single 128-bit integer as the 'int'
+        argument.  When a string of hex digits is given, curly braces,
+        hyphens, and a URN prefix are all optional.  For example, these
+        expressions all yield the same UUID:
+
+        UUID('{12345678-1234-5678-1234-567812345678}')
+        UUID('12345678123456781234567812345678')
+        UUID('urn:uuid:12345678-1234-5678-1234-567812345678')
+        UUID(bytes='\x12\x34\x56\x78'*4)
+        UUID(bytes_le='\x78\x56\x34\x12\x34\x12\x78\x56' +
+                      '\x12\x34\x56\x78\x12\x34\x56\x78')
+        UUID(fields=(0x12345678, 0x1234, 0x5678, 0x12, 0x34, 0x567812345678))
+        UUID(int=0x12345678123456781234567812345678)
+
+        Exactly one of 'hex', 'bytes', 'bytes_le', 'fields', or 'int' must
+        be given.  The 'version' argument is optional; if given, the resulting
+        UUID will have its variant and version set according to RFC 4122,
+        overriding the given 'hex', 'bytes', 'bytes_le', 'fields', or 'int'.
+
+        is_safe is an enum exposed as an attribute on the instance.  It
+        indicates whether the UUID has been generated in a way that is safe
+        for multiprocessing applications, via uuid_generate_time_safe(3).
+        """
+
+        if [hex, bytes, bytes_le, fields, int].count(None) != 4:
+            raise TypeError('one of the hex, bytes, bytes_le, fields, '
+                            'or int arguments must be given')
+        if hex is not None:
+            hex = hex.replace('urn:', '').replace('uuid:', '')
+            hex = hex.strip('{}').replace('-', '')
+            if len(hex) != 32:
+                raise ValueError('badly formed hexadecimal UUID string')
+            int = int_(hex, 16)
+        if bytes_le is not None:
+            if len(bytes_le) != 16:
+                raise ValueError('bytes_le is not a 16-char string')
+            bytes = (bytes_le[4-1::-1] + bytes_le[6-1:4-1:-1] +
+                     bytes_le[8-1:6-1:-1] + bytes_le[8:])
+        if bytes is not None:
+            if len(bytes) != 16:
+                raise ValueError('bytes is not a 16-char string')
+            assert isinstance(bytes, bytes_), repr(bytes)
+            int = int_.from_bytes(bytes)  # big endian
+        if fields is not None:
+            if len(fields) != 6:
+                raise ValueError('fields is not a 6-tuple')
+            (time_low, time_mid, time_hi_version,
+             clock_seq_hi_variant, clock_seq_low, node) = fields
+            if not 0 <= time_low < 1<<32:
+                raise ValueError('field 1 out of range (need a 32-bit value)')
+            if not 0 <= time_mid < 1<<16:
+                raise ValueError('field 2 out of range (need a 16-bit value)')
+            if not 0 <= time_hi_version < 1<<16:
+                raise ValueError('field 3 out of range (need a 16-bit value)')
+            if not 0 <= clock_seq_hi_variant < 1<<8:
+                raise ValueError('field 4 out of range (need an 8-bit value)')
+            if not 0 <= clock_seq_low < 1<<8:
+                raise ValueError('field 5 out of range (need an 8-bit value)')
+            if not 0 <= node < 1<<48:
+                raise ValueError('field 6 out of range (need a 48-bit value)')
+            clock_seq = (clock_seq_hi_variant << 8) | clock_seq_low
+            int = ((time_low << 96) | (time_mid << 80) |
+                   (time_hi_version << 64) | (clock_seq << 48) | node)
+        if int is not None:
+            if not 0 <= int < 1<<128:
+                raise ValueError('int is out of range (need a 128-bit value)')
+        if version is not None:
+            if not 1 <= version <= 5:
+                raise ValueError('illegal version number')
+            # Set the variant to RFC 4122.
+            int &= ~(0xc000 << 48)
+            int |= 0x8000 << 48
+            # Set the version number.
+            int &= ~(0xf000 << 64)
+            int |= version << 76
+        object.__setattr__(self, 'int', int)
+        object.__setattr__(self, 'is_safe', is_safe)
+
+    def __getstate__(self):
+        d = {'int': self.int}
+        if self.is_safe != SafeUUID.unknown:
+            # is_safe is a SafeUUID instance.  Return just its value, so that
+            # it can be un-pickled in older Python versions without SafeUUID.
+            d['is_safe'] = self.is_safe.value
+        return d
+
+    def __setstate__(self, state):
+        object.__setattr__(self, 'int', state['int'])
+        # is_safe was added in 3.7; it is also omitted when it is "unknown"
+        object.__setattr__(self, 'is_safe',
+                           SafeUUID(state['is_safe'])
+                           if 'is_safe' in state else SafeUUID.unknown)
+
+    def __eq__(self, other):
+        if isinstance(other, UUID):
+            return self.int == other.int
+        return NotImplemented
+
+    # Q. What's the value of being able to sort UUIDs?
+    # A. Use them as keys in a B-Tree or similar mapping.
+
+    def __lt__(self, other):
+        if isinstance(other, UUID):
+            return self.int < other.int
+        return NotImplemented
+
+    def __gt__(self, other):
+        if isinstance(other, UUID):
+            return self.int > other.int
+        return NotImplemented
+
+    def __le__(self, other):
+        if isinstance(other, UUID):
+            return self.int <= other.int
+        return NotImplemented
+
+    def __ge__(self, other):
+        if isinstance(other, UUID):
+            return self.int >= other.int
+        return NotImplemented
+
+    def __hash__(self):
+        return hash(self.int)
+
+    def __int__(self):
+        return self.int
+
+    def __repr__(self):
+        return '%s(%r)' % (self.__class__.__name__, str(self))
+
+    def __setattr__(self, name, value):
+        raise TypeError('UUID objects are immutable')
+
+    def __str__(self):
+        hex = '%032x' % self.int
+        return '%s-%s-%s-%s-%s' % (
+            hex[:8], hex[8:12], hex[12:16], hex[16:20], hex[20:])
+
+    @property
+    def bytes(self):
+        return self.int.to_bytes(16)  # big endian
+
+    @property
+    def bytes_le(self):
+        bytes = self.bytes
+        return (bytes[4-1::-1] + bytes[6-1:4-1:-1] + bytes[8-1:6-1:-1] +
+                bytes[8:])
+
+    @property
+    def fields(self):
+        return (self.time_low, self.time_mid, self.time_hi_version,
+                self.clock_seq_hi_variant, self.clock_seq_low, self.node)
+
+    @property
+    def time_low(self):
+        return self.int >> 96
+
+    @property
+    def time_mid(self):
+        return (self.int >> 80) & 0xffff
+
+    @property
+    def time_hi_version(self):
+        return (self.int >> 64) & 0xffff
+
+    @property
+    def clock_seq_hi_variant(self):
+        return (self.int >> 56) & 0xff
+
+    @property
+    def clock_seq_low(self):
+        return (self.int >> 48) & 0xff
+
+    @property
+    def time(self):
+        return (((self.time_hi_version & 0x0fff) << 48) |
+                (self.time_mid << 32) | self.time_low)
+
+    @property
+    def clock_seq(self):
+        return (((self.clock_seq_hi_variant & 0x3f) << 8) |
+                self.clock_seq_low)
+
+    @property
+    def node(self):
+        return self.int & 0xffffffffffff
+
+    @property
+    def hex(self):
+        return '%032x' % self.int
+
+    @property
+    def urn(self):
+        return 'urn:uuid:' + str(self)
+
+    @property
+    def variant(self):
+        if not self.int & (0x8000 << 48):
+            return RESERVED_NCS
+        elif not self.int & (0x4000 << 48):
+            return RFC_4122
+        elif not self.int & (0x2000 << 48):
+            return RESERVED_MICROSOFT
+        else:
+            return RESERVED_FUTURE
+
+    @property
+    def version(self):
+        # The version bits are only meaningful for RFC 4122 UUIDs.
+        if self.variant == RFC_4122:
+            return int((self.int >> 76) & 0xf)
+
+
+def _get_command_stdout(command, *args):
+    import io, os, shutil, subprocess
+
+    try:
+        path_dirs = os.environ.get('PATH', os.defpath).split(os.pathsep)
+        path_dirs.extend(['/sbin', '/usr/sbin'])
+        executable = shutil.which(command, path=os.pathsep.join(path_dirs))
+        if executable is None:
+            return None
+        # LC_ALL=C to ensure English output, stderr=DEVNULL to prevent output
+        # on stderr (Note: we don't have an example where the words we search
+        # for are actually localized, but in theory some system could do so.)
+        env = dict(os.environ)
+        env['LC_ALL'] = 'C'
+        # Empty strings will be quoted by popen so we should just ommit it
+        if args != ('',):
+            command = (executable, *args)
+        else:
+            command = (executable,)
+        proc = subprocess.Popen(command,
+                                stdout=subprocess.PIPE,
+                                stderr=subprocess.DEVNULL,
+                                env=env)
+        if not proc:
+            return None
+        stdout, stderr = proc.communicate()
+        return io.BytesIO(stdout)
+    except (OSError, subprocess.SubprocessError):
+        return None
+
+
+# For MAC (a.k.a. IEEE 802, or EUI-48) addresses, the second least significant
+# bit of the first octet signifies whether the MAC address is universally (0)
+# or locally (1) administered.  Network cards from hardware manufacturers will
+# always be universally administered to guarantee global uniqueness of the MAC
+# address, but any particular machine may have other interfaces which are
+# locally administered.  An example of the latter is the bridge interface to
+# the Touch Bar on MacBook Pros.
+#
+# This bit works out to be the 42nd bit counting from 1 being the least
+# significant, or 1<<41.  We'll prefer universally administered MAC addresses
+# over locally administered ones since the former are globally unique, but
+# we'll return the first of the latter found if that's all the machine has.
+#
+# See https://en.wikipedia.org/wiki/MAC_address#Universal_vs._local_(U/L_bit)
+
+def _is_universal(mac):
+    return not (mac & (1 << 41))
+
+
+def _find_mac_near_keyword(command, args, keywords, get_word_index):
+    """Searches a command's output for a MAC address near a keyword.
+
+    Each line of words in the output is case-insensitively searched for
+    any of the given keywords.  Upon a match, get_word_index is invoked
+    to pick a word from the line, given the index of the match.  For
+    example, lambda i: 0 would get the first word on the line, while
+    lambda i: i - 1 would get the word preceding the keyword.
+    """
+    stdout = _get_command_stdout(command, args)
+    if stdout is None:
+        return None
+
+    first_local_mac = None
+    for line in stdout:
+        words = line.lower().rstrip().split()
+        for i in range(len(words)):
+            if words[i] in keywords:
+                try:
+                    word = words[get_word_index(i)]
+                    mac = int(word.replace(_MAC_DELIM, b''), 16)
+                except (ValueError, IndexError):
+                    # Virtual interfaces, such as those provided by
+                    # VPNs, do not have a colon-delimited MAC address
+                    # as expected, but a 16-byte HWAddr separated by
+                    # dashes. These should be ignored in favor of a
+                    # real MAC address
+                    pass
+                else:
+                    if _is_universal(mac):
+                        return mac
+                    first_local_mac = first_local_mac or mac
+    return first_local_mac or None
+
+
+def _parse_mac(word):
+    # Accept 'HH:HH:HH:HH:HH:HH' MAC address (ex: '52:54:00:9d:0e:67'),
+    # but reject IPv6 address (ex: 'fe80::5054:ff:fe9' or '123:2:3:4:5:6:7:8').
+    #
+    # Virtual interfaces, such as those provided by VPNs, do not have a
+    # colon-delimited MAC address as expected, but a 16-byte HWAddr separated
+    # by dashes. These should be ignored in favor of a real MAC address
+    parts = word.split(_MAC_DELIM)
+    if len(parts) != 6:
+        return
+    if _MAC_OMITS_LEADING_ZEROES:
+        # (Only) on AIX the macaddr value given is not prefixed by 0, e.g.
+        # en0   1500  link#2      fa.bc.de.f7.62.4 110854824     0 160133733     0     0
+        # not
+        # en0   1500  link#2      fa.bc.de.f7.62.04 110854824     0 160133733     0     0
+        if not all(1 <= len(part) <= 2 for part in parts):
+            return
+        hexstr = b''.join(part.rjust(2, b'0') for part in parts)
+    else:
+        if not all(len(part) == 2 for part in parts):
+            return
+        hexstr = b''.join(parts)
+    try:
+        return int(hexstr, 16)
+    except ValueError:
+        return
+
+
+def _find_mac_under_heading(command, args, heading):
+    """Looks for a MAC address under a heading in a command's output.
+
+    The first line of words in the output is searched for the given
+    heading. Words at the same word index as the heading in subsequent
+    lines are then examined to see if they look like MAC addresses.
+    """
+    stdout = _get_command_stdout(command, args)
+    if stdout is None:
+        return None
+
+    keywords = stdout.readline().rstrip().split()
+    try:
+        column_index = keywords.index(heading)
+    except ValueError:
+        return None
+
+    first_local_mac = None
+    for line in stdout:
+        words = line.rstrip().split()
+        try:
+            word = words[column_index]
+        except IndexError:
+            continue
+
+        mac = _parse_mac(word)
+        if mac is None:
+            continue
+        if _is_universal(mac):
+            return mac
+        if first_local_mac is None:
+            first_local_mac = mac
+
+    return first_local_mac
+
+
+# The following functions call external programs to 'get' a macaddr value to
+# be used as basis for an uuid
+def _ifconfig_getnode():
+    """Get the hardware address on Unix by running ifconfig."""
+    # This works on Linux ('' or '-a'), Tru64 ('-av'), but not all Unixes.
+    keywords = (b'hwaddr', b'ether', b'address:', b'lladdr')
+    for args in ('', '-a', '-av'):
+        mac = _find_mac_near_keyword('ifconfig', args, keywords, lambda i: i+1)
+        if mac:
+            return mac
+    return None
+
+def _ip_getnode():
+    """Get the hardware address on Unix by running ip."""
+    # This works on Linux with iproute2.
+    mac = _find_mac_near_keyword('ip', 'link', [b'link/ether'], lambda i: i+1)
+    if mac:
+        return mac
+    return None
+
+def _arp_getnode():
+    """Get the hardware address on Unix by running arp."""
+    import os, socket
+    if not hasattr(socket, "gethostbyname"):
+        return None
+    try:
+        ip_addr = socket.gethostbyname(socket.gethostname())
+    except OSError:
+        return None
+
+    # Try getting the MAC addr from arp based on our IP address (Solaris).
+    mac = _find_mac_near_keyword('arp', '-an', [os.fsencode(ip_addr)], lambda i: -1)
+    if mac:
+        return mac
+
+    # This works on OpenBSD
+    mac = _find_mac_near_keyword('arp', '-an', [os.fsencode(ip_addr)], lambda i: i+1)
+    if mac:
+        return mac
+
+    # This works on Linux, FreeBSD and NetBSD
+    mac = _find_mac_near_keyword('arp', '-an', [os.fsencode('(%s)' % ip_addr)],
+                    lambda i: i+2)
+    # Return None instead of 0.
+    if mac:
+        return mac
+    return None
+
+def _lanscan_getnode():
+    """Get the hardware address on Unix by running lanscan."""
+    # This might work on HP-UX.
+    return _find_mac_near_keyword('lanscan', '-ai', [b'lan0'], lambda i: 0)
+
+def _netstat_getnode():
+    """Get the hardware address on Unix by running netstat."""
+    # This works on AIX and might work on Tru64 UNIX.
+    return _find_mac_under_heading('netstat', '-ian', b'Address')
+
+
+# Import optional C extension at toplevel, to help disabling it when testing
+try:
+    import _uuid
+    _generate_time_safe = getattr(_uuid, "generate_time_safe", None)
+    _UuidCreate = getattr(_uuid, "UuidCreate", None)
+except ImportError:
+    _uuid = None
+    _generate_time_safe = None
+    _UuidCreate = None
+
+
+def _unix_getnode():
+    """Get the hardware address on Unix using the _uuid extension module."""
+    if _generate_time_safe:
+        uuid_time, _ = _generate_time_safe()
+        return UUID(bytes=uuid_time).node
+
+def _windll_getnode():
+    """Get the hardware address on Windows using the _uuid extension module."""
+    if _UuidCreate:
+        uuid_bytes = _UuidCreate()
+        return UUID(bytes_le=uuid_bytes).node
+
+def _random_getnode():
+    """Get a random node ID."""
+    # RFC 4122, $4.1.6 says "For systems with no IEEE address, a randomly or
+    # pseudo-randomly generated value may be used; see Section 4.5.  The
+    # multicast bit must be set in such addresses, in order that they will
+    # never conflict with addresses obtained from network cards."
+    #
+    # The "multicast bit" of a MAC address is defined to be "the least
+    # significant bit of the first octet".  This works out to be the 41st bit
+    # counting from 1 being the least significant bit, or 1<<40.
+    #
+    # See https://en.wikipedia.org/w/index.php?title=MAC_address&oldid=1128764812#Universal_vs._local_(U/L_bit)
+    import random
+    return random.getrandbits(48) | (1 << 40)
+
+
+# _OS_GETTERS, when known, are targeted for a specific OS or platform.
+# The order is by 'common practice' on the specified platform.
+# Note: 'posix' and 'windows' _OS_GETTERS are prefixed by a dll/dlload() method
+# which, when successful, means none of these "external" methods are called.
+# _GETTERS is (also) used by test_uuid.py to SkipUnless(), e.g.,
+#     @unittest.skipUnless(_uuid._ifconfig_getnode in _uuid._GETTERS, ...)
+if _LINUX:
+    _OS_GETTERS = [_ip_getnode, _ifconfig_getnode]
+elif sys.platform == 'darwin':
+    _OS_GETTERS = [_ifconfig_getnode, _arp_getnode, _netstat_getnode]
+elif sys.platform == 'win32':
+    # bpo-40201: _windll_getnode will always succeed, so these are not needed
+    _OS_GETTERS = []
+elif _AIX:
+    _OS_GETTERS = [_netstat_getnode]
+else:
+    _OS_GETTERS = [_ifconfig_getnode, _ip_getnode, _arp_getnode,
+                   _netstat_getnode, _lanscan_getnode]
+if os.name == 'posix':
+    _GETTERS = [_unix_getnode] + _OS_GETTERS
+elif os.name == 'nt':
+    _GETTERS = [_windll_getnode] + _OS_GETTERS
+else:
+    _GETTERS = _OS_GETTERS
+
+_node = None
+
+def getnode():
+    """Get the hardware address as a 48-bit positive integer.
+
+    The first time this runs, it may launch a separate program, which could
+    be quite slow.  If all attempts to obtain the hardware address fail, we
+    choose a random 48-bit number with its eighth bit set to 1 as recommended
+    in RFC 4122.
+    """
+    global _node
+    if _node is not None:
+        return _node
+
+    for getter in _GETTERS + [_random_getnode]:
+        try:
+            _node = getter()
+        except:
+            continue
+        if (_node is not None) and (0 <= _node < (1 << 48)):
+            return _node
+    assert False, '_random_getnode() returned invalid value: {}'.format(_node)
+
+
+_last_timestamp = None
+
+def uuid1(node=None, clock_seq=None):
+    """Generate a UUID from a host ID, sequence number, and the current time.
+    If 'node' is not given, getnode() is used to obtain the hardware
+    address.  If 'clock_seq' is given, it is used as the sequence number;
+    otherwise a random 14-bit sequence number is chosen."""
+
+    # When the system provides a version-1 UUID generator, use it (but don't
+    # use UuidCreate here because its UUIDs don't conform to RFC 4122).
+    if _generate_time_safe is not None and node is clock_seq is None:
+        uuid_time, safely_generated = _generate_time_safe()
+        try:
+            is_safe = SafeUUID(safely_generated)
+        except ValueError:
+            is_safe = SafeUUID.unknown
+        return UUID(bytes=uuid_time, is_safe=is_safe)
+
+    global _last_timestamp
+    import time
+    nanoseconds = time.time_ns()
+    # 0x01b21dd213814000 is the number of 100-ns intervals between the
+    # UUID epoch 1582-10-15 00:00:00 and the Unix epoch 1970-01-01 00:00:00.
+    timestamp = nanoseconds // 100 + 0x01b21dd213814000
+    if _last_timestamp is not None and timestamp <= _last_timestamp:
+        timestamp = _last_timestamp + 1
+    _last_timestamp = timestamp
+    if clock_seq is None:
+        import random
+        clock_seq = random.getrandbits(14) # instead of stable storage
+    time_low = timestamp & 0xffffffff
+    time_mid = (timestamp >> 32) & 0xffff
+    time_hi_version = (timestamp >> 48) & 0x0fff
+    clock_seq_low = clock_seq & 0xff
+    clock_seq_hi_variant = (clock_seq >> 8) & 0x3f
+    if node is None:
+        node = getnode()
+    return UUID(fields=(time_low, time_mid, time_hi_version,
+                        clock_seq_hi_variant, clock_seq_low, node), version=1)
+
+def uuid3(namespace, name):
+    """Generate a UUID from the MD5 hash of a namespace UUID and a name."""
+    if isinstance(name, str):
+        name = bytes(name, "utf-8")
+    from hashlib import md5
+    digest = md5(
+        namespace.bytes + name,
+        usedforsecurity=False
+    ).digest()
+    return UUID(bytes=digest[:16], version=3)
+
+def uuid4():
+    """Generate a random UUID."""
+    return UUID(bytes=os.urandom(16), version=4)
+
+def uuid5(namespace, name):
+    """Generate a UUID from the SHA-1 hash of a namespace UUID and a name."""
+    if isinstance(name, str):
+        name = bytes(name, "utf-8")
+    from hashlib import sha1
+    hash = sha1(namespace.bytes + name).digest()
+    return UUID(bytes=hash[:16], version=5)
+
+
+def main():
+    """Run the uuid command line interface."""
+    uuid_funcs = {
+        "uuid1": uuid1,
+        "uuid3": uuid3,
+        "uuid4": uuid4,
+        "uuid5": uuid5
+    }
+    uuid_namespace_funcs = ("uuid3", "uuid5")
+    namespaces = {
+        "@dns": NAMESPACE_DNS,
+        "@url": NAMESPACE_URL,
+        "@oid": NAMESPACE_OID,
+        "@x500": NAMESPACE_X500
+    }
+
+    import argparse
+    parser = argparse.ArgumentParser(
+        description="Generates a uuid using the selected uuid function.")
+    parser.add_argument("-u", "--uuid", choices=uuid_funcs.keys(), default="uuid4",
+                        help="The function to use to generate the uuid. "
+                        "By default uuid4 function is used.")
+    parser.add_argument("-n", "--namespace",
+                        help="The namespace is a UUID, or '@ns' where 'ns' is a "
+                        "well-known predefined UUID addressed by namespace name. "
+                        "Such as @dns, @url, @oid, and @x500. "
+                        "Only required for uuid3/uuid5 functions.")
+    parser.add_argument("-N", "--name",
+                        help="The name used as part of generating the uuid. "
+                        "Only required for uuid3/uuid5 functions.")
+
+    args = parser.parse_args()
+    uuid_func = uuid_funcs[args.uuid]
+    namespace = args.namespace
+    name = args.name
+
+    if args.uuid in uuid_namespace_funcs:
+        if not namespace or not name:
+            parser.error(
+                "Incorrect number of arguments. "
+                f"{args.uuid} requires a namespace and a name. "
+                "Run 'python -m uuid -h' for more information."
+            )
+        namespace = namespaces[namespace] if namespace in namespaces else UUID(namespace)
+        print(uuid_func(namespace, name))
+    else:
+        print(uuid_func())
+
+
+# The following standard UUIDs are for use with uuid3() or uuid5().
+
+NAMESPACE_DNS = UUID('6ba7b810-9dad-11d1-80b4-00c04fd430c8')
+NAMESPACE_URL = UUID('6ba7b811-9dad-11d1-80b4-00c04fd430c8')
+NAMESPACE_OID = UUID('6ba7b812-9dad-11d1-80b4-00c04fd430c8')
+NAMESPACE_X500 = UUID('6ba7b814-9dad-11d1-80b4-00c04fd430c8')
+
+if __name__ == "__main__":
+    main()
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           À   .   ˙   ..  Ã   __init__.py Õ   __main__.py Œ   __pycache__ —  ¨scripts                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             """
+Virtual environment (venv) package for Python. Based on PEP 405.
+
+Copyright (C) 2011-2014 Vinay Sajip.
+Licensed to the PSF under a contributor agreement.
+"""
+import logging
+import os
+import shutil
+import subprocess
+import sys
+import sysconfig
+import types
+import shlex
+
+
+CORE_VENV_DEPS = ('pip',)
+logger = logging.getLogger(__name__)
+
+
+class EnvBuilder:
+    """
+    This class exists to allow virtual environment creation to be
+    customized. The constructor parameters determine the builder's
+    behaviour when called upon to create a virtual environment.
+
+    By default, the builder makes the system (global) site-packages dir
+    *un*available to the created environment.
+
+    If invoked using the Python -m option, the default is to use copying
+    on Windows platforms but symlinks elsewhere. If instantiated some
+    other way, the default is to *not* use symlinks.
+
+    :param system_site_packages: If True, the system (global) site-packages
+                                 dir is available to created environments.
+    :param clear: If True, delete the contents of the environment directory if
+                  it already exists, before environment creation.
+    :param symlinks: If True, attempt to symlink rather than copy files into
+                     virtual environment.
+    :param upgrade: If True, upgrade an existing virtual environment.
+    :param with_pip: If True, ensure pip is installed in the virtual
+                     environment
+    :param prompt: Alternative terminal prefix for the environment.
+    :param upgrade_deps: Update the base venv modules to the latest on PyPI
+    :param scm_ignore_files: Create ignore files for the SCMs specified by the
+                             iterable.
+    """
+
+    def __init__(self, system_site_packages=False, clear=False,
+                 symlinks=False, upgrade=False, with_pip=False, prompt=None,
+                 upgrade_deps=False, *, scm_ignore_files=frozenset()):
+        self.system_site_packages = system_site_packages
+        self.clear = clear
+        self.symlinks = symlinks
+        self.upgrade = upgrade
+        self.with_pip = with_pip
+        self.orig_prompt = prompt
+        if prompt == '.':  # see bpo-38901
+            prompt = os.path.basename(os.getcwd())
+        self.prompt = prompt
+        self.upgrade_deps = upgrade_deps
+        self.scm_ignore_files = frozenset(map(str.lower, scm_ignore_files))
+
+    def create(self, env_dir):
+        """
+        Create a virtual environment in a directory.
+
+        :param env_dir: The target directory to create an environment in.
+
+        """
+        env_dir = os.path.abspath(env_dir)
+        context = self.ensure_directories(env_dir)
+        for scm in self.scm_ignore_files:
+            getattr(self, f"create_{scm}_ignore_file")(context)
+        # See issue 24875. We need system_site_packages to be False
+        # until after pip is installed.
+        true_system_site_packages = self.system_site_packages
+        self.system_site_packages = False
+        self.create_configuration(context)
+        self.setup_python(context)
+        if self.with_pip:
+            self._setup_pip(context)
+        if not self.upgrade:
+            self.setup_scripts(context)
+            self.post_setup(context)
+        if true_system_site_packages:
+            # We had set it to False before, now
+            # restore it and rewrite the configuration
+            self.system_site_packages = True
+            self.create_configuration(context)
+        if self.upgrade_deps:
+            self.upgrade_dependencies(context)
+
+    def clear_directory(self, path):
+        for fn in os.listdir(path):
+            fn = os.path.join(path, fn)
+            if os.path.islink(fn) or os.path.isfile(fn):
+                os.remove(fn)
+            elif os.path.isdir(fn):
+                shutil.rmtree(fn)
+
+    def _venv_path(self, env_dir, name):
+        vars = {
+            'base': env_dir,
+            'platbase': env_dir,
+            'installed_base': env_dir,
+            'installed_platbase': env_dir,
+        }
+        return sysconfig.get_path(name, scheme='venv', vars=vars)
+
+    @classmethod
+    def _same_path(cls, path1, path2):
+        """Check whether two paths appear the same.
+
+        Whether they refer to the same file is irrelevant; we're testing for
+        whether a human reader would look at the path string and easily tell
+        that they're the same file.
+        """
+        if sys.platform == 'win32':
+            if os.path.normcase(path1) == os.path.normcase(path2):
+                return True
+            # gh-90329: Don't display a warning for short/long names
+            import _winapi
+            try:
+                path1 = _winapi.GetLongPathName(os.fsdecode(path1))
+            except OSError:
+                pass
+            try:
+                path2 = _winapi.GetLongPathName(os.fsdecode(path2))
+            except OSError:
+                pass
+            if os.path.normcase(path1) == os.path.normcase(path2):
+                return True
+            return False
+        else:
+            return path1 == path2
+
+    def ensure_directories(self, env_dir):
+        """
+        Create the directories for the environment.
+
+        Returns a context object which holds paths in the environment,
+        for use by subsequent logic.
+        """
+
+        def create_if_needed(d):
+            if not os.path.exists(d):
+                os.makedirs(d)
+            elif os.path.islink(d) or os.path.isfile(d):
+                raise ValueError('Unable to create directory %r' % d)
+
+        if os.pathsep in os.fspath(env_dir):
+            raise ValueError(f'Refusing to create a venv in {env_dir} because '
+                             f'it contains the PATH separator {os.pathsep}.')
+        if os.path.exists(env_dir) and self.clear:
+            self.clear_directory(env_dir)
+        context = types.SimpleNamespace()
+        context.env_dir = env_dir
+        context.env_name = os.path.split(env_dir)[1]
+        context.prompt = self.prompt if self.prompt is not None else context.env_name
+        create_if_needed(env_dir)
+        executable = sys._base_executable
+        if not executable:  # see gh-96861
+            raise ValueError('Unable to determine path to the running '
+                             'Python interpreter. Provide an explicit path or '
+                             'check that your PATH environment variable is '
+                             'correctly set.')
+        dirname, exename = os.path.split(os.path.abspath(executable))
+        if sys.platform == 'win32':
+            # Always create the simplest name in the venv. It will either be a
+            # link back to executable, or a copy of the appropriate launcher
+            _d = '_d' if os.path.splitext(exename)[0].endswith('_d') else ''
+            exename = f'python{_d}.exe'
+        context.executable = executable
+        context.python_dir = dirname
+        context.python_exe = exename
+        binpath = self._venv_path(env_dir, 'scripts')
+        incpath = self._venv_path(env_dir, 'include')
+        libpath = self._venv_path(env_dir, 'purelib')
+
+        context.inc_path = incpath
+        create_if_needed(incpath)
+        context.lib_path = libpath
+        create_if_needed(libpath)
+        # Issue 21197: create lib64 as a symlink to lib on 64-bit non-OS X POSIX
+        if ((sys.maxsize > 2**32) and (os.name == 'posix') and
+            (sys.platform != 'darwin')):
+            link_path = os.path.join(env_dir, 'lib64')
+            if not os.path.exists(link_path):   # Issue #21643
+                os.symlink('lib', link_path)
+        context.bin_path = binpath
+        context.bin_name = os.path.relpath(binpath, env_dir)
+        context.env_exe = os.path.join(binpath, exename)
+        create_if_needed(binpath)
+        # Assign and update the command to use when launching the newly created
+        # environment, in case it isn't simply the executable script (e.g. bpo-45337)
+        context.env_exec_cmd = context.env_exe
+        if sys.platform == 'win32':
+            # bpo-45337: Fix up env_exec_cmd to account for file system redirections.
+            # Some redirects only apply to CreateFile and not CreateProcess
+            real_env_exe = os.path.realpath(context.env_exe)
+            if not self._same_path(real_env_exe, context.env_exe):
+                logger.warning('Actual environment location may have moved due to '
+                               'redirects, links or junctions.\n'
+                               '  Requested location: "%s"\n'
+                               '  Actual location:    "%s"',
+                               context.env_exe, real_env_exe)
+                context.env_exec_cmd = real_env_exe
+        return context
+
+    def create_configuration(self, context):
+        """
+        Create a configuration file indicating where the environment's Python
+        was copied from, and whether the system site-packages should be made
+        available in the environment.
+
+        :param context: The information for the environment creation request
+                        being processed.
+        """
+        context.cfg_path = path = os.path.join(context.env_dir, 'pyvenv.cfg')
+        with open(path, 'w', encoding='utf-8') as f:
+            f.write('home = %s\n' % context.python_dir)
+            if self.system_site_packages:
+                incl = 'true'
+            else:
+                incl = 'false'
+            f.write('include-system-site-packages = %s\n' % incl)
+            f.write('version = %d.%d.%d\n' % sys.version_info[:3])
+            if self.prompt is not None:
+                f.write(f'prompt = {self.prompt!r}\n')
+            f.write('executable = %s\n' % os.path.realpath(sys.executable))
+            args = []
+            nt = os.name == 'nt'
+            if nt and self.symlinks:
+                args.append('--symlinks')
+            if not nt and not self.symlinks:
+                args.append('--copies')
+            if not self.with_pip:
+                args.append('--without-pip')
+            if self.system_site_packages:
+                args.append('--system-site-packages')
+            if self.clear:
+                args.append('--clear')
+            if self.upgrade:
+                args.append('--upgrade')
+            if self.upgrade_deps:
+                args.append('--upgrade-deps')
+            if self.orig_prompt is not None:
+                args.append(f'--prompt="{self.orig_prompt}"')
+            if not self.scm_ignore_files:
+                args.append('--without-scm-ignore-files')
+
+            args.append(context.env_dir)
+            args = ' '.join(args)
+            f.write(f'command = {sys.executable} -m venv {args}\n')
+
+    def symlink_or_copy(self, src, dst, relative_symlinks_ok=False):
+        """
+        Try symlinking a file, and if that fails, fall back to copying.
+        (Unused on Windows, because we can't just copy a failed symlink file: we
+        switch to a different set of files instead.)
+        """
+        assert os.name != 'nt'
+        force_copy = not self.symlinks
+        if not force_copy:
+            try:
+                if not os.path.islink(dst):  # can't link to itself!
+                    if relative_symlinks_ok:
+                        assert os.path.dirname(src) == os.path.dirname(dst)
+                        os.symlink(os.path.basename(src), dst)
+                    else:
+                        os.symlink(src, dst)
+            except Exception:   # may need to use a more specific exception
+                logger.warning('Unable to symlink %r to %r', src, dst)
+                force_copy = True
+        if force_copy:
+            shutil.copyfile(src, dst)
+
+    def create_git_ignore_file(self, context):
+        """
+        Create a .gitignore file in the environment directory.
+
+        The contents of the file cause the entire environment directory to be
+        ignored by git.
+        """
+        gitignore_path = os.path.join(context.env_dir, '.gitignore')
+        with open(gitignore_path, 'w', encoding='utf-8') as file:
+            file.write('# Created by venv; '
+                       'see https://docs.python.org/3/library/venv.html\n')
+            file.write('*\n')
+
+    if os.name != 'nt':
+        def setup_python(self, context):
+            """
+            Set up a Python executable in the environment.
+
+            :param context: The information for the environment creation request
+                            being processed.
+            """
+            binpath = context.bin_path
+            path = context.env_exe
+            copier = self.symlink_or_copy
+            dirname = context.python_dir
+            copier(context.executable, path)
+            if not os.path.islink(path):
+                os.chmod(path, 0o755)
+            for suffix in ('python', 'python3',
+                           f'python3.{sys.version_info[1]}'):
+                path = os.path.join(binpath, suffix)
+                if not os.path.exists(path):
+                    # Issue 18807: make copies if
+                    # symlinks are not wanted
+                    copier(context.env_exe, path, relative_symlinks_ok=True)
+                    if not os.path.islink(path):
+                        os.chmod(path, 0o755)
+
+    else:
+        def setup_python(self, context):
+            """
+            Set up a Python executable in the environment.
+
+            :param context: The information for the environment creation request
+                            being processed.
+            """
+            binpath = context.bin_path
+            dirname = context.python_dir
+            exename = os.path.basename(context.env_exe)
+            exe_stem = os.path.splitext(exename)[0]
+            exe_d = '_d' if os.path.normcase(exe_stem).endswith('_d') else ''
+            if sysconfig.is_python_build():
+                scripts = dirname
+            else:
+                scripts = os.path.join(os.path.dirname(__file__),
+                                       'scripts', 'nt')
+            if not sysconfig.get_config_var("Py_GIL_DISABLED"):
+                python_exe = os.path.join(dirname, f'python{exe_d}.exe')
+                pythonw_exe = os.path.join(dirname, f'pythonw{exe_d}.exe')
+                link_sources = {
+                    'python.exe': python_exe,
+                    f'python{exe_d}.exe': python_exe,
+                    'pythonw.exe': pythonw_exe,
+                    f'pythonw{exe_d}.exe': pythonw_exe,
+                }
+                python_exe = os.path.join(scripts, f'venvlauncher{exe_d}.exe')
+                pythonw_exe = os.path.join(scripts, f'venvwlauncher{exe_d}.exe')
+                copy_sources = {
+                    'python.exe': python_exe,
+                    f'python{exe_d}.exe': python_exe,
+                    'pythonw.exe': pythonw_exe,
+                    f'pythonw{exe_d}.exe': pythonw_exe,
+                }
+            else:
+                exe_t = f'3.{sys.version_info[1]}t'
+                python_exe = os.path.join(dirname, f'python{exe_t}{exe_d}.exe')
+                pythonw_exe = os.path.join(dirname, f'pythonw{exe_t}{exe_d}.exe')
+                link_sources = {
+                    'python.exe': python_exe,
+                    f'python{exe_d}.exe': python_exe,
+                    f'python{exe_t}.exe': python_exe,
+                    f'python{exe_t}{exe_d}.exe': python_exe,
+                    'pythonw.exe': pythonw_exe,
+                    f'pythonw{exe_d}.exe': pythonw_exe,
+                    f'pythonw{exe_t}.exe': pythonw_exe,
+                    f'pythonw{exe_t}{exe_d}.exe': pythonw_exe,
+                }
+                python_exe = os.path.join(scripts, f'venvlaunchert{exe_d}.exe')
+                pythonw_exe = os.path.join(scripts, f'venvwlaunchert{exe_d}.exe')
+                copy_sources = {
+                    'python.exe': python_exe,
+                    f'python{exe_d}.exe': python_exe,
+                    f'python{exe_t}.exe': python_exe,
+                    f'python{exe_t}{exe_d}.exe': python_exe,
+                    'pythonw.exe': pythonw_exe,
+                    f'pythonw{exe_d}.exe': pythonw_exe,
+                    f'pythonw{exe_t}.exe': pythonw_exe,
+                    f'pythonw{exe_t}{exe_d}.exe': pythonw_exe,
+                }
+
+            do_copies = True
+            if self.symlinks:
+                do_copies = False
+                # For symlinking, we need all the DLLs to be available alongside
+                # the executables.
+                link_sources.update({
+                    f: os.path.join(dirname, f) for f in os.listdir(dirname)
+                    if os.path.normcase(f).startswith(('python', 'vcruntime'))
+                    and os.path.normcase(os.path.splitext(f)[1]) == '.dll'
+                })
+
+                to_unlink = []
+                for dest, src in link_sources.items():
+                    dest = os.path.join(binpath, dest)
+                    try:
+                        os.symlink(src, dest)
+                        to_unlink.append(dest)
+                    except OSError:
+                        logger.warning('Unable to symlink %r to %r', src, dest)
+                        do_copies = True
+                        for f in to_unlink:
+                            try:
+                                os.unlink(f)
+                            except OSError:
+                                logger.warning('Failed to clean up symlink %r',
+                                               f)
+                        logger.warning('Retrying with copies')
+                        break
+
+            if do_copies:
+                for dest, src in copy_sources.items():
+                    dest = os.path.join(binpath, dest)
+                    try:
+                        shutil.copy2(src, dest)
+                    except OSError:
+                        logger.warning('Unable to copy %r to %r', src, dest)
+
+            if sysconfig.is_python_build():
+                # copy init.tcl
+                for root, dirs, files in os.walk(context.python_dir):
+                    if 'init.tcl' in files:
+                        tcldir = os.path.basename(root)
+                        tcldir = os.path.join(context.env_dir, 'Lib', tcldir)
+                        if not os.path.exists(tcldir):
+                            os.makedirs(tcldir)
+                        src = os.path.join(root, 'init.tcl')
+                        dst = os.path.join(tcldir, 'init.tcl')
+                        shutil.copyfile(src, dst)
+                        break
+
+    def _call_new_python(self, context, *py_args, **kwargs):
+        """Executes the newly created Python using safe-ish options"""
+        # gh-98251: We do not want to just use '-I' because that masks
+        # legitimate user preferences (such as not writing bytecode). All we
+        # really need is to ensure that the path variables do not overrule
+        # normal venv handling.
+        args = [context.env_exec_cmd, *py_args]
+        kwargs['env'] = env = os.environ.copy()
+        env['VIRTUAL_ENV'] = context.env_dir
+        env.pop('PYTHONHOME', None)
+        env.pop('PYTHONPATH', None)
+        kwargs['cwd'] = context.env_dir
+        kwargs['executable'] = context.env_exec_cmd
+        subprocess.check_output(args, **kwargs)
+
+    def _setup_pip(self, context):
+        """Installs or upgrades pip in a virtual environment"""
+        try:
+            self._call_new_python(context, '-m', 'ensurepip', '--upgrade',
+                                  '--default-pip', stderr=subprocess.STDOUT)
+        except subprocess.CalledProcessError as err:
+            stdlib = sysconfig.get_path('stdlib')
+            if not os.path.exists(f'{stdlib}/ensurepip/__main__.py'):
+                print("""\
+The virtual environment was not created successfully because ensurepip is not
+available.  On Debian/Ubuntu systems, you need to install the python3-venv
+package using the following command.
+
+    apt install python{}-venv
+
+You may need to use sudo with that command.  After installing the python3-venv
+package, recreate your virtual environment.
+
+Failing command: {}
+""".format(sysconfig.get_python_version(), context.env_exec_cmd))
+                sys.exit(1)
+            raise
+
+    def setup_scripts(self, context):
+        """
+        Set up scripts into the created environment from a directory.
+
+        This method installs the default scripts into the environment
+        being created. You can prevent the default installation by overriding
+        this method if you really need to, or if you need to specify
+        a different location for the scripts to install. By default, the
+        'scripts' directory in the venv package is used as the source of
+        scripts to install.
+        """
+        path = os.path.abspath(os.path.dirname(__file__))
+        path = os.path.join(path, 'scripts')
+        self.install_scripts(context, path)
+
+    def post_setup(self, context):
+        """
+        Hook for post-setup modification of the venv. Subclasses may install
+        additional packages or scripts here, add activation shell scripts, etc.
+
+        :param context: The information for the environment creation request
+                        being processed.
+        """
+        pass
+
+    def replace_variables(self, text, context):
+        """
+        Replace variable placeholders in script text with context-specific
+        variables.
+
+        Return the text passed in , but with variables replaced.
+
+        :param text: The text in which to replace placeholder variables.
+        :param context: The information for the environment creation request
+                        being processed.
+        """
+        replacements = {
+            '__VENV_DIR__': context.env_dir,
+            '__VENV_NAME__': context.env_name,
+            '__VENV_PROMPT__': context.prompt,
+            '__VENV_BIN_NAME__': context.bin_name,
+            '__VENV_PYTHON__': context.env_exe,
+        }
+
+        def quote_ps1(s):
+            """
+            This should satisfy PowerShell quoting rules [1], unless the quoted
+            string is passed directly to Windows native commands [2].
+            [1]: https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_quoting_rules
+            [2]: https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_parsing#passing-arguments-that-contain-quote-characters
+            """
+            s = s.replace("'", "''")
+            return f"'{s}'"
+
+        def quote_bat(s):
+            return s
+
+        # gh-124651: need to quote the template strings properly
+        quote = shlex.quote
+        script_path = context.script_path
+        if script_path.endswith('.ps1'):
+            quote = quote_ps1
+        elif script_path.endswith('.bat'):
+            quote = quote_bat
+        else:
+            # fallbacks to POSIX shell compliant quote
+            quote = shlex.quote
+
+        replacements = {key: quote(s) for key, s in replacements.items()}
+        for key, quoted in replacements.items():
+            text = text.replace(key, quoted)
+        return text
+
+    def install_scripts(self, context, path):
+        """
+        Install scripts into the created environment from a directory.
+
+        :param context: The information for the environment creation request
+                        being processed.
+        :param path:    Absolute pathname of a directory containing script.
+                        Scripts in the 'common' subdirectory of this directory,
+                        and those in the directory named for the platform
+                        being run on, are installed in the created environment.
+                        Placeholder variables are replaced with environment-
+                        specific values.
+        """
+        binpath = context.bin_path
+        plen = len(path)
+        if os.name == 'nt':
+            def skip_file(f):
+                f = os.path.normcase(f)
+                return (f.startswith(('python', 'venv'))
+                        and f.endswith(('.exe', '.pdb')))
+        else:
+            def skip_file(f):
+                return False
+        for root, dirs, files in os.walk(path):
+            if root == path:  # at top-level, remove irrelevant dirs
+                for d in dirs[:]:
+                    if d not in ('common', os.name):
+                        dirs.remove(d)
+                continue  # ignore files in top level
+            for f in files:
+                if skip_file(f):
+                    continue
+                srcfile = os.path.join(root, f)
+                suffix = root[plen:].split(os.sep)[2:]
+                if not suffix:
+                    dstdir = binpath
+                else:
+                    dstdir = os.path.join(binpath, *suffix)
+                if not os.path.exists(dstdir):
+                    os.makedirs(dstdir)
+                dstfile = os.path.join(dstdir, f)
+                if os.name == 'nt' and srcfile.endswith(('.exe', '.pdb')):
+                    shutil.copy2(srcfile, dstfile)
+                    continue
+                with open(srcfile, 'rb') as f:
+                    data = f.read()
+                try:
+                    context.script_path = srcfile
+                    new_data = (
+                        self.replace_variables(data.decode('utf-8'), context)
+                            .encode('utf-8')
+                    )
+                except UnicodeError as e:
+                    logger.warning('unable to copy script %r, '
+                                   'may be binary: %s', srcfile, e)
+                    continue
+                if new_data == data:
+                    shutil.copy2(srcfile, dstfile)
+                else:
+                    with open(dstfile, 'wb') as f:
+                        f.write(new_data)
+                    shutil.copymode(srcfile, dstfile)
+
+    def upgrade_dependencies(self, context):
+        logger.debug(
+            f'Upgrading {CORE_VENV_DEPS} packages in {context.bin_path}'
+        )
+        self._call_new_python(context, '-m', 'pip', 'install', '--upgrade',
+                              *CORE_VENV_DEPS)
+
+
+def create(env_dir, system_site_packages=False, clear=False,
+           symlinks=False, with_pip=False, prompt=None, upgrade_deps=False,
+           *, scm_ignore_files=frozenset()):
+    """Create a virtual environment in a directory."""
+    builder = EnvBuilder(system_site_packages=system_site_packages,
+                         clear=clear, symlinks=symlinks, with_pip=with_pip,
+                         prompt=prompt, upgrade_deps=upgrade_deps,
+                         scm_ignore_files=scm_ignore_files)
+    builder.create(env_dir)
+
+
+def main(args=None):
+    import argparse
+
+    parser = argparse.ArgumentParser(prog=__name__,
+                                     description='Creates virtual Python '
+                                                 'environments in one or '
+                                                 'more target '
+                                                 'directories.',
+                                     epilog='Once an environment has been '
+                                            'created, you may wish to '
+                                            'activate it, e.g. by '
+                                            'sourcing an activate script '
+                                            'in its bin directory.')
+    parser.add_argument('dirs', metavar='ENV_DIR', nargs='+',
+                        help='A directory to create the environment in.')
+    parser.add_argument('--system-site-packages', default=False,
+                        action='store_true', dest='system_site',
+                        help='Give the virtual environment access to the '
+                             'system site-packages dir.')
+    if os.name == 'nt':
+        use_symlinks = False
+    else:
+        use_symlinks = True
+    group = parser.add_mutually_exclusive_group()
+    group.add_argument('--symlinks', default=use_symlinks,
+                       action='store_true', dest='symlinks',
+                       help='Try to use symlinks rather than copies, '
+                            'when symlinks are not the default for '
+                            'the platform.')
+    group.add_argument('--copies', default=not use_symlinks,
+                       action='store_false', dest='symlinks',
+                       help='Try to use copies rather than symlinks, '
+                            'even when symlinks are the default for '
+                            'the platform.')
+    parser.add_argument('--clear', default=False, action='store_true',
+                        dest='clear', help='Delete the contents of the '
+                                           'environment directory if it '
+                                           'already exists, before '
+                                           'environment creation.')
+    parser.add_argument('--upgrade', default=False, action='store_true',
+                        dest='upgrade', help='Upgrade the environment '
+                                             'directory to use this version '
+                                             'of Python, assuming Python '
+                                             'has been upgraded in-place.')
+    parser.add_argument('--without-pip', dest='with_pip',
+                        default=True, action='store_false',
+                        help='Skips installing or upgrading pip in the '
+                             'virtual environment (pip is bootstrapped '
+                             'by default)')
+    parser.add_argument('--prompt',
+                        help='Provides an alternative prompt prefix for '
+                             'this environment.')
+    parser.add_argument('--upgrade-deps', default=False, action='store_true',
+                        dest='upgrade_deps',
+                        help=f'Upgrade core dependencies ({", ".join(CORE_VENV_DEPS)}) '
+                             'to the latest version in PyPI')
+    parser.add_argument('--without-scm-ignore-files', dest='scm_ignore_files',
+                        action='store_const', const=frozenset(),
+                        default=frozenset(['git']),
+                        help='Skips adding SCM ignore files to the environment '
+                             'directory (Git is supported by default).')
+    options = parser.parse_args(args)
+    if options.upgrade and options.clear:
+        raise ValueError('you cannot supply --upgrade and --clear together.')
+    builder = EnvBuilder(system_site_packages=options.system_site,
+                         clear=options.clear,
+                         symlinks=options.symlinks,
+                         upgrade=options.upgrade,
+                         with_pip=options.with_pip,
+                         prompt=options.prompt,
+                         upgrade_deps=options.upgrade_deps,
+                         scm_ignore_files=options.scm_ignore_files)
+    for d in options.dirs:
+        builder.create(d)
+
+
+if __name__ == '__main__':
+    rc = 1
+    try:
+        main()
+        rc = 0
+    except Exception as e:
+        print('Error: %s' % e, file=sys.stderr)
+    sys.exit(rc)
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   import sys
+from . import main
+
+rc = 1
+try:
+    main()
+    rc = 0
+except Exception as e:
+    print('Error:', e, file=sys.stderr)
+sys.exit(rc)
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   Œ   .   À   ..  œ    __init__.cpython-313.pyc–  »__main__.cpython-313.pyc                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        

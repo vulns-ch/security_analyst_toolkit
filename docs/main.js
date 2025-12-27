@@ -1,6 +1,11 @@
 const inputFiles = [];
 const outputFiles = [];
 
+function runScriptInVM(scriptname) {
+return cx.run("/bin/bash", ["/home/user/"+scriptname]);
+}
+
+
 function getBase64(file) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -117,6 +122,8 @@ function handleFiles(files, fileArray, listElement, area, prompt) {
     renderFileList(fileArray, listElement, area, prompt);
 }
 
+
+
 function setupDropZone(dropZone, fileInput, fileArray, listElement, area) {
     dropZone.addEventListener('click', () => fileInput.click());
     
@@ -126,7 +133,7 @@ function setupDropZone(dropZone, fileInput, fileArray, listElement, area) {
 
     ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
         dropZone.addEventListener(eventName, preventDefaults, false);
-        area.addEventListener(eventName, preventDefaults, false);
+      //  area.addEventListener(eventName, preventDefaults, false);
     });
 
     function preventDefaults(e) {
@@ -137,7 +144,7 @@ function setupDropZone(dropZone, fileInput, fileArray, listElement, area) {
     ['dragenter', 'dragover'].forEach(eventName => {
         dropZone.addEventListener(eventName, () => {
             dropZone.classList.add('dragover');
-            area.classList.add('dragover');
+      //      area.classList.add('dragover');
         });
     });
 
@@ -249,3 +256,40 @@ setupDropZone(
 //    document.getElementById('outputPrompt')
 //);
 
+document.querySelectorAll('.app-item').forEach(item => {
+    const runBtn = item.querySelector('.run-btn');
+    
+    // Prevent app item click when clicking run button
+    runBtn.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        
+        // Prevent multiple clicks
+        if (runBtn.disabled) return;
+        
+        const appName = item.dataset.app;
+        const appTitle = item.querySelector('.app-title').textContent;
+        const appScript = item.querySelector('.app-script').textContent;
+        
+        // Disable button and update UI
+        runBtn.disabled = true;
+        runBtn.textContent = 'Running...';
+        runBtn.classList.add('running');
+        item.classList.add('running');
+        
+        console.log(`Starting ${appTitle}...`);
+        
+        try {
+            const result = await runScriptInVM(appScript);
+            console.log(`✓ ${appTitle} completed: ${result.message}`);
+            document.getElementById('refreshBtn').click()
+        } catch (error) {
+            console.log(`✗ ${appTitle} failed: ${error.message}`);
+        } finally {
+            // Re-enable button
+            runBtn.disabled = false;
+            runBtn.textContent = 'Run';
+            runBtn.classList.remove('running');
+            item.classList.remove('running');
+        }
+    });
+});

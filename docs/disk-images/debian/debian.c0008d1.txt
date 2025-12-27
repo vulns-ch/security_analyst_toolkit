@@ -1,0 +1,1583 @@
+/.
+/etc
+/etc/apt
+/etc/apt/apt.conf.d
+/etc/apt/apt.conf.d/01autoremove
+/etc/apt/auth.conf.d
+/etc/apt/keyrings
+/etc/apt/preferences.d
+/etc/apt/sources.list.d
+/etc/apt/trusted.gpg.d
+/etc/cron.daily
+/etc/cron.daily/apt-compat
+/etc/kernel
+/etc/kernel/postinst.d
+/etc/logrotate.d
+/etc/logrotate.d/apt
+/usr
+/usr/bin
+/usr/bin/apt
+/usr/bin/apt-cache
+/usr/bin/apt-cdrom
+/usr/bin/apt-config
+/usr/bin/apt-get
+/usr/bin/apt-mark
+/usr/lib
+/usr/lib/apt
+/usr/lib/apt/apt-extracttemplates
+/usr/lib/apt/apt-helper
+/usr/lib/apt/apt.systemd.daily
+/usr/lib/apt/methods
+/usr/lib/apt/methods/cdrom
+/usr/lib/apt/methods/copy
+/usr/lib/apt/methods/file
+/usr/lib/apt/methods/gpgv
+/usr/lib/apt/methods/http
+/usr/lib/apt/methods/mirror
+/usr/lib/apt/methods/rred
+/usr/lib/apt/methods/sqv
+/usr/lib/apt/methods/store
+/usr/lib/apt/planners
+/usr/lib/apt/solvers
+/usr/lib/apt/solvers/dump
+/usr/lib/dpkg
+/usr/lib/dpkg/methods
+/usr/lib/dpkg/methods/apt
+/usr/lib/dpkg/methods/apt/desc.apt
+/usr/lib/dpkg/methods/apt/install
+/usr/lib/dpkg/methods/apt/names
+/usr/lib/dpkg/methods/apt/setup
+/usr/lib/dpkg/methods/apt/update
+/usr/lib/i386-linux-gnu
+/usr/lib/i386-linux-gnu/libapt-private.so.0.0.0
+/usr/lib/systemd
+/usr/lib/systemd/system
+/usr/lib/systemd/system/apt-daily-upgrade.service
+/usr/lib/systemd/system/apt-daily-upgrade.timer
+/usr/lib/systemd/system/apt-daily.service
+/usr/lib/systemd/system/apt-daily.timer
+/usr/share
+/usr/share/apt
+/usr/share/apt/default-sequoia.config
+/usr/share/bash-completion
+/usr/share/bash-completion/completions
+/usr/share/bash-completion/completions/apt
+/usr/share/bug
+/usr/share/bug/apt
+/usr/share/bug/apt/script
+/usr/share/doc
+/usr/share/doc/apt
+/usr/share/doc/apt/NEWS.Debian.gz
+/usr/share/doc/apt/README.md.gz
+/usr/share/doc/apt/changelog.gz
+/usr/share/doc/apt/copyright
+/usr/share/doc/apt/examples
+/usr/share/doc/apt/examples/apt.conf
+/usr/share/doc/apt/examples/configure-index
+/usr/share/doc/apt/examples/debian.sources
+/usr/share/doc/apt/examples/preferences
+/usr/share/lintian
+/usr/share/lintian/overrides
+/usr/share/lintian/overrides/apt
+/usr/share/locale
+/usr/share/locale/ar
+/usr/share/locale/ar/LC_MESSAGES
+/usr/share/locale/ar/LC_MESSAGES/apt.mo
+/usr/share/locale/ast
+/usr/share/locale/ast/LC_MESSAGES
+/usr/share/locale/ast/LC_MESSAGES/apt.mo
+/usr/share/locale/bg
+/usr/share/locale/bg/LC_MESSAGES
+/usr/share/locale/bg/LC_MESSAGES/apt.mo
+/usr/share/locale/bs
+/usr/share/locale/bs/LC_MESSAGES
+/usr/share/locale/bs/LC_MESSAGES/apt.mo
+/usr/share/locale/ca
+/usr/share/locale/ca/LC_MESSAGES
+/usr/share/locale/ca/LC_MESSAGES/apt.mo
+/usr/share/locale/cs
+/usr/share/locale/cs/LC_MESSAGES
+/usr/share/locale/cs/LC_MESSAGES/apt.mo
+/usr/share/locale/cy
+/usr/share/locale/cy/LC_MESSAGES
+/usr/share/locale/cy/LC_MESSAGES/apt.mo
+/usr/share/locale/da
+/usr/share/locale/da/LC_MESSAGES
+/usr/share/locale/da/LC_MESSAGES/apt.mo
+/usr/share/locale/de
+/usr/share/locale/de/LC_MESSAGES
+/usr/share/locale/de/LC_MESSAGES/apt.mo
+/usr/share/locale/dz
+/usr/share/locale/dz/LC_MESSAGES
+/usr/share/locale/dz/LC_MESSAGES/apt.mo
+/usr/share/locale/el
+/usr/share/locale/el/LC_MESSAGES
+/usr/share/locale/el/LC_MESSAGES/apt.mo
+/usr/share/locale/es
+/usr/share/locale/es/LC_MESSAGES
+/usr/share/locale/es/LC_MESSAGES/apt.mo
+/usr/share/locale/eu
+/usr/share/locale/eu/LC_MESSAGES
+/usr/share/locale/eu/LC_MESSAGES/apt.mo
+/usr/share/locale/fi
+/usr/share/locale/fi/LC_MESSAGES
+/usr/share/locale/fi/LC_MESSAGES/apt.mo
+/usr/share/locale/fr
+/usr/share/locale/fr/LC_MESSAGES
+/usr/share/locale/fr/LC_MESSAGES/apt.mo
+/usr/share/locale/gl
+/usr/share/locale/gl/LC_MESSAGES
+/usr/share/locale/gl/LC_MESSAGES/apt.mo
+/usr/share/locale/hu
+/usr/share/locale/hu/LC_MESSAGES
+/usr/share/locale/hu/LC_MESSAGES/apt.mo
+/usr/share/locale/it
+/usr/share/locale/it/LC_MESSAGES
+/usr/share/locale/it/LC_MESSAGES/apt.mo
+/usr/share/locale/ja
+/usr/share/locale/ja/LC_MESSAGES
+/usr/share/locale/ja/LC_MESSAGES/apt.mo
+/usr/share/locale/km
+/usr/share/locale/km/LC_MESSAGES
+/usr/share/locale/km/LC_MESSAGES/apt.mo
+/usr/share/locale/ko
+/usr/share/locale/ko/LC_MESSAGES
+/usr/share/locale/ko/LC_MESSAGES/apt.mo
+/usr/share/locale/ku
+/usr/share/locale/ku/LC_MESSAGES
+/usr/share/locale/ku/LC_MESSAGES/apt.mo
+/usr/share/locale/lt
+/usr/share/locale/lt/LC_MESSAGES
+/usr/share/locale/lt/LC_MESSAGES/apt.mo
+/usr/share/locale/mr
+/usr/share/locale/mr/LC_MESSAGES
+/usr/share/locale/mr/LC_MESSAGES/apt.mo
+/usr/share/locale/nb
+/usr/share/locale/nb/LC_MESSAGES
+/usr/share/locale/nb/LC_MESSAGES/apt.mo
+/usr/share/locale/ne
+/usr/share/locale/ne/LC_MESSAGES
+/usr/share/locale/ne/LC_MESSAGES/apt.mo
+/usr/share/locale/nl
+/usr/share/locale/nl/LC_MESSAGES
+/usr/share/locale/nl/LC_MESSAGES/apt.mo
+/usr/share/locale/nn
+/usr/share/locale/nn/LC_MESSAGES
+/usr/share/locale/nn/LC_MESSAGES/apt.mo
+/usr/share/locale/pl
+/usr/share/locale/pl/LC_MESSAGES
+/usr/share/locale/pl/LC_MESSAGES/apt.mo
+/usr/share/locale/pt
+/usr/share/locale/pt/LC_MESSAGES
+/usr/share/locale/pt/LC_MESSAGES/apt.mo
+/usr/share/locale/pt_BR
+/usr/share/locale/pt_BR/LC_MESSAGES
+/usr/share/locale/pt_BR/LC_MESSAGES/apt.mo
+/usr/share/locale/ro
+/usr/share/locale/ro/LC_MESSAGES
+/usr/share/locale/ro/LC_MESSAGES/apt.mo
+/usr/share/locale/ru
+/usr/share/locale/ru/LC_MESSAGES
+/usr/share/locale/ru/LC_MESSAGES/apt.mo
+/usr/share/locale/sk
+/usr/share/locale/sk/LC_MESSAGES
+/usr/share/locale/sk/LC_MESSAGES/apt.mo
+/usr/share/locale/sl
+/usr/share/locale/sl/LC_MESSAGES
+/usr/share/locale/sl/LC_MESSAGES/apt.mo
+/usr/share/locale/sv
+/usr/share/locale/sv/LC_MESSAGES
+/usr/share/locale/sv/LC_MESSAGES/apt.mo
+/usr/share/locale/th
+/usr/share/locale/th/LC_MESSAGES
+/usr/share/locale/th/LC_MESSAGES/apt.mo
+/usr/share/locale/tl
+/usr/share/locale/tl/LC_MESSAGES
+/usr/share/locale/tl/LC_MESSAGES/apt.mo
+/usr/share/locale/tr
+/usr/share/locale/tr/LC_MESSAGES
+/usr/share/locale/tr/LC_MESSAGES/apt.mo
+/usr/share/locale/uk
+/usr/share/locale/uk/LC_MESSAGES
+/usr/share/locale/uk/LC_MESSAGES/apt.mo
+/usr/share/locale/vi
+/usr/share/locale/vi/LC_MESSAGES
+/usr/share/locale/vi/LC_MESSAGES/apt.mo
+/usr/share/locale/zh_CN
+/usr/share/locale/zh_CN/LC_MESSAGES
+/usr/share/locale/zh_CN/LC_MESSAGES/apt.mo
+/usr/share/locale/zh_TW
+/usr/share/locale/zh_TW/LC_MESSAGES
+/usr/share/locale/zh_TW/LC_MESSAGES/apt.mo
+/usr/share/man
+/usr/share/man/de
+/usr/share/man/de/man1
+/usr/share/man/de/man1/apt-transport-http.1.gz
+/usr/share/man/de/man1/apt-transport-https.1.gz
+/usr/share/man/de/man1/apt-transport-mirror.1.gz
+/usr/share/man/de/man5
+/usr/share/man/de/man5/apt.conf.5.gz
+/usr/share/man/de/man5/apt_auth.conf.5.gz
+/usr/share/man/de/man5/apt_preferences.5.gz
+/usr/share/man/de/man5/sources.list.5.gz
+/usr/share/man/de/man7
+/usr/share/man/de/man7/apt-patterns.7.gz
+/usr/share/man/de/man8
+/usr/share/man/de/man8/apt-cache.8.gz
+/usr/share/man/de/man8/apt-cdrom.8.gz
+/usr/share/man/de/man8/apt-config.8.gz
+/usr/share/man/de/man8/apt-get.8.gz
+/usr/share/man/de/man8/apt-mark.8.gz
+/usr/share/man/de/man8/apt-secure.8.gz
+/usr/share/man/de/man8/apt.8.gz
+/usr/share/man/es
+/usr/share/man/es/man5
+/usr/share/man/es/man5/apt_preferences.5.gz
+/usr/share/man/es/man8
+/usr/share/man/es/man8/apt-cache.8.gz
+/usr/share/man/es/man8/apt-cdrom.8.gz
+/usr/share/man/es/man8/apt-config.8.gz
+/usr/share/man/fr
+/usr/share/man/fr/man1
+/usr/share/man/fr/man1/apt-transport-http.1.gz
+/usr/share/man/fr/man1/apt-transport-https.1.gz
+/usr/share/man/fr/man1/apt-transport-mirror.1.gz
+/usr/share/man/fr/man5
+/usr/share/man/fr/man5/apt.conf.5.gz
+/usr/share/man/fr/man5/apt_auth.conf.5.gz
+/usr/share/man/fr/man5/apt_preferences.5.gz
+/usr/share/man/fr/man5/sources.list.5.gz
+/usr/share/man/fr/man7
+/usr/share/man/fr/man7/apt-patterns.7.gz
+/usr/share/man/fr/man8
+/usr/share/man/fr/man8/apt-cache.8.gz
+/usr/share/man/fr/man8/apt-cdrom.8.gz
+/usr/share/man/fr/man8/apt-config.8.gz
+/usr/share/man/fr/man8/apt-get.8.gz
+/usr/share/man/fr/man8/apt-mark.8.gz
+/usr/share/man/fr/man8/apt-secure.8.gz
+/usr/share/man/fr/man8/apt.8.gz
+/usr/share/man/it
+/usr/share/man/it/man5
+/usr/share/man/it/man5/apt.conf.5.gz
+/usr/share/man/it/man5/apt_preferences.5.gz
+/usr/share/man/it/man8
+/usr/share/man/it/man8/apt-cache.8.gz
+/usr/share/man/it/man8/apt-cdrom.8.gz
+/usr/share/man/it/man8/apt-config.8.gz
+/usr/share/man/it/man8/apt-mark.8.gz
+/usr/share/man/it/man8/apt.8.gz
+/usr/share/man/ja
+/usr/share/man/ja/man5
+/usr/share/man/ja/man5/apt.conf.5.gz
+/usr/share/man/ja/man5/apt_preferences.5.gz
+/usr/share/man/ja/man8
+/usr/share/man/ja/man8/apt-cache.8.gz
+/usr/share/man/ja/man8/apt-cdrom.8.gz
+/usr/share/man/ja/man8/apt-config.8.gz
+/usr/share/man/ja/man8/apt-mark.8.gz
+/usr/share/man/ja/man8/apt.8.gz
+/usr/share/man/man1
+/usr/share/man/man1/apt-transport-http.1.gz
+/usr/share/man/man1/apt-transport-https.1.gz
+/usr/share/man/man1/apt-transport-mirror.1.gz
+/usr/share/man/man5
+/usr/share/man/man5/apt.conf.5.gz
+/usr/share/man/man5/apt_auth.conf.5.gz
+/usr/share/man/man5/apt_preferences.5.gz
+/usr/share/man/man5/sources.list.5.gz
+/usr/share/man/man7
+/usr/share/man/man7/apt-patterns.7.gz
+/usr/share/man/man8
+/usr/share/man/man8/apt-cache.8.gz
+/usr/share/man/man8/apt-cdrom.8.gz
+/usr/share/man/man8/apt-config.8.gz
+/usr/share/man/man8/apt-get.8.gz
+/usr/share/man/man8/apt-mark.8.gz
+/usr/share/man/man8/apt-secure.8.gz
+/usr/share/man/man8/apt.8.gz
+/usr/share/man/nl
+/usr/share/man/nl/man1
+/usr/share/man/nl/man1/apt-transport-http.1.gz
+/usr/share/man/nl/man1/apt-transport-https.1.gz
+/usr/share/man/nl/man1/apt-transport-mirror.1.gz
+/usr/share/man/nl/man5
+/usr/share/man/nl/man5/apt.conf.5.gz
+/usr/share/man/nl/man5/apt_auth.conf.5.gz
+/usr/share/man/nl/man5/apt_preferences.5.gz
+/usr/share/man/nl/man5/sources.list.5.gz
+/usr/share/man/nl/man7
+/usr/share/man/nl/man7/apt-patterns.7.gz
+/usr/share/man/nl/man8
+/usr/share/man/nl/man8/apt-cache.8.gz
+/usr/share/man/nl/man8/apt-cdrom.8.gz
+/usr/share/man/nl/man8/apt-config.8.gz
+/usr/share/man/nl/man8/apt-get.8.gz
+/usr/share/man/nl/man8/apt-mark.8.gz
+/usr/share/man/nl/man8/apt-secure.8.gz
+/usr/share/man/nl/man8/apt.8.gz
+/usr/share/man/pl
+/usr/share/man/pl/man5
+/usr/share/man/pl/man5/apt_preferences.5.gz
+/usr/share/man/pl/man8
+/usr/share/man/pl/man8/apt-cache.8.gz
+/usr/share/man/pl/man8/apt-cdrom.8.gz
+/usr/share/man/pl/man8/apt-config.8.gz
+/usr/share/man/pt
+/usr/share/man/pt/man1
+/usr/share/man/pt/man1/apt-transport-http.1.gz
+/usr/share/man/pt/man1/apt-transport-https.1.gz
+/usr/share/man/pt/man1/apt-transport-mirror.1.gz
+/usr/share/man/pt/man5
+/usr/share/man/pt/man5/apt.conf.5.gz
+/usr/share/man/pt/man5/apt_auth.conf.5.gz
+/usr/share/man/pt/man5/apt_preferences.5.gz
+/usr/share/man/pt/man5/sources.list.5.gz
+/usr/share/man/pt/man7
+/usr/share/man/pt/man7/apt-patterns.7.gz
+/usr/share/man/pt/man8
+/usr/share/man/pt/man8/apt-cache.8.gz
+/usr/share/man/pt/man8/apt-cdrom.8.gz
+/usr/share/man/pt/man8/apt-config.8.gz
+/usr/share/man/pt/man8/apt-get.8.gz
+/usr/share/man/pt/man8/apt-mark.8.gz
+/usr/share/man/pt/man8/apt-secure.8.gz
+/usr/share/man/pt/man8/apt.8.gz
+/var
+/var/cache
+/var/cache/apt
+/var/cache/apt/archives
+/var/cache/apt/archives/partial
+/var/lib
+/var/lib/apt
+/var/lib/apt/lists
+/var/lib/apt/lists/partial
+/var/lib/apt/mirrors
+/var/lib/apt/mirrors/partial
+/var/lib/apt/periodic
+/var/log
+/var/log/apt
+/usr/lib/apt/methods/https
+/usr/lib/apt/methods/mirror+copy
+/usr/lib/apt/methods/mirror+file
+/usr/lib/apt/methods/mirror+http
+/usr/lib/apt/methods/mirror+https
+/usr/lib/apt/planners/dump
+/usr/lib/i386-linux-gnu/libapt-private.so.0.0
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 e0615ab4c350f66bf086b0f79429c26d  usr/bin/apt
+4ed5eaa624a212704566b883e897ef76  usr/bin/apt-cache
+21c28f670eada15072ff8d2d6f8e03a7  usr/bin/apt-cdrom
+a4ec86ddc4d516fcd625a188bd142b32  usr/bin/apt-config
+81344bb8357ebcde61c105eb5a85c3f4  usr/bin/apt-get
+7fe39299cc74e398834e50d2cd0db133  usr/bin/apt-mark
+5c18a79711e9c69fd1d5d97f39a03578  usr/lib/apt/apt-extracttemplates
+21675ab42fceb87d8720d97a705755e4  usr/lib/apt/apt-helper
+25a7e8b4d72b7eafa17d47a5e29544f7  usr/lib/apt/apt.systemd.daily
+90c96e52d59592178848a047677fad95  usr/lib/apt/methods/cdrom
+68388ef234d22a21f9e0d439ac310a84  usr/lib/apt/methods/copy
+6395f5215436701f8a7b1c7ea26ced86  usr/lib/apt/methods/file
+d343cd9b02c3aae7751943cf9816150d  usr/lib/apt/methods/gpgv
+b2fcd4a4773bab0b771171ff1262dd86  usr/lib/apt/methods/http
+ba838cbd02515d097af361494530b4aa  usr/lib/apt/methods/mirror
+578977a85cdc247090df23c6707632d1  usr/lib/apt/methods/rred
+6678d9dff03bf8746b5b3c636657b7a7  usr/lib/apt/methods/sqv
+eaf9ef80716185e826db20edf3aef390  usr/lib/apt/methods/store
+c8bb284192fbce6835bb1d8d95e4b958  usr/lib/apt/solvers/dump
+5c20df19d9e2659aa6a6c64276c5764c  usr/lib/dpkg/methods/apt/desc.apt
+e74d5f31cf2d2f567fd5984bdcea0b88  usr/lib/dpkg/methods/apt/install
+2662778ba9613ced00bb069711f43bf4  usr/lib/dpkg/methods/apt/names
+c6a41bacb933a562f9f6af6939bc4bf9  usr/lib/dpkg/methods/apt/setup
+c6445e2a9543b936ca687cdd5c837214  usr/lib/dpkg/methods/apt/update
+0abb31fa72cde5890217809b111a5536  usr/lib/i386-linux-gnu/libapt-private.so.0.0.0
+a05db20a2f3adc9f4175c37140e62a2a  usr/lib/systemd/system/apt-daily-upgrade.service
+6f1973de70bf3594436cc1a68adc441b  usr/lib/systemd/system/apt-daily-upgrade.timer
+2e25f0c08d2bd2776015d7b4d0fcb553  usr/lib/systemd/system/apt-daily.service
+57b964b4d70e49baf77ca7c971358acf  usr/lib/systemd/system/apt-daily.timer
+6ca4145a7d580555c50f112903c0dfb3  usr/share/apt/default-sequoia.config
+9d537bccd3244b36bcbd43088ce01f1f  usr/share/bash-completion/completions/apt
+b4f3db44275600d2185ab933ed6a1c15  usr/share/bug/apt/script
+75a32717d795bea16bd64071100b3964  usr/share/doc/apt/NEWS.Debian.gz
+b779bb7f8dde275c364fd8115ba926f4  usr/share/doc/apt/README.md.gz
+40530c306d5a12bc2526ceb580c093d2  usr/share/doc/apt/changelog.gz
+dfae5825b0dace8191a27d68de56cb22  usr/share/doc/apt/copyright
+4e5a3dab995e501f81ea148ec1058801  usr/share/doc/apt/examples/apt.conf
+6ab1dc879c9b85a766a929e4db2cb144  usr/share/doc/apt/examples/configure-index
+e878086f94d337a1aa812589f2143e14  usr/share/doc/apt/examples/debian.sources
+7e315fbd9f6d3c9ed0fed134d46da559  usr/share/doc/apt/examples/preferences
+17067b84a96d6ef1375e55f8266dc851  usr/share/lintian/overrides/apt
+61daa8a0e2abd1d9de1223bca3dc34d2  usr/share/locale/ar/LC_MESSAGES/apt.mo
+5ba21c281a4dfbb0f66e940069c48171  usr/share/locale/ast/LC_MESSAGES/apt.mo
+2d0b48a4a6d3fb277a981e08e23d5219  usr/share/locale/bg/LC_MESSAGES/apt.mo
+d1ba5ad95bc59414af4e553775cf8864  usr/share/locale/bs/LC_MESSAGES/apt.mo
+34ffc02e41953a99f0add7a8d6826f3d  usr/share/locale/ca/LC_MESSAGES/apt.mo
+181fb66eed46dc521bb464dfd5d15d9e  usr/share/locale/cs/LC_MESSAGES/apt.mo
+2da6c808837f0a02e97cc3d29a77e750  usr/share/locale/cy/LC_MESSAGES/apt.mo
+e9ec0d4c4a90cf7d2466e0b6c3898101  usr/share/locale/da/LC_MESSAGES/apt.mo
+e4284e90bb8eb612a12b3386bfee4daa  usr/share/locale/de/LC_MESSAGES/apt.mo
+546a23ecedc59c6d6da0ae7f054fae11  usr/share/locale/dz/LC_MESSAGES/apt.mo
+60387d7df6e8235058f44dde4b7c08ab  usr/share/locale/el/LC_MESSAGES/apt.mo
+a9827bcf961b41ef88d89d062bb89c5e  usr/share/locale/es/LC_MESSAGES/apt.mo
+8ad64ce33f9fc3dd1b0867b8521109ae  usr/share/locale/eu/LC_MESSAGES/apt.mo
+2d2ad478e14eac9d2fbe6b128db38d1e  usr/share/locale/fi/LC_MESSAGES/apt.mo
+084be0c495adbf06ec2d281caaefc43a  usr/share/locale/fr/LC_MESSAGES/apt.mo
+ff7d4a27c333a4067e550d16ab418318  usr/share/locale/gl/LC_MESSAGES/apt.mo
+5373780db8b8c972a1c0305ed8a2c01b  usr/share/locale/hu/LC_MESSAGES/apt.mo
+6d9c5a1f7e02c05567ae5e2bd855f7d6  usr/share/locale/it/LC_MESSAGES/apt.mo
+51d24e8a0002f95d6668198269cdf285  usr/share/locale/ja/LC_MESSAGES/apt.mo
+5c14cacaa8c895b92243bf0b5ecce45b  usr/share/locale/km/LC_MESSAGES/apt.mo
+0802902a08db52d4998a70f1b663ea30  usr/share/locale/ko/LC_MESSAGES/apt.mo
+3a3a393959d0e8a8b87bf79a55bbd403  usr/share/locale/ku/LC_MESSAGES/apt.mo
+187d93e514ee538f5d621a3cbfd6d426  usr/share/locale/lt/LC_MESSAGES/apt.mo
+02fbd4f8ae5e20af9db5d2347307fb1e  usr/share/locale/mr/LC_MESSAGES/apt.mo
+645f39524d8ed0366fd12640eac51f93  usr/share/locale/nb/LC_MESSAGES/apt.mo
+cd2746020c69f142a0f4b87ec9ef1504  usr/share/locale/ne/LC_MESSAGES/apt.mo
+0d1b98f8afa776052f451d88a73e690d  usr/share/locale/nl/LC_MESSAGES/apt.mo
+37977b0ee443cbc98913d96486a8936b  usr/share/locale/nn/LC_MESSAGES/apt.mo
+092a3d7c979cc265f1c5f4405d72b405  usr/share/locale/pl/LC_MESSAGES/apt.mo
+079068a13d9b0c6aabca4f037c3dd010  usr/share/locale/pt/LC_MESSAGES/apt.mo
+5a4ba1ae713465eae2bde42f78ca47c9  usr/share/locale/pt_BR/LC_MESSAGES/apt.mo
+5023f2d4bb1d9655330e8f6f69a0f675  usr/share/locale/ro/LC_MESSAGES/apt.mo
+6b82e9857a7b96a06f02b72c97fbbc68  usr/share/locale/ru/LC_MESSAGES/apt.mo
+13bd5c1b157611bc56ecd2b8fa0771a5  usr/share/locale/sk/LC_MESSAGES/apt.mo
+aeef041716930280bbc4d9ad5ac2e721  usr/share/locale/sl/LC_MESSAGES/apt.mo
+f55ab1b416c33d767a8154cdb3ef1561  usr/share/locale/sv/LC_MESSAGES/apt.mo
+50ec8e33944165e28655b801a772880f  usr/share/locale/th/LC_MESSAGES/apt.mo
+444207ca61d62ed3e2ec2c377985ad0e  usr/share/locale/tl/LC_MESSAGES/apt.mo
+c8f1ac1f912afdc6ac912ac3834a08e0  usr/share/locale/tr/LC_MESSAGES/apt.mo
+d79823cf8e10b5224c2227598f5719f5  usr/share/locale/uk/LC_MESSAGES/apt.mo
+af7211f64c147258410f9dfaf1bd5ff3  usr/share/locale/vi/LC_MESSAGES/apt.mo
+ac0bc92a6e01f6b7e7401ddf5bb7b74d  usr/share/locale/zh_CN/LC_MESSAGES/apt.mo
+d98a5d314b76bf0bf8341e77ac40cbc5  usr/share/locale/zh_TW/LC_MESSAGES/apt.mo
+885bf9a2de37f4addd503ad698e91eae  usr/share/man/de/man1/apt-transport-http.1.gz
+70e787c54b8af22e7a730664b6dddcd4  usr/share/man/de/man1/apt-transport-https.1.gz
+4c70edb42df2e57df12ec3eebb2eb507  usr/share/man/de/man1/apt-transport-mirror.1.gz
+04a50d72455b3204f359406c26455ffe  usr/share/man/de/man5/apt.conf.5.gz
+c3b9e82fa6455b4ed75a0bec4319888a  usr/share/man/de/man5/apt_auth.conf.5.gz
+504dc10bd9462bbd1c7d5541e7059cb7  usr/share/man/de/man5/apt_preferences.5.gz
+5f8c7e73e9ae72c57f6dd6115386e64a  usr/share/man/de/man5/sources.list.5.gz
+c03c6d324657f133cb1717e6ef4d23fb  usr/share/man/de/man7/apt-patterns.7.gz
+fd92baa0a6a16c91788a182dea5f42b9  usr/share/man/de/man8/apt-cache.8.gz
+cac166861d3258ef746ce060605ead75  usr/share/man/de/man8/apt-cdrom.8.gz
+918c36681ef70ff5da5d280331fbbc45  usr/share/man/de/man8/apt-config.8.gz
+9e18a3b1a54ccf4c630426202b5afc75  usr/share/man/de/man8/apt-get.8.gz
+94d1b2bcc5cbcdec1d379458125dc31b  usr/share/man/de/man8/apt-mark.8.gz
+b9e001b579bffbe24b821751fbaab8fe  usr/share/man/de/man8/apt-secure.8.gz
+3d99b0f966580c10afe06e57114128dc  usr/share/man/de/man8/apt.8.gz
+b057e51e7c6700270a77cbf9bc584746  usr/share/man/es/man5/apt_preferences.5.gz
+ee78ba81434dd34d6b3cb7c898e97450  usr/share/man/es/man8/apt-cache.8.gz
+8e244334f7ed118f95a0abe2331cd7bc  usr/share/man/es/man8/apt-cdrom.8.gz
+c5e38734f74d87d4e821888a112850b2  usr/share/man/es/man8/apt-config.8.gz
+d813a0155e755a46c825ff87658d539e  usr/share/man/fr/man1/apt-transport-http.1.gz
+96eaa96c9a8f387a00401e5087942a56  usr/share/man/fr/man1/apt-transport-https.1.gz
+a2806ec8a4a6b21224cb852ce870c272  usr/share/man/fr/man1/apt-transport-mirror.1.gz
+3c8fabe7fb30681c5fa66ac7a8295afe  usr/share/man/fr/man5/apt.conf.5.gz
+c26d310585091bf940f4f81553bc8827  usr/share/man/fr/man5/apt_auth.conf.5.gz
+51f2fbff809dbd7ac89c161a5fb929ea  usr/share/man/fr/man5/apt_preferences.5.gz
+b2d64b7045b7c1a5d0090bbc329040c2  usr/share/man/fr/man5/sources.list.5.gz
+b7f5ebc2fe139d30c2ca49974db4239e  usr/share/man/fr/man7/apt-patterns.7.gz
+758c3a813283ee1569f1a5c5a3effb2a  usr/share/man/fr/man8/apt-cache.8.gz
+12af863795c61292fd3c0340177eff5c  usr/share/man/fr/man8/apt-cdrom.8.gz
+1a387d1decb3e92cf6b6690af036c382  usr/share/man/fr/man8/apt-config.8.gz
+6de84dca4c0fa36e3f6fcc8adcfb5420  usr/share/man/fr/man8/apt-get.8.gz
+3c83b38a218d02d3900f8a8e47b05195  usr/share/man/fr/man8/apt-mark.8.gz
+6cfe1cbdf5dfaedb63e6b004a9e9f1a8  usr/share/man/fr/man8/apt-secure.8.gz
+6e8d6f3a3ed2b17a54585748c9ad7b7a  usr/share/man/fr/man8/apt.8.gz
+094bf26310925bb8457fa1d1c5cccbcf  usr/share/man/it/man5/apt.conf.5.gz
+0876a0b34550610b912d7eec682a9f10  usr/share/man/it/man5/apt_preferences.5.gz
+413121bd6fbad02f2c5a3b1a9686fdf4  usr/share/man/it/man8/apt-cache.8.gz
+058dac72d99748d9810a3844859e7bf6  usr/share/man/it/man8/apt-cdrom.8.gz
+a7f1812885525f85cd9da948ba1f9184  usr/share/man/it/man8/apt-config.8.gz
+d17763b760ec7606e2533a54efbe64e4  usr/share/man/it/man8/apt-mark.8.gz
+aaf0d2f19b13a0614ca4f92bb68b7826  usr/share/man/it/man8/apt.8.gz
+13269b008addd714c4a844da90b33c24  usr/share/man/ja/man5/apt.conf.5.gz
+232c7d72bc18b6b0138c18e775ef6bb5  usr/share/man/ja/man5/apt_preferences.5.gz
+50e68d7c27980017510a3c44363db6e8  usr/share/man/ja/man8/apt-cache.8.gz
+a7c0b051034d47097c213257d7d4ca1b  usr/share/man/ja/man8/apt-cdrom.8.gz
+5384a94c5502028009657f20e8659a09  usr/share/man/ja/man8/apt-config.8.gz
+734ebd9c786a6de80a83b4c89c691152  usr/share/man/ja/man8/apt-mark.8.gz
+d4ccbf654980cfa1e2b397c018654444  usr/share/man/ja/man8/apt.8.gz
+06488f0f950b5d79cf36f0ab80794e9f  usr/share/man/man1/apt-transport-http.1.gz
+6a216a6f6b7ef5fe47a05fd0c288b335  usr/share/man/man1/apt-transport-https.1.gz
+4fdbd56e06a8dd21a091d7f02ba46ce5  usr/share/man/man1/apt-transport-mirror.1.gz
+49df60f219386706d6aebb3d4f6e5786  usr/share/man/man5/apt.conf.5.gz
+8514a94fe705824747f3d609959c78e6  usr/share/man/man5/apt_auth.conf.5.gz
+9942403e81d022fc096c62c740dce229  usr/share/man/man5/apt_preferences.5.gz
+11f5a163c088b75de87d7602615c4c9f  usr/share/man/man5/sources.list.5.gz
+046bbba9d85ec6488aadcd568238fd47  usr/share/man/man7/apt-patterns.7.gz
+17c43b9122231969a696df8f951a0e5f  usr/share/man/man8/apt-cache.8.gz
+e55567c6f63c1b01b872f23e14b7a6a5  usr/share/man/man8/apt-cdrom.8.gz
+418a5206a0ab7eea51ee4c815c5c1f95  usr/share/man/man8/apt-config.8.gz
+0624feca79277ae2a5aa3ddfe89a670f  usr/share/man/man8/apt-get.8.gz
+ed47646bd0021402d692a960eb6690ee  usr/share/man/man8/apt-mark.8.gz
+dc54d6fdff83c0ec41dc6aebfda0c2d5  usr/share/man/man8/apt-secure.8.gz
+7b80f19261e13effcbf5206307eb2086  usr/share/man/man8/apt.8.gz
+3257b2ee857a8a34b88d79d1c0e96c84  usr/share/man/nl/man1/apt-transport-http.1.gz
+0a4b35a0f51cc7accec005a33b3ab192  usr/share/man/nl/man1/apt-transport-https.1.gz
+5bc61ba11325c15a228f1ea7a734c133  usr/share/man/nl/man1/apt-transport-mirror.1.gz
+889226cefcf08586010f523c9589a7e5  usr/share/man/nl/man5/apt.conf.5.gz
+3f04ef0997a77335a2a9c6fd905d17ba  usr/share/man/nl/man5/apt_auth.conf.5.gz
+aa5c7868e6e41ab95ad1e6e31bf2d4e5  usr/share/man/nl/man5/apt_preferences.5.gz
+b179ab8328a1acdd2847db92c45d78e9  usr/share/man/nl/man5/sources.list.5.gz
+43ce00a0dbdbc1162c12bd426e0ab40d  usr/share/man/nl/man7/apt-patterns.7.gz
+130ff85de11edcd07980750196da6ac3  usr/share/man/nl/man8/apt-cache.8.gz
+09507f2828495c14b71edebe69775674  usr/share/man/nl/man8/apt-cdrom.8.gz
+2d765fcd055090ec627cec911b3c6829  usr/share/man/nl/man8/apt-config.8.gz
+d8b66ba004d1d27887bbcc8888e816d9  usr/share/man/nl/man8/apt-get.8.gz
+1154b3950c4a9f5ac420387c2b440086  usr/share/man/nl/man8/apt-mark.8.gz
+92deda226ac976367c0dc016482c4f25  usr/share/man/nl/man8/apt-secure.8.gz
+fdbb5e38f5ef2718ae6fdd915dcac433  usr/share/man/nl/man8/apt.8.gz
+e618b7ccb73f59c29d2290aba76e719a  usr/share/man/pl/man5/apt_preferences.5.gz
+c7aa77e4fcbbfa33ebe9a55f3e3832e7  usr/share/man/pl/man8/apt-cache.8.gz
+21fa59b6f2717c2d2aaa1593ecb6b6ad  usr/share/man/pl/man8/apt-cdrom.8.gz
+51b30280201cdd2677c45c7ada5fc296  usr/share/man/pl/man8/apt-config.8.gz
+3829372d023378386fcb37a443328046  usr/share/man/pt/man1/apt-transport-http.1.gz
+7b013ee6f26c1b49179cf601741e77b9  usr/share/man/pt/man1/apt-transport-https.1.gz
+d219ab3ee3397ca98f0df3b2935a4c47  usr/share/man/pt/man1/apt-transport-mirror.1.gz
+494e766693a34bcda4db805529c24e05  usr/share/man/pt/man5/apt.conf.5.gz
+ee783c3d6705071981199f864139a972  usr/share/man/pt/man5/apt_auth.conf.5.gz
+1cc3e05c566b39511ba1a08fca95a372  usr/share/man/pt/man5/apt_preferences.5.gz
+2f484f35337a76c13620d7851e0985e5  usr/share/man/pt/man5/sources.list.5.gz
+4839fdd45440fd8e72effa0848733a1c  usr/share/man/pt/man7/apt-patterns.7.gz
+b0c962bfaa797a997e515830d1aa3c6e  usr/share/man/pt/man8/apt-cache.8.gz
+c8aacae8df83eedd7d89f0a654a3d634  usr/share/man/pt/man8/apt-cdrom.8.gz
+0e11244787179a71d356493bb080024d  usr/share/man/pt/man8/apt-config.8.gz
+14fbd7bc8b2588e2844d9eae994637ed  usr/share/man/pt/man8/apt-get.8.gz
+5cc7f788d70e96c07b003a3b3a4b86f9  usr/share/man/pt/man8/apt-mark.8.gz
+a5c6469d39d5a746bdd59d62f03f6512  usr/share/man/pt/man8/apt-secure.8.gz
+7a231cd30914cfbc03a41bc508f91d2a  usr/share/man/pt/man8/apt.8.gz
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   #! /bin/sh
+set -e
+
+if [ "$1" = 'configure' ] && [ -z "$DPKG_ROOT" ] && ! getent passwd _apt >/dev/null; then
+	# add unprivileged user for the apt methods
+	adduser --force-badname --system --home /nonexistent  \
+	    --no-create-home --quiet _apt || true
+fi
+
+if [ "$1" = "configure" ] && [ -n "$2" ] && dpkg --compare-versions -- "$2" le-nl "2.4.5~"; then
+    rm -f /etc/apt/apt.conf.d/01autoremove-kernels
+fi
+
+
+# Automatically added by dh_installdeb/13.24.2
+dpkg-maintscript-helper rm_conffile /etc/apt/apt.conf.d/20changelog 1.2.4\~ -- "$@"
+dpkg-maintscript-helper rm_conffile /etc/cron.daily/apt 1.2.10\~ -- "$@"
+dpkg-maintscript-helper rm_conffile /etc/kernel/postinst.d/apt-auto-removal 2.4.5\~ -- "$@"
+# End automatically added section
+# Automatically added by dh_installsystemd/13.24.2
+if [ "$1" = "configure" ] || [ "$1" = "abort-upgrade" ] || [ "$1" = "abort-deconfigure" ] || [ "$1" = "abort-remove" ] ; then
+	# The following line should be removed in trixie or trixie+1
+	deb-systemd-helper unmask 'apt-daily-upgrade.timer' >/dev/null || true
+
+	# was-enabled defaults to true, so new installations run enable.
+	if deb-systemd-helper --quiet was-enabled 'apt-daily-upgrade.timer'; then
+		# Enables the unit on first installation, creates new
+		# symlinks on upgrades if the unit file has changed.
+		deb-systemd-helper enable 'apt-daily-upgrade.timer' >/dev/null || true
+	else
+		# Update the statefile to add new symlinks (if any), which need to be
+		# cleaned up on purge. Also remove old symlinks.
+		deb-systemd-helper update-state 'apt-daily-upgrade.timer' >/dev/null || true
+	fi
+fi
+# End automatically added section
+# Automatically added by dh_installsystemd/13.24.2
+if [ "$1" = "configure" ] || [ "$1" = "abort-upgrade" ] || [ "$1" = "abort-deconfigure" ] || [ "$1" = "abort-remove" ] ; then
+	# The following line should be removed in trixie or trixie+1
+	deb-systemd-helper unmask 'apt-daily.timer' >/dev/null || true
+
+	# was-enabled defaults to true, so new installations run enable.
+	if deb-systemd-helper --quiet was-enabled 'apt-daily.timer'; then
+		# Enables the unit on first installation, creates new
+		# symlinks on upgrades if the unit file has changed.
+		deb-systemd-helper enable 'apt-daily.timer' >/dev/null || true
+	else
+		# Update the statefile to add new symlinks (if any), which need to be
+		# cleaned up on purge. Also remove old symlinks.
+		deb-systemd-helper update-state 'apt-daily.timer' >/dev/null || true
+	fi
+fi
+# End automatically added section
+# Automatically added by dh_installsystemd/13.24.2
+if [ "$1" = "configure" ] || [ "$1" = "abort-upgrade" ] || [ "$1" = "abort-deconfigure" ] || [ "$1" = "abort-remove" ] ; then
+	if [ -d /run/systemd/system ]; then
+		systemctl --system daemon-reload >/dev/null || true
+		if [ -n "$2" ]; then
+			_dh_action=restart
+		else
+			_dh_action=start
+		fi
+		deb-systemd-invoke $_dh_action 'apt-daily-upgrade.timer' 'apt-daily.timer' >/dev/null || true
+	fi
+fi
+# End automatically added section
+
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            #! /bin/sh
+
+# apt postrm
+# Copyright (C) 1998, Ben Gertzfield <che@debian.org>
+
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+
+set -e
+
+# Automatically added by dh_installdeb/13.24.2
+dpkg-maintscript-helper rm_conffile /etc/apt/apt.conf.d/20changelog 1.2.4\~ -- "$@"
+dpkg-maintscript-helper rm_conffile /etc/cron.daily/apt 1.2.10\~ -- "$@"
+dpkg-maintscript-helper rm_conffile /etc/kernel/postinst.d/apt-auto-removal 2.4.5\~ -- "$@"
+# End automatically added section
+# Automatically added by dh_installsystemd/13.24.2
+if [ "$1" = remove ] && [ -d /run/systemd/system ] ; then
+	systemctl --system daemon-reload >/dev/null || true
+fi
+# End automatically added section
+# Automatically added by dh_installsystemd/13.24.2
+if [ "$1" = remove ] && [ -d /run/systemd/system ] ; then
+	systemctl --system daemon-reload >/dev/null || true
+fi
+# End automatically added section
+# Automatically added by dh_installsystemd/13.24.2
+if [ "$1" = "purge" ]; then
+	if [ -x "/usr/bin/deb-systemd-helper" ]; then
+		deb-systemd-helper purge 'apt-daily-upgrade.timer' 'apt-daily.timer' >/dev/null || true
+	fi
+fi
+# End automatically added section
+
+
+case "$1" in
+       remove)
+		;;
+       purge)
+		rm -rf /var/cache/apt
+		rm -rf /var/lib/apt
+esac
+
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 #!/bin/sh
+set -e
+# Automatically added by dh_installdeb/13.24.2
+dpkg-maintscript-helper rm_conffile /etc/apt/apt.conf.d/20changelog 1.2.4\~ -- "$@"
+dpkg-maintscript-helper rm_conffile /etc/cron.daily/apt 1.2.10\~ -- "$@"
+dpkg-maintscript-helper rm_conffile /etc/kernel/postinst.d/apt-auto-removal 2.4.5\~ -- "$@"
+# End automatically added section
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     #!/bin/sh
+set -e
+# Automatically added by dh_installsystemd/13.24.2
+if [ -z "$DPKG_ROOT" ] && [ "$1" = remove ] && [ -d /run/systemd/system ] ; then
+	deb-systemd-invoke stop 'apt-daily-upgrade.timer' 'apt-daily.timer' >/dev/null || true
+fi
+# End automatically added section
+# Automatically added by dh_installdeb/13.24.2
+dpkg-maintscript-helper rm_conffile /etc/apt/apt.conf.d/20changelog 1.2.4\~ -- "$@"
+dpkg-maintscript-helper rm_conffile /etc/cron.daily/apt 1.2.10\~ -- "$@"
+dpkg-maintscript-helper rm_conffile /etc/kernel/postinst.d/apt-auto-removal 2.4.5\~ -- "$@"
+# End automatically added section
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    libapt-private 0.0 apt (>= 3.0.3)
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              # Triggers added by dh_makeshlibs/13.24.2
+activate-noawait ldconfig
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            /etc/debian_version
+/etc/dpkg/origins/debian
+/etc/host.conf
+/etc/issue
+/etc/issue.net
+/etc/update-motd.d/10-uname
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              /.
+/boot
+/dev
+/etc
+/etc/debian_version
+/etc/default
+/etc/dpkg
+/etc/dpkg/origins
+/etc/dpkg/origins/debian
+/etc/host.conf
+/etc/issue
+/etc/issue.net
+/etc/profile.d
+/etc/skel
+/etc/update-motd.d
+/etc/update-motd.d/10-uname
+/home
+/proc
+/root
+/run
+/sys
+/tmp
+/usr
+/usr/bin
+/usr/games
+/usr/include
+/usr/lib
+/usr/lib/os-release
+/usr/sbin
+/usr/share
+/usr/share/base-files
+/usr/share/base-files/dot.bashrc
+/usr/share/base-files/dot.profile
+/usr/share/base-files/dot.profile.md5sums
+/usr/share/base-files/info.dir
+/usr/share/base-files/motd
+/usr/share/base-files/profile
+/usr/share/base-files/profile.md5sums
+/usr/share/base-files/staff-group-for-usr-local
+/usr/share/common-licenses
+/usr/share/common-licenses/Apache-2.0
+/usr/share/common-licenses/Artistic
+/usr/share/common-licenses/BSD
+/usr/share/common-licenses/CC0-1.0
+/usr/share/common-licenses/GFDL-1.2
+/usr/share/common-licenses/GFDL-1.3
+/usr/share/common-licenses/GPL-1
+/usr/share/common-licenses/GPL-2
+/usr/share/common-licenses/GPL-3
+/usr/share/common-licenses/LGPL-2
+/usr/share/common-licenses/LGPL-2.1
+/usr/share/common-licenses/LGPL-3
+/usr/share/common-licenses/MPL-1.1
+/usr/share/common-licenses/MPL-2.0
+/usr/share/dict
+/usr/share/doc
+/usr/share/doc/base-files
+/usr/share/doc/base-files/NEWS.Debian.gz
+/usr/share/doc/base-files/README
+/usr/share/doc/base-files/README.FHS
+/usr/share/doc/base-files/changelog.gz
+/usr/share/doc/base-files/copyright
+/usr/share/info
+/usr/share/lintian
+/usr/share/lintian/overrides
+/usr/share/lintian/overrides/base-files
+/usr/share/man
+/usr/share/misc
+/usr/src
+/var
+/var/backups
+/var/cache
+/var/lib
+/var/lib/dpkg
+/var/lib/misc
+/var/local
+/var/lock
+/var/log
+/var/run
+/var/spool
+/var/tmp
+/bin
+/etc/os-release
+/lib
+/sbin
+/usr/share/common-licenses/GFDL
+/usr/share/common-licenses/GPL
+/usr/share/common-licenses/LGPL
+/usr/share/doc/base-files/FAQ
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               d99149c2819db276d2e2f425be49a022  usr/lib/os-release
+a900ca45b16bdadb3ad5e5177710d3a7  usr/share/base-files/dot.bashrc
+04fd980ef599a6d7bfd5dc5454421795  usr/share/base-files/dot.profile
+9bbd1954937d5d7d3fe5ba394aa56c2d  usr/share/base-files/dot.profile.md5sums
+f9128f409878ce10d54d06488e3ce136  usr/share/base-files/info.dir
+9830e3dbb6a828f2cc824db8db0ceaf7  usr/share/base-files/motd
+be6a0f27688b15faede8ad38300c1acc  usr/share/base-files/profile
+e248afc39fbd894ce019ad4e1e0f2618  usr/share/base-files/profile.md5sums
+f3b332b9a376a0567236f54d7d87f85e  usr/share/base-files/staff-group-for-usr-local
+3b83ef96387f14655fc854ddc3c6bd57  usr/share/common-licenses/Apache-2.0
+f921793d03cc6d63ec4b15e9be8fd3f8  usr/share/common-licenses/Artistic
+3775480a712fc46a69647678acb234cb  usr/share/common-licenses/BSD
+65d3616852dbf7b1a6d4b53b00626032  usr/share/common-licenses/CC0-1.0
+239c071aafbb8fbd1b08260a740e0ffb  usr/share/common-licenses/GFDL-1.2
+a22d0be1ce2284b67950a4d1673dd1b0  usr/share/common-licenses/GFDL-1.3
+55ca0f5c2ef51d249590db0c56015b4d  usr/share/common-licenses/GPL-1
+570a9b3749dd0463a1778803b12a6dce  usr/share/common-licenses/GPL-2
+1ebbd3e34237af26da5dc08a4e440464  usr/share/common-licenses/GPL-3
+9ec28527f3d544b51ceb0e1907d0bf3f  usr/share/common-licenses/LGPL-2
+4bf661c1e3793e55c8d1051bc5e0ae21  usr/share/common-licenses/LGPL-2.1
+3000208d539ec061b899bce1d9ce9404  usr/share/common-licenses/LGPL-3
+0c5913925d40b124fb52ce84c5deb3f3  usr/share/common-licenses/MPL-1.1
+815ca599c9df247a0c7f619bab123dad  usr/share/common-licenses/MPL-2.0
+e4734539bd9a636f54609b44fec838b0  usr/share/doc/base-files/NEWS.Debian.gz
+7041d317c02690d4153b17aa77ad9384  usr/share/doc/base-files/README
+fbd937e067f0a83fb9422713a6b84a8a  usr/share/doc/base-files/README.FHS
+812b9ccb24757e5144a142fbfeacd406  usr/share/doc/base-files/changelog.gz
+9505ca209fb66f8ec0cb06166900addb  usr/share/doc/base-files/copyright
+8f222efc79f01c7eaa790bc845126efe  usr/share/lintian/overrides/base-files
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             #!/bin/sh
+set -e
+
+ensure_file_owner_mode() {
+  if [ ! -f "$DPKG_ROOT$1" ]; then
+    : > "$DPKG_ROOT$1"
+  fi
+  chown "$2" "$DPKG_ROOT$1"
+  chmod "$3" "$DPKG_ROOT$1"
+}
+
+install_local_dir() {
+  if [ ! -d "$DPKG_ROOT$1" ]; then
+    mkdir -p "$DPKG_ROOT$1"
+  fi
+  if [ -f "$DPKG_ROOT/etc/staff-group-for-usr-local" ]; then
+    chown root:staff "$DPKG_ROOT$1" 2>/dev/null || true
+    chmod 2775 "$DPKG_ROOT$1" 2> /dev/null || true
+  fi
+}
+
+install_from_default() {
+  if [ ! -f "$DPKG_ROOT$2" ]; then
+    cp -p "$DPKG_ROOT/usr/share/base-files/$1" "$DPKG_ROOT$2"
+  fi
+}
+
+install_directory() {
+  if [ ! -d "$DPKG_ROOT/$1" ]; then
+    mkdir "$DPKG_ROOT/$1"
+    chown "root:$3" "$DPKG_ROOT/$1"
+    chmod "$2" "$DPKG_ROOT/$1"
+  fi
+}
+
+migrate_directory() {
+  if [ ! -L "$DPKG_ROOT$1" ]; then
+    rmdir "$DPKG_ROOT$1"
+    ln -s "$2" "$DPKG_ROOT$1"
+  fi
+}
+
+update_to_current_default() {
+  if [ -f "$2" ]; then
+    md5=$(md5sum "$2" | cut -f 1 -d " ")
+    if grep -q "$md5" "/usr/share/base-files/$1.md5sums"; then
+      if ! cmp -s "/usr/share/base-files/$1" "$2"; then
+        cp -p "/usr/share/base-files/$1" "$2"
+        echo Updating $2 to current default.
+      fi
+    fi
+  fi
+}
+
+if [ ! -e "$DPKG_ROOT/etc/dpkg/origins/default" ]; then
+  if [ -e "$DPKG_ROOT/etc/dpkg/origins/debian" ]; then
+    ln -sf debian "$DPKG_ROOT/etc/dpkg/origins/default"
+  fi
+fi
+
+if [ "$1" = "configure" ] && [ "$2" = "" ]; then
+  install_from_default dot.profile   /root/.profile
+  install_from_default dot.bashrc    /root/.bashrc
+  install_from_default profile       /etc/profile
+  install_from_default motd          /etc/motd
+  install_directory mnt       755 root
+  install_directory srv       755 root
+  install_directory opt       755 root
+  install_directory etc/opt   755 root
+  install_directory var/opt   755 root
+  install_directory media     755 root
+  install_directory var/mail 2775 mail
+  if [ ! -L "$DPKG_ROOT/var/spool/mail" ]; then
+    ln -s ../mail "$DPKG_ROOT/var/spool/mail"
+  fi
+  install_directory run/lock 1777 root
+  migrate_directory /var/run /run
+  migrate_directory /var/lock /run/lock
+
+  install_local_dir /usr/local
+  install_local_dir /usr/local/share
+  install_local_dir /usr/local/share/man
+  install_local_dir /usr/local/bin
+  install_local_dir /usr/local/games
+  install_local_dir /usr/local/lib
+  install_local_dir /usr/local/libexec
+  install_local_dir /usr/local/include
+  install_local_dir /usr/local/sbin
+  install_local_dir /usr/local/src
+  install_local_dir /usr/local/etc
+  ln -sf share/man "$DPKG_ROOT/usr/local/man"
+
+  ensure_file_owner_mode /var/log/wtmp root:utmp 664
+  ensure_file_owner_mode /var/log/btmp root:utmp 660
+  ensure_file_owner_mode /var/log/lastlog root:utmp 664
+fi
+
+if [ -d "$DPKG_ROOT/usr/share/info" ] && [ ! -f "$DPKG_ROOT/usr/info/dir" ] && [ ! -f "$DPKG_ROOT/usr/share/info/dir" ]; then
+  install_from_default info.dir /usr/share/info/dir
+  chmod 644 $DPKG_ROOT/usr/share/info/dir
+fi
+
+if [ "$1" = "configure" ] && [ "$2" != "" ]; then
+  update_to_current_default profile       /etc/profile
+  update_to_current_default dot.profile   /root/.profile
+  if dpkg --compare-versions "$2" lt-nl "7.7"; then
+    install_directory mnt 755 root
+  fi
+fi
+
+rtlddir=""
+if [ "$1" = "configure" ] && [ -n "$rtlddir" ]; then
+  # Remove temporary DEP17 M4 diversion added by glibc.
+  dpkg-divert --quiet --package base-files --remove --no-rename --divert "/.$rtlddir.usr-is-merged" "/$rtlddir"
+fi
+
+if [ "$1" = "configure" ] || [ "$1" = "triggered" ]; then
+  for d in lib32 lib64 libo32 libx32; do
+    if [ -d "$DPKG_ROOT/usr/$d" ]; then
+      if [ -L "$DPKG_ROOT/$d" ]; then
+        :
+      elif [ -d "$DPKG_ROOT/$d" ]; then
+        echo "Warning: /$d is not a symlink, but should be." 1>&2
+      else
+        ln -s "usr/$d" "$DPKG_ROOT/$d"
+      fi
+    elif [ -L "$DPKG_ROOT/$d" ]; then
+      rm "$DPKG_ROOT/$d"
+    fi
+  done
+fi
+
+
+                                                                                                                                                                                                                                                          #!/bin/sh
+set -e
+
+if [ "$1" = "remove" ]; then
+  for d in lib32 lib64 libo32 libx32; do
+    # Remove DEP17 M4 protective diversions
+    dpkg-divert --quiet --package base-files --remove --no-rename --divert "/.$d.usr-is-merged" "/$d"
+  done
+fi
+
+
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          #!/bin/sh
+set -e
+
+if [ "$1" = "install" ] || [ "$1" = "upgrade" ]; then
+  msg=
+  for d in bin lib lib32 lib64 libo32 libx32 sbin; do
+    if [ -L "$DPKG_ROOT/$d" ]; then
+      target=$(readlink "$DPKG_ROOT/$d")
+      if [ "$target" != "usr/$d" ]; then
+        if [ "$d" = lib64 ] && [ "$target" = "usr/lib/i386-linux-gnu" ]; then
+          # Work around https://github.com/systemd/systemd/issues/33919
+          echo "Fixing bad /$d symbolic link created by systemd-nspawn."
+          if [ -d "$DPKG_ROOT/usr/$d" ]; then
+            ln -sf "usr/$d" "$DPKG_ROOT/$d"
+          else
+            rm "$DPKG_ROOT/$d"
+          fi
+        else
+          msg="/$d is a symbolic link and not pointing at usr/$d exactly"
+        fi
+      elif [ ! -d "$DPKG_ROOT/usr/$d" ]; then
+        msg="/$d is a dangling symbolic link"
+      fi
+      msg2="This is an unexpected situation. Cannot proceed with the upgrade"
+    elif [ -d "$DPKG_ROOT/$d" ]; then
+      msg="/$d is a directory, but should be a symbolic link"
+      msg2="Please install the usrmerge package to convert this system to merged-/usr"
+    fi
+    if [ -n "$msg" ]; then
+      cat <<EOF
+
+
+******************************************************************************
+*
+* The base-files package cannot be installed because
+* $msg.
+*
+* $msg2.
+*
+* For more information please read https://wiki.debian.org/UsrMerge.
+*
+******************************************************************************
+
+
+EOF
+      exit 1
+    fi
+  done
+  for d in lib32 lib64 libo32 libx32; do
+    # Install DEP17 M4 protective diversions
+    dpkg-divert --quiet --package base-files --add --no-rename --divert "/.$d.usr-is-merged" "/$d"
+  done
+fi
+
+
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      # Triggers for creating multilib aliasing symlinks on demand
+interest-noawait /usr/lib32
+interest-noawait /usr/lib64
+interest-noawait /usr/libo32
+interest-noawait /usr/libx32
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 /.
+/usr
+/usr/sbin
+/usr/sbin/update-passwd
+/usr/share
+/usr/share/base-passwd
+/usr/share/base-passwd/group.master
+/usr/share/base-passwd/passwd.master
+/usr/share/doc
+/usr/share/doc/base-passwd
+/usr/share/doc/base-passwd/README
+/usr/share/doc/base-passwd/changelog.gz
+/usr/share/doc/base-passwd/copyright
+/usr/share/doc/base-passwd/users-and-groups.html
+/usr/share/doc/base-passwd/users-and-groups.txt.gz
+/usr/share/doc-base
+/usr/share/doc-base/base-passwd.users-and-groups
+/usr/share/lintian
+/usr/share/lintian/overrides
+/usr/share/lintian/overrides/base-passwd
+/usr/share/man
+/usr/share/man/de
+/usr/share/man/de/man8
+/usr/share/man/de/man8/update-passwd.8.gz
+/usr/share/man/es
+/usr/share/man/es/man8
+/usr/share/man/es/man8/update-passwd.8.gz
+/usr/share/man/fr
+/usr/share/man/fr/man8
+/usr/share/man/fr/man8/update-passwd.8.gz
+/usr/share/man/ja
+/usr/share/man/ja/man8
+/usr/share/man/ja/man8/update-passwd.8.gz
+/usr/share/man/man8
+/usr/share/man/man8/update-passwd.8.gz
+/usr/share/man/pl
+/usr/share/man/pl/man8
+/usr/share/man/pl/man8/update-passwd.8.gz
+/usr/share/man/ro
+/usr/share/man/ro/man8
+/usr/share/man/ro/man8/update-passwd.8.gz
+/usr/share/man/ru
+/usr/share/man/ru/man8
+/usr/share/man/ru/man8/update-passwd.8.gz
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 348e2357ef5c604b0022baf41dcc37b9  usr/sbin/update-passwd
+f9b817368a2bbca3256e1302c1dda6ce  usr/share/base-passwd/group.master
+04769f5756a03dfc0dc7efb96c6c9202  usr/share/base-passwd/passwd.master
+cdac90d3d3ef8d60e4bc0eb73efa68d7  usr/share/doc-base/base-passwd.users-and-groups
+070ca330b7f1aa461ecb427d15b183fa  usr/share/doc/base-passwd/README
+aee7ab222f97e4ecb59842a9c32dee40  usr/share/doc/base-passwd/changelog.gz
+a9d446fd6ded7735b847ceb645e39e86  usr/share/doc/base-passwd/copyright
+a42de743cd0a844767a2366d1ad3f548  usr/share/doc/base-passwd/users-and-groups.html
+698a63df262c15d04bc150c02234dc81  usr/share/doc/base-passwd/users-and-groups.txt.gz
+8dc658a3a1b2fe714b45d245439bca24  usr/share/lintian/overrides/base-passwd
+417615f3573ea26d0eabefe41baf8d6e  usr/share/man/de/man8/update-passwd.8.gz
+3aabf1f78ade5c2da8119bf18abdbdc3  usr/share/man/es/man8/update-passwd.8.gz
+e760a771202b287cf1f60913827645d2  usr/share/man/fr/man8/update-passwd.8.gz
+8f5e8cf74ee334873cbba2d030c15bd6  usr/share/man/ja/man8/update-passwd.8.gz
+1969463c65b2ba5854822cdeb0143e35  usr/share/man/man8/update-passwd.8.gz
+07151e974281809746e01a6be8c03e01  usr/share/man/pl/man8/update-passwd.8.gz
+de3e7e6cae3b1f3b62c0e4fdab9a2551  usr/share/man/ro/man8/update-passwd.8.gz
+85605c43d9fdcd3efcdc788a17dd83e0  usr/share/man/ru/man8/update-passwd.8.gz
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   #! /bin/sh
+
+set -e
+
+# Load the debconf confmodule if it is available.  It may not be because this
+# package is essential and therefore can't depend on debconf directly.
+if [ -f /usr/share/debconf/confmodule ]; then
+	# shellcheck disable=SC1091
+	. /usr/share/debconf/confmodule
+fi
+
+changes=0
+
+askyesno () {
+	if [ "$DEBIAN_FRONTEND" = "noninteractive" ] ; then
+		a=y
+		return
+	fi
+
+	while : ; do
+		printf '%s ' "$1"
+		read -r a || true
+		if [ "$a" = "" ] ; then
+			a="y"
+		fi
+		a=$(echo $a | tr '[:upper:]' '[:lower:]')
+		if [ "$a" = "y" ] || [ "$a" = "n" ] ; then
+			break
+		fi
+		echo "Illegal answer"
+	done
+}
+
+# A cut-down version of 'which' from debianutils.
+searchpath () {
+	PROGRAM="$1"
+	IFS_SAVE="$IFS"
+	IFS=:
+	RET=1
+	for ELEMENT in $PATH; do
+		if [ -z "$ELEMENT" ]; then
+			ELEMENT=.
+		fi
+		if [ -f "$ELEMENT/$PROGRAM" ] && \
+		   [ -x "$ELEMENT/$PROGRAM" ]; then
+			RET=0
+			break
+		fi
+	done
+	IFS="$IFS_SAVE"
+	return "$RET"
+}
+
+
+if [ ! "$1" = "configure" ] ; then
+    exit 0
+fi
+
+if [ ! -e "$DPKG_ROOT/etc/passwd" ] ; then
+	cp "$DPKG_ROOT/usr/share/base-passwd/passwd.master" "$DPKG_ROOT/etc/passwd"
+fi
+
+if [ ! -e "$DPKG_ROOT/etc/group" ] ; then
+	cp "$DPKG_ROOT/usr/share/base-passwd/group.master" "$DPKG_ROOT/etc/group"
+fi
+
+if [ ! -e "$DPKG_ROOT/etc/subuid" ] ; then
+	touch "$DPKG_ROOT/etc/subuid"
+	chown 0:0 "$DPKG_ROOT/etc/subuid"
+	chmod 644 "$DPKG_ROOT/etc/subuid"
+fi
+
+if [ ! -e "$DPKG_ROOT/etc/subgid" ] ; then
+	touch "$DPKG_ROOT/etc/subgid"
+	chown 0:0 "$DPKG_ROOT/etc/subgid"
+	chmod 644 "$DPKG_ROOT/etc/subgid"
+fi
+
+
+tmp=$(mktemp)
+if [ -n "$2" ] && ! update-passwd --dry-run > "$tmp" ; then
+	if [ -f /usr/share/debconf/confmodule ] ; then
+		db_version 2.0
+		update-passwd --verbose
+		changes=1
+	else
+		cat <<EOF
+
+update-passwd has found some differences between your system accounts
+and the current Debian defaults.  It is advisable to allow update-passwd
+to change your system; without those changes some packages might not work
+correctly.  For more documentation on the Debian account policies, please
+see /usr/share/doc/base-passwd/README.
+
+The list of proposed changes is:
+
+EOF
+
+		cat "$tmp"
+		cat <<EOF
+
+It is highly recommended that you allow update-passwd to make these changes
+(a backup file of modified files is made with the extension .org so you can
+always restore the current settings).
+
+EOF
+		askyesno "May I update your system? [Y/n]"
+	fi
+
+	if [ "$a" = "y" ] ; then
+		echo "Okay, I am going to make the necessary updates now"
+		update-passwd --verbose
+		changes=1
+	elif [ "$a" = "n" ] ; then
+		cat <<EOF
+
+Okay, I will not update your system.  If you want to make this update later
+please check the update-passwd utility.
+
+EOF
+
+	fi
+fi
+
+rm -f "$tmp"
+
+if [ "$changes" -gt 0 ] ; then
+	if searchpath nscd; then
+		nscd -i passwd -i group || true
+	fi
+fi
+
+
+
+exit 0
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     #!/bin/sh
+set -e
+# Automatically added by dh_installdebconf/13.24.1
+if [ "$1" = purge ] && [ -e /usr/share/debconf/confmodule ]; then
+	. /usr/share/debconf/confmodule
+	db_purge
+fi
+# End automatically added section
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          #! /bin/sh
+set -e
+
+if [ "$1" = install ]; then
+	if [ ! -e "$DPKG_ROOT/etc/passwd" ]; then
+		cat > "$DPKG_ROOT/etc/passwd" <<'EOF'
+root:*:0:0:root:/root:/bin/bash
+daemon:*:1:1:daemon:/usr/sbin:/usr/sbin/nologin
+bin:*:2:2:bin:/bin:/usr/sbin/nologin
+sys:*:3:3:sys:/dev:/usr/sbin/nologin
+sync:*:4:65534:sync:/bin:/bin/sync
+games:*:5:60:games:/usr/games:/usr/sbin/nologin
+man:*:6:12:man:/var/cache/man:/usr/sbin/nologin
+lp:*:7:7:lp:/var/spool/lpd:/usr/sbin/nologin
+mail:*:8:8:mail:/var/mail:/usr/sbin/nologin
+news:*:9:9:news:/var/spool/news:/usr/sbin/nologin
+uucp:*:10:10:uucp:/var/spool/uucp:/usr/sbin/nologin
+proxy:*:13:13:proxy:/bin:/usr/sbin/nologin
+www-data:*:33:33:www-data:/var/www:/usr/sbin/nologin
+backup:*:34:34:backup:/var/backups:/usr/sbin/nologin
+list:*:38:38:Mailing List Manager:/var/list:/usr/sbin/nologin
+irc:*:39:39:ircd:/run/ircd:/usr/sbin/nologin
+_apt:*:42:65534::/nonexistent:/usr/sbin/nologin
+nobody:*:65534:65534:nobody:/nonexistent:/usr/sbin/nologin
+EOF
+	fi
+
+	if [ ! -e "$DPKG_ROOT/etc/group" ]; then
+		cat > "$DPKG_ROOT/etc/group" <<'EOF'
+root:*:0:
+daemon:*:1:
+bin:*:2:
+sys:*:3:
+adm:*:4:
+tty:*:5:
+disk:*:6:
+lp:*:7:
+mail:*:8:
+news:*:9:
+uucp:*:10:
+man:*:12:
+proxy:*:13:
+kmem:*:15:
+dialout:*:20:
+fax:*:21:
+voice:*:22:
+cdrom:*:24:
+floppy:*:25:
+tape:*:26:
+sudo:*:27:
+audio:*:29:
+dip:*:30:
+www-data:*:33:
+backup:*:34:
+operator:*:37:
+list:*:38:
+irc:*:39:
+src:*:40:
+shadow:*:42:
+utmp:*:43:
+video:*:44:
+sasl:*:45:
+plugdev:*:46:
+staff:*:50:
+games:*:60:
+users:*:100:
+nogroup:*:65534:
+EOF
+	fi
+fi
+
+
+
+exit 0
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      Template: base-passwd/user-move
+Type: boolean
+Default: true
+Description: Do you want to move the user ${name}?
+ update-passwd has found a difference between your system accounts and the
+ current Debian defaults.  It is advisable to allow update-passwd to
+ change your system; without those changes some packages might not work
+ correctly.  For more documentation on the Debian account policies, please
+ see /usr/share/doc/base-passwd/README.
+ .
+ The proposed change is:
+ .
+ Move user "${name}" (${id}) to before the NIS compat "+" entry
+ .
+ If you allow this change, a backup of modified files will be made with
+ the extension .org, which you can use if necessary to restore the
+ current settings.  If you do not make this change now, you can make it
+ later with the update-passwd utility.
+Description-ca.UTF-8: Voleu moure l'usuari ${name}?
+ L'«update-passwd» ha trobat una diferència entre els comptes d'aquest sistema i els valors predeterminats actuals de Debian. És recomanable permetre que l'«update-passwd» canviï el sistema: sense aquests canvis alguns paquets podrien no funcionar correctament. Per a més documentació sobre les polítiques de comptes de Debian, consulteu «/usr/share/doc/base-passwd/README».
+ .
+ El canvi proposat és:
+ .
+ Moure l'usuari «${name}» (${id}) per davant de l'entrada «+» del «compat» del NIS
+ .
+ Si permeteu aquest canvi, es farà una còpia de seguretat amb l'extensió «.org» dels fitxers modificats, que si cal podeu utilitzar per restaurar la configuració actual. Si no feu aquest canvi ara, podeu fer-lo més endavant amb la utilitat «update-passwd».
+Description-da.UTF-8: Ønsker du at flytte brugeren ${name}?
+ update-passwd har fundet en forskel mellem dine systemkonti og de nuværende Debianstandarder. Det tilrådes at give update-passwd tilladelse til at ændre dit system; uden disse ændringer vil nogle pakker ikke fungere korrekt. For yderligere dokumentation om Debians politikker for konti, så se venligst /usr/share/doc/base/base-passwd/README.
+ .
+ Den foreslåede ændring er:
+ .
+ Flyt brugeren »${name}« (${id}) før NIS-kompatilitets »+«-posten
+ .
+ Hvis du tillader denne ændring, vil en sikkerhedskopi af de ændrede filer blive udført med udvidelsen .org, som du kan bruge, hvis du skal gendanne de nuværende indstillinger. Hvis du ikke udfører denne ændring nu, så kan du udføre den senere med redskabet update-passwd.
+Description-de.UTF-8: Möchten Sie den Benutzer ${name} verschieben?
+ Update-passwd hat einen Unterschied zwischen Ihren Systemkonten und den aktuellen Debian-Vorgaben gefunden. Es ist ratsam, Update-passwd das Ändern Ihres Systems zu gestatten. Ohne diese Änderungen funktionieren einige Pakete möglicherweise nicht korrekt. Die Richtlinien für Debian-Konten sind unter /usr/share/doc/base-passwd/README dokumentiert.
+ .
+ Die geplante Änderung ist:
+ .
+ Benutzer »${name}« (${id}) vor den NIS-Compat-Eintrag »+« verschieben
+ .
+ Falls Sie diese Änderung gestatten, wird eine Sicherheitskopie der geänderten Dateien mit der Erweiterung .org erstellt, die Sie falls nötig zum Wiederherstellen der aktuellen Einstellungen benutzen können. Wenn Sie diese Änderung nun nicht vornehmen, können Sie dies später mit dem Hilfswerkzeug Update-passwd erledigen.
+Description-es.UTF-8: ¿Desea mover el usuario ${name}?
+ update-passwd ha encontrado una diferencia entre las cuentas de su sistema y las predeterminadas de Debian. Es recomendable permitir que update-passwd realice cambios en su sistema; sin esos cambios, algunos paquetes podrían funcionar mal. Consulte «/usr/share/doc/base-passwd/README» para más información sobre las directrices de cuentas en Debian.
+ .
+ El cambio propuesto es:
+ .
+ Mover el usuario «${name}» (${id}) antes de la entrada «+» de NIS compat
+ .
+ Si permite este cambio, se creará una copia de seguridad de los archivos que se van a modificar con la extensión «.org», que podrá utilizar si fuera necesario restaurar la configuración inicial. Si no realiza este cambio ahora, podrá hacerlo más adelante con la utilidad update-passwd.
+Description-fr.UTF-8: Faut-il déplacer l'utilisateur ${name} ?
+ L'utilitaire « update-passwd » a détecté une différence entre les comptes système et les comptes Debian définis par défaut. Il est recommandé de permettre à « update-passwd » de modifier le système ; sans ces changements, certains paquets risquent de ne pas fonctionner correctement. Davantage d'informations concernant la politique des comptes Debian se trouvent dans le fichier « /usr/share/doc/base-passwd/README ».
+ .
+ La modification proposée est :
+ .
+ Déplacement de l'utilisateur « ${name} » (${id}) avant l'entrée NIS « + » du mode compat
+ .
+ En acceptant cette modification, une sauvegarde des fichiers modifiés sera créée avec l'extension .org, qui pourra être utilisée plus tard pour restaurer les réglages actuels. Si la modification n'est pas effectuée maintenant, elle pourra l'être ultérieurement en utilisant « update-passwd ».
+Description-it.UTF-8: Spostare l'utente ${name}?
+ update-passwd ha trovato una differenza tra gli account del sistema e i valori predefiniti attuali di Debian. È consigliabile permettere ad update-passwd di cambiare il sistema; senza tali cambiamenti alcuni pacchetti potrebbero non funzionare correttamente. Per maggiore documentazione sulle politiche Debian per gli account, vedere /usr/share/doc/base-passwd/README.
+ .
+ La modifica proposta è:
+ .
+ Spostare l'utente «${name}» (${id}) prima della voce NIS compat «+»
+ .
+ Se si permette questa modifica, verrà creato un backup dei file modificati con l'estensione .org che può essere usato, se necessario, per ripristinare le impostazioni attuali. Se non si effettua questa modifica ora, è possibile farlo in un secondo momento con l'utilità update-passwd.
+Description-ja.UTF-8: ユーザ ${name} を移動しますか?
+ update-passwd はこのシステムのアカウントが現在の Debian のデフォルトとは異なっていることを検出しました。update-passwd にシステムの変更を許可することをお勧めします。変更しない場合は正常に動作しないパッケージがあるかもしれません。Debian アカウントポリシーのさらなる文書については /usr/share/doc/base-passwd/README を見てください。
+ .
+ 提案する変更点:
+ .
+ ユーザ「${name}」(${id}) を NIS 互換の「+」のついた項目より前に移動
+ .
+ この変更を許可すると変更されるファイルのバックアップが拡張子 .org を付けて作成され、現在の設定を復旧させる必要ができた場合に利用できます。ここで変更しない場合は update-passwd ユーティリティにより後でバックアップを作成できます。
+Description-nl.UTF-8: Wilt u gebruiker ${name} verplaatsen?
+ update-passwd stelde een verschil vast tussen uw systeemaccounts en de huidige standaarden in Debian. Het wordt aanbevolen om update-passwd toe te laten uw systeem aan te passen. Zonder die aanpassingen kunnen sommige pakketten niet correct werken. Voor achtergrondinformatie over het beleid van Debian in verband met accounts, kunt u /usr/share/doc/base-passwd/README raadplegen.
+ .
+ De voorgestelde aanpassing is:
+ .
+ Gebruiker "${name}" (${id}) verplaatsen naar een regel boven de "+"-regel voor NIS-compatibiliteit
+ .
+ Indien u instemt met deze wijziging, wordt een reservekopie gemaakt van de te wijzigen bestanden met de extensie .org. Indien nodig kunt u die later gebruiken om terug te keren naar de huidige instellingen. Voert u deze wijziging nu niet door, dan kunt u ze later maken met behulp van het hulpprogramma update-passwd.
+Description-pt.UTF-8: Deseja mover o utilizador ${name}?
+ O update-passwd encontrou uma diferença entre as contas do seu sistema e as predefinições actuais de Debian. É aconselhável permitir ao update-passwd que altere o seu sistema; sem essas alterações alguns pacotes podem não funcionar correctamente. Para mais documentação sobre as politicas de contas Debian, por favor veja /usr/share/doc/base-passwd/README.
+ .
+ A alteração proposta é:
+ .
+ Mover utilizador "${name}" (${id}) para anterior à entrada "+" de compatibilidade NIS
+ .
+ Se permitir esta alteração, será feita uma cópia de salvaguarda com extensão .org dos ficheiros modificados, a qual pode usar se necessário para restaurar as definições actuais. Se não fizer esta alteração agora, pode fazê-la mais tarde com o utilitário update-passwd.
+Description-pt_BR.UTF-8: Você quer mover o usuário ${name}?
+ O update-passwd encontrou uma diferença entre as suas contas do sistema e o padrão Debian atual. É recomendado permitir ao update-passwd alterar seu sistema; sem estas mudanças, alguns pacotes podem não funcionar corretamente. Para obter mais informações sobre a política de contas do Debian, por favor, veja a documentação em /usr/share/doc/base-passwd/README.
+ .
+ A mudança proposta é:
+ .
+ Mover o usuário "${name}" (${id}) para antes da entrada compat "+" do NIS
+ .
+ Se você permitir esta alteração, um backup dos arquivos modificados será feito com a extensão .org, que você poderá usar, se necessário, para restaurar as configurações atuais. Se você não fizer esta alteração agora, você poderá fazê-la mais tarde com o utilitário update-passwd.
+Description-ro.UTF-8: Doriți să mutați utilizatorul ${name}?
+ Instrumentul «update-passwd» a găsit o diferență între conturile dvs. de sistem și valorile implicite Debian actuale.  Este recomandabil să permiteți instrumentului «update-passwd» să vă modifice sistemul; fără aceste modificări, unele pachete ar putea să nu funcționeze corect.  Pentru o mai bună documentare despre politicile contului Debian, consultați „/usr/share/doc/base-passwd/README”.
+ .
+ Modificarea propusă este:
+ .
+ Mutați utilizatorul „${name}” (${id}) înainte de intrarea „+” de compatibilitate NIS
+ .
+ Dacă permiteți această modificare, se va face o copie de rezervă a fișierelor modificate cu extensia .org, pe care o puteți utiliza dacă este necesar pentru a restabili configurările curente.  Dacă nu faceți această modificare acum, o puteți face mai târziu cu instrumentul „update-passwd”.
+Description-ru.UTF-8: Переместить пользователя ${name}?
+ Программа update-passwd обнаружила различия между вашими системными учётными записями и текущими настройками Debian по умолчанию. Советуем разрешить update-passwd изменить вашу систему; без этих изменений некоторые пакеты могут работать неправильно. Документация по политике учётных записей в Debian приведена в /usr/share/doc/base-passwd/README.
+ .
+ Предлагаемое изменение:
+ .
+ Перенос записи пользователя «${name}» (${id}) перед записью NIS compat "+"
+ .
+ Если разрешить выполнение этого изменения, будет сделана резервная копия изменённых файлов с расширением .org, которые вы можете использовать для восстановления текущих настроек. Если не сделать это изменение сейчас, то можно вернуться к нему позднее, воспользовавшись утилитой update-passwd.
+Description-sv.UTF-8: Vill du flytta användaren ${name}?
+ update-passwd har hittat en skillnad mellan dina systemkonton och de nuvarande förvalen i Debian. Det är rekommenderat att tillåta update-passwd att ändra ditt system; utan dessa ändringar kommer möjligen en del paket inte att fungera korrekt. För mer dokumentation om Debians regler för konton, se /usr/share/doc/base-passwd/README.
+ .
+ Den föreslagna ändringen är:
+ .
+ Flytta användare "${name}" (${id}) till innan "+"-posten i NIS kompatibilitetsläge (compat)
+ .
+ Om du tillåter denna ändring kommer en säkerhetskopia av modifierade filer att göras med filtillägget .org, som du kan använda om du behöver återställa nuvarande inställningar. Om du inte gör denna ändring nu kan du göra det senare med verktyget update-passwd.
+
+Template: base-passwd/group-move
+Type: boolean
+Default: true
+Description: Do you want to move the group ${name}?
+ update-passwd has found a difference between your system accounts and the
+ current Debian defaults.  It is advisable to allow update-passwd to
+ change your system; without those changes some packages might not work
+ correctly.  For more documentation on the Debian account policies, please
+ see /usr/share/doc/base-passwd/README.
+ .
+ The proposed change is:
+ .
+ Move group "${name}" (${id}) to before the NIS compat "+" entry
+ .
+ If you allow this change, a backup of modified files will be made with
+ the extension .org, which you can use if necessary to restore the
+ current settings.  If you do not make this change now, you can make it
+ later with the update-passwd utility.
+Description-ca.UTF-8: Voleu moure el grup ${name}?
+ L'«update-passwd» ha trobat una diferència entre els comptes d'aquest sistema i els valors predeterminats actuals de Debian. És recomanable permetre que l'«update-passwd» canviï el sistema: sense aquests canvis alguns paquets podrien no funcionar correctament. Per a més documentació sobre les polítiques de comptes de Debian, consulteu «/usr/share/doc/base-passwd/README».
+ .
+ El canvi proposat és:
+ .
+ Moure el grup «${name}» (${id}) per davant de l'entrada «+» del «compat» del NIS
+ .
+ Si permeteu aquest canvi, es farà una còpia de seguretat amb l'extensió «.org» dels fitxers modificats, que si cal podeu utilitzar per restaurar la configuració actual. Si no feu aquest canvi ara, podeu fer-lo més endavant amb la utilitat «update-passwd».
+Description-da.UTF-8: Ønsker du at flytte gruppen ${name}?
+ update-passwd har fundet en forskel mellem dine systemkonti og de nuværende Debianstandarder. Det tilrådes at give update-passwd tilladelse til at ændre dit system; uden disse ændringer vil nogle pakker ikke fungere korrekt. For yderligere dokumentation om Debians politikker for konti, så se venligst /usr/share/doc/base/base-passwd/README.
+ .
+ Den foreslåede ændring er:
+ .
+ Flyt gruppen »${name}« (${id}) før NIS-kompatibilitets »+«-posten
+ .
+ Hvis du tillader denne ændring, vil en sikkerhedskopi af de ændrede filer blive udført med udvidelsen .org, som du kan bruge, hvis du skal gendanne de nuværende indstillinger. Hvis du ikke udfører denne ændring nu, så kan du udføre den senere med redskabet update-passwd.
+Description-de.UTF-8: Möchten Sie die Gruppe ${name} verschieben?
+ Update-passwd hat einen Unterschied zwischen Ihren Systemkonten und den aktuellen Debian-Vorgaben gefunden. Es ist ratsam, Update-passwd das Ändern Ihres Systems zu gestatten. Ohne diese Änderungen funktionieren einige Pakete möglicherweise nicht korrekt. Die Richtlinien für Debian-Konten sind unter /usr/share/doc/base-passwd/README dokumentiert.
+ .
+ Die geplante Änderung ist:
+ .
+ Benutzer »${name}« (${id}) vor den NIS-Compat-Eintrag »+« verschieben
+ .
+ Falls Sie diese Änderung gestatten, wird eine Sicherheitskopie der geänderten Dateien mit der Erweiterung .org erstellt, die Sie falls nötig zum Wiederherstellen der aktuellen Einstellungen benutzen können. Wenn Sie diese Änderung nun nicht vornehmen, können Sie dies später mit dem Hilfswerkzeug Update-passwd erledigen.
+Description-es.UTF-8: ¿Desea mover el grupo ${name}?
+ update-passwd ha encontrado una diferencia entre las cuentas de su sistema y las predeterminadas de Debian. Es recomendable permitir que update-passwd realice cambios en su sistema; sin esos cambios, algunos paquetes podrían funcionar mal. Consulte «/usr/share/doc/base-passwd/README» para más información sobre las directrices de cuentas en Debian.
+ .
+ El cambio propuesto es:
+ .
+ Mover el grupo «${name}» (${id}) antes de la entrada «+» de NIS compat
+ .
+ Si permite este cambio, se creará una copia de seguridad de los archivos que se van a modificar con la extensión «.org», que podrá utilizar si fuera necesario restaurar la configuración inicial. Si no realiza este cambio ahora, podrá hacerlo más adelante con la utilidad update-passwd.
+Description-fr.UTF-8: Faut-il déplacer le groupe ${name} ?
+ L'utilitaire « update-passwd » a détecté une différence entre les comptes système et les comptes Debian définis par défaut. Il est recommandé de permettre à « update-passwd » de modifier le système ; sans ces changements, certains paquets risquent de ne pas fonctionner correctement. Davantage d'informations concernant la politique des comptes Debian se trouvent dans le fichier « /usr/share/doc/base-passwd/README ».
+ .
+ La modification proposée est :
+ .
+ Déplacement du groupe « ${name} » (${id}) avant l'entrée NIS « + » du mode compat
+ .
+ En acceptant cette modification, une sauvegarde des fichiers modifiés sera créée avec l'extension .org, qui pourra être utilisée plus tard pour restaurer les réglages actuels. Si la modification n'est pas effectuée maintenant, elle pourra l'être ultérieurement en utilisant « update-passwd ».
+Description-it.UTF-8: Spostare il gruppo ${name}?
+ update-passwd ha trovato una differenza tra gli account del sistema e i valori predefiniti attuali di Debian. È consigliabile permettere ad update-passwd di cambiare il sistema; senza tali cambiamenti alcuni pacchetti potrebbero non funzionare correttamente. Per maggiore documentazione sulle politiche Debian per gli account, vedere /usr/share/doc/base-passwd/README.
+ .
+ La modifica proposta è:
+ .
+ Spostare il gruppo «${name}» (${id}) prima della voce NIS compat «+»
+ .
+ Se si permette questa modifica, verrà creato un backup dei file modificati con l'estensione .org che può essere usato, se necessario, per ripristinare le impostazioni attuali. Se non si effettua questa modifica ora, è possibile farlo in un secondo momento con l'utilità update-passwd.
+Description-ja.UTF-8: グループ ${name} を移動しますか?
+ update-passwd はこのシステムのアカウントが現在の Debian のデフォルトとは異なっていることを検出しました。update-passwd にシステムの変更を許可することをお勧めします。変更しない場合は正常に動作しないパッケージがあるかもしれません。Debian アカウントポリシーのさらなる文書については /usr/share/doc/base-passwd/README を見てください。
+ .
+ 提案する変更点:
+ .
+ グループ「${name}」(${id}) を NIS 互換の「+」のついた項目より前に移動
+ .
+ この変更を許可すると変更されるファイルのバックアップが拡張子 .org を付けて作成され、現在の設定を復旧させる必要ができた場合に利用できます。ここで変更しない場合は update-passwd ユーティリティにより後でバックアップを作成できます。
+Description-nl.UTF-8: Wilt u de groep ${name} verplaatsen?
+ update-passwd stelde een verschil vast tussen uw systeemaccounts en de huidige standaarden in Debian. Het wordt aanbevolen om update-passwd toe te laten uw systeem aan te passen. Zonder die aanpassingen kunnen sommige pakketten niet correct werken. Voor achtergrondinformatie over het beleid van Debian in verband met accounts, kunt u /usr/share/doc/base-passwd/README raadplegen.
+ .
+ De voorgestelde aanpassing is:
+ .
+ Groep "${name}" (${id}) verplaatsen naar een regel boven de "+"-regel voor NIS-compatibiliteit
+ .
+ Indien u instemt met deze wijziging, wordt een reservekopie gemaakt van de te wijzigen bestanden met de extensie .org. Indien nodig kunt u die later gebruiken om terug te keren naar de huidige instellingen. Voert u deze wijziging nu niet door, dan kunt u ze later maken met behulp van het hulpprogramma update-passwd.
+Description-pt.UTF-8: Deseja mover o grupo ${name}?
+ O update-passwd encontrou uma diferença entre as contas do seu sistema e as predefinições actuais de Debian. É aconselhável permitir ao update-passwd que altere o seu sistema; sem essas alterações alguns pacotes podem não funcionar correctamente. Para mais documentação sobre as politicas de contas Debian, por favor veja /usr/share/doc/base-passwd/README.
+ .
+ A alteração proposta é:
+ .
+ Mover grupo "${name}" (${id}) para anterior à entrada "+" de compatibilidade NIS
+ .
+ Se permitir esta alteração, será feita uma cópia de salvaguarda com extensão .org dos ficheiros modificados, a qual pode usar se necessário para restaurar as definições actuais. Se não fizer esta alteração agora, pode fazê-la mais tarde com o utilitário update-passwd.
+Description-pt_BR.UTF-8: Você quer mover o grupo ${name}?
+ O update-passwd encontrou uma diferença entre as suas contas do sistema e o padrão Debian atual. É recomendado permitir ao update-passwd alterar seu sistema; sem estas mudanças, alguns pacotes podem não funcionar corretamente. Para obter mais informações sobre a política de contas do Debian, por favor, veja a documentação em /usr/share/doc/base-passwd/README.
+ .
+ A mudança proposta é:
+ .
+ Mover o grupo "${name}" (${id}) para antes da entrada compat "+" do NIS
+ .
+ Se você permitir esta alteração, um backup dos arquivos modificados será feito com a extensão .org, que você poderá usar, se necessário, para restaurar as configurações atuais. Se você não fizer esta alteração agora, você poderá fazê-la mais tarde com o utilitário update-passwd.
+Description-ro.UTF-8: Doriți să mutați grupul ${name}?
+ Instrumentul «update-passwd» a găsit o diferență între conturile dvs. de sistem și valorile implicite Debian actuale.  Este recomandabil să permiteți instrumentului «update-passwd» să vă modifice sistemul; fără aceste modificări, unele pachete ar putea să nu funcționeze corect.  Pentru o mai bună documentare despre politicile contului Debian, consultați „/usr/share/doc/base-passwd/README”.
+ .
+ Modificarea propusă este:
+ .
+ Mutarea grupului „${name}” (${id}) înainte de intrarea „+” de compatibilitate NIS
+ .
+ Dacă permiteți această modificare, se va face o copie de rezervă a fișierelor modificate cu extensia .org, pe care o puteți utiliza dacă este necesar pentru a restabili configurările curente.  Dacă nu faceți această modificare acum, o puteți face mai târziu cu instrumentul „update-passwd”.
+Description-ru.UTF-8: Переместить группу ${name}?
+ Программа update-passwd обнаружила различия между вашими системными учётными записями и текущими настройками Debian по умолчанию. Советуем разрешить update-passwd изменить вашу систему; без этих изменений некоторые пакеты могут работать неправильно. Документация по политике учётных записей в Debian приведена в /usr/share/doc/base-passwd/README.
+ .
+ Предлагаемое изменение:
+ .
+ Перемещение группы «${name}» (${id}) перед записью NIS compat "+"
+ .
+ Если разрешить выполнение этого изменения, будет сделана резервная копия изменённых файлов с расширением .org, которые вы можете использовать для восстановления текущих настроек. Если не сделать это изменение сейчас, то можно вернуться к нему позднее, воспользовавшись утилитой update-passwd.
+Description-sv.UTF-8: Vill du flytta gruppen ${name}?
+ update-passwd har hittat en skillnad mellan dina systemkonton och de nuvarande förvalen i Debian. Det är rekommenderat att tillåta update-passwd att ändra ditt system; utan dessa ändringar kommer möjligen en del paket inte att fungera korrekt. För mer dokumentation om Debians regler för konton, se /usr/share/doc/base-passwd/README.
+ .
+ Den föreslagna ändringen är:
+ .
+ Flytta grupp "${name}" (${id}) till innan "+"-posten i NIS kompatibilitetsläge (compat)
+ .
+ Om du tillåter denna ändring kommer en säkerhetskopia av modifierade filer att göras med filtillägget .org, som du kan använda om du behöver återställa nuvarande inställningar. Om du inte gör denna ändring nu kan du göra det senare med verktyget update-passwd.
+
+Template: base-passwd/user-add
+Type: boolean
+Default: true
+Description: Do you want to add the user ${name}?
+ update-passwd has found a difference between your system accounts and the
+ current Debian defaults.  It is advisable to allow update-passwd to
+ change your system; without those changes some packages might not work
+ correctly.  For more documentation on the Debian account policies, please
+ see /usr/share/doc/base-passwd/README.
+ .
+ The proposed change is:
+ .
+ Add user "${name}" (${id})
+ .
+ If you allow this change, a backup of modified files will be made with
+ the extension .org, which you can use if necessary to restore the
+ current settings.  If you do not make this change now, you can make it
+ later with the update-passwd utility.
+Description-ca.UTF-8: Voleu afegir l'usuari ${name}?
+ L'«update-passwd» ha trobat una diferència entre els comptes d'aquest sistema i els valors predeterminats actuals de Debian. És recomanable permetre que l'«update-passwd» canviï el sistema: sense aquests canvis alguns paquets podrien no funcionar correctament. Per a més documentació sobre les polítiques de comptes de Debian, consulteu «/usr/share/doc/base-passwd/README».
+ .
+ El canvi proposat és:
+ .
+ Afegeix l'usuari «${name}» (${id})
+ .
+ Si permeteu aquest canvi, es farà una còpia de seguretat amb l'extensió «.org» dels fitxers modificats, que si cal podeu utilitzar per restaurar la configuració actual. Si no feu aquest canvi ara, podeu fer-lo més endavant amb la utilitat «update-passwd».
+Description-da.UTF-8: Ønsker du at tilføje brugeren ${name}?
+ update-passwd har fundet en forskel mellem dine systemkonti og de nuværende Debianstandarder. Det tilrådes at give update-passwd tilladelse til at ændre dit system; uden disse ændringer vil nogle pakker ikke fungere korrekt. For yderligere dokumentation om Debians politikker for konti, så se venligst /usr/share/doc/base/base-passwd/README.
+ .
+ Den foreslåede ændring er:
+ .
+ Tilføj brugeren »${name}« (${id})
+ .
+ Hvis du tillader denne ændring, vil en sikkerhedskopi af de ændrede filer blive udført med udvidelsen .org, som du kan bruge, hvis du skal gendanne de nuværende indstillinger. Hvis du ikke udfører denne ændring nu, så kan du udføre den senere med redskabet update-passwd.
+Description-de.UTF-8: Möchten Sie den Benutzer ${name} hinzufügen?
+ Update-passwd hat einen Unterschied zwischen Ihren Systemkonten und den aktuellen Debian-Vorgaben gefunden. Es ist ratsam, Update-passwd das Ändern Ihres Systems zu gestatten. Ohne diese Änderungen funktionieren einige Pakete möglicherweise nicht korrekt. Die Richtlinien für Debian-Konten sind unter /usr/share/doc/base-passwd/README dokumentiert.
+ .
+ Die geplante Änderung ist:
+ .
+ Benutzer »${name}« hinzufügen
+ .
+ Falls Sie diese Änderung gestatten, wird eine Sicherheitskopie der geänderten Dateien mit der Erweiterung .org erstellt, die Sie falls nötig zum Wiederherstellen der aktuellen Einstellungen benutzen können. Wenn Sie diese Änderung nun nicht vornehmen, können Sie dies später mit dem Hilfswerkzeug Update-passwd erledigen.
+Description-es.UTF-8: ¿Desea añadir el usuario ${name}?
+ update-passwd ha encontrado una diferencia entre las cuentas de su sistema y las predeterminadas de Debian. Es recomendable permitir que update-passwd realice cambios en su sistema; sin esos cambios, algunos paquetes podrían funcionar mal. Consulte «/usr/share/doc/base-passwd/README» para más información sobre las directrices de cuentas en Debian.
+ .
+ El cambio propuesto es:
+ .
+ Añadir el usuario «${name}» (${id})
+ .
+ Si permite este cambio, se creará una copia de seguridad de los archivos que se van 

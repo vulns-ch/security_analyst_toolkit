@@ -1,0 +1,3375 @@
+BC_2.1 2.1
+ moncontrol@GLIBC_2.2 2.2
+ monstartup@GLIBC_2.0 2.0
+ mount@GLIBC_2.0 2.0
+ mount_setattr@GLIBC_2.36 2.36
+ move_mount@GLIBC_2.36 2.36
+ mprobe@GLIBC_2.0 2.0
+ mprotect@GLIBC_2.0 2.0
+ mq_close@GLIBC_2.3.4 2.3.4
+ mq_close@GLIBC_2.34 2.34
+ mq_getattr@GLIBC_2.3.4 2.3.4
+ mq_getattr@GLIBC_2.34 2.34
+ mq_notify@GLIBC_2.3.4 2.3.4
+ mq_notify@GLIBC_2.34 2.34
+ mq_open@GLIBC_2.3.4 2.3.4
+ mq_open@GLIBC_2.34 2.34
+ mq_receive@GLIBC_2.3.4 2.3.4
+ mq_receive@GLIBC_2.34 2.34
+ mq_send@GLIBC_2.3.4 2.3.4
+ mq_send@GLIBC_2.34 2.34
+ mq_setattr@GLIBC_2.3.4 2.3.4
+ mq_setattr@GLIBC_2.34 2.34
+ mq_timedreceive@GLIBC_2.3.4 2.3.4
+ mq_timedreceive@GLIBC_2.34 2.34
+ mq_timedsend@GLIBC_2.3.4 2.3.4
+ mq_timedsend@GLIBC_2.34 2.34
+ mq_unlink@GLIBC_2.3.4 2.3.4
+ mq_unlink@GLIBC_2.34 2.34
+ mrand48@GLIBC_2.0 2.0
+ mrand48_r@GLIBC_2.0 2.0
+ mremap@GLIBC_2.0 2.0
+ msgctl@GLIBC_2.0 2.0
+ msgctl@GLIBC_2.2 2.2
+ msgget@GLIBC_2.0 2.0
+ msgrcv@GLIBC_2.0 2.0
+ msgsnd@GLIBC_2.0 2.0
+ msync@GLIBC_2.0 2.0
+ mtrace@GLIBC_2.0 2.0
+ mtx_destroy@GLIBC_2.28 2.28
+ mtx_destroy@GLIBC_2.34 2.34
+ mtx_init@GLIBC_2.28 2.28
+ mtx_init@GLIBC_2.34 2.34
+ mtx_lock@GLIBC_2.28 2.28
+ mtx_lock@GLIBC_2.34 2.34
+ mtx_timedlock@GLIBC_2.28 2.28
+ mtx_timedlock@GLIBC_2.34 2.34
+ mtx_trylock@GLIBC_2.28 2.28
+ mtx_trylock@GLIBC_2.34 2.34
+ mtx_unlock@GLIBC_2.28 2.28
+ mtx_unlock@GLIBC_2.34 2.34
+ munlock@GLIBC_2.0 2.0
+ munlockall@GLIBC_2.0 2.0
+ munmap@GLIBC_2.0 2.0
+ muntrace@GLIBC_2.0 2.0
+ name_to_handle_at@GLIBC_2.14 2.14
+ nanosleep@GLIBC_2.0 2.0
+ netname2host@GLIBC_2.1 2.1
+ netname2user@GLIBC_2.1 2.1
+ newlocale@GLIBC_2.3 2.3
+ nfsservctl@GLIBC_2.0 2.0
+ nftw64@GLIBC_2.1 2.1
+ nftw64@GLIBC_2.3.3 2.3.3
+ nftw@GLIBC_2.1 2.1
+ nftw@GLIBC_2.3.3 2.3.3
+ ngettext@GLIBC_2.2 2.2
+ nice@GLIBC_2.0 2.0
+ nl_langinfo@GLIBC_2.0 2.0
+ nl_langinfo_l@GLIBC_2.3 2.3
+ nrand48@GLIBC_2.0 2.0
+ nrand48_r@GLIBC_2.0 2.0
+ ns_name_compress@GLIBC_2.34 2.34
+ ns_name_compress@GLIBC_2.9 2.9
+ ns_name_ntop@GLIBC_2.34 2.34
+ ns_name_ntop@GLIBC_2.9 2.9
+ ns_name_pack@GLIBC_2.34 2.34
+ ns_name_pack@GLIBC_2.9 2.9
+ ns_name_pton@GLIBC_2.34 2.34
+ ns_name_pton@GLIBC_2.9 2.9
+ ns_name_skip@GLIBC_2.34 2.34
+ ns_name_skip@GLIBC_2.9 2.9
+ ns_name_uncompress@GLIBC_2.34 2.34
+ ns_name_uncompress@GLIBC_2.9 2.9
+ ns_name_unpack@GLIBC_2.34 2.34
+ ns_name_unpack@GLIBC_2.9 2.9
+ ntohl@GLIBC_2.0 2.0
+ ntohs@GLIBC_2.0 2.0
+ ntp_adjtime@GLIBC_2.1 2.1
+ ntp_gettime@GLIBC_2.1 2.1
+ ntp_gettimex@GLIBC_2.12 2.12
+ obstack_alloc_failed_handler@GLIBC_2.0 2.0
+ obstack_exit_failure@GLIBC_2.0 2.0
+ obstack_free@GLIBC_2.0 2.0
+ obstack_printf@GLIBC_2.0 2.0
+ obstack_vprintf@GLIBC_2.0 2.0
+ on_exit@GLIBC_2.0 2.0
+ open64@GLIBC_2.1 2.1
+ open64@GLIBC_2.2 2.2
+ open@GLIBC_2.0 2.0
+ open_by_handle_at@GLIBC_2.14 2.14
+ open_memstream@GLIBC_2.0 2.0
+ open_tree@GLIBC_2.36 2.36
+ open_wmemstream@GLIBC_2.4 2.4
+ openat64@GLIBC_2.4 2.4
+ openat@GLIBC_2.4 2.4
+ opendir@GLIBC_2.0 2.0
+ openlog@GLIBC_2.0 2.0
+ openpty@GLIBC_2.0 2.0
+ openpty@GLIBC_2.34 2.34
+ optarg@GLIBC_2.0 2.0
+ opterr@GLIBC_2.0 2.0
+ optind@GLIBC_2.0 2.0
+ optopt@GLIBC_2.0 2.0
+ parse_printf_format@GLIBC_2.0 2.0
+ passwd2des@GLIBC_2.1 2.1
+ pathconf@GLIBC_2.0 2.0
+ pause@GLIBC_2.0 2.0
+ pclose@GLIBC_2.0 2.0
+ pclose@GLIBC_2.1 2.1
+ perror@GLIBC_2.0 2.0
+ personality@GLIBC_2.0 2.0
+ pidfd_getfd@GLIBC_2.36 2.36
+ pidfd_getpid@GLIBC_2.39 2.39
+ pidfd_open@GLIBC_2.36 2.36
+ pidfd_send_signal@GLIBC_2.36 2.36
+ pidfd_spawn@GLIBC_2.39 2.39
+ pidfd_spawnp@GLIBC_2.39 2.39
+ pipe2@GLIBC_2.9 2.9
+ pipe@GLIBC_2.0 2.0
+ pivot_root@GLIBC_2.2.1 2.2.1
+ pkey_alloc@GLIBC_2.27 2.27
+ pkey_free@GLIBC_2.27 2.27
+ pkey_get@GLIBC_2.27 2.27
+ pkey_mprotect@GLIBC_2.27 2.27
+ pkey_set@GLIBC_2.27 2.27
+ pmap_getmaps@GLIBC_2.0 2.0
+ pmap_getport@GLIBC_2.0 2.0
+ pmap_rmtcall@GLIBC_2.0 2.0
+ pmap_set@GLIBC_2.0 2.0
+ pmap_unset@GLIBC_2.0 2.0
+ poll@GLIBC_2.0 2.0
+ popen@GLIBC_2.0 2.0
+ popen@GLIBC_2.1 2.1
+ posix_fadvise64@GLIBC_2.2 2.2
+ posix_fadvise64@GLIBC_2.3.3 2.3.3
+ posix_fadvise@GLIBC_2.2 2.2
+ posix_fallocate64@GLIBC_2.2 2.2
+ posix_fallocate64@GLIBC_2.3.3 2.3.3
+ posix_fallocate@GLIBC_2.2 2.2
+ posix_madvise@GLIBC_2.2 2.2
+ posix_memalign@GLIBC_2.2 2.2
+ posix_openpt@GLIBC_2.2.1 2.2.1
+ posix_spawn@GLIBC_2.15 2.15
+ posix_spawn@GLIBC_2.2 2.2
+ posix_spawn_file_actions_addchdir_np@GLIBC_2.29 2.29
+ posix_spawn_file_actions_addclose@GLIBC_2.2 2.2
+ posix_spawn_file_actions_addclosefrom_np@GLIBC_2.34 2.34
+ posix_spawn_file_actions_adddup2@GLIBC_2.2 2.2
+ posix_spawn_file_actions_addfchdir_np@GLIBC_2.29 2.29
+ posix_spawn_file_actions_addopen@GLIBC_2.2 2.2
+ posix_spawn_file_actions_addtcsetpgrp_np@GLIBC_2.35 2.35
+ posix_spawn_file_actions_destroy@GLIBC_2.2 2.2
+ posix_spawn_file_actions_init@GLIBC_2.2 2.2
+ posix_spawnattr_destroy@GLIBC_2.2 2.2
+ posix_spawnattr_getcgroup_np@GLIBC_2.39 2.39
+ posix_spawnattr_getflags@GLIBC_2.2 2.2
+ posix_spawnattr_getpgroup@GLIBC_2.2 2.2
+ posix_spawnattr_getschedparam@GLIBC_2.2 2.2
+ posix_spawnattr_getschedpolicy@GLIBC_2.2 2.2
+ posix_spawnattr_getsigdefault@GLIBC_2.2 2.2
+ posix_spawnattr_getsigmask@GLIBC_2.2 2.2
+ posix_spawnattr_init@GLIBC_2.2 2.2
+ posix_spawnattr_setcgroup_np@GLIBC_2.39 2.39
+ posix_spawnattr_setflags@GLIBC_2.2 2.2
+ posix_spawnattr_setpgroup@GLIBC_2.2 2.2
+ posix_spawnattr_setschedparam@GLIBC_2.2 2.2
+ posix_spawnattr_setschedpolicy@GLIBC_2.2 2.2
+ posix_spawnattr_setsigdefault@GLIBC_2.2 2.2
+ posix_spawnattr_setsigmask@GLIBC_2.2 2.2
+ posix_spawnp@GLIBC_2.15 2.15
+ posix_spawnp@GLIBC_2.2 2.2
+ ppoll@GLIBC_2.4 2.4
+ prctl@GLIBC_2.0 2.0
+ pread64@GLIBC_2.1 2.1
+ pread64@GLIBC_2.2 2.2
+ pread@GLIBC_2.1 2.1
+ pread@GLIBC_2.2 2.2
+ preadv2@GLIBC_2.26 2.26
+ preadv64@GLIBC_2.10 2.10
+ preadv64v2@GLIBC_2.26 2.26
+ preadv@GLIBC_2.10 2.10
+ printf@GLIBC_2.0 2.0
+ printf_size@GLIBC_2.1 2.1
+ printf_size_info@GLIBC_2.1 2.1
+ prlimit64@GLIBC_2.13 2.13
+ prlimit@GLIBC_2.13 2.13
+ process_madvise@GLIBC_2.36 2.36
+ process_mrelease@GLIBC_2.36 2.36
+ process_vm_readv@GLIBC_2.15 2.15
+ process_vm_writev@GLIBC_2.15 2.15
+ profil@GLIBC_2.0 2.0
+ program_invocation_name@GLIBC_2.0 2.0
+ program_invocation_short_name@GLIBC_2.0 2.0
+ pselect@GLIBC_2.0 2.0
+ psiginfo@GLIBC_2.10 2.10
+ psignal@GLIBC_2.0 2.0
+ pthread_atfork@GLIBC_2.0 2.0
+ pthread_attr_destroy@GLIBC_2.0 2.0
+ pthread_attr_getaffinity_np@GLIBC_2.3.3 2.3.3
+ pthread_attr_getaffinity_np@GLIBC_2.3.4 2.3.4
+ pthread_attr_getaffinity_np@GLIBC_2.34 2.34
+ pthread_attr_getdetachstate@GLIBC_2.0 2.0
+ pthread_attr_getguardsize@GLIBC_2.1 2.1
+ pthread_attr_getguardsize@GLIBC_2.34 2.34
+ pthread_attr_getinheritsched@GLIBC_2.0 2.0
+ pthread_attr_getschedparam@GLIBC_2.0 2.0
+ pthread_attr_getschedpolicy@GLIBC_2.0 2.0
+ pthread_attr_getscope@GLIBC_2.0 2.0
+ pthread_attr_getsigmask_np@GLIBC_2.32 2.32
+ pthread_attr_getstack@GLIBC_2.2 2.2
+ pthread_attr_getstack@GLIBC_2.34 2.34
+ pthread_attr_getstackaddr@GLIBC_2.1 2.1
+ pthread_attr_getstackaddr@GLIBC_2.34 2.34
+ pthread_attr_getstacksize@GLIBC_2.1 2.1
+ pthread_attr_getstacksize@GLIBC_2.34 2.34
+ pthread_attr_init@GLIBC_2.0 2.0
+ pthread_attr_init@GLIBC_2.1 2.1
+ pthread_attr_setaffinity_np@GLIBC_2.3.3 2.3.3
+ pthread_attr_setaffinity_np@GLIBC_2.3.4 2.3.4
+ pthread_attr_setaffinity_np@GLIBC_2.32 2.32
+ pthread_attr_setdetachstate@GLIBC_2.0 2.0
+ pthread_attr_setguardsize@GLIBC_2.1 2.1
+ pthread_attr_setguardsize@GLIBC_2.34 2.34
+ pthread_attr_setinheritsched@GLIBC_2.0 2.0
+ pthread_attr_setschedparam@GLIBC_2.0 2.0
+ pthread_attr_setschedpolicy@GLIBC_2.0 2.0
+ pthread_attr_setscope@GLIBC_2.0 2.0
+ pthread_attr_setsigmask_np@GLIBC_2.32 2.32
+ pthread_attr_setstack@GLIBC_2.2 2.2
+ pthread_attr_setstack@GLIBC_2.34 2.34
+ pthread_attr_setstackaddr@GLIBC_2.1 2.1
+ pthread_attr_setstackaddr@GLIBC_2.34 2.34
+ pthread_attr_setstacksize@GLIBC_2.1 2.1
+ pthread_attr_setstacksize@GLIBC_2.34 2.34
+ pthread_barrier_destroy@GLIBC_2.2 2.2
+ pthread_barrier_destroy@GLIBC_2.34 2.34
+ pthread_barrier_init@GLIBC_2.2 2.2
+ pthread_barrier_init@GLIBC_2.34 2.34
+ pthread_barrier_wait@GLIBC_2.2 2.2
+ pthread_barrier_wait@GLIBC_2.34 2.34
+ pthread_barrierattr_destroy@GLIBC_2.2 2.2
+ pthread_barrierattr_destroy@GLIBC_2.34 2.34
+ pthread_barrierattr_getpshared@GLIBC_2.3.3 2.3.3
+ pthread_barrierattr_getpshared@GLIBC_2.34 2.34
+ pthread_barrierattr_init@GLIBC_2.2 2.2
+ pthread_barrierattr_init@GLIBC_2.34 2.34
+ pthread_barrierattr_setpshared@GLIBC_2.2 2.2
+ pthread_barrierattr_setpshared@GLIBC_2.34 2.34
+ pthread_cancel@GLIBC_2.0 2.0
+ pthread_cancel@GLIBC_2.34 2.34
+ pthread_clockjoin_np@GLIBC_2.31 2.31
+ pthread_clockjoin_np@GLIBC_2.34 2.34
+ pthread_cond_broadcast@GLIBC_2.0 2.0
+ pthread_cond_broadcast@GLIBC_2.3.2 2.3.2
+ pthread_cond_clockwait@GLIBC_2.30 2.30
+ pthread_cond_clockwait@GLIBC_2.34 2.34
+ pthread_cond_destroy@GLIBC_2.0 2.0
+ pthread_cond_destroy@GLIBC_2.3.2 2.3.2
+ pthread_cond_init@GLIBC_2.0 2.0
+ pthread_cond_init@GLIBC_2.3.2 2.3.2
+ pthread_cond_signal@GLIBC_2.0 2.0
+ pthread_cond_signal@GLIBC_2.3.2 2.3.2
+ pthread_cond_timedwait@GLIBC_2.0 2.0
+ pthread_cond_timedwait@GLIBC_2.3.2 2.3.2
+ pthread_cond_wait@GLIBC_2.0 2.0
+ pthread_cond_wait@GLIBC_2.3.2 2.3.2
+ pthread_condattr_destroy@GLIBC_2.0 2.0
+ pthread_condattr_getclock@GLIBC_2.3.3 2.3.3
+ pthread_condattr_getclock@GLIBC_2.34 2.34
+ pthread_condattr_getpshared@GLIBC_2.2 2.2
+ pthread_condattr_getpshared@GLIBC_2.34 2.34
+ pthread_condattr_init@GLIBC_2.0 2.0
+ pthread_condattr_setclock@GLIBC_2.3.3 2.3.3
+ pthread_condattr_setclock@GLIBC_2.34 2.34
+ pthread_condattr_setpshared@GLIBC_2.2 2.2
+ pthread_condattr_setpshared@GLIBC_2.34 2.34
+ pthread_create@GLIBC_2.0 2.0
+ pthread_create@GLIBC_2.1 2.1
+ pthread_create@GLIBC_2.34 2.34
+ pthread_detach@GLIBC_2.0 2.0
+ pthread_detach@GLIBC_2.34 2.34
+ pthread_equal@GLIBC_2.0 2.0
+ pthread_exit@GLIBC_2.0 2.0
+ pthread_getaffinity_np@GLIBC_2.3.3 2.3.3
+ pthread_getaffinity_np@GLIBC_2.3.4 2.3.4
+ pthread_getaffinity_np@GLIBC_2.32 2.32
+ pthread_getattr_default_np@GLIBC_2.18 2.18
+ pthread_getattr_default_np@GLIBC_2.34 2.34
+ pthread_getattr_np@GLIBC_2.2.3 2.2.3
+ pthread_getattr_np@GLIBC_2.32 2.32
+ pthread_getconcurrency@GLIBC_2.1 2.1
+ pthread_getconcurrency@GLIBC_2.34 2.34
+ pthread_getcpuclockid@GLIBC_2.2 2.2
+ pthread_getcpuclockid@GLIBC_2.34 2.34
+ pthread_getname_np@GLIBC_2.12 2.12
+ pthread_getname_np@GLIBC_2.34 2.34
+ pthread_getschedparam@GLIBC_2.0 2.0
+ pthread_getspecific@GLIBC_2.0 2.0
+ pthread_getspecific@GLIBC_2.34 2.34
+ pthread_join@GLIBC_2.0 2.0
+ pthread_join@GLIBC_2.34 2.34
+ pthread_key_create@GLIBC_2.0 2.0
+ pthread_key_create@GLIBC_2.34 2.34
+ pthread_key_delete@GLIBC_2.0 2.0
+ pthread_key_delete@GLIBC_2.34 2.34
+ pthread_kill@GLIBC_2.0 2.0
+ pthread_kill@GLIBC_2.34 2.34
+ pthread_kill_other_threads_np@GLIBC_2.0 2.0
+ pthread_mutex_clocklock@GLIBC_2.30 2.30
+ pthread_mutex_clocklock@GLIBC_2.34 2.34
+ pthread_mutex_consistent@GLIBC_2.12 2.12
+ pthread_mutex_consistent@GLIBC_2.34 2.34
+ pthread_mutex_consistent_np@GLIBC_2.4 2.4
+ pthread_mutex_destroy@GLIBC_2.0 2.0
+ pthread_mutex_getprioceiling@GLIBC_2.34 2.34
+ pthread_mutex_getprioceiling@GLIBC_2.4 2.4
+ pthread_mutex_init@GLIBC_2.0 2.0
+ pthread_mutex_lock@GLIBC_2.0 2.0
+ pthread_mutex_setprioceiling@GLIBC_2.34 2.34
+ pthread_mutex_setprioceiling@GLIBC_2.4 2.4
+ pthread_mutex_timedlock@GLIBC_2.2 2.2
+ pthread_mutex_timedlock@GLIBC_2.34 2.34
+ pthread_mutex_trylock@GLIBC_2.0 2.0
+ pthread_mutex_trylock@GLIBC_2.34 2.34
+ pthread_mutex_unlock@GLIBC_2.0 2.0
+ pthread_mutexattr_destroy@GLIBC_2.0 2.0
+ pthread_mutexattr_destroy@GLIBC_2.34 2.34
+ pthread_mutexattr_getkind_np@GLIBC_2.0 2.0
+ pthread_mutexattr_getprioceiling@GLIBC_2.34 2.34
+ pthread_mutexattr_getprioceiling@GLIBC_2.4 2.4
+ pthread_mutexattr_getprotocol@GLIBC_2.34 2.34
+ pthread_mutexattr_getprotocol@GLIBC_2.4 2.4
+ pthread_mutexattr_getpshared@GLIBC_2.2 2.2
+ pthread_mutexattr_getpshared@GLIBC_2.34 2.34
+ pthread_mutexattr_getrobust@GLIBC_2.12 2.12
+ pthread_mutexattr_getrobust@GLIBC_2.34 2.34
+ pthread_mutexattr_getrobust_np@GLIBC_2.4 2.4
+ pthread_mutexattr_gettype@GLIBC_2.1 2.1
+ pthread_mutexattr_gettype@GLIBC_2.34 2.34
+ pthread_mutexattr_init@GLIBC_2.0 2.0
+ pthread_mutexattr_init@GLIBC_2.34 2.34
+ pthread_mutexattr_setkind_np@GLIBC_2.0 2.0
+ pthread_mutexattr_setprioceiling@GLIBC_2.34 2.34
+ pthread_mutexattr_setprioceiling@GLIBC_2.4 2.4
+ pthread_mutexattr_setprotocol@GLIBC_2.34 2.34
+ pthread_mutexattr_setprotocol@GLIBC_2.4 2.4
+ pthread_mutexattr_setpshared@GLIBC_2.2 2.2
+ pthread_mutexattr_setpshared@GLIBC_2.34 2.34
+ pthread_mutexattr_setrobust@GLIBC_2.12 2.12
+ pthread_mutexattr_setrobust@GLIBC_2.34 2.34
+ pthread_mutexattr_setrobust_np@GLIBC_2.4 2.4
+ pthread_mutexattr_settype@GLIBC_2.1 2.1
+ pthread_mutexattr_settype@GLIBC_2.34 2.34
+ pthread_once@GLIBC_2.0 2.0
+ pthread_once@GLIBC_2.34 2.34
+ pthread_rwlock_clockrdlock@GLIBC_2.30 2.30
+ pthread_rwlock_clockrdlock@GLIBC_2.34 2.34
+ pthread_rwlock_clockwrlock@GLIBC_2.30 2.30
+ pthread_rwlock_clockwrlock@GLIBC_2.34 2.34
+ pthread_rwlock_destroy@GLIBC_2.1 2.1
+ pthread_rwlock_destroy@GLIBC_2.34 2.34
+ pthread_rwlock_init@GLIBC_2.1 2.1
+ pthread_rwlock_init@GLIBC_2.34 2.34
+ pthread_rwlock_rdlock@GLIBC_2.1 2.1
+ pthread_rwlock_rdlock@GLIBC_2.34 2.34
+ pthread_rwlock_timedrdlock@GLIBC_2.2 2.2
+ pthread_rwlock_timedrdlock@GLIBC_2.34 2.34
+ pthread_rwlock_timedwrlock@GLIBC_2.2 2.2
+ pthread_rwlock_timedwrlock@GLIBC_2.34 2.34
+ pthread_rwlock_tryrdlock@GLIBC_2.1 2.1
+ pthread_rwlock_tryrdlock@GLIBC_2.34 2.34
+ pthread_rwlock_trywrlock@GLIBC_2.1 2.1
+ pthread_rwlock_trywrlock@GLIBC_2.34 2.34
+ pthread_rwlock_unlock@GLIBC_2.1 2.1
+ pthread_rwlock_unlock@GLIBC_2.34 2.34
+ pthread_rwlock_wrlock@GLIBC_2.1 2.1
+ pthread_rwlock_wrlock@GLIBC_2.34 2.34
+ pthread_rwlockattr_destroy@GLIBC_2.1 2.1
+ pthread_rwlockattr_destroy@GLIBC_2.34 2.34
+ pthread_rwlockattr_getkind_np@GLIBC_2.1 2.1
+ pthread_rwlockattr_getkind_np@GLIBC_2.34 2.34
+ pthread_rwlockattr_getpshared@GLIBC_2.1 2.1
+ pthread_rwlockattr_getpshared@GLIBC_2.34 2.34
+ pthread_rwlockattr_init@GLIBC_2.1 2.1
+ pthread_rwlockattr_init@GLIBC_2.34 2.34
+ pthread_rwlockattr_setkind_np@GLIBC_2.1 2.1
+ pthread_rwlockattr_setkind_np@GLIBC_2.34 2.34
+ pthread_rwlockattr_setpshared@GLIBC_2.1 2.1
+ pthread_rwlockattr_setpshared@GLIBC_2.34 2.34
+ pthread_self@GLIBC_2.0 2.0
+ pthread_setaffinity_np@GLIBC_2.3.3 2.3.3
+ pthread_setaffinity_np@GLIBC_2.3.4 2.3.4
+ pthread_setaffinity_np@GLIBC_2.34 2.34
+ pthread_setattr_default_np@GLIBC_2.18 2.18
+ pthread_setattr_default_np@GLIBC_2.34 2.34
+ pthread_setcancelstate@GLIBC_2.0 2.0
+ pthread_setcanceltype@GLIBC_2.0 2.0
+ pthread_setconcurrency@GLIBC_2.1 2.1
+ pthread_setconcurrency@GLIBC_2.34 2.34
+ pthread_setname_np@GLIBC_2.12 2.12
+ pthread_setname_np@GLIBC_2.34 2.34
+ pthread_setschedparam@GLIBC_2.0 2.0
+ pthread_setschedprio@GLIBC_2.3.4 2.3.4
+ pthread_setschedprio@GLIBC_2.34 2.34
+ pthread_setspecific@GLIBC_2.0 2.0
+ pthread_setspecific@GLIBC_2.34 2.34
+ pthread_sigmask@GLIBC_2.0 2.0
+ pthread_sigmask@GLIBC_2.32 2.32
+ pthread_sigqueue@GLIBC_2.11 2.11
+ pthread_sigqueue@GLIBC_2.34 2.34
+ pthread_spin_destroy@GLIBC_2.2 2.2
+ pthread_spin_destroy@GLIBC_2.34 2.34
+ pthread_spin_init@GLIBC_2.2 2.2
+ pthread_spin_init@GLIBC_2.34 2.34
+ pthread_spin_lock@GLIBC_2.2 2.2
+ pthread_spin_lock@GLIBC_2.34 2.34
+ pthread_spin_trylock@GLIBC_2.2 2.2
+ pthread_spin_trylock@GLIBC_2.34 2.34
+ pthread_spin_unlock@GLIBC_2.2 2.2
+ pthread_spin_unlock@GLIBC_2.34 2.34
+ pthread_testcancel@GLIBC_2.0 2.0
+ pthread_testcancel@GLIBC_2.34 2.34
+ pthread_timedjoin_np@GLIBC_2.3.3 2.3.3
+ pthread_timedjoin_np@GLIBC_2.34 2.34
+ pthread_tryjoin_np@GLIBC_2.3.3 2.3.3
+ pthread_tryjoin_np@GLIBC_2.34 2.34
+ pthread_yield@GLIBC_2.2 2.2
+ ptrace@GLIBC_2.0 2.0
+ ptsname@GLIBC_2.1 2.1
+ ptsname_r@GLIBC_2.1 2.1
+ putc@GLIBC_2.0 2.0
+ putc_unlocked@GLIBC_2.0 2.0
+ putchar@GLIBC_2.0 2.0
+ putchar_unlocked@GLIBC_2.0 2.0
+ putenv@GLIBC_2.0 2.0
+ putgrent@GLIBC_2.1 2.1
+ putmsg@GLIBC_2.1 2.1
+ putpmsg@GLIBC_2.1 2.1
+ putpwent@GLIBC_2.0 2.0
+ puts@GLIBC_2.0 2.0
+ putsgent@GLIBC_2.10 2.10
+ putspent@GLIBC_2.0 2.0
+ pututline@GLIBC_2.0 2.0
+ pututxline@GLIBC_2.1 2.1
+ putw@GLIBC_2.0 2.0
+ putwc@GLIBC_2.2 2.2
+ putwc_unlocked@GLIBC_2.2 2.2
+ putwchar@GLIBC_2.2 2.2
+ putwchar_unlocked@GLIBC_2.2 2.2
+ pvalloc@GLIBC_2.0 2.0
+ pwrite64@GLIBC_2.1 2.1
+ pwrite64@GLIBC_2.2 2.2
+ pwrite@GLIBC_2.1 2.1
+ pwrite@GLIBC_2.2 2.2
+ pwritev2@GLIBC_2.26 2.26
+ pwritev64@GLIBC_2.10 2.10
+ pwritev64v2@GLIBC_2.26 2.26
+ pwritev@GLIBC_2.10 2.10
+ qecvt@GLIBC_2.0 2.0
+ qecvt_r@GLIBC_2.0 2.0
+ qfcvt@GLIBC_2.0 2.0
+ qfcvt_r@GLIBC_2.0 2.0
+ qgcvt@GLIBC_2.0 2.0
+ qsort@GLIBC_2.0 2.0
+ qsort_r@GLIBC_2.8 2.8
+ query_module@GLIBC_2.0 2.0
+ quick_exit@GLIBC_2.10 2.10
+ quick_exit@GLIBC_2.24 2.24
+ quotactl@GLIBC_2.0 2.0
+ raise@GLIBC_2.0 2.0
+ rand@GLIBC_2.0 2.0
+ rand_r@GLIBC_2.0 2.0
+ random@GLIBC_2.0 2.0
+ random_r@GLIBC_2.0 2.0
+ rawmemchr@GLIBC_2.1 2.1
+ rcmd@GLIBC_2.0 2.0
+ rcmd_af@GLIBC_2.2 2.2
+ re_comp@GLIBC_2.0 2.0
+ re_compile_fastmap@GLIBC_2.0 2.0
+ re_compile_pattern@GLIBC_2.0 2.0
+ re_exec@GLIBC_2.0 2.0
+ re_match@GLIBC_2.0 2.0
+ re_match_2@GLIBC_2.0 2.0
+ re_max_failures@GLIBC_2.0 2.0
+ re_search@GLIBC_2.0 2.0
+ re_search_2@GLIBC_2.0 2.0
+ re_set_registers@GLIBC_2.0 2.0
+ re_set_syntax@GLIBC_2.0 2.0
+ re_syntax_options@GLIBC_2.0 2.0
+ read@GLIBC_2.0 2.0
+ readahead@GLIBC_2.3 2.3
+ readdir64@GLIBC_2.1 2.1
+ readdir64@GLIBC_2.2 2.2
+ readdir64_r@GLIBC_2.1 2.1
+ readdir64_r@GLIBC_2.2 2.2
+ readdir@GLIBC_2.0 2.0
+ readdir_r@GLIBC_2.0 2.0
+ readlink@GLIBC_2.0 2.0
+ readlinkat@GLIBC_2.4 2.4
+ readv@GLIBC_2.0 2.0
+ realloc@GLIBC_2.0 2.0
+ reallocarray@GLIBC_2.26 2.26
+ realpath@GLIBC_2.0 2.0
+ realpath@GLIBC_2.3 2.3
+ reboot@GLIBC_2.0 2.0
+ recv@GLIBC_2.0 2.0
+ recvfrom@GLIBC_2.0 2.0
+ recvmmsg@GLIBC_2.12 2.12
+ recvmsg@GLIBC_2.0 2.0
+ regcomp@GLIBC_2.0 2.0
+ regerror@GLIBC_2.0 2.0
+ regexec@GLIBC_2.0 2.0
+ regexec@GLIBC_2.3.4 2.3.4
+ regfree@GLIBC_2.0 2.0
+ register_printf_function@GLIBC_2.0 2.0
+ register_printf_modifier@GLIBC_2.10 2.10
+ register_printf_specifier@GLIBC_2.10 2.10
+ register_printf_type@GLIBC_2.10 2.10
+ registerrpc@GLIBC_2.0 2.0
+ remap_file_pages@GLIBC_2.3.3 2.3.3
+ remove@GLIBC_2.0 2.0
+ removexattr@GLIBC_2.3 2.3
+ remque@GLIBC_2.0 2.0
+ rename@GLIBC_2.0 2.0
+ renameat2@GLIBC_2.28 2.28
+ renameat@GLIBC_2.4 2.4
+ res_dnok@GLIBC_2.34 2.34
+ res_hnok@GLIBC_2.34 2.34
+ res_init@GLIBC_2.0 2.0
+ res_mailok@GLIBC_2.34 2.34
+ res_mkquery@GLIBC_2.0 2.0
+ res_mkquery@GLIBC_2.34 2.34
+ res_nmkquery@GLIBC_2.34 2.34
+ res_nquery@GLIBC_2.34 2.34
+ res_nquerydomain@GLIBC_2.34 2.34
+ res_nsearch@GLIBC_2.34 2.34
+ res_nsend@GLIBC_2.34 2.34
+ res_ownok@GLIBC_2.34 2.34
+ res_query@GLIBC_2.0 2.0
+ res_query@GLIBC_2.34 2.34
+ res_querydomain@GLIBC_2.0 2.0
+ res_querydomain@GLIBC_2.34 2.34
+ res_search@GLIBC_2.0 2.0
+ res_search@GLIBC_2.34 2.34
+ res_send@GLIBC_2.34 2.34
+ revoke@GLIBC_2.0 2.0
+ rewind@GLIBC_2.0 2.0
+ rewinddir@GLIBC_2.0 2.0
+ rexec@GLIBC_2.0 2.0
+ rexec_af@GLIBC_2.2 2.2
+ rexecoptions@GLIBC_2.0 2.0
+ rindex@GLIBC_2.0 2.0
+ rmdir@GLIBC_2.0 2.0
+ rpc_createerr@GLIBC_2.0 2.0
+ rpmatch@GLIBC_2.0 2.0
+ rresvport@GLIBC_2.0 2.0
+ rresvport_af@GLIBC_2.2 2.2
+ rtime@GLIBC_2.1 2.1
+ ruserok@GLIBC_2.0 2.0
+ ruserok_af@GLIBC_2.2 2.2
+ ruserpass@GLIBC_2.0 2.0
+ sbrk@GLIBC_2.0 2.0
+ scalbln@GLIBC_2.1 2.1
+ scalblnf@GLIBC_2.1 2.1
+ scalblnl@GLIBC_2.1 2.1
+ scalbn@GLIBC_2.0 2.0
+ scalbnf@GLIBC_2.0 2.0
+ scalbnl@GLIBC_2.0 2.0
+ scandir64@GLIBC_2.1 2.1
+ scandir64@GLIBC_2.2 2.2
+ scandir@GLIBC_2.0 2.0
+ scandirat64@GLIBC_2.15 2.15
+ scandirat@GLIBC_2.15 2.15
+ scanf@GLIBC_2.0 2.0
+ sched_get_priority_max@GLIBC_2.0 2.0
+ sched_get_priority_min@GLIBC_2.0 2.0
+ sched_getaffinity@GLIBC_2.3.3 2.3.3
+ sched_getaffinity@GLIBC_2.3.4 2.3.4
+ sched_getattr@GLIBC_2.41 2.41
+ sched_getcpu@GLIBC_2.6 2.6
+ sched_getparam@GLIBC_2.0 2.0
+ sched_getscheduler@GLIBC_2.0 2.0
+ sched_rr_get_interval@GLIBC_2.0 2.0
+ sched_setaffinity@GLIBC_2.3.3 2.3.3
+ sched_setaffinity@GLIBC_2.3.4 2.3.4
+ sched_setattr@GLIBC_2.41 2.41
+ sched_setparam@GLIBC_2.0 2.0
+ sched_setscheduler@GLIBC_2.0 2.0
+ sched_yield@GLIBC_2.0 2.0
+ secure_getenv@GLIBC_2.17 2.17
+ seed48@GLIBC_2.0 2.0
+ seed48_r@GLIBC_2.0 2.0
+ seekdir@GLIBC_2.0 2.0
+ select@GLIBC_2.0 2.0
+ sem_clockwait@GLIBC_2.30 2.30
+ sem_clockwait@GLIBC_2.34 2.34
+ sem_close@GLIBC_2.1.1 2.1.1
+ sem_close@GLIBC_2.34 2.34
+ sem_destroy@GLIBC_2.0 2.0
+ sem_destroy@GLIBC_2.1 2.1
+ sem_destroy@GLIBC_2.34 2.34
+ sem_getvalue@GLIBC_2.0 2.0
+ sem_getvalue@GLIBC_2.1 2.1
+ sem_getvalue@GLIBC_2.34 2.34
+ sem_init@GLIBC_2.0 2.0
+ sem_init@GLIBC_2.1 2.1
+ sem_init@GLIBC_2.34 2.34
+ sem_open@GLIBC_2.1.1 2.1.1
+ sem_open@GLIBC_2.34 2.34
+ sem_post@GLIBC_2.0 2.0
+ sem_post@GLIBC_2.1 2.1
+ sem_post@GLIBC_2.34 2.34
+ sem_timedwait@GLIBC_2.2 2.2
+ sem_timedwait@GLIBC_2.34 2.34
+ sem_trywait@GLIBC_2.0 2.0
+ sem_trywait@GLIBC_2.1 2.1
+ sem_trywait@GLIBC_2.34 2.34
+ sem_unlink@GLIBC_2.1.1 2.1.1
+ sem_unlink@GLIBC_2.34 2.34
+ sem_wait@GLIBC_2.0 2.0
+ sem_wait@GLIBC_2.1 2.1
+ sem_wait@GLIBC_2.34 2.34
+ semctl@GLIBC_2.0 2.0
+ semctl@GLIBC_2.2 2.2
+ semget@GLIBC_2.0 2.0
+ semop@GLIBC_2.0 2.0
+ semtimedop@GLIBC_2.3.3 2.3.3
+ send@GLIBC_2.0 2.0
+ sendfile64@GLIBC_2.3 2.3
+ sendfile@GLIBC_2.1 2.1
+ sendmmsg@GLIBC_2.14 2.14
+ sendmsg@GLIBC_2.0 2.0
+ sendto@GLIBC_2.0 2.0
+ setaliasent@GLIBC_2.0 2.0
+ setbuf@GLIBC_2.0 2.0
+ setbuffer@GLIBC_2.0 2.0
+ setcontext@GLIBC_2.0 2.0
+ setdomainname@GLIBC_2.0 2.0
+ setegid@GLIBC_2.0 2.0
+ setenv@GLIBC_2.0 2.0
+ seteuid@GLIBC_2.0 2.0
+ setfsent@GLIBC_2.0 2.0
+ setfsgid@GLIBC_2.0 2.0
+ setfsuid@GLIBC_2.0 2.0
+ setgid@GLIBC_2.0 2.0
+ setgrent@GLIBC_2.0 2.0
+ setgroups@GLIBC_2.0 2.0
+ sethostent@GLIBC_2.0 2.0
+ sethostid@GLIBC_2.0 2.0
+ sethostname@GLIBC_2.0 2.0
+ setipv4sourcefilter@GLIBC_2.3.4 2.3.4
+ setitimer@GLIBC_2.0 2.0
+ setjmp@GLIBC_2.0 2.0
+ setlinebuf@GLIBC_2.0 2.0
+ setlocale@GLIBC_2.0 2.0
+ setlogin@GLIBC_2.0 2.0
+ setlogmask@GLIBC_2.0 2.0
+ setmntent@GLIBC_2.0 2.0
+ setnetent@GLIBC_2.0 2.0
+ setnetgrent@GLIBC_2.0 2.0
+ setns@GLIBC_2.14 2.14
+ setpgid@GLIBC_2.0 2.0
+ setpgrp@GLIBC_2.0 2.0
+ setpriority@GLIBC_2.0 2.0
+ setprotoent@GLIBC_2.0 2.0
+ setpwent@GLIBC_2.0 2.0
+ setregid@GLIBC_2.0 2.0
+ setresgid@GLIBC_2.0 2.0
+ setresuid@GLIBC_2.0 2.0
+ setreuid@GLIBC_2.0 2.0
+ setrlimit64@GLIBC_2.1 2.1
+ setrlimit@GLIBC_2.0 2.0
+ setrlimit@GLIBC_2.2 2.2
+ setrpcent@GLIBC_2.0 2.0
+ setservent@GLIBC_2.0 2.0
+ setsgent@GLIBC_2.10 2.10
+ setsid@GLIBC_2.0 2.0
+ setsockopt@GLIBC_2.0 2.0
+ setsourcefilter@GLIBC_2.3.4 2.3.4
+ setspent@GLIBC_2.0 2.0
+ setstate@GLIBC_2.0 2.0
+ setstate_r@GLIBC_2.0 2.0
+ settimeofday@GLIBC_2.0 2.0
+ setttyent@GLIBC_2.0 2.0
+ setuid@GLIBC_2.0 2.0
+ setusershell@GLIBC_2.0 2.0
+ setutent@GLIBC_2.0 2.0
+ setutxent@GLIBC_2.1 2.1
+ setvbuf@GLIBC_2.0 2.0
+ setxattr@GLIBC_2.3 2.3
+ sgetsgent@GLIBC_2.10 2.10
+ sgetsgent_r@GLIBC_2.10 2.10
+ sgetspent@GLIBC_2.0 2.0
+ sgetspent_r@GLIBC_2.0 2.0
+ shm_open@GLIBC_2.2 2.2
+ shm_open@GLIBC_2.34 2.34
+ shm_unlink@GLIBC_2.2 2.2
+ shm_unlink@GLIBC_2.34 2.34
+ shmat@GLIBC_2.0 2.0
+ shmctl@GLIBC_2.0 2.0
+ shmctl@GLIBC_2.2 2.2
+ shmdt@GLIBC_2.0 2.0
+ shmget@GLIBC_2.0 2.0
+ shutdown@GLIBC_2.0 2.0
+ sigabbrev_np@GLIBC_2.32 2.32
+ sigaction@GLIBC_2.0 2.0
+ sigaddset@GLIBC_2.0 2.0
+ sigaltstack@GLIBC_2.0 2.0
+ sigandset@GLIBC_2.0 2.0
+ sigblock@GLIBC_2.0 2.0
+ sigdelset@GLIBC_2.0 2.0
+ sigdescr_np@GLIBC_2.32 2.32
+ sigemptyset@GLIBC_2.0 2.0
+ sigfillset@GLIBC_2.0 2.0
+ siggetmask@GLIBC_2.0 2.0
+ sighold@GLIBC_2.1 2.1
+ sigignore@GLIBC_2.1 2.1
+ siginterrupt@GLIBC_2.0 2.0
+ sigisemptyset@GLIBC_2.0 2.0
+ sigismember@GLIBC_2.0 2.0
+ siglongjmp@GLIBC_2.0 2.0
+ signal@GLIBC_2.0 2.0
+ signalfd@GLIBC_2.7 2.7
+ sigorset@GLIBC_2.0 2.0
+ sigpause@GLIBC_2.0 2.0
+ sigpending@GLIBC_2.0 2.0
+ sigprocmask@GLIBC_2.0 2.0
+ sigqueue@GLIBC_2.1 2.1
+ sigrelse@GLIBC_2.1 2.1
+ sigreturn@GLIBC_2.0 2.0
+ sigset@GLIBC_2.1 2.1
+ sigsetmask@GLIBC_2.0 2.0
+ sigstack@GLIBC_2.0 2.0
+ sigsuspend@GLIBC_2.0 2.0
+ sigtimedwait@GLIBC_2.1 2.1
+ sigvec@GLIBC_2.0 2.0
+ sigwait@GLIBC_2.0 2.0
+ sigwaitinfo@GLIBC_2.1 2.1
+ sleep@GLIBC_2.0 2.0
+ snprintf@GLIBC_2.0 2.0
+ sockatmark@GLIBC_2.2.4 2.2.4
+ socket@GLIBC_2.0 2.0
+ socketpair@GLIBC_2.0 2.0
+ splice@GLIBC_2.5 2.5
+ sprintf@GLIBC_2.0 2.0
+ sprofil@GLIBC_2.2.3 2.2.3
+ srand48@GLIBC_2.0 2.0
+ srand48_r@GLIBC_2.0 2.0
+ srand@GLIBC_2.0 2.0
+ srandom@GLIBC_2.0 2.0
+ srandom_r@GLIBC_2.0 2.0
+ sscanf@GLIBC_2.0 2.0
+ ssignal@GLIBC_2.0 2.0
+ sstk@GLIBC_2.0 2.0
+ stat64@GLIBC_2.33 2.33
+ stat@GLIBC_2.33 2.33
+ statfs64@GLIBC_2.1 2.1
+ statfs@GLIBC_2.0 2.0
+ statvfs64@GLIBC_2.1 2.1
+ statvfs@GLIBC_2.1 2.1
+ statx@GLIBC_2.28 2.28
+ stdc_bit_ceil_uc@GLIBC_2.39 2.39
+ stdc_bit_ceil_ui@GLIBC_2.39 2.39
+ stdc_bit_ceil_ul@GLIBC_2.39 2.39
+ stdc_bit_ceil_ull@GLIBC_2.39 2.39
+ stdc_bit_ceil_us@GLIBC_2.39 2.39
+ stdc_bit_floor_uc@GLIBC_2.39 2.39
+ stdc_bit_floor_ui@GLIBC_2.39 2.39
+ stdc_bit_floor_ul@GLIBC_2.39 2.39
+ stdc_bit_floor_ull@GLIBC_2.39 2.39
+ stdc_bit_floor_us@GLIBC_2.39 2.39
+ stdc_bit_width_uc@GLIBC_2.39 2.39
+ stdc_bit_width_ui@GLIBC_2.39 2.39
+ stdc_bit_width_ul@GLIBC_2.39 2.39
+ stdc_bit_width_ull@GLIBC_2.39 2.39
+ stdc_bit_width_us@GLIBC_2.39 2.39
+ stdc_count_ones_uc@GLIBC_2.39 2.39
+ stdc_count_ones_ui@GLIBC_2.39 2.39
+ stdc_count_ones_ul@GLIBC_2.39 2.39
+ stdc_count_ones_ull@GLIBC_2.39 2.39
+ stdc_count_ones_us@GLIBC_2.39 2.39
+ stdc_count_zeros_uc@GLIBC_2.39 2.39
+ stdc_count_zeros_ui@GLIBC_2.39 2.39
+ stdc_count_zeros_ul@GLIBC_2.39 2.39
+ stdc_count_zeros_ull@GLIBC_2.39 2.39
+ stdc_count_zeros_us@GLIBC_2.39 2.39
+ stdc_first_leading_one_uc@GLIBC_2.39 2.39
+ stdc_first_leading_one_ui@GLIBC_2.39 2.39
+ stdc_first_leading_one_ul@GLIBC_2.39 2.39
+ stdc_first_leading_one_ull@GLIBC_2.39 2.39
+ stdc_first_leading_one_us@GLIBC_2.39 2.39
+ stdc_first_leading_zero_uc@GLIBC_2.39 2.39
+ stdc_first_leading_zero_ui@GLIBC_2.39 2.39
+ stdc_first_leading_zero_ul@GLIBC_2.39 2.39
+ stdc_first_leading_zero_ull@GLIBC_2.39 2.39
+ stdc_first_leading_zero_us@GLIBC_2.39 2.39
+ stdc_first_trailing_one_uc@GLIBC_2.39 2.39
+ stdc_first_trailing_one_ui@GLIBC_2.39 2.39
+ stdc_first_trailing_one_ul@GLIBC_2.39 2.39
+ stdc_first_trailing_one_ull@GLIBC_2.39 2.39
+ stdc_first_trailing_one_us@GLIBC_2.39 2.39
+ stdc_first_trailing_zero_uc@GLIBC_2.39 2.39
+ stdc_first_trailing_zero_ui@GLIBC_2.39 2.39
+ stdc_first_trailing_zero_ul@GLIBC_2.39 2.39
+ stdc_first_trailing_zero_ull@GLIBC_2.39 2.39
+ stdc_first_trailing_zero_us@GLIBC_2.39 2.39
+ stdc_has_single_bit_uc@GLIBC_2.39 2.39
+ stdc_has_single_bit_ui@GLIBC_2.39 2.39
+ stdc_has_single_bit_ul@GLIBC_2.39 2.39
+ stdc_has_single_bit_ull@GLIBC_2.39 2.39
+ stdc_has_single_bit_us@GLIBC_2.39 2.39
+ stdc_leading_ones_uc@GLIBC_2.39 2.39
+ stdc_leading_ones_ui@GLIBC_2.39 2.39
+ stdc_leading_ones_ul@GLIBC_2.39 2.39
+ stdc_leading_ones_ull@GLIBC_2.39 2.39
+ stdc_leading_ones_us@GLIBC_2.39 2.39
+ stdc_leading_zeros_uc@GLIBC_2.39 2.39
+ stdc_leading_zeros_ui@GLIBC_2.39 2.39
+ stdc_leading_zeros_ul@GLIBC_2.39 2.39
+ stdc_leading_zeros_ull@GLIBC_2.39 2.39
+ stdc_leading_zeros_us@GLIBC_2.39 2.39
+ stdc_trailing_ones_uc@GLIBC_2.39 2.39
+ stdc_trailing_ones_ui@GLIBC_2.39 2.39
+ stdc_trailing_ones_ul@GLIBC_2.39 2.39
+ stdc_trailing_ones_ull@GLIBC_2.39 2.39
+ stdc_trailing_ones_us@GLIBC_2.39 2.39
+ stdc_trailing_zeros_uc@GLIBC_2.39 2.39
+ stdc_trailing_zeros_ui@GLIBC_2.39 2.39
+ stdc_trailing_zeros_ul@GLIBC_2.39 2.39
+ stdc_trailing_zeros_ull@GLIBC_2.39 2.39
+ stdc_trailing_zeros_us@GLIBC_2.39 2.39
+ stderr@GLIBC_2.0 2.0
+ stdin@GLIBC_2.0 2.0
+ stdout@GLIBC_2.0 2.0
+ step@GLIBC_2.0 2.0
+ stime@GLIBC_2.0 2.0
+ stpcpy@GLIBC_2.0 2.0
+ stpncpy@GLIBC_2.0 2.0
+ strcasecmp@GLIBC_2.0 2.0
+ strcasecmp_l@GLIBC_2.3 2.3
+ strcasestr@GLIBC_2.1 2.1
+ strcat@GLIBC_2.0 2.0
+ strchr@GLIBC_2.0 2.0
+ strchrnul@GLIBC_2.1.1 2.1.1
+ strcmp@GLIBC_2.0 2.0
+ strcoll@GLIBC_2.0 2.0
+ strcoll_l@GLIBC_2.3 2.3
+ strcpy@GLIBC_2.0 2.0
+ strcspn@GLIBC_2.0 2.0
+ strdup@GLIBC_2.0 2.0
+ strerror@GLIBC_2.0 2.0
+ strerror_l@GLIBC_2.6 2.6
+ strerror_r@GLIBC_2.0 2.0
+ strerrordesc_np@GLIBC_2.32 2.32
+ strerrorname_np@GLIBC_2.32 2.32
+ strfmon@GLIBC_2.0 2.0
+ strfmon_l@GLIBC_2.3 2.3
+ strfromd@GLIBC_2.25 2.25
+ strfromf128@GLIBC_2.26 2.26
+ strfromf32@GLIBC_2.27 2.27
+ strfromf32x@GLIBC_2.27 2.27
+ strfromf64@GLIBC_2.27 2.27
+ strfromf64x@GLIBC_2.27 2.27
+ strfromf@GLIBC_2.25 2.25
+ strfroml@GLIBC_2.25 2.25
+ strfry@GLIBC_2.0 2.0
+ strftime@GLIBC_2.0 2.0
+ strftime_l@GLIBC_2.3 2.3
+ strlcat@GLIBC_2.38 2.38
+ strlcpy@GLIBC_2.38 2.38
+ strlen@GLIBC_2.0 2.0
+ strncasecmp@GLIBC_2.0 2.0
+ strncasecmp_l@GLIBC_2.3 2.3
+ strncat@GLIBC_2.0 2.0
+ strncmp@GLIBC_2.0 2.0
+ strncpy@GLIBC_2.0 2.0
+ strndup@GLIBC_2.0 2.0
+ strnlen@GLIBC_2.0 2.0
+ strpbrk@GLIBC_2.0 2.0
+ strptime@GLIBC_2.0 2.0
+ strptime_l@GLIBC_2.3.2 2.3.2
+ strrchr@GLIBC_2.0 2.0
+ strsep@GLIBC_2.0 2.0
+ strsignal@GLIBC_2.0 2.0
+ strspn@GLIBC_2.0 2.0
+ strstr@GLIBC_2.0 2.0
+ strtod@GLIBC_2.0 2.0
+ strtod_l@GLIBC_2.3 2.3
+ strtof128@GLIBC_2.26 2.26
+ strtof128_l@GLIBC_2.26 2.26
+ strtof32@GLIBC_2.27 2.27
+ strtof32_l@GLIBC_2.27 2.27
+ strtof32x@GLIBC_2.27 2.27
+ strtof32x_l@GLIBC_2.27 2.27
+ strtof64@GLIBC_2.27 2.27
+ strtof64_l@GLIBC_2.27 2.27
+ strtof64x@GLIBC_2.27 2.27
+ strtof64x_l@GLIBC_2.27 2.27
+ strtof@GLIBC_2.0 2.0
+ strtof_l@GLIBC_2.3 2.3
+ strtoimax@GLIBC_2.1 2.1
+ strtok@GLIBC_2.0 2.0
+ strtok_r@GLIBC_2.0 2.0
+ strtol@GLIBC_2.0 2.0
+ strtol_l@GLIBC_2.3 2.3
+ strtold@GLIBC_2.0 2.0
+ strtold_l@GLIBC_2.3 2.3
+ strtoll@GLIBC_2.0 2.0
+ strtoll_l@GLIBC_2.3 2.3
+ strtoq@GLIBC_2.0 2.0
+ strtoul@GLIBC_2.0 2.0
+ strtoul_l@GLIBC_2.3 2.3
+ strtoull@GLIBC_2.0 2.0
+ strtoull_l@GLIBC_2.3 2.3
+ strtoumax@GLIBC_2.1 2.1
+ strtouq@GLIBC_2.0 2.0
+ strverscmp@GLIBC_2.1 2.1
+ strxfrm@GLIBC_2.0 2.0
+ strxfrm_l@GLIBC_2.3 2.3
+ stty@GLIBC_2.0 2.0
+ svc_exit@GLIBC_2.0 2.0
+ svc_fdset@GLIBC_2.0 2.0
+ svc_getreq@GLIBC_2.0 2.0
+ svc_getreq_common@GLIBC_2.2 2.2
+ svc_getreq_poll@GLIBC_2.2 2.2
+ svc_getreqset@GLIBC_2.0 2.0
+ svc_max_pollfd@GLIBC_2.2 2.2
+ svc_pollfd@GLIBC_2.2 2.2
+ svc_register@GLIBC_2.0 2.0
+ svc_run@GLIBC_2.0 2.0
+ svc_sendreply@GLIBC_2.0 2.0
+ svc_unregister@GLIBC_2.0 2.0
+ svcauthdes_stats@GLIBC_2.0 2.0
+ svcerr_auth@GLIBC_2.0 2.0
+ svcerr_decode@GLIBC_2.0 2.0
+ svcerr_noproc@GLIBC_2.0 2.0
+ svcerr_noprog@GLIBC_2.0 2.0
+ svcerr_progvers@GLIBC_2.0 2.0
+ svcerr_systemerr@GLIBC_2.0 2.0
+ svcerr_weakauth@GLIBC_2.0 2.0
+ svcfd_create@GLIBC_2.0 2.0
+ svcraw_create@GLIBC_2.0 2.0
+ svctcp_create@GLIBC_2.0 2.0
+ svcudp_bufcreate@GLIBC_2.0 2.0
+ svcudp_create@GLIBC_2.0 2.0
+ svcudp_enablecache@GLIBC_2.0 2.0
+ svcunix_create@GLIBC_2.1 2.1
+ svcunixfd_create@GLIBC_2.1 2.1
+ swab@GLIBC_2.0 2.0
+ swapcontext@GLIBC_2.1 2.1
+ swapoff@GLIBC_2.0 2.0
+ swapon@GLIBC_2.0 2.0
+ swprintf@GLIBC_2.2 2.2
+ swscanf@GLIBC_2.2 2.2
+ symlink@GLIBC_2.0 2.0
+ symlinkat@GLIBC_2.4 2.4
+ sync@GLIBC_2.0 2.0
+ sync_file_range@GLIBC_2.6 2.6
+ syncfs@GLIBC_2.14 2.14
+ sys_errlist@GLIBC_2.0 2.0
+ sys_errlist@GLIBC_2.1 2.1
+ sys_errlist@GLIBC_2.12 2.12
+ sys_errlist@GLIBC_2.3 2.3
+ sys_errlist@GLIBC_2.4 2.4
+ sys_nerr@GLIBC_2.0 2.0
+ sys_nerr@GLIBC_2.1 2.1
+ sys_nerr@GLIBC_2.12 2.12
+ sys_nerr@GLIBC_2.3 2.3
+ sys_nerr@GLIBC_2.4 2.4
+ sys_sigabbrev@GLIBC_2.0 2.0
+ sys_sigabbrev@GLIBC_2.1 2.1
+ sys_sigabbrev@GLIBC_2.3.3 2.3.3
+ sys_siglist@GLIBC_2.0 2.0
+ sys_siglist@GLIBC_2.1 2.1
+ sys_siglist@GLIBC_2.3.3 2.3.3
+ syscall@GLIBC_2.0 2.0
+ sysconf@GLIBC_2.0 2.34
+ sysctl@GLIBC_2.0 2.0
+ sysinfo@GLIBC_2.0 2.0
+ syslog@GLIBC_2.0 2.0
+ system@GLIBC_2.0 2.0
+ sysv_signal@GLIBC_2.1 2.1
+ tcdrain@GLIBC_2.0 2.0
+ tcflow@GLIBC_2.0 2.0
+ tcflush@GLIBC_2.0 2.0
+ tcgetattr@GLIBC_2.0 2.0
+ tcgetpgrp@GLIBC_2.0 2.0
+ tcgetsid@GLIBC_2.1 2.1
+ tcsendbreak@GLIBC_2.0 2.0
+ tcsetattr@GLIBC_2.0 2.0
+ tcsetpgrp@GLIBC_2.0 2.0
+ tdelete@GLIBC_2.0 2.0
+ tdestroy@GLIBC_2.1 2.1
+ tee@GLIBC_2.5 2.5
+ telldir@GLIBC_2.0 2.0
+ tempnam@GLIBC_2.0 2.0
+ textdomain@GLIBC_2.0 2.0
+ tfind@GLIBC_2.0 2.0
+ tgkill@GLIBC_2.30 2.30
+ thrd_create@GLIBC_2.28 2.28
+ thrd_create@GLIBC_2.34 2.34
+ thrd_current@GLIBC_2.28 2.28
+ thrd_detach@GLIBC_2.28 2.28
+ thrd_detach@GLIBC_2.34 2.34
+ thrd_equal@GLIBC_2.28 2.28
+ thrd_exit@GLIBC_2.28 2.28
+ thrd_exit@GLIBC_2.34 2.34
+ thrd_join@GLIBC_2.28 2.28
+ thrd_join@GLIBC_2.34 2.34
+ thrd_sleep@GLIBC_2.28 2.28
+ thrd_yield@GLIBC_2.28 2.28
+ time@GLIBC_2.0 2.0
+ timegm@GLIBC_2.0 2.0
+ timelocal@GLIBC_2.0 2.0
+ timer_create@GLIBC_2.2 2.2
+ timer_create@GLIBC_2.34 2.34
+ timer_delete@GLIBC_2.2 2.2
+ timer_delete@GLIBC_2.34 2.34
+ timer_getoverrun@GLIBC_2.2 2.2
+ timer_getoverrun@GLIBC_2.34 2.34
+ timer_gettime@GLIBC_2.2 2.2
+ timer_gettime@GLIBC_2.34 2.34
+ timer_settime@GLIBC_2.2 2.2
+ timer_settime@GLIBC_2.34 2.34
+ timerfd_create@GLIBC_2.8 2.8
+ timerfd_gettime@GLIBC_2.8 2.8
+ timerfd_settime@GLIBC_2.8 2.8
+ times@GLIBC_2.0 2.0
+ timespec_get@GLIBC_2.16 2.16
+ timespec_getres@GLIBC_2.34 2.34
+ timezone@GLIBC_2.0 2.0
+ tmpfile64@GLIBC_2.1 2.1
+ tmpfile@GLIBC_2.0 2.0
+ tmpfile@GLIBC_2.1 2.1
+ tmpnam@GLIBC_2.0 2.0
+ tmpnam_r@GLIBC_2.0 2.0
+ toascii@GLIBC_2.0 2.0
+ tolower@GLIBC_2.0 2.0
+ tolower_l@GLIBC_2.3 2.3
+ toupper@GLIBC_2.0 2.0
+ toupper_l@GLIBC_2.3 2.3
+ towctrans@GLIBC_2.0 2.0
+ towctrans_l@GLIBC_2.3 2.3
+ towlower@GLIBC_2.0 2.0
+ towlower_l@GLIBC_2.3 2.3
+ towupper@GLIBC_2.0 2.0
+ towupper_l@GLIBC_2.3 2.3
+ tr_break@GLIBC_2.0 2.0
+ truncate64@GLIBC_2.1 2.1
+ truncate@GLIBC_2.0 2.0
+ tsearch@GLIBC_2.0 2.0
+ tss_create@GLIBC_2.28 2.28
+ tss_create@GLIBC_2.34 2.34
+ tss_delete@GLIBC_2.28 2.28
+ tss_delete@GLIBC_2.34 2.34
+ tss_get@GLIBC_2.28 2.28
+ tss_get@GLIBC_2.34 2.34
+ tss_set@GLIBC_2.28 2.28
+ tss_set@GLIBC_2.34 2.34
+ ttyname@GLIBC_2.0 2.0
+ ttyname_r@GLIBC_2.0 2.0
+ ttyslot@GLIBC_2.0 2.0
+ twalk@GLIBC_2.0 2.0
+ twalk_r@GLIBC_2.30 2.30
+ tzname@GLIBC_2.0 2.0
+ tzset@GLIBC_2.0 2.0
+ ualarm@GLIBC_2.0 2.0
+ ulckpwdf@GLIBC_2.0 2.0
+ ulimit@GLIBC_2.0 2.0
+ umask@GLIBC_2.0 2.0
+ umount2@GLIBC_2.1 2.1
+ umount@GLIBC_2.0 2.0
+ uname@GLIBC_2.0 2.0
+ ungetc@GLIBC_2.0 2.0
+ ungetwc@GLIBC_2.2 2.2
+ unlink@GLIBC_2.0 2.0
+ unlinkat@GLIBC_2.4 2.4
+ unlockpt@GLIBC_2.1 2.1
+ unsetenv@GLIBC_2.0 2.0
+ unshare@GLIBC_2.4 2.4
+ updwtmp@GLIBC_2.0 2.0
+ updwtmpx@GLIBC_2.1 2.1
+ uselib@GLIBC_2.0 2.0
+ uselocale@GLIBC_2.3 2.3
+ user2netname@GLIBC_2.1 2.1
+ usleep@GLIBC_2.0 2.0
+ ustat@GLIBC_2.0 2.0
+ utime@GLIBC_2.0 2.0
+ utimensat@GLIBC_2.6 2.6
+ utimes@GLIBC_2.0 2.0
+ utmpname@GLIBC_2.0 2.0
+ utmpxname@GLIBC_2.1 2.1
+ valloc@GLIBC_2.0 2.0
+ vasprintf@GLIBC_2.0 2.0
+ vdprintf@GLIBC_2.0 2.0
+ verr@GLIBC_2.0 2.0
+ verrx@GLIBC_2.0 2.0
+ versionsort64@GLIBC_2.1 2.1
+ versionsort64@GLIBC_2.2 2.2
+ versionsort@GLIBC_2.1 2.1
+ vfork@GLIBC_2.0 2.0
+ vfprintf@GLIBC_2.0 2.0
+ vfscanf@GLIBC_2.0 2.0
+ vfwprintf@GLIBC_2.2 2.2
+ vfwscanf@GLIBC_2.2 2.2
+ vhangup@GLIBC_2.0 2.0
+ vlimit@GLIBC_2.0 2.0
+ vm86@GLIBC_2.0 2.0
+ vm86@GLIBC_2.3.4 2.3.4
+ vmsplice@GLIBC_2.5 2.5
+ vprintf@GLIBC_2.0 2.0
+ vscanf@GLIBC_2.0 2.0
+ vsnprintf@GLIBC_2.0 2.0
+ vsprintf@GLIBC_2.0 2.0
+ vsscanf@GLIBC_2.0 2.0
+ vswprintf@GLIBC_2.2 2.2
+ vswscanf@GLIBC_2.2 2.2
+ vsyslog@GLIBC_2.0 2.0
+ vtimes@GLIBC_2.0 2.0
+ vwarn@GLIBC_2.0 2.0
+ vwarnx@GLIBC_2.0 2.0
+ vwprintf@GLIBC_2.2 2.2
+ vwscanf@GLIBC_2.2 2.2
+ wait3@GLIBC_2.0 2.0
+ wait4@GLIBC_2.0 2.0
+ wait@GLIBC_2.0 2.0
+ waitid@GLIBC_2.1 2.1
+ waitpid@GLIBC_2.0 2.0
+ warn@GLIBC_2.0 2.0
+ warnx@GLIBC_2.0 2.0
+ wcpcpy@GLIBC_2.0 2.0
+ wcpncpy@GLIBC_2.0 2.0
+ wcrtomb@GLIBC_2.0 2.0
+ wcscasecmp@GLIBC_2.1 2.1
+ wcscasecmp_l@GLIBC_2.3 2.3
+ wcscat@GLIBC_2.0 2.0
+ wcschr@GLIBC_2.0 2.0
+ wcschrnul@GLIBC_2.2 2.2
+ wcscmp@GLIBC_2.0 2.0
+ wcscoll@GLIBC_2.0 2.0
+ wcscoll_l@GLIBC_2.3 2.3
+ wcscpy@GLIBC_2.0 2.0
+ wcscspn@GLIBC_2.0 2.0
+ wcsdup@GLIBC_2.0 2.0
+ wcsftime@GLIBC_2.2 2.2
+ wcsftime_l@GLIBC_2.3 2.3
+ wcslcat@GLIBC_2.38 2.38
+ wcslcpy@GLIBC_2.38 2.38
+ wcslen@GLIBC_2.0 2.0
+ wcsncasecmp@GLIBC_2.1 2.1
+ wcsncasecmp_l@GLIBC_2.3 2.3
+ wcsncat@GLIBC_2.0 2.0
+ wcsncmp@GLIBC_2.0 2.0
+ wcsncpy@GLIBC_2.0 2.0
+ wcsnlen@GLIBC_2.1 2.1
+ wcsnrtombs@GLIBC_2.0 2.0
+ wcspbrk@GLIBC_2.0 2.0
+ wcsrchr@GLIBC_2.0 2.0
+ wcsrtombs@GLIBC_2.0 2.0
+ wcsspn@GLIBC_2.0 2.0
+ wcsstr@GLIBC_2.0 2.0
+ wcstod@GLIBC_2.0 2.0
+ wcstod_l@GLIBC_2.3 2.3
+ wcstof128@GLIBC_2.26 2.26
+ wcstof128_l@GLIBC_2.26 2.26
+ wcstof32@GLIBC_2.27 2.27
+ wcstof32_l@GLIBC_2.27 2.27
+ wcstof32x@GLIBC_2.27 2.27
+ wcstof32x_l@GLIBC_2.27 2.27
+ wcstof64@GLIBC_2.27 2.27
+ wcstof64_l@GLIBC_2.27 2.27
+ wcstof64x@GLIBC_2.27 2.27
+ wcstof64x_l@GLIBC_2.27 2.27
+ wcstof@GLIBC_2.0 2.0
+ wcstof_l@GLIBC_2.3 2.3
+ wcstoimax@GLIBC_2.1 2.1
+ wcstok@GLIBC_2.0 2.0
+ wcstol@GLIBC_2.0 2.0
+ wcstol_l@GLIBC_2.3 2.3
+ wcstold@GLIBC_2.0 2.0
+ wcstold_l@GLIBC_2.3 2.3
+ wcstoll@GLIBC_2.1 2.1
+ wcstoll_l@GLIBC_2.3 2.3
+ wcstombs@GLIBC_2.0 2.0
+ wcstoq@GLIBC_2.0 2.0
+ wcstoul@GLIBC_2.0 2.0
+ wcstoul_l@GLIBC_2.3 2.3
+ wcstoull@GLIBC_2.1 2.1
+ wcstoull_l@GLIBC_2.3 2.3
+ wcstoumax@GLIBC_2.1 2.1
+ wcstouq@GLIBC_2.0 2.0
+ wcswcs@GLIBC_2.1 2.1
+ wcswidth@GLIBC_2.0 2.0
+ wcsxfrm@GLIBC_2.0 2.0
+ wcsxfrm_l@GLIBC_2.3 2.3
+ wctob@GLIBC_2.0 2.0
+ wctomb@GLIBC_2.0 2.0
+ wctrans@GLIBC_2.0 2.0
+ wctrans_l@GLIBC_2.3 2.3
+ wctype@GLIBC_2.0 2.0
+ wctype_l@GLIBC_2.3 2.3
+ wcwidth@GLIBC_2.0 2.0
+ wmemchr@GLIBC_2.0 2.0
+ wmemcmp@GLIBC_2.0 2.0
+ wmemcpy@GLIBC_2.0 2.0
+ wmemmove@GLIBC_2.0 2.0
+ wmempcpy@GLIBC_2.2 2.2
+ wmemset@GLIBC_2.0 2.0
+ wordexp@GLIBC_2.1 2.1
+ wordfree@GLIBC_2.1 2.1
+ wprintf@GLIBC_2.2 2.2
+ write@GLIBC_2.0 2.0
+ writev@GLIBC_2.0 2.0
+ wscanf@GLIBC_2.2 2.2
+ xdecrypt@GLIBC_2.1 2.1
+ xdr_accepted_reply@GLIBC_2.0 2.0
+ xdr_array@GLIBC_2.0 2.0
+ xdr_authdes_cred@GLIBC_2.1 2.1
+ xdr_authdes_verf@GLIBC_2.1 2.1
+ xdr_authunix_parms@GLIBC_2.0 2.0
+ xdr_bool@GLIBC_2.0 2.0
+ xdr_bytes@GLIBC_2.0 2.0
+ xdr_callhdr@GLIBC_2.0 2.0
+ xdr_callmsg@GLIBC_2.0 2.0
+ xdr_char@GLIBC_2.0 2.0
+ xdr_cryptkeyarg2@GLIBC_2.0 2.0
+ xdr_cryptkeyarg@GLIBC_2.0 2.0
+ xdr_cryptkeyres@GLIBC_2.0 2.0
+ xdr_des_block@GLIBC_2.0 2.0
+ xdr_double@GLIBC_2.0 2.0
+ xdr_enum@GLIBC_2.0 2.0
+ xdr_float@GLIBC_2.0 2.0
+ xdr_free@GLIBC_2.0 2.0
+ xdr_getcredres@GLIBC_2.1 2.1
+ xdr_hyper@GLIBC_2.1.1 2.1.1
+ xdr_int16_t@GLIBC_2.1 2.1
+ xdr_int32_t@GLIBC_2.1 2.1
+ xdr_int64_t@GLIBC_2.1.1 2.1.1
+ xdr_int8_t@GLIBC_2.1 2.1
+ xdr_int@GLIBC_2.0 2.0
+ xdr_key_netstarg@GLIBC_2.0 2.0
+ xdr_key_netstres@GLIBC_2.0 2.0
+ xdr_keybuf@GLIBC_2.0 2.0
+ xdr_keystatus@GLIBC_2.0 2.0
+ xdr_long@GLIBC_2.0 2.0
+ xdr_longlong_t@GLIBC_2.1.1 2.1.1
+ xdr_netnamestr@GLIBC_2.1 2.1
+ xdr_netobj@GLIBC_2.0 2.0
+ xdr_opaque@GLIBC_2.0 2.0
+ xdr_opaque_auth@GLIBC_2.0 2.0
+ xdr_pmap@GLIBC_2.0 2.0
+ xdr_pmaplist@GLIBC_2.0 2.0
+ xdr_pointer@GLIBC_2.0 2.0
+ xdr_quad_t@GLIBC_2.3.4 2.3.4
+ xdr_reference@GLIBC_2.0 2.0
+ xdr_rejected_reply@GLIBC_2.0 2.0
+ xdr_replymsg@GLIBC_2.0 2.0
+ xdr_rmtcall_args@GLIBC_2.0 2.0
+ xdr_rmtcallres@GLIBC_2.0 2.0
+ xdr_short@GLIBC_2.0 2.0
+ xdr_sizeof@GLIBC_2.1 2.1
+ xdr_string@GLIBC_2.0 2.0
+ xdr_u_char@GLIBC_2.0 2.0
+ xdr_u_hyper@GLIBC_2.1.1 2.1.1
+ xdr_u_int@GLIBC_2.0 2.0
+ xdr_u_long@GLIBC_2.0 2.0
+ xdr_u_longlong_t@GLIBC_2.1.1 2.1.1
+ xdr_u_quad_t@GLIBC_2.3.4 2.3.4
+ xdr_u_short@GLIBC_2.0 2.0
+ xdr_uint16_t@GLIBC_2.1 2.1
+ xdr_uint32_t@GLIBC_2.1 2.1
+ xdr_uint64_t@GLIBC_2.1.1 2.1.1
+ xdr_uint8_t@GLIBC_2.1 2.1
+ xdr_union@GLIBC_2.0 2.0
+ xdr_unixcred@GLIBC_2.1 2.1
+ xdr_vector@GLIBC_2.0 2.0
+ xdr_void@GLIBC_2.0 2.0
+ xdr_wrapstring@GLIBC_2.0 2.0
+ xdrmem_create@GLIBC_2.0 2.0
+ xdrrec_create@GLIBC_2.0 2.0
+ xdrrec_endofrecord@GLIBC_2.0 2.0
+ xdrrec_eof@GLIBC_2.0 2.0
+ xdrrec_skiprecord@GLIBC_2.0 2.0
+ xdrstdio_create@GLIBC_2.0 2.0
+ xencrypt@GLIBC_2.0 2.0
+ xprt_register@GLIBC_2.0 2.0
+ xprt_unregister@GLIBC_2.0 2.0
+libc_malloc_debug.so.0 libc6 #MINVER#
+| libc6 (>> 2.41), libc6 (<< 2.42)
+ GLIBC_2.0@GLIBC_2.0 2.0
+ GLIBC_2.10@GLIBC_2.10 2.10
+ GLIBC_2.16@GLIBC_2.16 2.16
+ GLIBC_2.2@GLIBC_2.2 2.2
+ GLIBC_2.33@GLIBC_2.33 2.33
+ __free_hook@GLIBC_2.0 2.0
+ __malloc_hook@GLIBC_2.0 2.0
+ __memalign_hook@GLIBC_2.0 2.0
+ __realloc_hook@GLIBC_2.0 2.0
+ aligned_alloc@GLIBC_2.16 2.16
+ calloc@GLIBC_2.0 2.0
+ free@GLIBC_2.0 2.0
+ mallinfo2@GLIBC_2.33 2.33
+ mallinfo@GLIBC_2.0 2.0
+ malloc@GLIBC_2.0 2.0
+ malloc_get_state@GLIBC_2.0 2.0
+ malloc_info@GLIBC_2.10 2.10
+ malloc_set_state@GLIBC_2.0 2.0
+ malloc_stats@GLIBC_2.0 2.0
+ malloc_trim@GLIBC_2.0 2.0
+ malloc_usable_size@GLIBC_2.0 2.0
+ mallopt@GLIBC_2.0 2.0
+ mcheck@GLIBC_2.0 2.0
+ mcheck_check_all@GLIBC_2.2 2.2
+ mcheck_pedantic@GLIBC_2.2 2.2
+ memalign@GLIBC_2.0 2.0
+ mprobe@GLIBC_2.0 2.0
+ mtrace@GLIBC_2.0 2.0
+ muntrace@GLIBC_2.0 2.0
+ posix_memalign@GLIBC_2.2 2.2
+ pvalloc@GLIBC_2.0 2.0
+ realloc@GLIBC_2.0 2.0
+ valloc@GLIBC_2.0 2.0
+libdl.so.2 libc6 #MINVER#
+| libc6 (>> 2.41), libc6 (<< 2.42)
+ GLIBC_2.0@GLIBC_2.0 2.0
+ GLIBC_2.1@GLIBC_2.1 2.1
+ GLIBC_2.3.3@GLIBC_2.3.3 2.3.3
+ GLIBC_2.3.4@GLIBC_2.3.4 2.3.4
+ __libdl_version_placeholder@GLIBC_2.0 2.0
+ __libdl_version_placeholder@GLIBC_2.1 2.1
+ __libdl_version_placeholder@GLIBC_2.3.3 2.3.3
+ __libdl_version_placeholder@GLIBC_2.3.4 2.3.4
+libm.so.6 libc6 #MINVER#
+| libc6 (>> 2.41), libc6 (<< 2.42)
+ GLIBC_2.0@GLIBC_2.0 2.0
+ GLIBC_2.15@GLIBC_2.15 2.15
+ GLIBC_2.18@GLIBC_2.18 2.18
+ GLIBC_2.1@GLIBC_2.1 2.1
+ GLIBC_2.23@GLIBC_2.23 2.23
+ GLIBC_2.24@GLIBC_2.24 2.24
+ GLIBC_2.25@GLIBC_2.25 2.25
+ GLIBC_2.26@GLIBC_2.26 2.26
+ GLIBC_2.27@GLIBC_2.27 2.27
+ GLIBC_2.28@GLIBC_2.28 2.28
+ GLIBC_2.29@GLIBC_2.29 2.29
+ GLIBC_2.2@GLIBC_2.2 2.2
+ GLIBC_2.31@GLIBC_2.31 2.31
+ GLIBC_2.32@GLIBC_2.32 2.32
+ GLIBC_2.35@GLIBC_2.35 2.35
+ GLIBC_2.38@GLIBC_2.38 2.38
+ GLIBC_2.39@GLIBC_2.39 2.39
+ GLIBC_2.40@GLIBC_2.40 2.40
+ GLIBC_2.41@GLIBC_2.41 2.41
+ GLIBC_2.4@GLIBC_2.4 2.4
+ _LIB_VERSION@GLIBC_2.0 2.0
+ __acos_finite@GLIBC_2.15 2.15
+ __acosf128_finite@GLIBC_2.26 2.26
+ __acosf_finite@GLIBC_2.15 2.15
+ __acosh_finite@GLIBC_2.15 2.15
+ __acoshf128_finite@GLIBC_2.26 2.26
+ __acoshf_finite@GLIBC_2.15 2.15
+ __acoshl_finite@GLIBC_2.15 2.15
+ __acosl_finite@GLIBC_2.15 2.15
+ __asin_finite@GLIBC_2.15 2.15
+ __asinf128_finite@GLIBC_2.26 2.26
+ __asinf_finite@GLIBC_2.15 2.15
+ __asinl_finite@GLIBC_2.15 2.15
+ __atan2_finite@GLIBC_2.15 2.15
+ __atan2f128_finite@GLIBC_2.26 2.26
+ __atan2f_finite@GLIBC_2.15 2.15
+ __atan2l_finite@GLIBC_2.15 2.15
+ __atanh_finite@GLIBC_2.15 2.15
+ __atanhf128_finite@GLIBC_2.26 2.26
+ __atanhf_finite@GLIBC_2.15 2.15
+ __atanhl_finite@GLIBC_2.15 2.15
+ __clog10@GLIBC_2.1 2.1
+ __clog10f@GLIBC_2.1 2.1
+ __clog10l@GLIBC_2.1 2.1
+ __cosh_finite@GLIBC_2.15 2.15
+ __coshf128_finite@GLIBC_2.26 2.26
+ __coshf_finite@GLIBC_2.15 2.15
+ __coshl_finite@GLIBC_2.15 2.15
+ __exp10_finite@GLIBC_2.15 2.15
+ __exp10f128_finite@GLIBC_2.26 2.26
+ __exp10f_finite@GLIBC_2.15 2.15
+ __exp10l_finite@GLIBC_2.15 2.15
+ __exp2_finite@GLIBC_2.15 2.15
+ __exp2f128_finite@GLIBC_2.26 2.26
+ __exp2f_finite@GLIBC_2.15 2.15
+ __exp2l_finite@GLIBC_2.15 2.15
+ __exp_finite@GLIBC_2.15 2.15
+ __expf128_finite@GLIBC_2.26 2.26
+ __expf_finite@GLIBC_2.15 2.15
+ __expl@GLIBC_2.2 2.2
+ __expl_finite@GLIBC_2.15 2.15
+ __expm1l@GLIBC_2.2 2.2
+ __finite@GLIBC_2.1 2.1
+ __finitef128@GLIBC_2.26 2.26
+ __finitef@GLIBC_2.1 2.1
+ __finitel@GLIBC_2.1 2.1
+ __fmod_finite@GLIBC_2.15 2.15
+ __fmodf128_finite@GLIBC_2.26 2.26
+ __fmodf_finite@GLIBC_2.15 2.15
+ __fmodl_finite@GLIBC_2.15 2.15
+ __fpclassify@GLIBC_2.1 2.1
+ __fpclassifyf128@GLIBC_2.26 2.26
+ __fpclassifyf@GLIBC_2.1 2.1
+ __fpclassifyl@GLIBC_2.1 2.1
+ __gamma_r_finite@GLIBC_2.15 2.15
+ __gammaf128_r_finite@GLIBC_2.26 2.26
+ __gammaf_r_finite@GLIBC_2.15 2.15
+ __gammal_r_finite@GLIBC_2.15 2.15
+ __hypot_finite@GLIBC_2.15 2.15
+ __hypotf128_finite@GLIBC_2.26 2.26
+ __hypotf_finite@GLIBC_2.15 2.15
+ __hypotl_finite@GLIBC_2.15 2.15
+ __iscanonicall@GLIBC_2.25 2.25
+ __iseqsig@GLIBC_2.25 2.25
+ __iseqsigf128@GLIBC_2.26 2.26
+ __iseqsigf@GLIBC_2.25 2.25
+ __iseqsigl@GLIBC_2.25 2.25
+ __isinff128@GLIBC_2.26 2.26
+ __issignaling@GLIBC_2.18 2.18
+ __issignalingf128@GLIBC_2.26 2.26
+ __issignalingf@GLIBC_2.18 2.18
+ __issignalingl@GLIBC_2.18 2.18
+ __j0_finite@GLIBC_2.15 2.15
+ __j0f128_finite@GLIBC_2.26 2.26
+ __j0f_finite@GLIBC_2.15 2.15
+ __j0l_finite@GLIBC_2.15 2.15
+ __j1_finite@GLIBC_2.15 2.15
+ __j1f128_finite@GLIBC_2.26 2.26
+ __j1f_finite@GLIBC_2.15 2.15
+ __j1l_finite@GLIBC_2.15 2.15
+ __jn_finite@GLIBC_2.15 2.15
+ __jnf128_finite@GLIBC_2.26 2.26
+ __jnf_finite@GLIBC_2.15 2.15
+ __jnl_finite@GLIBC_2.15 2.15
+ __lgamma_r_finite@GLIBC_2.15 2.15
+ __lgammaf128_r_finite@GLIBC_2.26 2.26
+ __lgammaf_r_finite@GLIBC_2.15 2.15
+ __lgammal_r_finite@GLIBC_2.15 2.15
+ __log10_finite@GLIBC_2.15 2.15
+ __log10f128_finite@GLIBC_2.26 2.26
+ __log10f_finite@GLIBC_2.15 2.15
+ __log10l_finite@GLIBC_2.15 2.15
+ __log2_finite@GLIBC_2.15 2.15
+ __log2f128_finite@GLIBC_2.26 2.26
+ __log2f_finite@GLIBC_2.15 2.15
+ __log2l_finite@GLIBC_2.15 2.15
+ __log_finite@GLIBC_2.15 2.15
+ __logf128_finite@GLIBC_2.26 2.26
+ __logf_finite@GLIBC_2.15 2.15
+ __logl_finite@GLIBC_2.15 2.15
+ __pow_finite@GLIBC_2.15 2.15
+ __powf128_finite@GLIBC_2.26 2.26
+ __powf_finite@GLIBC_2.15 2.15
+ __powl_finite@GLIBC_2.15 2.15
+ __remainder_finite@GLIBC_2.15 2.15
+ __remainderf128_finite@GLIBC_2.26 2.26
+ __remainderf_finite@GLIBC_2.15 2.15
+ __remainderl_finite@GLIBC_2.15 2.15
+ __scalb_finite@GLIBC_2.15 2.15
+ __scalbf_finite@GLIBC_2.15 2.15
+ __scalbl_finite@GLIBC_2.15 2.15
+ __signbit@GLIBC_2.1 2.1
+ __signbitf128@GLIBC_2.26 2.26
+ __signbitf@GLIBC_2.1 2.1
+ __signbitl@GLIBC_2.1 2.1
+ __signgam@GLIBC_2.23 2.23
+ __sinh_finite@GLIBC_2.15 2.15
+ __sinhf128_finite@GLIBC_2.26 2.26
+ __sinhf_finite@GLIBC_2.15 2.15
+ __sinhl_finite@GLIBC_2.15 2.15
+ __sqrt_finite@GLIBC_2.15 2.15
+ __sqrtf128_finite@GLIBC_2.26 2.26
+ __sqrtf_finite@GLIBC_2.15 2.15
+ __sqrtl_finite@GLIBC_2.15 2.15
+ __y0_finite@GLIBC_2.15 2.15
+ __y0f128_finite@GLIBC_2.26 2.26
+ __y0f_finite@GLIBC_2.15 2.15
+ __y0l_finite@GLIBC_2.15 2.15
+ __y1_finite@GLIBC_2.15 2.15
+ __y1f128_finite@GLIBC_2.26 2.26
+ __y1f_finite@GLIBC_2.15 2.15
+ __y1l_finite@GLIBC_2.15 2.15
+ __yn_finite@GLIBC_2.15 2.15
+ __ynf128_finite@GLIBC_2.26 2.26
+ __ynf_finite@GLIBC_2.15 2.15
+ __ynl_finite@GLIBC_2.15 2.15
+ acos@GLIBC_2.0 2.0
+ acosf128@GLIBC_2.26 2.26
+ acosf32@GLIBC_2.27 2.27
+ acosf32x@GLIBC_2.27 2.27
+ acosf64@GLIBC_2.27 2.27
+ acosf64x@GLIBC_2.27 2.27
+ acosf@GLIBC_2.0 2.0
+ acosh@GLIBC_2.0 2.0
+ acoshf128@GLIBC_2.26 2.26
+ acoshf32@GLIBC_2.27 2.27
+ acoshf32x@GLIBC_2.27 2.27
+ acoshf64@GLIBC_2.27 2.27
+ acoshf64x@GLIBC_2.27 2.27
+ acoshf@GLIBC_2.0 2.0
+ acoshl@GLIBC_2.0 2.0
+ acosl@GLIBC_2.0 2.0
+ acospi@GLIBC_2.41 2.41
+ acospif128@GLIBC_2.41 2.41
+ acospif32@GLIBC_2.41 2.41
+ acospif32x@GLIBC_2.41 2.41
+ acospif64@GLIBC_2.41 2.41
+ acospif64x@GLIBC_2.41 2.41
+ acospif@GLIBC_2.41 2.41
+ acospil@GLIBC_2.41 2.41
+ asin@GLIBC_2.0 2.0
+ asinf128@GLIBC_2.26 2.26
+ asinf32@GLIBC_2.27 2.27
+ asinf32x@GLIBC_2.27 2.27
+ asinf64@GLIBC_2.27 2.27
+ asinf64x@GLIBC_2.27 2.27
+ asinf@GLIBC_2.0 2.0
+ asinh@GLIBC_2.0 2.0
+ asinhf128@GLIBC_2.26 2.26
+ asinhf32@GLIBC_2.27 2.27
+ asinhf32x@GLIBC_2.27 2.27
+ asinhf64@GLIBC_2.27 2.27
+ asinhf64x@GLIBC_2.27 2.27
+ asinhf@GLIBC_2.0 2.0
+ asinhl@GLIBC_2.0 2.0
+ asinl@GLIBC_2.0 2.0
+ asinpi@GLIBC_2.41 2.41
+ asinpif128@GLIBC_2.41 2.41
+ asinpif32@GLIBC_2.41 2.41
+ asinpif32x@GLIBC_2.41 2.41
+ asinpif64@GLIBC_2.41 2.41
+ asinpif64x@GLIBC_2.41 2.41
+ asinpif@GLIBC_2.41 2.41
+ asinpil@GLIBC_2.41 2.41
+ atan2@GLIBC_2.0 2.0
+ atan2f128@GLIBC_2.26 2.26
+ atan2f32@GLIBC_2.27 2.27
+ atan2f32x@GLIBC_2.27 2.27
+ atan2f64@GLIBC_2.27 2.27
+ atan2f64x@GLIBC_2.27 2.27
+ atan2f@GLIBC_2.0 2.0
+ atan2l@GLIBC_2.0 2.0
+ atan2pi@GLIBC_2.41 2.41
+ atan2pif128@GLIBC_2.41 2.41
+ atan2pif32@GLIBC_2.41 2.41
+ atan2pif32x@GLIBC_2.41 2.41
+ atan2pif64@GLIBC_2.41 2.41
+ atan2pif64x@GLIBC_2.41 2.41
+ atan2pif@GLIBC_2.41 2.41
+ atan2pil@GLIBC_2.41 2.41
+ atan@GLIBC_2.0 2.0
+ atanf128@GLIBC_2.26 2.26
+ atanf32@GLIBC_2.27 2.27
+ atanf32x@GLIBC_2.27 2.27
+ atanf64@GLIBC_2.27 2.27
+ atanf64x@GLIBC_2.27 2.27
+ atanf@GLIBC_2.0 2.0
+ atanh@GLIBC_2.0 2.0
+ atanhf128@GLIBC_2.26 2.26
+ atanhf32@GLIBC_2.27 2.27
+ atanhf32x@GLIBC_2.27 2.27
+ atanhf64@GLIBC_2.27 2.27
+ atanhf64x@GLIBC_2.27 2.27
+ atanhf@GLIBC_2.0 2.0
+ atanhl@GLIBC_2.0 2.0
+ atanl@GLIBC_2.0 2.0
+ atanpi@GLIBC_2.41 2.41
+ atanpif128@GLIBC_2.41 2.41
+ atanpif32@GLIBC_2.41 2.41
+ atanpif32x@GLIBC_2.41 2.41
+ atanpif64@GLIBC_2.41 2.41
+ atanpif64x@GLIBC_2.41 2.41
+ atanpif@GLIBC_2.41 2.41
+ atanpil@GLIBC_2.41 2.41
+ cabs@GLIBC_2.1 2.1
+ cabsf128@GLIBC_2.26 2.26
+ cabsf32@GLIBC_2.27 2.27
+ cabsf32x@GLIBC_2.27 2.27
+ cabsf64@GLIBC_2.27 2.27
+ cabsf64x@GLIBC_2.27 2.27
+ cabsf@GLIBC_2.1 2.1
+ cabsl@GLIBC_2.1 2.1
+ cacos@GLIBC_2.1 2.1
+ cacosf128@GLIBC_2.26 2.26
+ cacosf32@GLIBC_2.27 2.27
+ cacosf32x@GLIBC_2.27 2.27
+ cacosf64@GLIBC_2.27 2.27
+ cacosf64x@GLIBC_2.27 2.27
+ cacosf@GLIBC_2.1 2.1
+ cacosh@GLIBC_2.1 2.1
+ cacoshf128@GLIBC_2.26 2.26
+ cacoshf32@GLIBC_2.27 2.27
+ cacoshf32x@GLIBC_2.27 2.27
+ cacoshf64@GLIBC_2.27 2.27
+ cacoshf64x@GLIBC_2.27 2.27
+ cacoshf@GLIBC_2.1 2.1
+ cacoshl@GLIBC_2.1 2.1
+ cacosl@GLIBC_2.1 2.1
+ canonicalize@GLIBC_2.25 2.25
+ canonicalizef128@GLIBC_2.26 2.26
+ canonicalizef32@GLIBC_2.27 2.27
+ canonicalizef32x@GLIBC_2.27 2.27
+ canonicalizef64@GLIBC_2.27 2.27
+ canonicalizef64x@GLIBC_2.27 2.27
+ canonicalizef@GLIBC_2.25 2.25
+ canonicalizel@GLIBC_2.25 2.25
+ carg@GLIBC_2.1 2.1
+ cargf128@GLIBC_2.26 2.26
+ cargf32@GLIBC_2.27 2.27
+ cargf32x@GLIBC_2.27 2.27
+ cargf64@GLIBC_2.27 2.27
+ cargf64x@GLIBC_2.27 2.27
+ cargf@GLIBC_2.1 2.1
+ cargl@GLIBC_2.1 2.1
+ casin@GLIBC_2.1 2.1
+ casinf128@GLIBC_2.26 2.26
+ casinf32@GLIBC_2.27 2.27
+ casinf32x@GLIBC_2.27 2.27
+ casinf64@GLIBC_2.27 2.27
+ casinf64x@GLIBC_2.27 2.27
+ casinf@GLIBC_2.1 2.1
+ casinh@GLIBC_2.1 2.1
+ casinhf128@GLIBC_2.26 2.26
+ casinhf32@GLIBC_2.27 2.27
+ casinhf32x@GLIBC_2.27 2.27
+ casinhf64@GLIBC_2.27 2.27
+ casinhf64x@GLIBC_2.27 2.27
+ casinhf@GLIBC_2.1 2.1
+ casinhl@GLIBC_2.1 2.1
+ casinl@GLIBC_2.1 2.1
+ catan@GLIBC_2.1 2.1
+ catanf128@GLIBC_2.26 2.26
+ catanf32@GLIBC_2.27 2.27
+ catanf32x@GLIBC_2.27 2.27
+ catanf64@GLIBC_2.27 2.27
+ catanf64x@GLIBC_2.27 2.27
+ catanf@GLIBC_2.1 2.1
+ catanh@GLIBC_2.1 2.1
+ catanhf128@GLIBC_2.26 2.26
+ catanhf32@GLIBC_2.27 2.27
+ catanhf32x@GLIBC_2.27 2.27
+ catanhf64@GLIBC_2.27 2.27
+ catanhf64x@GLIBC_2.27 2.27
+ catanhf@GLIBC_2.1 2.1
+ catanhl@GLIBC_2.1 2.1
+ catanl@GLIBC_2.1 2.1
+ cbrt@GLIBC_2.0 2.0
+ cbrtf128@GLIBC_2.26 2.26
+ cbrtf32@GLIBC_2.27 2.27
+ cbrtf32x@GLIBC_2.27 2.27
+ cbrtf64@GLIBC_2.27 2.27
+ cbrtf64x@GLIBC_2.27 2.27
+ cbrtf@GLIBC_2.0 2.0
+ cbrtl@GLIBC_2.0 2.0
+ ccos@GLIBC_2.1 2.1
+ ccosf128@GLIBC_2.26 2.26
+ ccosf32@GLIBC_2.27 2.27
+ ccosf32x@GLIBC_2.27 2.27
+ ccosf64@GLIBC_2.27 2.27
+ ccosf64x@GLIBC_2.27 2.27
+ ccosf@GLIBC_2.1 2.1
+ ccosh@GLIBC_2.1 2.1
+ ccoshf128@GLIBC_2.26 2.26
+ ccoshf32@GLIBC_2.27 2.27
+ ccoshf32x@GLIBC_2.27 2.27
+ ccoshf64@GLIBC_2.27 2.27
+ ccoshf64x@GLIBC_2.27 2.27
+ ccoshf@GLIBC_2.1 2.1
+ ccoshl@GLIBC_2.1 2.1
+ ccosl@GLIBC_2.1 2.1
+ ceil@GLIBC_2.0 2.0
+ ceilf128@GLIBC_2.26 2.26
+ ceilf32@GLIBC_2.27 2.27
+ ceilf32x@GLIBC_2.27 2.27
+ ceilf64@GLIBC_2.27 2.27
+ ceilf64x@GLIBC_2.27 2.27
+ ceilf@GLIBC_2.0 2.0
+ ceill@GLIBC_2.0 2.0
+ cexp@GLIBC_2.1 2.1
+ cexpf128@GLIBC_2.26 2.26
+ cexpf32@GLIBC_2.27 2.27
+ cexpf32x@GLIBC_2.27 2.27
+ cexpf64@GLIBC_2.27 2.27
+ cexpf64x@GLIBC_2.27 2.27
+ cexpf@GLIBC_2.1 2.1
+ cexpl@GLIBC_2.1 2.1
+ cimag@GLIBC_2.1 2.1
+ cimagf128@GLIBC_2.26 2.26
+ cimagf32@GLIBC_2.27 2.27
+ cimagf32x@GLIBC_2.27 2.27
+ cimagf64@GLIBC_2.27 2.27
+ cimagf64x@GLIBC_2.27 2.27
+ cimagf@GLIBC_2.1 2.1
+ cimagl@GLIBC_2.1 2.1
+ clog10@GLIBC_2.1 2.1
+ clog10f128@GLIBC_2.26 2.26
+ clog10f32@GLIBC_2.27 2.27
+ clog10f32x@GLIBC_2.27 2.27
+ clog10f64@GLIBC_2.27 2.27
+ clog10f64x@GLIBC_2.27 2.27
+ clog10f@GLIBC_2.1 2.1
+ clog10l@GLIBC_2.1 2.1
+ clog@GLIBC_2.1 2.1
+ clogf128@GLIBC_2.26 2.26
+ clogf32@GLIBC_2.27 2.27
+ clogf32x@GLIBC_2.27 2.27
+ clogf64@GLIBC_2.27 2.27
+ clogf64x@GLIBC_2.27 2.27
+ clogf@GLIBC_2.1 2.1
+ clogl@GLIBC_2.1 2.1
+ conj@GLIBC_2.1 2.1
+ conjf128@GLIBC_2.26 2.26
+ conjf32@GLIBC_2.27 2.27
+ conjf32x@GLIBC_2.27 2.27
+ conjf64@GLIBC_2.27 2.27
+ conjf64x@GLIBC_2.27 2.27
+ conjf@GLIBC_2.1 2.1
+ conjl@GLIBC_2.1 2.1
+ copysign@GLIBC_2.0 2.0
+ copysignf128@GLIBC_2.26 2.26
+ copysignf32@GLIBC_2.27 2.27
+ copysignf32x@GLIBC_2.27 2.27
+ copysignf64@GLIBC_2.27 2.27
+ copysignf64x@GLIBC_2.27 2.27
+ copysignf@GLIBC_2.0 2.0
+ copysignl@GLIBC_2.0 2.0
+ cos@GLIBC_2.0 2.0
+ cosf128@GLIBC_2.26 2.26
+ cosf32@GLIBC_2.27 2.27
+ cosf32x@GLIBC_2.27 2.27
+ cosf64@GLIBC_2.27 2.27
+ cosf64x@GLIBC_2.27 2.27
+ cosf@GLIBC_2.0 2.0
+ cosh@GLIBC_2.0 2.0
+ coshf128@GLIBC_2.26 2.26
+ coshf32@GLIBC_2.27 2.27
+ coshf32x@GLIBC_2.27 2.27
+ coshf64@GLIBC_2.27 2.27
+ coshf64x@GLIBC_2.27 2.27
+ coshf@GLIBC_2.0 2.0
+ coshl@GLIBC_2.0 2.0
+ cosl@GLIBC_2.0 2.0
+ cospi@GLIBC_2.41 2.41
+ cospif128@GLIBC_2.41 2.41
+ cospif32@GLIBC_2.41 2.41
+ cospif32x@GLIBC_2.41 2.41
+ cospif64@GLIBC_2.41 2.41
+ cospif64x@GLIBC_2.41 2.41
+ cospif@GLIBC_2.41 2.41
+ cospil@GLIBC_2.41 2.41
+ cpow@GLIBC_2.1 2.1
+ cpowf128@GLIBC_2.26 2.26
+ cpowf32@GLIBC_2.27 2.27
+ cpowf32x@GLIBC_2.27 2.27
+ cpowf64@GLIBC_2.27 2.27
+ cpowf64x@GLIBC_2.27 2.27
+ cpowf@GLIBC_2.1 2.1
+ cpowl@GLIBC_2.1 2.1
+ cproj@GLIBC_2.1 2.1
+ cprojf128@GLIBC_2.26 2.26
+ cprojf32@GLIBC_2.27 2.27
+ cprojf32x@GLIBC_2.27 2.27
+ cprojf64@GLIBC_2.27 2.27
+ cprojf64x@GLIBC_2.27 2.27
+ cprojf@GLIBC_2.1 2.1
+ cprojl@GLIBC_2.1 2.1
+ creal@GLIBC_2.1 2.1
+ crealf128@GLIBC_2.26 2.26
+ crealf32@GLIBC_2.27 2.27
+ crealf32x@GLIBC_2.27 2.27
+ crealf64@GLIBC_2.27 2.27
+ crealf64x@GLIBC_2.27 2.27
+ crealf@GLIBC_2.1 2.1
+ creall@GLIBC_2.1 2.1
+ csin@GLIBC_2.1 2.1
+ csinf128@GLIBC_2.26 2.26
+ csinf32@GLIBC_2.27 2.27
+ csinf32x@GLIBC_2.27 2.27
+ csinf64@GLIBC_2.27 2.27
+ csinf64x@GLIBC_2.27 2.27
+ csinf@GLIBC_2.1 2.1
+ csinh@GLIBC_2.1 2.1
+ csinhf128@GLIBC_2.26 2.26
+ csinhf32@GLIBC_2.27 2.27
+ csinhf32x@GLIBC_2.27 2.27
+ csinhf64@GLIBC_2.27 2.27
+ csinhf64x@GLIBC_2.27 2.27
+ csinhf@GLIBC_2.1 2.1
+ csinhl@GLIBC_2.1 2.1
+ csinl@GLIBC_2.1 2.1
+ csqrt@GLIBC_2.1 2.1
+ csqrtf128@GLIBC_2.26 2.26
+ csqrtf32@GLIBC_2.27 2.27
+ csqrtf32x@GLIBC_2.27 2.27
+ csqrtf64@GLIBC_2.27 2.27
+ csqrtf64x@GLIBC_2.27 2.27
+ csqrtf@GLIBC_2.1 2.1
+ csqrtl@GLIBC_2.1 2.1
+ ctan@GLIBC_2.1 2.1
+ ctanf128@GLIBC_2.26 2.26
+ ctanf32@GLIBC_2.27 2.27
+ ctanf32x@GLIBC_2.27 2.27
+ ctanf64@GLIBC_2.27 2.27
+ ctanf64x@GLIBC_2.27 2.27
+ ctanf@GLIBC_2.1 2.1
+ ctanh@GLIBC_2.1 2.1
+ ctanhf128@GLIBC_2.26 2.26
+ ctanhf32@GLIBC_2.27 2.27
+ ctanhf32x@GLIBC_2.27 2.27
+ ctanhf64@GLIBC_2.27 2.27
+ ctanhf64x@GLIBC_2.27 2.27
+ ctanhf@GLIBC_2.1 2.1
+ ctanhl@GLIBC_2.1 2.1
+ ctanl@GLIBC_2.1 2.1
+ daddl@GLIBC_2.28 2.28
+ ddivl@GLIBC_2.28 2.28
+ dfmal@GLIBC_2.35 2.35
+ dmull@GLIBC_2.28 2.28
+ drem@GLIBC_2.0 2.0
+ dremf@GLIBC_2.0 2.0
+ dreml@GLIBC_2.0 2.0
+ dsqrtl@GLIBC_2.35 2.35
+ dsubl@GLIBC_2.28 2.28
+ erf@GLIBC_2.0 2.0
+ erfc@GLIBC_2.0 2.0
+ erfcf128@GLIBC_2.26 2.26
+ erfcf32@GLIBC_2.27 2.27
+ erfcf32x@GLIBC_2.27 2.27
+ erfcf64@GLIBC_2.27 2.27
+ erfcf64x@GLIBC_2.27 2.27
+ erfcf@GLIBC_2.0 2.0
+ erfcl@GLIBC_2.0 2.0
+ erff128@GLIBC_2.26 2.26
+ erff32@GLIBC_2.27 2.27
+ erff32x@GLIBC_2.27 2.27
+ erff64@GLIBC_2.27 2.27
+ erff64x@GLIBC_2.27 2.27
+ erff@GLIBC_2.0 2.0
+ erfl@GLIBC_2.0 2.0
+ exp10@GLIBC_2.1 2.1
+ exp10f128@GLIBC_2.26 2.26
+ exp10f32@GLIBC_2.27 2.27
+ exp10f32x@GLIBC_2.27 2.27
+ exp10f64@GLIBC_2.27 2.27
+ exp10f64x@GLIBC_2.27 2.27
+ exp10f@GLIBC_2.1 2.1
+ exp10f@GLIBC_2.32 2.32
+ exp10l@GLIBC_2.1 2.1
+ exp10m1@GLIBC_2.40 2.40
+ exp10m1f128@GLIBC_2.40 2.40
+ exp10m1f32@GLIBC_2.40 2.40
+ exp10m1f32x@GLIBC_2.40 2.40
+ exp10m1f64@GLIBC_2.40 2.40
+ exp10m1f64x@GLIBC_2.40 2.40
+ exp10m1f@GLIBC_2.40 2.40
+ exp10m1l@GLIBC_2.40 2.40
+ exp2@GLIBC_2.1 2.1
+ exp2@GLIBC_2.29 2.29
+ exp2f128@GLIBC_2.26 2.26
+ exp2f32@GLIBC_2.27 2.27
+ exp2f32x@GLIBC_2.27 2.27
+ exp2f64@GLIBC_2.27 2.27
+ exp2f64x@GLIBC_2.27 2.27
+ exp2f@GLIBC_2.1 2.1
+ exp2f@GLIBC_2.27 2.27
+ exp2l@GLIBC_2.1 2.1
+ exp2m1@GLIBC_2.40 2.40
+ exp2m1f128@GLIBC_2.40 2.40
+ exp2m1f32@GLIBC_2.40 2.40
+ exp2m1f32x@GLIBC_2.40 2.40
+ exp2m1f64@GLIBC_2.40 2.40
+ exp2m1f64x@GLIBC_2.40 2.40
+ exp2m1f@GLIBC_2.40 2.40
+ exp2m1l@GLIBC_2.40 2.40
+ exp@GLIBC_2.0 2.0
+ exp@GLIBC_2.29 2.29
+ expf128@GLIBC_2.26 2.26
+ expf32@GLIBC_2.27 2.27
+ expf32x@GLIBC_2.27 2.27
+ expf64@GLIBC_2.27 2.27
+ expf64x@GLIBC_2.27 2.27
+ expf@GLIBC_2.0 2.0
+ expf@GLIBC_2.27 2.27
+ expl@GLIBC_2.0 2.0
+ expm1@GLIBC_2.0 2.0
+ expm1f128@GLIBC_2.26 2.26
+ expm1f32@GLIBC_2.27 2.27
+ expm1f32x@GLIBC_2.27 2.27
+ expm1f64@GLIBC_2.27 2.27
+ expm1f64x@GLIBC_2.27 2.27
+ expm1f@GLIBC_2.0 2.0
+ expm1l@GLIBC_2.0 2.0
+ f32addf128@GLIBC_2.28 2.28
+ f32addf32x@GLIBC_2.28 2.28
+ f32addf64@GLIBC_2.28 2.28
+ f32addf64x@GLIBC_2.28 2.28
+ f32divf128@GLIBC_2.28 2.28
+ f32divf32x@GLIBC_2.28 2.28
+ f32divf64@GLIBC_2.28 2.28
+ f32divf64x@GLIBC_2.28 2.28
+ f32fmaf128@GLIBC_2.35 2.35
+ f32fmaf32x@GLIBC_2.35 2.35
+ f32fmaf64@GLIBC_2.35 2.35
+ f32fmaf64x@GLIBC_2.35 2.35
+ f32mulf128@GLIBC_2.28 2.28
+ f32mulf32x@GLIBC_2.28 2.28
+ f32mulf64@GLIBC_2.28 2.28
+ f32mulf64x@GLIBC_2.28 2.28
+ f32sqrtf128@GLIBC_2.35 2.35
+ f32sqrtf32x@GLIBC_2.35 2.35
+ f32sqrtf64@GLIBC_2.35 2.35
+ f32sqrtf64x@GLIBC_2.35 2.35
+ f32subf128@GLIBC_2.28 2.28
+ f32subf32x@GLIBC_2.28 2.28
+ f32subf64@GLIBC_2.28 2.28
+ f32subf64x@GLIBC_2.28 2.28
+ f32xaddf128@GLIBC_2.28 2.28
+ f32xaddf64@GLIBC_2.28 2.28
+ f32xaddf64x@GLIBC_2.28 2.28
+ f32xdivf128@GLIBC_2.28 2.28
+ f32xdivf64@GLIBC_2.28 2.28
+ f32xdivf64x@GLIBC_2.28 2.28
+ f32xfmaf128@GLIBC_2.35 2.35
+ f32xfmaf64@GLIBC_2.35 2.35
+ f32xfmaf64x@GLIBC_2.35 2.35
+ f32xmulf128@GLIBC_2.28 2.28
+ f32xmulf64@GLIBC_2.28 2.28
+ f32xmulf64x@GLIBC_2.28 2.28
+ f32xsqrtf128@GLIBC_2.35 2.35
+ f32xsqrtf64@GLIBC_2.35 2.35
+ f32xsqrtf64x@GLIBC_2.35 2.35
+ f32xsubf128@GLIBC_2.28 2.28
+ f32xsubf64@GLIBC_2.28 2.28
+ f32xsubf64x@GLIBC_2.28 2.28
+ f64addf128@GLIBC_2.28 2.28
+ f64addf64x@GLIBC_2.28 2.28
+ f64divf128@GLIBC_2.28 2.28
+ f64divf64x@GLIBC_2.28 2.28
+ f64fmaf128@GLIBC_2.35 2.35
+ f64fmaf64x@GLIBC_2.35 2.35
+ f64mulf128@GLIBC_2.28 2.28
+ f64mulf64x@GLIBC_2.28 2.28
+ f64sqrtf128@GLIBC_2.35 2.35
+ f64sqrtf64x@GLIBC_2.35 2.35
+ f64subf128@GLIBC_2.28 2.28
+ f64subf64x@GLIBC_2.28 2.28
+ f64xaddf128@GLIBC_2.28 2.28
+ f64xdivf128@GLIBC_2.28 2.28
+ f64xfmaf128@GLIBC_2.35 2.35
+ f64xmulf128@GLIBC_2.28 2.28
+ f64xsqrtf128@GLIBC_2.35 2.35
+ f64xsubf128@GLIBC_2.28 2.28
+ fabs@GLIBC_2.0 2.0
+ fabsf128@GLIBC_2.26 2.26
+ fabsf32@GLIBC_2.27 2.27
+ fabsf32x@GLIBC_2.27 2.27
+ fabsf64@GLIBC_2.27 2.27
+ fabsf64x@GLIBC_2.27 2.27
+ fabsf@GLIBC_2.0 2.0
+ fabsl@GLIBC_2.0 2.0
+ fadd@GLIBC_2.28 2.28
+ faddl@GLIBC_2.28 2.28
+ fdim@GLIBC_2.1 2.1
+ fdimf128@GLIBC_2.26 2.26
+ fdimf32@GLIBC_2.27 2.27
+ fdimf32x@GLIBC_2.27 2.27
+ fdimf64@GLIBC_2.27 2.27
+ fdimf64x@GLIBC_2.27 2.27
+ fdimf@GLIBC_2.1 2.1
+ fdiml@GLIBC_2.1 2.1
+ fdiv@GLIBC_2.28 2.28
+ fdivl@GLIBC_2.28 2.28
+ feclearexcept@GLIBC_2.1 2.1
+ feclearexcept@GLIBC_2.2 2.2
+ fedisableexcept@GLIBC_2.2 2.2
+ feenableexcept@GLIBC_2.2 2.2
+ fegetenv@GLIBC_2.1 2.1
+ fegetenv@GLIBC_2.2 2.2
+ fegetexcept@GLIBC_2.2 2.2
+ fegetexceptflag@GLIBC_2.1 2.1
+ fegetexceptflag@GLIBC_2.2 2.2
+ fegetmode@GLIBC_2.25 2.25
+ fegetround@GLIBC_2.1 2.1
+ feholdexcept@GLIBC_2.1 2.1
+ feraiseexcept@GLIBC_2.1 2.1
+ feraiseexcept@GLIBC_2.2 2.2
+ fesetenv@GLIBC_2.1 2.1
+ fesetenv@GLIBC_2.2 2.2
+ fesetexcept@GLIBC_2.25 2.25
+ fesetexceptflag@GLIBC_2.1 2.1
+ fesetexceptflag@GLIBC_2.2 2.2
+ fesetmode@GLIBC_2.25 2.25
+ fesetround@GLIBC_2.1 2.1
+ fetestexcept@GLIBC_2.1 2.1
+ fetestexceptflag@GLIBC_2.25 2.25
+ feupdateenv@GLIBC_2.1 2.1
+ feupdateenv@GLIBC_2.2 2.2
+ ffma@GLIBC_2.35 2.35
+ ffmal@GLIBC_2.35 2.35
+ finite@GLIBC_2.0 2.0
+ finitef@GLIBC_2.0 2.0
+ finitel@GLIBC_2.0 2.0
+ floor@GLIBC_2.0 2.0
+ floorf128@GLIBC_2.26 2.26
+ floorf32@GLIBC_2.27 2.27
+ floorf32x@GLIBC_2.27 2.27
+ floorf64@GLIBC_2.27 2.27
+ floorf64x@GLIBC_2.27 2.27
+ floorf@GLIBC_2.0 2.0
+ floorl@GLIBC_2.0 2.0
+ fma@GLIBC_2.1 2.1
+ fmaf128@GLIBC_2.26 2.26
+ fmaf32@GLIBC_2.27 2.27
+ fmaf32x@GLIBC_2.27 2.27
+ fmaf64@GLIBC_2.27 2.27
+ fmaf64x@GLIBC_2.27 2.27
+ fmaf@GLIBC_2.1 2.1
+ fmal@GLIBC_2.1 2.1
+ fmax@GLIBC_2.1 2.1
+ fmaxf128@GLIBC_2.26 2.26
+ fmaxf32@GLIBC_2.27 2.27
+ fmaxf32x@GLIBC_2.27 2.27
+ fmaxf64@GLIBC_2.27 2.27
+ fmaxf64x@GLIBC_2.27 2.27
+ fmaxf@GLIBC_2.1 2.1
+ fmaximum@GLIBC_2.35 2.35
+ fmaximum_mag@GLIBC_2.35 2.35
+ fmaximum_mag_num@GLIBC_2.35 2.35
+ fmaximum_mag_numf128@GLIBC_2.35 2.35
+ fmaximum_mag_numf32@GLIBC_2.35 2.35
+ fmaximum_mag_numf32x@GLIBC_2.35 2.35
+ fmaximum_mag_numf64@GLIBC_2.35 2.35
+ fmaximum_mag_numf64x@GLIBC_2.35 2.35
+ fmaximum_mag_numf@GLIBC_2.35 2.35
+ fmaximum_mag_numl@GLIBC_2.35 2.35
+ fmaximum_magf128@GLIBC_2.35 2.35
+ fmaximum_magf32@GLIBC_2.35 2.35
+ fmaximum_magf32x@GLIBC_2.35 2.35
+ fmaximum_magf64@GLIBC_2.35 2.35
+ fmaximum_magf64x@GLIBC_2.35 2.35
+ fmaximum_magf@GLIBC_2.35 2.35
+ fmaximum_magl@GLIBC_2.35 2.35
+ fmaximum_num@GLIBC_2.35 2.35
+ fmaximum_numf128@GLIBC_2.35 2.35
+ fmaximum_numf32@GLIBC_2.35 2.35
+ fmaximum_numf32x@GLIBC_2.35 2.35
+ fmaximum_numf64@GLIBC_2.35 2.35
+ fmaximum_numf64x@GLIBC_2.35 2.35
+ fmaximum_numf@GLIBC_2.35 2.35
+ fmaximum_numl@GLIBC_2.35 2.35
+ fmaximumf128@GLIBC_2.35 2.35
+ fmaximumf32@GLIBC_2.35 2.35
+ fmaximumf32x@GLIBC_2.35 2.35
+ fmaximumf64@GLIBC_2.35 2.35
+ fmaximumf64x@GLIBC_2.35 2.35
+ fmaximumf@GLIBC_2.35 2.35
+ fmaximuml@GLIBC_2.35 2.35
+ fmaxl@GLIBC_2.1 2.1
+ fmaxmag@GLIBC_2.25 2.25
+ fmaxmagf128@GLIBC_2.26 2.26
+ fmaxmagf32@GLIBC_2.27 2.27
+ fmaxmagf32x@GLIBC_2.27 2.27
+ fmaxmagf64@GLIBC_2.27 2.27
+ fmaxmagf64x@GLIBC_2.27 2.27
+ fmaxmagf@GLIBC_2.25 2.25
+ fmaxmagl@GLIBC_2.25 2.25
+ fmin@GLIBC_2.1 2.1
+ fminf128@GLIBC_2.26 2.26
+ fminf32@GLIBC_2.27 2.27
+ fminf32x@GLIBC_2.27 2.27
+ fminf64@GLIBC_2.27 2.27
+ fminf64x@GLIBC_2.27 2.27
+ fminf@GLIBC_2.1 2.1
+ fminimum@GLIBC_2.35 2.35
+ fminimum_mag@GLIBC_2.35 2.35
+ fminimum_mag_num@GLIBC_2.35 2.35
+ fminimum_mag_numf128@GLIBC_2.35 2.35
+ fminimum_mag_numf32@GLIBC_2.35 2.35
+ fminimum_mag_numf32x@GLIBC_2.35 2.35
+ fminimum_mag_numf64@GLIBC_2.35 2.35
+ fminimum_mag_numf64x@GLIBC_2.35 2.35
+ fminimum_mag_numf@GLIBC_2.35 2.35
+ fminimum_mag_numl@GLIBC_2.35 2.35
+ fminimum_magf128@GLIBC_2.35 2.35
+ fminimum_magf32@GLIBC_2.35 2.35
+ fminimum_magf32x@GLIBC_2.35 2.35
+ fminimum_magf64@GLIBC_2.35 2.35
+ fminimum_magf64x@GLIBC_2.35 2.35
+ fminimum_magf@GLIBC_2.35 2.35
+ fminimum_magl@GLIBC_2.35 2.35
+ fminimum_num@GLIBC_2.35 2.35
+ fminimum_numf128@GLIBC_2.35 2.35
+ fminimum_numf32@GLIBC_2.35 2.35
+ fminimum_numf32x@GLIBC_2.35 2.35
+ fminimum_numf64@GLIBC_2.35 2.35
+ fminimum_numf64x@GLIBC_2.35 2.35
+ fminimum_numf@GLIBC_2.35 2.35
+ fminimum_numl@GLIBC_2.35 2.35
+ fminimumf128@GLIBC_2.35 2.35
+ fminimumf32@GLIBC_2.35 2.35
+ fminimumf32x@GLIBC_2.35 2.35
+ fminimumf64@GLIBC_2.35 2.35
+ fminimumf64x@GLIBC_2.35 2.35
+ fminimumf@GLIBC_2.35 2.35
+ fminimuml@GLIBC_2.35 2.35
+ fminl@GLIBC_2.1 2.1
+ fminmag@GLIBC_2.25 2.25
+ fminmagf128@GLIBC_2.26 2.26
+ fminmagf32@GLIBC_2.27 2.27
+ fminmagf32x@GLIBC_2.27 2.27
+ fminmagf64@GLIBC_2.27 2.27
+ fminmagf64x@GLIBC_2.27 2.27
+ fminmagf@GLIBC_2.25 2.25
+ fminmagl@GLIBC_2.25 2.25
+ fmod@GLIBC_2.0 2.0
+ fmodf128@GLIBC_2.26 2.26
+ fmodf32@GLIBC_2.27 2.27
+ fmodf32x@GLIBC_2.27 2.27
+ fmodf64@GLIBC_2.27 2.27
+ fmodf64x@GLIBC_2.27 2.27
+ fmodf@GLIBC_2.0 2.0
+ fmodl@GLIBC_2.0 2.0
+ fmul@GLIBC_2.28 2.28
+ fmull@GLIBC_2.28 2.28
+ frexp@GLIBC_2.0 2.0
+ frexpf128@GLIBC_2.26 2.26
+ frexpf32@GLIBC_2.27 2.27
+ frexpf32x@GLIBC_2.27 2.27
+ frexpf64@GLIBC_2.27 2.27
+ frexpf64x@GLIBC_2.27 2.27
+ frexpf@GLIBC_2.0 2.0
+ frexpl@GLIBC_2.0 2.0
+ fromfp@GLIBC_2.25 2.25
+ fromfpf128@GLIBC_2.26 2.26
+ fromfpf32@GLIBC_2.27 2.27
+ fromfpf32x@GLIBC_2.27 2.27
+ fromfpf64@GLIBC_2.27 2.27
+ fromfpf64x@GLIBC_2.27 2.27
+ fromfpf@GLIBC_2.25 2.25
+ fromfpl@GLIBC_2.25 2.25
+ fromfpx@GLIBC_2.25 2.25
+ fromfpxf128@GLIBC_2.26 2.26
+ fromfpxf32@GLIBC_2.27 2.27
+ fromfpxf32x@GLIBC_2.27 2.27
+ fromfpxf64@GLIBC_2.27 2.27
+ fromfpxf64x@GLIBC_2.27 2.27
+ fromfpxf@GLIBC_2.25 2.25
+ fromfpxl@GLIBC_2.25 2.25
+ fsqrt@GLIBC_2.35 2.35
+ fsqrtl@GLIBC_2.35 2.35
+ fsub@GLIBC_2.28 2.28
+ fsubl@GLIBC_2.28 2.28
+ gamma@GLIBC_2.0 2.0
+ gammaf@GLIBC_2.0 2.0
+ gammal@GLIBC_2.0 2.0
+ getpayload@GLIBC_2.25 2.25
+ getpayloadf128@GLIBC_2.26 2.26
+ getpayloadf32@GLIBC_2.27 2.27
+ getpayloadf32x@GLIBC_2.27 2.27
+ getpayloadf64@GLIBC_2.27 2.27
+ getpayloadf64x@GLIBC_2.27 2.27
+ getpayloadf@GLIBC_2.25 2.25
+ getpayloadl@GLIBC_2.25 2.25
+ hypot@GLIBC_2.0 2.0
+ hypot@GLIBC_2.35 2.35
+ hypotf128@GLIBC_2.26 2.26
+ hypotf32@GLIBC_2.27 2.27
+ hypotf32x@GLIBC_2.27 2.27
+ hypotf64@GLIBC_2.27 2.27
+ hypotf64x@GLIBC_2.27 2.27
+ hypotf@GLIBC_2.0 2.0
+ hypotf@GLIBC_2.35 2.35
+ hypotl@GLIBC_2.0 2.0
+ ilogb@GLIBC_2.0 2.0
+ ilogbf128@GLIBC_2.26 2.26
+ ilogbf32@GLIBC_2.27 2.27
+ ilogbf32x@GLIBC_2.27 2.27
+ ilogbf64@GLIBC_2.27 2.27
+ ilogbf64x@GLIBC_2.27 2.27
+ ilogbf@GLIBC_2.0 2.0
+ ilogbl@GLIBC_2.0 2.0
+ j0@GLIBC_2.0 2.0
+ j0f128@GLIBC_2.26 2.26
+ j0f32@GLIBC_2.27 2.27
+ j0f32x@GLIBC_2.27 2.27
+ j0f64@GLIBC_2.27 2.27
+ j0f64x@GLIBC_2.27 2.27
+ j0f@GLIBC_2.0 2.0
+ j0l@GLIBC_2.0 2.0
+ j1@GLIBC_2.0 2.0
+ j1f128@GLIBC_2.26 2.26
+ j1f32@GLIBC_2.27 2.27
+ j1f32x@GLIBC_2.27 2.27
+ j1f64@GLIBC_2.27 2.27
+ j1f64x@GLIBC_2.27 2.27
+ j1f@GLIBC_2.0 2.0
+ j1l@GLIBC_2.0 2.0
+ jn@GLIBC_2.0 2.0
+ jnf128@GLIBC_2.26 2.26
+ jnf32@GLIBC_2.27 2.27
+ jnf32x@GLIBC_2.27 2.27
+ jnf64@GLIBC_2.27 2.27
+ jnf64x@GLIBC_2.27 2.27
+ jnf@GLIBC_2.0 2.0
+ jnl@GLIBC_2.0 2.0
+ ldexp@GLIBC_2.0 2.0
+ ldexpf128@GLIBC_2.26 2.26
+ ldexpf32@GLIBC_2.27 2.27
+ ldexpf32x@GLIBC_2.27 2.27
+ ldexpf64@GLIBC_2.27 2.27
+ ldexpf64x@GLIBC_2.27 2.27
+ ldexpf@GLIBC_2.0 2.0
+ ldexpl@GLIBC_2.0 2.0
+ lgamma@GLIBC_2.0 2.0
+ lgamma@GLIBC_2.23 2.23
+ lgamma_r@GLIBC_2.0 2.0
+ lgammaf128@GLIBC_2.26 2.26
+ lgammaf128_r@GLIBC_2.26 2.26
+ lgammaf32@GLIBC_2.27 2.27
+ lgammaf32_r@GLIBC_2.27 2.27
+ lgammaf32x@GLIBC_2.27 2.27
+ lgammaf32x_r@GLIBC_2.27 2.27
+ lgammaf64@GLIBC_2.27 2.27
+ lgammaf64_r@GLIBC_2.27 2.27
+ lgammaf64x@GLIBC_2.27 2.27
+ lgammaf64x_r@GLIBC_2.27 2.27
+ lgammaf@GLIBC_2.0 2.0
+ lgammaf@GLIBC_2.23 2.23
+ lgammaf_r@GLIBC_2.0 2.0
+ lgammal@GLIBC_2.0 2.0
+ lgammal@GLIBC_2.23 2.23
+ lgammal_r@GLIBC_2.0 2.0
+ llogb@GLIBC_2.25 2.25
+ llogbf128@GLIBC_2.26 2.26
+ llogbf32@GLIBC_2.27 2.27
+ llogbf32x@GLIBC_2.27 2.27
+ llogbf64@GLIBC_2.27 2.27
+ llogbf64x@GLIBC_2.27 2.27
+ llogbf@GLIBC_2.25 2.25
+ llogbl@GLIBC_2.25 2.25
+ llrint@GLIBC_2.1 2.1
+ llrintf128@GLIBC_2.26 2.26
+ llrintf32@GLIBC_2.27 2.27
+ llrintf32x@GLIBC_2.27 2.27
+ llrintf64@GLIBC_2.27 2.27
+ llrintf64x@GLIBC_2.27 2.27
+ llrintf@GLIBC_2.1 2.1
+ llrintl@GLIBC_2.1 2.1
+ llround@GLIBC_2.1 2.1
+ llroundf128@GLIBC_2.26 2.26
+ llroundf32@GLIBC_2.27 2.27
+ llroundf32x@GLIBC_2.27 2.27
+ llroundf64@GLIBC_2.27 2.27
+ llroundf64x@GLIBC_2.27 2.27
+ llroundf@GLIBC_2.1 2.1
+ llroundl@GLIBC_2.1 2.1
+ log10@GLIBC_2.0 2.0
+ log10f128@GLIBC_2.26 2.26
+ log10f32@GLIBC_2.27 2.27
+ log10f32x@GLIBC_2.27 2.27
+ log10f64@GLIBC_2.27 2.27
+ log10f64x@GLIBC_2.27 2.27
+ log10f@GLIBC_2.0 2.0
+ log10l@GLIBC_2.0 2.0
+ log10p1@GLIBC_2.40 2.40
+ log10p1f128@GLIBC_2.40 2.40
+ log10p1f32@GLIBC_2.40 2.40
+ log10p1f32x@GLIBC_2.40 2.40
+ log10p1f64@GLIBC_2.40 2.40
+ log10p1f64x@GLIBC_2.40 2.40
+ log10p1f@GLIBC_2.40 2.40
+ log10p1l@GLIBC_2.40 2.40
+ log1p@GLIBC_2.0 2.0
+ log1pf128@GLIBC_2.26 2.26
+ log1pf32@GLIBC_2.27 2.27
+ log1pf32x@GLIBC_2.27 2.27
+ log1pf64@GLIBC_2.27 2.27
+ log1pf64x@GLIBC_2.27 2.27
+ log1pf@GLIBC_2.0 2.0
+ log1pl@GLIBC_2.0 2.0
+ log2@GLIBC_2.1 2.1
+ log2@GLIBC_2.29 2.29
+ log2f128@GLIBC_2.26 2.26
+ log2f32@GLIBC_2.27 2.27
+ log2f32x@GLIBC_2.27 2.27
+ log2f64@GLIBC_2.27 2.27
+ log2f64x@GLIBC_2.27 2.27
+ log2f@GLIBC_2.1 2.1
+ log2f@GLIBC_2.27 2.27
+ log2l@GLIBC_2.1 2.1
+ log2p1@GLIBC_2.40 2.40
+ log2p1f128@GLIBC_2.40 2.40
+ log2p1f32@GLIBC_2.40 2.40
+ log2p1f32x@GLIBC_2.40 2.40
+ log2p1f64@GLIBC_2.40 2.40
+ log2p1f64x@GLIBC_2.40 2.40
+ log2p1f@GLIBC_2.40 2.40
+ log2p1l@GLIBC_2.40 2.40
+ log@GLIBC_2.0 2.0
+ log@GLIBC_2.29 2.29
+ logb@GLIBC_2.0 2.0
+ logbf128@GLIBC_2.26 2.26
+ logbf32@GLIBC_2.27 2.27
+ logbf32x@GLIBC_2.27 2.27
+ logbf64@GLIBC_2.27 2.27
+ logbf64x@GLIBC_2.27 2.27
+ logbf@GLIBC_2.0 2.0
+ logbl@GLIBC_2.0 2.0
+ logf128@GLIBC_2.26 2.26
+ logf32@GLIBC_2.27 2.27
+ logf32x@GLIBC_2.27 2.27
+ logf64@GLIBC_2.27 2.27
+ logf64x@GLIBC_2.27 2.27
+ logf@GLIBC_2.0 2.0
+ logf@GLIBC_2.27 2.27
+ logl@GLIBC_2.0 2.0
+ logp1@GLIBC_2.40 2.40
+ logp1f128@GLIBC_2.40 2.40
+ logp1f32@GLIBC_2.40 2.40
+ logp1f32x@GLIBC_2.40 2.40
+ logp1f64@GLIBC_2.40 2.40
+ logp1f64x@GLIBC_2.40 2.40
+ logp1f@GLIBC_2.40 2.40
+ logp1l@GLIBC_2.40 2.40
+ lrint@GLIBC_2.1 2.1
+ lrintf128@GLIBC_2.26 2.26
+ lrintf32@GLIBC_2.27 2.27
+ lrintf32x@GLIBC_2.27 2.27
+ lrintf64@GLIBC_2.27 2.27
+ lrintf64x@GLIBC_2.27 2.27
+ lrintf@GLIBC_2.1 2.1
+ lrintl@GLIBC_2.1 2.1
+ lround@GLIBC_2.1 2.1
+ lroundf128@GLIBC_2.26 2.26
+ lroundf32@GLIBC_2.27 2.27
+ lroundf32x@GLIBC_2.27 2.27
+ lroundf64@GLIBC_2.27 2.27
+ lroundf64x@GLIBC_2.27 2.27
+ lroundf@GLIBC_2.1 2.1
+ lroundl@GLIBC_2.1 2.1
+ matherr@GLIBC_2.0 2.0
+ modf@GLIBC_2.0 2.0
+ modff128@GLIBC_2.26 2.26
+ modff32@GLIBC_2.27 2.27
+ modff32x@GLIBC_2.27 2.27
+ modff64@GLIBC_2.27 2.27
+ modff64x@GLIBC_2.27 2.27
+ modff@GLIBC_2.0 2.0
+ modfl@GLIBC_2.0 2.0
+ nan@GLIBC_2.1 2.1
+ nanf128@GLIBC_2.26 2.26
+ nanf32@GLIBC_2.27 2.27
+ nanf32x@GLIBC_2.27 2.27
+ nanf64@GLIBC_2.27 2.27
+ nanf64x@GLIBC_2.27 2.27
+ nanf@GLIBC_2.1 2.1
+ nanl@GLIBC_2.1 2.1
+ nearbyint@GLIBC_2.1 2.1
+ nearbyintf128@GLIBC_2.26 2.26
+ nearbyintf32@GLIBC_2.27 2.27
+ nearbyintf32x@GLIBC_2.27 2.27
+ nearbyintf64@GLIBC_2.27 2.27
+ nearbyintf64x@GLIBC_2.27 2.27
+ nearbyintf@GLIBC_2.1 2.1
+ nearbyintl@GLIBC_2.1 2.1
+ nextafter@GLIBC_2.0 2.0
+ nextafterf128@GLIBC_2.26 2.26
+ nextafterf32@GLIBC_2.27 2.27
+ nextafterf32x@GLIBC_2.27 2.27
+ nextafterf64@GLIBC_2.27 2.27
+ nextafterf64x@GLIBC_2.27 2.27
+ nextafterf@GLIBC_2.0 2.0
+ nextafterl@GLIBC_2.0 2.0
+ nextdown@GLIBC_2.24 2.24
+ nextdownf128@GLIBC_2.26 2.26
+ nextdownf32@GLIBC_2.27 2.27
+ nextdownf32x@GLIBC_2.27 2.27
+ nextdownf64@GLIBC_2.27 2.27
+ nextdownf64x@GLIBC_2.27 2.27
+ nextdownf@GLIBC_2.24 2.24
+ nextdownl@GLIBC_2.24 2.24
+ nexttoward@GLIBC_2.1 2.1
+ nexttowardf@GLIBC_2.1 2.1
+ nexttowardl@GLIBC_2.1 2.1
+ nextup@GLIBC_2.24 2.24
+ nextupf128@GLIBC_2.26 2.26
+ nextupf32@GLIBC_2.27 2.27
+ nextupf32x@GLIBC_2.27 2.27
+ nextupf64@GLIBC_2.27 2.27
+ nextupf64x@GLIBC_2.27 2.27
+ nextupf@GLIBC_2.24 2.24
+ nextupl@GLIBC_2.24 2.24
+ pow10@GLIBC_2.1 2.1
+ pow10f@GLIBC_2.1 2.1
+ pow10l@GLIBC_2.1 2.1
+ pow@GLIBC_2.0 2.0
+ pow@GLIBC_2.29 2.29
+ powf128@GLIBC_2.26 2.26
+ powf32@GLIBC_2.27 2.27
+ powf32x@GLIBC_2.27 2.27
+ powf64@GLIBC_2.27 2.27
+ powf64x@GLIBC_2.27 2.27
+ powf@GLIBC_2.0 2.0
+ powf@GLIBC_2.27 2.27
+ powl@GLIBC_2.0 2.0
+ remainder@GLIBC_2.0 2.0
+ remainderf128@GLIBC_2.26 2.26
+ remainderf32@GLIBC_2.27 2.27
+ remainderf32x@GLIBC_2.27 2.27
+ remainderf64@GLIBC_2.27 2.27
+ remainderf64x@GLIBC_2.27 2.27
+ remainderf@GLIBC_2.0 2.0
+ remainderl@GLIBC_2.0 2.0
+ remquo@GLIBC_2.1 2.1
+ remquof128@GLIBC_2.26 2.26
+ remquof32@GLIBC_2.27 2.27
+ remquof32x@GLIBC_2.27 2.27
+ remquof64@GLIBC_2.27 2.27
+ remquof64x@GLIBC_2.27 2.27
+ remquof@GLIBC_2.1 2.1
+ remquol@GLIBC_2.1 2.1
+ rint@GLIBC_2.0 2.0
+ rintf128@GLIBC_2.26 2.26
+ rintf32@GLIBC_2.27 2.27
+ rintf32x@GLIBC_2.27 2.27
+ rintf64@GLIBC_2.27 2.27
+ rintf64x@GLIBC_2.27 2.27
+ rintf@GLIBC_2.0 2.0
+ rintl@GLIBC_2.0 2.0
+ round@GLIBC_2.1 2.1
+ roundeven@GLIBC_2.25 2.25
+ roundevenf128@GLIBC_2.26 2.26
+ roundevenf32@GLIBC_2.27 2.27
+ roundevenf32x@GLIBC_2.27 2.27
+ roundevenf64@GLIBC_2.27 2.27
+ roundevenf64x@GLIBC_2.27 2.27
+ roundevenf@GLIBC_2.25 2.25
+ roundevenl@GLIBC_2.25 2.25
+ roundf128@GLIBC_2.26 2.26
+ roundf32@GLIBC_2.27 2.27
+ roundf32x@GLIBC_2.27 2.27
+ roundf64@GLIBC_2.27 2.27
+ roundf64x@GLIBC_2.27 2.27
+ roundf@GLIBC_2.1 2.1
+ roundl@GLIBC_2.1 2.1
+ scalb@GLIBC_2.0 2.0
+ scalbf@GLIBC_2.0 2.0
+ scalbl@GLIBC_2.0 2.0
+ scalbln@GLIBC_2.1 2.1
+ scalblnf128@GLIBC_2.26 2.26
+ scalblnf32@GLIBC_2.27 2.27
+ scalblnf32x@GLIBC_2.27 2.27
+ scalblnf64@GLIBC_2.27 2.27
+ scalblnf64x@GLIBC_2.27 2.27
+ scalblnf@GLIBC_2.1 2.1
+ scalblnl@GLIBC_2.1 2.1
+ scalbn@GLIBC_2.0 2.0
+ scalbnf128@GLIBC_2.26 2.26
+ scalbnf32@GLIBC_2.27 2.27
+ scalbnf32x@GLIBC_2.27 2.27
+ scalbnf64@GLIBC_2.27 2.27
+ scalbnf64x@GLIBC_2.27 2.27
+ scalbnf@GLIBC_2.0 2.0
+ scalbnl@GLIBC_2.0 2.0
+ setpayload@GLIBC_2.25 2.25
+ setpayloadf128@GLIBC_2.26 2.26
+ setpayloadf32@GLIBC_2.27 2.27
+ setpayloadf32x@GLIBC_2.27 2.27
+ setpayloadf64@GLIBC_2.27 2.27
+ setpayloadf64x@GLIBC_2.27 2.27
+ setpayloadf@GLIBC_2.25 2.25
+ setpayloadl@GLIBC_2.25 2.25
+ setpayloadsig@GLIBC_2.25 2.25
+ setpayloadsigf128@GLIBC_2.26 2.26
+ setpayloadsigf32@GLIBC_2.27 2.27
+ setpayloadsigf32x@GLIBC_2.27 2.27
+ setpayloadsigf64@GLIBC_2.27 2.27
+ setpayloadsigf64x@GLIBC_2.27 2.27
+ setpayloadsigf@GLIBC_2.25 2.25
+ setpayloadsigl@GLIBC_2.25 2.25
+ signgam@GLIBC_2.0 2.0
+ significand@GLIBC_2.0 2.0
+ significandf@GLIBC_2.0 2.0
+ significandl@GLIBC_2.0 2.0
+ sin@GLIBC_2.0 2.0
+ sincos@GLIBC_2.1 2.1
+ sincosf128@GLIBC_2.26 2.26
+ sincosf32@GLIBC_2.27 2.27
+ sincosf32x@GLIBC_2.27 2.27
+ sincosf64@GLIBC_2.27 2.27
+ sincosf64x@GLIBC_2.27 2.27
+ sincosf@GLIBC_2.1 2.1
+ sincosl@GLIBC_2.1 2.1
+ sinf128@GLIBC_2.26 2.26
+ sinf32@GLIBC_2.27 2.27
+ sinf32x@GLIBC_2.27 2.27
+ sinf64@GLIBC_2.27 2.27
+ sinf64x@GLIBC_2.27 2.27
+ sinf@GLIBC_2.0 2.0
+ sinh@GLIBC_2.0 2.0
+ sinhf128@GLIBC_2.26 2.26
+ sinhf32@GLIBC_2.27 2.27
+ sinhf32x@GLIBC_2.27 2.27
+ sinhf64@GLIBC_2.27 2.27
+ sinhf64x@GLIBC_2.27 2.27
+ sinhf@GLIBC_2.0 2.0
+ sinhl@GLIBC_2.0 2.0
+ sinl@GLIBC_2.0 2.0
+ sinpi@GLIBC_2.41 2.41
+ sinpif128@GLIBC_2.41 2.41
+ sinpif32@GLIBC_2.41 2.41
+ sinpif32x@GLIBC_2.41 2.41
+ sinpif64@GLIBC_2.41 2.41
+ sinpif64x@GLIBC_2.41 2.41
+ sinpif@GLIBC_2.41 2.41
+ sinpil@GLIBC_2.41 2.41
+ sqrt@GLIBC_2.0 2.0
+ sqrtf128@GLIBC_2.26 2.26
+ sqrtf32@GLIBC_2.27 2.27
+ sqrtf32x@GLIBC_2.27 2.27
+ sqrtf64@GLIBC_2.27 2.27
+ sqrtf64x@GLIBC_2.27 2.27
+ sqrtf@GLIBC_2.0 2.0
+ sqrtl@GLIBC_2.0 2.0
+ tan@GLIBC_2.0 2.0
+ tanf128@GLIBC_2.26 2.26
+ tanf32@GLIBC_2.27 2.27
+ tanf32x@GLIBC_2.27 2.27
+ tanf64@GLIBC_2.27 2.27
+ tanf64x@GLIBC_2.27 2.27
+ tanf@GLIBC_2.0 2.0
+ tanh@GLIBC_2.0 2.0
+ tanhf128@GLIBC_2.26 2.26
+ tanhf32@GLIBC_2.27 2.27
+ tanhf32x@GLIBC_2.27 2.27
+ tanhf64@GLIBC_2.27 2.27
+ tanhf64x@GLIBC_2.27 2.27
+ tanhf@GLIBC_2.0 2.0
+ tanhl@GLIBC_2.0 2.0
+ tanl@GLIBC_2.0 2.0
+ tanpi@GLIBC_2.41 2.41
+ tanpif128@GLIBC_2.41 2.41
+ tanpif32@GLIBC_2.41 2.41
+ tanpif32x@GLIBC_2.41 2.41
+ tanpif64@GLIBC_2.41 2.41
+ tanpif64x@GLIBC_2.41 2.41
+ tanpif@GLIBC_2.41 2.41
+ tanpil@GLIBC_2.41 2.41
+ tgamma@GLIBC_2.1 2.1
+ tgammaf128@GLIBC_2.26 2.26
+ tgammaf32@GLIBC_2.27 2.27
+ tgammaf32x@GLIBC_2.27 2.27
+ tgammaf64@GLIBC_2.27 2.27
+ tgammaf64x@GLIBC_2.27 2.27
+ tgammaf@GLIBC_2.1 2.1
+ tgammal@GLIBC_2.1 2.1
+ totalorder@GLIBC_2.25 2.25
+ totalorder@GLIBC_2.31 2.31
+ totalorderf128@GLIBC_2.26 2.26
+ totalorderf128@GLIBC_2.31 2.31
+ totalorderf32@GLIBC_2.27 2.27
+ totalorderf32@GLIBC_2.31 2.31
+ totalorderf32x@GLIBC_2.27 2.27
+ totalorderf32x@GLIBC_2.31 2.31
+ totalorderf64@GLIBC_2.27 2.27
+ totalorderf64@GLIBC_2.31 2.31
+ totalorderf64x@GLIBC_2.27 2.27
+ totalorderf64x@GLIBC_2.31 2.31
+ totalorderf@GLIBC_2.25 2.25
+ totalorderf@GLIBC_2.31 2.31
+ totalorderl@GLIBC_2.25 2.25
+ totalorderl@GLIBC_2.31 2.31
+ totalordermag@GLIBC_2.25 2.25
+ totalordermag@GLIBC_2.31 2.31
+ totalordermagf128@GLIBC_2.26 2.26
+ totalordermagf128@GLIBC_2.31 2.31
+ totalordermagf32@GLIBC_2.27 2.27
+ totalordermagf32@GLIBC_2.31 2.31
+ totalordermagf32x@GLIBC_2.27 2.27
+ totalordermagf32x@GLIBC_2.31 2.31
+ totalordermagf64@GLIBC_2.27 2.27
+ totalordermagf64@GLIBC_2.31 2.31
+ totalordermagf64x@GLIBC_2.27 2.27
+ totalordermagf64x@GLIBC_2.31 2.31
+ totalordermagf@GLIBC_2.25 2.25
+ totalordermagf@GLIBC_2.31 2.31
+ totalordermagl@GLIBC_2.25 2.25
+ totalordermagl@GLIBC_2.31 2.31
+ trunc@GLIBC_2.1 2.1
+ truncf128@GLIBC_2.26 2.26
+ truncf32@GLIBC_2.27 2.27
+ truncf32x@GLIBC_2.27 2.27
+ truncf64@GLIBC_2.27 2.27
+ truncf64x@GLIBC_2.27 2.27
+ truncf@GLIBC_2.1 2.1
+ truncl@GLIBC_2.1 2.1
+ ufromfp@GLIBC_2.25 2.25
+ ufromfpf128@GLIBC_2.26 2.26
+ ufromfpf32@GLIBC_2.27 2.27
+ ufromfpf32x@GLIBC_2.27 2.27
+ ufromfpf64@GLIBC_2.27 2.27
+ ufromfpf64x@GLIBC_2.27 2.27
+ ufromfpf@GLIBC_2.25 2.25
+ ufromfpl@GLIBC_2.25 2.25
+ ufromfpx@GLIBC_2.25 2.25
+ ufromfpxf128@GLIBC_2.26 2.26
+ ufromfpxf32@GLIBC_2.27 2.27
+ ufromfpxf32x@GLIBC_2.27 2.27
+ ufromfpxf64@GLIBC_2.27 2.27
+ ufromfpxf64x@GLIBC_2.27 2.27
+ ufromfpxf@GLIBC_2.25 2.25
+ ufromfpxl@GLIBC_2.25 2.25
+ y0@GLIBC_2.0 2.0
+ y0f128@GLIBC_2.26 2.26
+ y0f32@GLIBC_2.27 2.27
+ y0f32x@GLIBC_2.27 2.27
+ y0f64@GLIBC_2.27 2.27
+ y0f64x@GLIBC_2.27 2.27
+ y0f@GLIBC_2.0 2.0
+ y0l@GLIBC_2.0 2.0
+ y1@GLIBC_2.0 2.0
+ y1f128@GLIBC_2.26 2.26
+ y1f32@GLIBC_2.27 2.27
+ y1f32x@GLIBC_2.27 2.27
+ y1f64@GLIBC_2.27 2.27
+ y1f64x@GLIBC_2.27 2.27
+ y1f@GLIBC_2.0 2.0
+ y1l@GLIBC_2.0 2.0
+ yn@GLIBC_2.0 2.0
+ ynf128@GLIBC_2.26 2.26
+ ynf32@GLIBC_2.27 2.27
+ ynf32x@GLIBC_2.27 2.27
+ ynf64@GLIBC_2.27 2.27
+ ynf64x@GLIBC_2.27 2.27
+ ynf@GLIBC_2.0 2.0
+ ynl@GLIBC_2.0 2.0
+libmemusage.so libc6 #MINVER#
+| libc6 (>> 2.41), libc6 (<< 2.42)
+ calloc@Base 2.3.6
+ free@Base 2.3.6
+ malloc@Base 2.3.6
+ mmap64@Base 2.3.6
+ mmap@Base 2.3.6
+ mremap@Base 2.3.6
+ munmap@Base 2.3.6
+ realloc@Base 2.3.6
+libnsl.so.1 libc6 #MINVER#
+| libc6 (>> 2.41), libc6 (<< 2.42)
+ GLIBC_2.0@GLIBC_2.0 2.0
+ GLIBC_2.1@GLIBC_2.1 2.1
+ GLIBC_2.2@GLIBC_2.2 2.2
+ GLIBC_PRIVATE@GLIBC_PRIVATE 0 1
+ __create_ib_request@GLIBC_PRIVATE 0 1
+ __do_niscall3@GLIBC_PRIVATE 0 1
+ __follow_path@GLIBC_PRIVATE 0 1
+ __free_fdresult@GLIBC_2.1 2.1
+ __nis_default_access@GLIBC_2.1 2.1
+ __nis_default_group@GLIBC_2.1 2.1
+ __nis_default_owner@GLIBC_2.1 2.1
+ __nis_default_ttl@GLIBC_2.1 2.1
+ __nis_finddirectory@GLIBC_2.1 2.1
+ __nis_hash@GLIBC_2.1 2.1
+ __nisbind_connect@GLIBC_2.1 2.1
+ __nisbind_create@GLIBC_2.1 2.1
+ __nisbind_destroy@GLIBC_2.1 2.1
+ __nisbind_next@GLIBC_2.1 2.1
+ __prepare_niscall@GLIBC_PRIVATE 0 1
+ __yp_check@GLIBC_2.0 2.0
+ _xdr_ib_request@GLIBC_PRIVATE 0 1
+ _xdr_nis_result@GLIBC_PRIVATE 0 1
+ nis_add@GLIBC_2.1 2.1
+ nis_add_entry@GLIBC_2.1 2.1
+ nis_addmember@GLIBC_2.1 2.1
+ nis_checkpoint@GLIBC_2.1 2.1
+ nis_clone_directory@GLIBC_2.1 2.1
+ nis_clone_object@GLIBC_2.1 2.1
+ nis_clone_result@GLIBC_2.1 2.1
+ nis_creategroup@GLIBC_2.1 2.1
+ nis_destroy_object@GLIBC_2.1 2.1
+ nis_destroygroup@GLIBC_2.1 2.1
+ nis_dir_cmp@GLIBC_2.1 2.1
+ nis_domain_of@GLIBC_2.1 2.1
+ nis_domain_of_r@GLIBC_2.1 2.1
+ nis_first_entry@GLIBC_2.1 2.1
+ nis_free_directory@GLIBC_2.1 2.1
+ nis_free_object@GLIBC_2.1 2.1
+ nis_free_request@GLIBC_2.1 2.1
+ nis_freenames@GLIBC_2.1 2.1
+ nis_freeresult@GLIBC_2.1 2.1
+ nis_freeservlist@GLIBC_2.1 2.1
+ nis_freetags@GLIBC_2.1 2.1
+ nis_getnames@GLIBC_2.1 2.1
+ nis_getservlist@GLIBC_2.1 2.1
+ nis_ismember@GLIBC_2.1 2.1
+ nis_leaf_of@GLIBC_2.1 2.1
+ nis_leaf_of_r@GLIBC_2.1 2.1
+ nis_lerror@GLIBC_2.1 2.1
+ nis_list@GLIBC_2.1 2.1
+ nis_local_directory@GLIBC_2.1 2.1
+ nis_local_group@GLIBC_2.1 2.1
+ nis_local_host@GLIBC_2.1 2.1
+ nis_local_principal@GLIBC_2.1 2.1
+ nis_lookup@GLIBC_2.1 2.1
+ nis_mkdir@GLIBC_2.1 2.1
+ nis_modify@GLIBC_2.1 2.1
+ nis_modify_entry@GLIBC_2.1 2.1
+ nis_name_of@GLIBC_2.1 2.1
+ nis_name_of_r@GLIBC_2.1 2.1
+ nis_next_entry@GLIBC_2.1 2.1
+ nis_perror@GLIBC_2.1 2.1
+ nis_ping@GLIBC_2.1 2.1
+ nis_print_directory@GLIBC_2.1 2.1
+ nis_print_entry@GLIBC_2.1 2.1
+ nis_print_group@GLIBC_2.1 2.1
+ nis_print_group_entry@GLIBC_2.1 2.1
+ nis_print_link@GLIBC_2.1 2.1
+ nis_print_object@GLIBC_2.1 2.1
+ nis_print_result@GLIBC_2.1 2.1
+ nis_print_rights@GLIBC_2.1 2.1
+ nis_print_table@GLIBC_2.1 2.1
+ nis_read_obj@GLIBC_2.1 2.1
+ nis_remove@GLIBC_2.1 2.1
+ nis_remove_entry@GLIBC_2.1 2.1
+ nis_removemember@GLIBC_2.1 2.1
+ nis_rmdir@GLIBC_2.1 2.1
+ nis_servstate@GLIBC_2.1 2.1
+ nis_sperrno@GLIBC_2.1 2.1
+ nis_sperror@GLIBC_2.1 2.1
+ nis_sperror_r@GLIBC_2.1 2.1
+ nis_stats@GLIBC_2.1 2.1
+ nis_verifygroup@GLIBC_2.1 2.1
+ nis_write_obj@GLIBC_2.1 2.1
+ readColdStartFile@GLIBC_2.1 2.1
+ writeColdStartFile@GLIBC_2.1 2.1
+ xdr_cback_data@GLIBC_2.1 2.1
+ xdr_domainname@GLIBC_2.0 2.0
+ xdr_keydat@GLIBC_2.0 2.0
+ xdr_mapname@GLIBC_2.0 2.0
+ xdr_obj_p@GLIBC_2.1 2.1
+ xdr_peername@GLIBC_2.0 2.0
+ xdr_valdat@GLIBC_2.0 2.0
+ xdr_yp_buf@GLIBC_2.0 2.0
+ xdr_ypall@GLIBC_2.2 2.2
+ xdr_ypbind_binding@GLIBC_2.0 2.0
+ xdr_ypbind_resp@GLIBC_2.0 2.0
+ xdr_ypbind_resptype@GLIBC_2.0 2.0
+ xdr_ypbind_setdom@GLIBC_2.0 2.0
+ xdr_ypdelete_args@GLIBC_2.0 2.0
+ xdr_ypmap_parms@GLIBC_2.0 2.0
+ xdr_ypmaplist@GLIBC_2.0 2.0
+ xdr_yppush_status@GLIBC_2.0 2.0
+ xdr_yppushresp_xfr@GLIBC_2.0 2.0
+ xdr_ypreq_key@GLIBC_2.0 2.0
+ xdr_ypreq_nokey@GLIBC_2.0 2.0
+ xdr_ypreq_xfr@GLIBC_2.0 2.0
+ xdr_ypresp_all@GLIBC_2.0 2.0
+ xdr_ypresp_key_val@GLIBC_2.0 2.0
+ xdr_ypresp_maplist@GLIBC_2.0 2.0
+ xdr_ypresp_master@GLIBC_2.0 2.0
+ xdr_ypresp_order@GLIBC_2.0 2.0
+ xdr_ypresp_val@GLIBC_2.0 2.0
+ xdr_ypresp_xfr@GLIBC_2.0 2.0
+ xdr_ypstat@GLIBC_2.0 2.0
+ xdr_ypupdate_args@GLIBC_2.0 2.0
+ xdr_ypxfrstat@GLIBC_2.0 2.0
+ yp_all@GLIBC_2.0 2.0
+ yp_bind@GLIBC_2.0 2.0
+ yp_first@GLIBC_2.0 2.0
+ yp_get_default_domain@GLIBC_2.0 2.0
+ yp_maplist@GLIBC_2.0 2.0
+ yp_master@GLIBC_2.0 2.0
+ yp_match@GLIBC_2.0 2.0
+ yp_next@GLIBC_2.0 2.0
+ yp_order@GLIBC_2.0 2.0
+ yp_unbind@GLIBC_2.0 2.0
+ yp_update@GLIBC_2.0 2.0
+ ypbinderr_string@GLIBC_2.0 2.0
+ yperr_string@GLIBC_2.0 2.0
+ ypprot_err@GLIBC_2.0 2.0
+libnss_compat.so.2 libc6 #MINVER#
+| libc6 (>> 2.41), libc6 (<< 2.42)
+ GLIBC_PRIVATE@GLIBC_PRIVATE 0 1
+ _nss_compat_endgrent@GLIBC_PRIVATE 0 1
+ _nss_compat_endpwent@GLIBC_PRIVATE 0 1
+ _nss_compat_endspent@GLIBC_PRIVATE 0 1
+ _nss_compat_getgrent_r@GLIBC_PRIVATE 0 1
+ _nss_compat_getgrgid_r@GLIBC_PRIVATE 0 1
+ _nss_compat_getgrnam_r@GLIBC_PRIVATE 0 1
+ _nss_compat_getpwent_r@GLIBC_PRIVATE 0 1
+ _nss_compat_getpwnam_r@GLIBC_PRIVATE 0 1
+ _nss_compat_getpwuid_r@GLIBC_PRIVATE 0 1
+ _nss_compat_getspent_r@GLIBC_PRIVATE 0 1
+ _nss_compat_getspnam_r@GLIBC_PRIVATE 0 1
+ _nss_compat_initgroups_dyn@GLIBC_PRIVATE 0 1
+ _nss_compat_setgrent@GLIBC_PRIVATE 0 1
+ _nss_compat_setpwent@GLIBC_PRIVATE 0 1
+ _nss_compat_setspent@GLIBC_PRIVATE 0 1
+libnss_dns.so.2 libc6 #MINVER#
+| libc6 (>> 2.41), libc6 (<< 2.42)
+ GLIBC_PRIVATE@GLIBC_PRIVATE 0 1
+libnss_files.so.2 libc6 #MINVER#
+| libc6 (>> 2.41), libc6 (<< 2.42)
+ GLIBC_PRIVATE@GLIBC_PRIVATE 0 1
+libnss_hesiod.so.2 libc6 #MINVER#
+| libc6 (>> 2.41), libc6 (<< 2.42)
+ GLIBC_PRIVATE@GLIBC_PRIVATE 0 1
+ _nss_hesiod_endgrent@GLIBC_PRIVATE 0 1
+ _nss_hesiod_endprotoent@GLIBC_PRIVATE 0 1
+ _nss_hesiod_endpwent@GLIBC_PRIVATE 0 1
+ _nss_hesiod_endservent@GLIBC_PRIVATE 0 1
+ _nss_hesiod_getgrgid_r@GLIBC_PRIVATE 0 1
+ _nss_hesiod_getgrnam_r@GLIBC_PRIVATE 0 1
+ _nss_hesiod_getprotobyname_r@GLIBC_PRIVATE 0 1
+ _nss_hesiod_getprotobynumber_r@GLIBC_PRIVATE 0 1
+ _nss_hesiod_getpwnam_r@GLIBC_PRIVATE 0 1
+ _nss_hesiod_getpwuid_r@GLIBC_PRIVATE 0 1
+ _nss_hesiod_getservbyname_r@GLIBC_PRIVATE 0 1
+ _nss_hesiod_getservbyport_r@GLIBC_PRIVATE 0 1
+ _nss_hesiod_initgroups_dyn@GLIBC_PRIVATE 0 1
+ _nss_hesiod_setgrent@GLIBC_PRIVATE 0 1
+ _nss_hesiod_setprotoent@GLIBC_PRIVATE 0 1
+ _nss_hesiod_setpwent@GLIBC_PRIVATE 0 1
+ _nss_hesiod_setservent@GLIBC_PRIVATE 0 1
+libpcprofile.so libc6 #MINVER#
+| libc6 (>> 2.41), libc6 (<< 2.42)
+ __cyg_profile_func_enter@Base 2.3.6
+ __cyg_profile_func_exit@Base 2.3.6
+libpthread.so.0 libc6 #MINVER#
+| libc6 (>> 2.41), libc6 (<< 2.42)
+ GLIBC_2.0@GLIBC_2.0 2.0
+ GLIBC_2.1.1@GLIBC_2.1.1 2.1.1
+ GLIBC_2.1.2@GLIBC_2.1.2 2.1.2
+ GLIBC_2.11@GLIBC_2.11 2.11
+ GLIBC_2.12@GLIBC_2.12 2.12
+ GLIBC_2.18@GLIBC_2.18 2.18
+ GLIBC_2.1@GLIBC_2.1 2.1
+ GLIBC_2.2.3@GLIBC_2.2.3 2.2.3
+ GLIBC_2.2.6@GLIBC_2.2.6 2.2.6
+ GLIBC_2.28@GLIBC_2.28 2.28
+ GLIBC_2.2@GLIBC_2.2 2.2
+ GLIBC_2.3.2@GLIBC_2.3.2 2.3.2
+ GLIBC_2.3.3@GLIBC_2.3.3 2.3.3
+ GLIBC_2.3.4@GLIBC_2.3.4 2.3.4
+ GLIBC_2.30@GLIBC_2.30 2.30
+ GLIBC_2.31@GLIBC_2.31 2.31
+ GLIBC_2.4@GLIBC_2.4 2.4
+ __libpthread_version_placeholder@GLIBC_2.0 2.0
+ __libpthread_version_placeholder@GLIBC_2.1 2.1
+ __libpthread_version_placeholder@GLIBC_2.1.1 2.1.1
+ __libpthread_version_placeholder@GLIBC_2.1.2 2.1.2
+ __libpthread_version_placeholder@GLIBC_2.11 2.11
+ __libpthread_version_placeholder@GLIBC_2.12 2.12
+ __libpthread_version_placeholder@GLIBC_2.18 2.18
+ __libpthread_version_placeholder@GLIBC_2.2 2.2
+ __libpthread_version_placeholder@GLIBC_2.2.3 2.2.3
+ __libpthread_version_placeholder@GLIBC_2.2.6 2.2.6
+ __libpthread_version_placeholder@GLIBC_2.28 2.28
+ __libpthread_version_placeholder@GLIBC_2.3.2 2.3.2
+ __libpthread_version_placeholder@GLIBC_2.3.3 2.3.3
+ __libpthread_version_placeholder@GLIBC_2.3.4 2.3.4
+ __libpthread_version_placeholder@GLIBC_2.30 2.30
+ __libpthread_version_placeholder@GLIBC_2.31 2.31
+ __libpthread_version_placeholder@GLIBC_2.4 2.4
+libresolv.so.2 libc6 #MINVER#
+| libc6 (>> 2.41), libc6 (<< 2.42)
+ GLIBC_2.0@GLIBC_2.0 2.0
+ GLIBC_2.2@GLIBC_2.2 2.2
+ GLIBC_2.3.2@GLIBC_2.3.2 2.3.2
+ GLIBC_2.9@GLIBC_2.9 2.9
+ GLIBC_PRIVATE@GLIBC_PRIVATE 0 1
+ __b64_ntop@GLIBC_2.0 2.0
+ __b64_pton@GLIBC_2.0 2.0
+ __dn_count_labels@GLIBC_2.0 2.0
+ __fp_nquery@GLIBC_2.0 2.0
+ __fp_query@GLIBC_2.0 2.0
+ __fp_resstat@GLIBC_2.0 2.0
+ __hostalias@GLIBC_2.0 2.0
+ __loc_aton@GLIBC_2.0 2.0
+ __loc_ntoa@GLIBC_2.0 2.0
+ __ns_get16@GLIBC_PRIVATE 0 1
+ __ns_get32@GLIBC_PRIVATE 0 1
+ __p_cdname@GLIBC_2.0 2.0
+ __p_cdnname@GLIBC_2.0 2.0
+ __p_class@GLIBC_2.0 2.0
+ __p_class_syms@GLIBC_2.0 2.0
+ __p_fqname@GLIBC_2.0 2.0
+ __p_fqnname@GLIBC_2.0 2.0
+ __p_option@GLIBC_2.0 2.0
+ __p_query@GLIBC_2.0 2.0
+ __p_rcode@GLIBC_2.3.2 2.3.2
+ __p_secstodate@GLIBC_2.0 2.0
+ __p_time@GLIBC_2.0 2.0
+ __p_type@GLIBC_2.0 2.0
+ __p_type_syms@GLIBC_2.0 2.0
+ __putlong@GLIBC_2.0 2.0
+ __putshort@GLIBC_2.0 2.0
+ __res_close@GLIBC_2.0 2.0
+ __res_hostalias@GLIBC_2.2 2.2
+ __res_isourserver@GLIBC_2.0 2.0
+ __res_nameinquery@GLIBC_2.0 2.0
+ __res_queriesmatch@GLIBC_2.0 2.0
+ __sym_ntop@GLIBC_2.0 2.0
+ __sym_ntos@GLIBC_2.0 2.0
+ __sym_ston@GLIBC_2.0 2.0
+ _gethtbyaddr@GLIBC_2.0 2.0
+ _gethtbyname2@GLIBC_2.0 2.0
+ _gethtbyname@GLIBC_2.0 2.0
+ _gethtent@GLIBC_2.0 2.0
+ _getlong@GLIBC_2.0 2.0
+ _getshort@GLIBC_2.0 2.0
+ _res_opcodes@GLIBC_2.0 2.0
+ _sethtent@GLIBC_2.0 2.0
+ inet_net_ntop@GLIBC_2.0 2.0
+ inet_net_pton@GLIBC_2.0 2.0
+ inet_neta@GLIBC_2.0 2.0
+ ns_datetosecs@GLIBC_2.9 2.9
+ ns_format_ttl@GLIBC_2.9 2.9
+ ns_get16@GLIBC_2.9 2.9
+ ns_get32@GLIBC_2.9 2.9
+ ns_initparse@GLIBC_2.9 2.9
+ ns_makecanon@GLIBC_2.9 2.9
+ ns_msg_getflag@GLIBC_2.9 2.9
+ ns_name_ntol@GLIBC_2.9 2.9
+ ns_name_rollback@GLIBC_2.9 2.9
+ ns_parse_ttl@GLIBC_2.9 2.9
+ ns_parserr@GLIBC_2.9 2.9
+ ns_put16@GLIBC_2.9 2.9
+ ns_put32@GLIBC_2.9 2.9
+ ns_samedomain@GLIBC_2.9 2.9
+ ns_samename@GLIBC_2.9 2.9
+ ns_skiprr@GLIBC_2.9 2.9
+ ns_sprintrr@GLIBC_2.9 2.9
+ ns_sprintrrf@GLIBC_2.9 2.9
+ ns_subdomain@GLIBC_2.9 2.9
+ res_gethostbyaddr@GLIBC_2.0 2.0
+ res_gethostbyname2@GLIBC_2.0 2.0
+ res_gethostbyname@GLIBC_2.0 2.0
+ res_send_setqhook@GLIBC_2.0 2.0
+ res_send_setrhook@GLIBC_2.0 2.0
+librt.so.1 libc6 #MINVER#
+| libc6 (>> 2.41), libc6 (<< 2.42)
+ GLIBC_2.1@GLIBC_2.1 2.1
+ GLIBC_2.2@GLIBC_2.2 2.2
+ GLIBC_2.3.3@GLIBC_2.3.3 2.3.3
+ GLIBC_2.3.4@GLIBC_2.3.4 2.3.4
+ GLIBC_2.4@GLIBC_2.4 2.4
+ GLIBC_2.7@GLIBC_2.7 2.7
+ __librt_version_placeholder@GLIBC_2.1 2.1
+ __librt_version_placeholder@GLIBC_2.2 2.2
+ __librt_version_placeholder@GLIBC_2.3.4 2.3.4
+ __librt_version_placeholder@GLIBC_2.4 2.4
+ __librt_version_placeholder@GLIBC_2.7 2.7
+libthread_db.so.1 libc6 #MINVER#
+| libc6 (>> 2.41), libc6 (<< 2.42)
+ GLIBC_2.1.3@GLIBC_2.1.3 2.1.3
+ GLIBC_2.2.3@GLIBC_2.2.3 2.2.3
+ GLIBC_2.3.3@GLIBC_2.3.3 2.3.3
+ GLIBC_2.3@GLIBC_2.3 2.3
+ td_init@GLIBC_2.1.3 2.1.3
+ td_log@GLIBC_2.1.3 2.1.3
+ td_symbol_list@GLIBC_2.2.3 2.2.3
+ td_ta_clear_event@GLIBC_2.1.3 2.1.3
+ td_ta_delete@GLIBC_2.1.3 2.1.3
+ td_ta_enable_stats@GLIBC_2.1.3 2.1.3
+ td_ta_event_addr@GLIBC_2.1.3 2.1.3
+ td_ta_event_getmsg@GLIBC_2.1.3 2.1.3
+ td_ta_get_nthreads@GLIBC_2.1.3 2.1.3
+ td_ta_get_ph@GLIBC_2.1.3 2.1.3
+ td_ta_get_stats@GLIBC_2.1.3 2.1.3
+ td_ta_map_id2thr@GLIBC_2.1.3 2.1.3
+ td_ta_map_lwp2thr@GLIBC_2.1.3 2.1.3
+ td_ta_new@GLIBC_2.1.3 2.1.3
+ td_ta_reset_stats@GLIBC_2.1.3 2.1.3
+ td_ta_set_event@GLIBC_2.1.3 2.1.3
+ td_ta_setconcurrency@GLIBC_2.1.3 2.1.3
+ td_ta_thr_iter@GLIBC_2.1.3 2.1.3
+ td_ta_tsd_iter@GLIBC_2.1.3 2.1.3
+ td_thr_clear_event@GLIBC_2.1.3 2.1.3
+ td_thr_dbresume@GLIBC_2.1.3 2.1.3
+ td_thr_dbsuspend@GLIBC_2.1.3 2.1.3
+ td_thr_event_enable@GLIBC_2.1.3 2.1.3
+ td_thr_event_getmsg@GLIBC_2.1.3 2.1.3
+ td_thr_get_info@GLIBC_2.1.3 2.1.3
+ td_thr_getfpregs@GLIBC_2.1.3 2.1.3
+ td_thr_getgregs@GLIBC_2.1.3 2.1.3
+ td_thr_getxregs@GLIBC_2.1.3 2.1.3
+ td_thr_getxregsize@GLIBC_2.1.3 2.1.3
+ td_thr_set_event@GLIBC_2.1.3 2.1.3
+ td_thr_setfpregs@GLIBC_2.1.3 2.1.3
+ td_thr_setgregs@GLIBC_2.1.3 2.1.3
+ td_thr_setprio@GLIBC_2.1.3 2.1.3
+ td_thr_setsigpending@GLIBC_2.1.3 2.1.3
+ td_thr_setxregs@GLIBC_2.1.3 2.1.3
+ td_thr_sigsetmask@GLIBC_2.1.3 2.1.3
+ td_thr_tls_get_addr@GLIBC_2.3 2.3
+ td_thr_tlsbase@GLIBC_2.3.3 2.3.3
+ td_thr_tsd@GLIBC_2.1.3 2.1.3
+ td_thr_validate@GLIBC_2.1.3 2.1.3
+libutil.so.1 libc6 #MINVER#
+| libc6 (>> 2.41), libc6 (<< 2.42)
+ GLIBC_2.0@GLIBC_2.0 2.0
+ __libutil_version_placeholder@GLIBC_2.0 2.0
+                                                                                                                                      Template: glibc/upgrade
+Type: boolean
+Default: true
+Description: Do you want to upgrade glibc now?
+ Running services and programs that are using NSS need to be restarted,
+ otherwise they might not be able to do lookup or authentication any more.
+ The installation process is able to restart some services (such as ssh or
+ telnetd), but other programs cannot be restarted automatically. One such
+ program that needs manual stopping and restart after the glibc upgrade by
+ yourself is xdm - because automatic restart might disconnect your active
+ X11 sessions.
+ .
+ This script detected the following installed services which must be
+ stopped before the upgrade: ${services}
+ .
+ If you want to interrupt the upgrade now and continue later, please
+ answer No to the question below.
+Description-ar.UTF-8: أتريد ترقية glibc الآن؟
+ هناك بعض الخدمات والبرامج التي تستخدم NSS يجب إعادة تشغيلها، وإلا لن تستطيع تلك الخدمات البحث أو المصادقة بعد الآن. تستطيع عملية التثبيت إعادة تشغيل بعض الخدمات (مثل ssh أو telnetd)، إلا أن بعض الخدمات الأخرى لا يمكن إعادة تشغيلها آلياً. وإحدى تلك الخدمات هي xdm والتي يجب عليك تشغيلها يدوياً بعد عملية ترقية glibc ذلك أن عملية إعادة تشغيلها آلياً قد يوقف عمل جلسات X11 الحالية.
+ .
+ عثر البرنامج على الخدمات المثبتة التالية والتي يجب إيقافها قبل عملية الترقية: ${services}
+ .
+ إن كنت تريد ايقاف عملة الترقية الآن وإتمامها لاحقاً، الرجاء الإجابة بالنفي للسؤال أدناه.
+Description-ca.UTF-8: Voleu actualitzar la glibc ara?
+ És necessari tornar a iniciar els serveis i programes que utilitzen NSS, ja que si no es fa això podrien deixar de poder fer cerques o autenticacions. El procés d'instal·lació pot tornar a iniciar alguns serveis (com l'ssh o el telnetd), però altres programes no es poden tornar a iniciar automàticament. Un programa que necessita una parada i inici manual després de l'actualització de la glibc és l'xdm, ja que un reinici automàtic podria desconnectar les vostres sessions X11 actives.
+ .
+ Aquest script ha detectat els següents serveis instal·lats que s'haurien de parar abans de l'actualització: ${services}
+ .
+ Si voleu interrompre ara l'actualització i continuar més tard, contesteu negativament la pregunta següent.
+Description-cs.UTF-8: Chcete nyní aktualizovat glibc?
+ Běžící služby a programy využívající NSS se musí restartovat, protože jinak se může stát, že nebudou moci vyhledávat v systémových databázích nebo ověřovat uživatele. Instalační proces umí restartovat některé služby (např. ssh nebo telnetd) automaticky, ale jiné musíte restartovat ručně. Jednou takovou službou, kterou je třeba po aktualizaci glibc ručně zastavit a znovu spustit, je xdm. Automatický restart totiž může odpojit aktivní sezení X11.
+ .
+ Instalace rozpoznala následující nainstalované služby, které je třeba před aktualizací zastavit: ${services}
+ .
+ Chcete-li nyní aktualizaci přerušit a pokračovat později, odpovězte na otázku záporně.
+Description-da.UTF-8: Ønsker du at opgradere glibc nu?
+ Kørende tjenester og programmer som bruger NSS skal genstartes, ellers vil de måske ikke mere kunne foretage opslag eller opnå godkendelse. Installationsprocessen er i stand til at genstarte nogle tjenester (såsom ssh eller telnetd), men andre programmer kan ikke genstartes automatisk. Et sådant program som kræver manuel stop og genstart efter glibc-opgraderingen er xdm - da automatisk genstart kan afbryde dine aktive X11-sessioner.
+ .
+ Dette skript registrerede de følgende installerede tjenester, som skal stoppes før opgradering: ${services}
+ .
+ Hvis du ønsker at afbryde opgraderingen nu og fortsætte senere, så svar venligst nej til spørgsmålet nedenfor.
+Description-de.UTF-8: Möchten Sie das Upgrade von Glibc jetzt durchführen?
+ Laufende Dienste und Programme, die NSS verwenden, müssen neu gestartet werden, da sie andernfalls keine Überprüfungen oder Authentisierung mehr durchführen können. Der Installationsprozess kann einige Dienste neu starten (wie Ssh oder Telnetd), aber andere Programme können nicht automatisch neu gestartet werden. Eines dieser Programme, die nach dem Upgrade von Glibc ein manuelles Stoppen und Neustarten benötigen, ist Xdm, da ein automatischer Neustart Sie von Ihren aktiven X11-Sitzung trennen könnte.
+ .
+ Dieses Skript erkannte die folgenden installierten Dienste, die vor dem Upgrade gestoppt werden müssen: ${services}
+ .
+ Falls Sie das Upgrade jetzt unterbrechen und später Fortfahren möchten, antworten Sie bitte auf die unten folgende Frage mit Nein.
+Description-el.UTF-8: Θέλετε να αναβαθμίσετε το glib τώρα;
+ Υπηρεσίες και προγράμματα που χρησιμοποιούν NSS πρέπει να επανεκκινηθούν, διαφορετικά ίσως να μην μπορούν να κάνουν πια αναζητήσεις ή επαληθεύσεις. Η διαδικασία εγκατάστασης μπορεί να επανεκκινήσεις κάποιες υπηρεσίες (όπως ssh ή telnetd), αλλά άλλα προγράμματα δεν μπορούν να επανεκκινηθούν αυτόματα. Ένα τέτοιο πρόγραμμα που χρειάζεται χειροκίνητη διακοπή και επανεκκίνηση από εσάς, μετά την αναβάθμιση του glibc, είναι το xdm - γιατί η αυτόματη επανεκκίνηση μπορεί να σας αποσυνδέσει από την ενεργή συνεδρία Χ11.
+ .
+ Το σενάριο αναγνώρισε τις ακόλουθες εγκατεστημένες υπηρεσίες, οι οποίες πρέπει να διακοπούν πριν την αναβάθμιση: ${services}
+ .
+ Αν θέλετε να διακόψετε την αναβάθμιση τώρα και να συνεχίσετε αργότερε, παρακαλώ απαντήστε Όχι στην παρακάτω ερώτηση.
+Description-es.UTF-8: ¿Desea actualizar glibc ahora?
+ Los servicios y programas en ejecución que utilicen NSS necesitan reiniciarse, o por el contrario puede que ya no sean capaces de realizar búsquedas o autenticación. El proceso de instalación puede reiniciar algunos servicios (tales como «ssh» o «telnetd»), pero otros programas no pueden reiniciarse automáticamente. Uno de dichos programas que se necesitan parar y reiniciar manualmente tras la actualización de glibc es xdm, puesto que un reinicio automático podría desconectar sus sesiones X11 activas.
+ .
+ Este programa detectó los siguientes servicios instalados que se deben detener antes de la actualización: ${services}
+ .
+ Si desea interrumpir la actualización y continuar más tarde, conteste «No» a continuación.
+Description-eu.UTF-8: Glibc orain bertsio-berritu nahi al duzu?
+ NSS erabiltzen duten abiaraziriko programa eta zerbitzuak berrabiarazi egin behar dira, bestela hauek ez dira bilaketak egin edo autentifikatzeko gai izango (ssh bezalako zerbitzuentzat, saio hasteko ahalmenean eragin dezake). Mesedez gainbegiratu berrabiaraziko diren zerbitzuen init.d script-en zuriunez bereiziriko zerrenda eta zuzendu behar izanez gero.
+ .
+ Skript honek bertsio-berritzea egin aurretik gelditu behar diren instalaturiko hurrengo zerbitzu hauek aurkitu ditu: ${services}
+ .
+ Bertsio-berritzea etzaeratu eta berandua jarraitu nahi izanez gero, ez erantzun behekaldeko galderari.
+Description-fi.UTF-8: Tulisiko glibc päivittää nyt?
+ Käynnissä olevat palvelut ja ohjelmat, jotka käyttävät NSS:ää, täytyy käynnistää uudelleen. Muuten ne eivät välttämättä enää pysty tekemään hakuja tai tunnistautumisia. Asennusprosessi pystyy käynnistämään jotkin palvelut uudelleen (esimerkiksi ssh:n ja telnetdin), mutta muita ohjelmia ei voida käynnistää automaattisesti uudelleen. Yksi tällainen ohjelma, joka täytyy käsin pysäyttää ja käynnistää uudelleen glibcin päivityksen jälkeen, on xdm. Tämä johtuu siitä, että automaattinen uudelleenkäynnistys saattaisi keskeyttää aktiiviset X11-istuntosi.
+ .
+ Tämä komentosarja löysi seuraavat asennetut palvelut, jotka tulee pysäyttää ennen päivitystä: ${services}
+ .
+ Jos haluat keskeyttää päivityksen nyt ja jatkaa myöhemmin, älä valitse tätä vaihtoehtoa.
+Description-fr.UTF-8: Faut-il mettre à niveau le paquet glibc maintenant ?
+ Les services et programmes qui utilisent NSS (« Name Service Switch ») doivent être redémarrés car leur système d'authentification risque de ne plus fonctionner. Il est possible de redémarrer certains services (comme SSH ou telnetd) pendant l'installation, mais d'autres ne peuvent l'être automatiquement. Il est notamment indispensable d'arrêter et redémarrer manuellement xdm car un redémarrage automatique pourrait interrompre une session X11 active.
+ .
+ Les services identifiés comme devant être redémarrés et qui doivent être arrêtés avant la mise à niveau sont les suivants : ${services}.
+ .
+ Si vous préférez interrompre la mise à niveau maintenant et la reprendre plus tard, ne choisissez pas cette option.
+Description-gl.UTF-8: ¿Quere actualizar glibc agora?
+ É necesario reiniciar os servizos e programas que están a empregar NSS; se non se fai, é posible que deixen de poder realizar buscas ou autenticacións. O proceso de instalación ode reiniciar algúns servizos (tales coma ssh ou telnetd), pero outros programas non se poden reiniciar automaticamente. Un deses programas que precisa de detención e reinicio manuais trala actualización de glibc é xdm - xa que o reinicio automático podería desconectar as súas sesións de X11 activas.
+ .
+ Este script detectou os seguintes servizos instalados que se deben deter antes da actualización: ${services}
+ .
+ Se quere interromper agora a actualización e continuala despois, resposte negativamente á seguinte pregunta.
+Description-hu.UTF-8: Akarod most frissíteni a glibc-t?
+ Azokat a szolgáltatásokat és programokat, amelyek az NSS-t használják, újra kell indítani, különben előfordulhat, hogy nem tudnak keresni vagy bejelentkezni. A telepítő folyamat képes némelyik szolgáltatást (pl. ssh, telnetd) újraindítani, de némelyiket nem lehet automatikusan újraindítani. Egy program az xdm - ezt neked kell leállítanod és újraindítanod mert az automatikus újraindítás kidobhatna a grafikus felületről.
+ .
+ A program a következő, a frissítés előtt leállítandó telepített szolgáltatásokat észlelte: ${services}
+ .
+ Ha most meg akarod szakítani a frissítést és később folytatni, válaszolj nemmel az alábbi kérdésre.
+Description-it.UTF-8: Aggiornare glibc adesso?
+ I servizi e i programmi in esecuzione che usano NSS devono essere riavviati altrimenti potrebbero non essere più in grado di effettuare ricerche o autenticazioni. Il processo d'installazione è in grado di riavviare alcuni servizi (come ssh o telnetd), ma altri programmi non possono essere riavviati automaticamente. Uno dei programmi che devono essere fermati e riavviati manualmente dopo l'aggiornamento di glibc è xdm perché il riavvio automatico potrebbe disconnettere la propria sessione X11 attiva.
+ .
+ Questo script ha rilevato che i seguenti servizi devono essere fermati prima dell'aggiornamento: ${services}
+ .
+ Per interrompere adesso l'aggiornamento e riprenderlo in seguito, rispondere «No» alla questa domanda.
+Description-ja.UTF-8: glibc を今更新しますか?
+ NSS を利用している実行中のサービスおよびプログラムは、再起動する必要があります。さもないと、ルックアップおよび認証がもう利用できないことになります。インストール手続きではいくつかのサービス (ssh や telnetd など) を再起動することができますが、その他のプログラムは自動では再起動されません。手動での停止および glibc の更新のあとにあなた自身で再起動する必要のあるそのようなプログラムの 1 つとしては、xdm があります。というのも、自動再起動はあなたのアクティブな X11 のセッションを閉じてしまうことになるからです。
+ .
+ スクリプトは、更新前に停止されなければならない以下のサービスがインストールされているのを検出しました: ${services}
+ .
+ 更新を今中止して後日続行したいのであれば、以下の質問で「いいえ」と答えてください。
+Description-ko.UTF-8: 지금 glibc를 업그레이드 하시겠습니까?
+ NSS를 사용중인 서비스와 프로그램들을 다시 시작시키지 않으면 색인 작업이나 인증 작업을 더 이상 사용할 수 없게 됩니다. ssh이나 telnetd 등의 서비스들 일부는 설치 과정이 다시 시작을 시킵니다만, 자동으로 다시 시작시키지 못하는 프로그램도 있습니다. glibc 업그레이드 후 사용자가 직접 다시 정지시킨 후 다시 시작시켜야 하는 대표적인 프로그램으로 xdm이 있습니다. 자동으로 다시 시작을 시키면 사용중인 X11 세션을 중지시킬 수 있기 때문입니다.
+ .
+ 업그레이드 하기 전에 멈춰야 하는 다음 서비스들을 스크립트가 감지했습니다: ${services}
+ .
+ 업그레이드를 일단 중지시키고 나중에 계속하시려면 다음 질문에 No라고 답해주시기 바랍니다.
+Description-lt.UTF-8: Ar norite dabar atnaujinti glibc?
+ Veikiančios tarnybos ir programos, naudojančios NSS, turi būti paleistos iš naujo, kitaip jose gali sutrikti paieška ir autentikavimas. Diegimo procesas gali paleisti iš naujo kai kurias tarnybas (pavyzdžiui, ssh ir telnetd), tačiau kitos programos negali būti paleistos iš naujo automatiškai. Viena iš tokių programų, kurią reikia paleisti iš naujo rankiniu būdu po glibc atnaujinimo, yra xdm – automatinis restartavimas gali atjungti aktyvias X11 sesijas.
+ .
+ Rastos šios tarnybas, kurias būtina sustabdyti prieš atnaujinimą: ${services}
+ .
+ Jei norite dabar nutraukti atnaujinimą ir jį pratęsti vėliau, atsakykite neigiamai.
+Description-nb.UTF-8: Vil du oppgradere glibc nå?
+ Tjenester og programmer som nå kjører og bruker NSS må startes på nytt, ellers vil de kanskje ikke kunne gjøre oppslag eller autentisering lenger. Installasjonsprosessen kan ta omstart på noen tjenester (slik som ssh eller telnetd), men andre programmer kan ikke restartes automatisk. xdm er et slikt program som du må stoppe og restarte manuelt etter glibc-oppgradering, fordi automatisk omstart vil kunne koble fra dine aktive X11-økter.
+ .
+ Dette skriptet oppdaget følgende installerte tjenester som må stoppes før oppgraderingen: $(services)
+ .
+ Svar Nei på spørsmålet nedenfor hvis du vil avbryte oppgraderingen nå og fortsette senere.
+Description-nl.UTF-8: Wilt u glibc nu opwaarderen?
+ Actieve diensten en programma's die NSS gebruiken dienen herstart te worden. Zo niet kunnen ze mogelijk geen opzoekingen en authenticatie meer doen. Het Installatieproces kan sommige diensten (zoals ssh en telnetd) herstarten, maar andere programma's kunnen niet automatisch herstart worden. Een programma dat handmatig dient gestopt en gestart te worden na de opwaardering van glibc is xdm, dit omdat een automatische herstart uw actieve X11-sessies verbreekt.
+ .
+ Dit script heeft de volgende geïnstalleerde diensten ontdekt die gestopt moeten worden voor de opwaardering: ${services}
+ .
+ Als u de opwaardering nu wilt afbreken en hiermee later wilt verder gaan dient u zo meteen te weigeren.
+Description-no.UTF-8: Vil du oppgradere glibc nå?
+ Tjenester og programmer som nå kjører og bruker NSS må startes på nytt, ellers vil de kanskje ikke kunne gjøre oppslag eller autentisering lenger. Installasjonsprosessen kan ta omstart på noen tjenester (slik som ssh eller telnetd), men andre programmer kan ikke restartes automatisk. xdm er et slikt program som du må stoppe og restarte manuelt etter glibc-oppgradering, fordi automatisk omstart vil kunne koble fra dine aktive X11-økter.
+ .
+ Dette skriptet oppdaget følgende installerte tjenester som må stoppes før oppgraderingen: $(services)
+ .
+ Svar Nei på spørsmålet nedenfor hvis du vil avbryte oppgraderingen nå og fortsette senere.
+Description-pl.UTF-8: Czy zaktualizować teraz glibc?
+ Usługi i programy wykorzystujące NSS wymagają ponownego uruchomienia, aby operacje związane z autoryzacją działały prawidłowo. Proces instalacji może zrestartować część serwisów (jak np. ssh lub telnetd), jednak niektóre usługi będą wymagały ingerencji użytkownika. Przykładem takiego programu jest xdm, którego restart mógłby spowodować wyłączenie aktywnej sesji X11.
+ .
+ Skrypt wykrył następujące serwisy, które należy ręcznie zrestartować: ${services}
+ .
+ Aby przerwać aktualizację i dokończyć ją później, proszę wybrać nie.
+Description-pt.UTF-8: Quer actualizar a glibc agora?
+ Serviços e programas que estejam a correr que usem NSS têm de ser reiniciados, de outra forma podem deixar de ser capazes de resolver nomes ou de autenticar utilizadores. O processo de instalação é capaz de reiniciar alguns serviços (tais como ssh ou telnetd), mas há outros programas que não podem ser reiniciados automaticamente. Um dos programas que necessita de ser parado e reiniciado manualmente é o xdm - um reinício automático poderia desligar as suas sessões de X11 activas.
+ .
+ Este script detectou os seguintes serviços instalados que têm de ser parados antes da actualização: ${services}
+ .
+ Se quer interromper a actualização agora e continuar mais tarde, por favor responda "Não" à questão seguinte.
+Description-pt_BR.UTF-8: Você quer atualizar a glibc agora?
+ Serviços e programas em execução que usam NSS precisam ser reiniciados, caso contrário, eles podem não ser capazes de realizar consultas ou autenticação. O processo de instalação é capaz de reiniciar alguns desses serviços (como ssh ou telnetd), mas outros programas não podem ser reiniciados automaticamente. Um programa que precisa ser parado e reiniciado manualmente por você depois da atualização da glibc é o xdm - porque reiniciar automaticamente pode desconectar suas sessões ativas do X11.
+ .
+ Este script detectou os seguintes serviços instalados que devem ser parados antes da atualização: ${services}
+ .
+ Se você quer interromper a atualização agora e continuar posteriormente, por favor, responda Não para a questão abaixo.
+Description-ro.UTF-8: Doriți să actualizați «glibc» acum?
+ Serviciile și programele care rulează și utilizează NSS trebuiesc repornite, altfel este posibil să nu mai poată efectua căutarea sau autentificarea. Procesul de instalare este capabil să repornească unele servicii (cum ar fi ssh sau telnetd), dar alte programe nu pot fi repornite automat. Un astfel de program care necesită oprire și repornire manuală după actualizarea glibc este «xdm», «gdm3», «sddm», sau orice alt administrator de sesiune grafică - deoarece repornirea automată ar putea deconecta sesiunile dumneavoastră active X11.
+ .
+ Acest script a detectat următoarele servicii instalate care trebuie oprite înainte de actualizare: ${services}
+ .
+ Dacă doriți să întrerupeți actualizarea acum și să continuați mai târziu, răspundeți Nu la întrebarea de mai jos.
+Description-ru.UTF-8: Хотите выполнить обновление glibc сейчас?
+ Запущенные службы и программы, использующие NSS, должны быть перезапущены, иначе они не будут способны выполнять поиск или аутентификацию. В процессе установки возможно перезапустить некоторые службы (такие как ssh или telnetd), но другие программы не могут быть автоматически перезапущены. Одной из таких программ, требующих ручной остановки и перезапуска после обновления glibc, является xdm, так как её автоматический перезапуск может отключить ваши активные сессии X11.
+ .
+ Этот сценарий определил следующие установленные службы, которые должны быть остановлены перед обновлением: ${services}
+ .
+ Если вы желаете прервать процесс обновления сейчас и продолжить позже, ответьте Нет на следующий вопрос.
+Description-sk.UTF-8: Želáte si teraz aktualizovať glibc?
+ Bežiace programy a služby, ktoré používajú NSS sa musia reštartovať, inak by viac neboli schopné vykonávať vyhľadávanie a autentifikáciu. Inštalátor je schopný sám reštartovať niektoré služby (ako ssh a telnet), ale iné programy nie je možné reštartovať automaticky. Jeden z takýchto programov, ktoré vyžadujú, aby ste ho manuálne zastavili a reštartovali po aktualizácii glibc, je xdm - pretože automatický reštart by mohol odpojiť vaše aktívne relácie X11.
+ .
+ Tento skript zistil, že nasledovné služby je pred aktualizáciou potrebné zastaviť:${services}
+ .
+ Ak si teraz želáte prerušiť aktualizáciu a pokračovať neskôr, prosím, odpovedzte na túto otázku „Nie“.
+Description-sv.UTF-8: Vill du uppgradera glibc nu?
+ Körande tjänster och program som använder NSS behöver startas om, annars kanske de inte kan köra uppslag eller autentisering längre. Installationen kan starta om några tjänster (ex. ssh och telnetd), andra program kan inte startas om automatiskt - xdm är ett sådant program som du måste starta om själv eftersom det skulle starta om din X-session.
+ .
+ Skriptet hittade följande installerade tjänster som måste stoppas före uppgraderingen: ${services}
+ .
+ Om du vill avbryta uppgraderingen nu och fortsätta senare anger du Nej på frågan nedan.
+Description-tr.UTF-8: glibc paketini şimdi yükseltmek istiyor musunuz?
+ NSS kullanan hizmetler ve programlar yeniden başlatılmalıdır. Başlatılmazlarsa, kimlik arama veya doğrulama gibi işlemleri düzgün yapamayacaklardır. Kurulum süreci ssh ve telnetd gibi bazı hizmetleri yeniden başlatmayı başarabilmekle birlikte; her hizmeti kendiliğinden yeniden başlatamaz. glibc yükseltmesinden sonra elle yeniden başlatmanız gereken hizmetlerden biri de xdm'dir. Çünkü onun kendiliğinden yeniden başlatılması, açılmış X11 oturumlarının kopmasına sebep olabilir.
+ .
+ Bu betik, yükseltme işlemi yapılmadan önce şu hizmetlerin yeniden başlatılması gerektiğini algıladı: ${services}
+ .
+ Eğer yükseltme işlemini şimdi durdurup sonra sürdürmek istiyorsanız, lütfen aşağıdaki soruya "Hayır" yanıtını verin.
+Description-vi.UTF-8: Bạn có muốn nâng cấp glibc ngay bây giờ không?
+ Các dịch vụ và chương trình đều đang chạy dựa vào NSS thì cần phải được khởi chạy lại: không thì chúng không còn có khả năng tra tìm hay xác thực lại. Tiến trình cài đặt có khả năng khởi chạy lại một số dịch vụ riêng (v.d. ssh hoặc têlnetd) nhưng không thể tự động khởi chạy lại các chương trình khác. Một chương trình như vậy mà cần phải bị dừng chạy rồi được khởi chạy lại bằng sau khi nâng cấp glibc là xdm, vì việc tự động cài đặt có thể ngắt kết nối đến phiên chạy X11 đang hoạt động.
+ .
+ Văn lệnh này đã phát hiện những dịch vụ đã cài đặt sau mà phải bị dừng chạy trước khi nâng cấp: ${services}
+ .
+ Nếu bạn muốn làm gián đoạn tiến trình nâng cấp ngay bây giờ và tiếp tục sau, hãy trả lời « Không » bên dưới.
+Description-zh_CN.UTF-8: 你想现在升级 glibc 么?
+ 使用 NSS 的服务和程序需要重启，否则可能无法继续查询或验证。安装过程能重启部分服务(如 ssh 和 telnetd)，但其他程序无法自动重启。xdm 就是需要在 glibc 升级完成后手动停止和重启的程序 - 因为自动重启可能会中断你的当前 X11 会话。
+ .
+ 脚本检测到以下的服务需要在升级前停止: ${services}
+ .
+ 如果你想打断升级并在稍后继续，请对下面的问题答 No
+
+Template: glibc/restart-services
+Type: string
+Description: Services to restart for GNU libc library upgrade:
+ Running services and programs that are using NSS need to be restarted,
+ otherwise they might not be able to do lookup or authentication any more
+ (for services such as ssh, this can affect your ability to login).
+ Please review the following space-separated list of init.d scripts for
+ services to be restarted now, and correct it if needed.
+ .
+ Note: restarting sshd/telnetd should not affect any existing connections.
+Description-ar.UTF-8: الخدمات المطلوب إعادة تشغيلها لتريقة مكتبة GNU libc:
+ هناك بعض الخدمات والبرامج التي تستخدم NSS يجب إعادة تشغيلها، وإلا لن تستطيع تلك الخدمات البحث أو المصادقة بعد الآن. تستطيع عملية التثبيت إعادة تشغيل بعض الخدمات (مثل  ssh والتي قد تؤثر على قدرتك الدخول). الرجاء مراجعة قائمة برامج init.d هذه بالخدمات التي يجب إعادة تشغيلها الآن، وصححها إن كنت بحاجة إلى ذلك.
+ .
+ ملاحظة: إعادة تشغيل sshd/telnetd يجب أن لايؤثر على أية اتصالات جارية.
+Description-ca.UTF-8: Serveis a reiniciar per l'actualització de la biblioteca GNU libc:
+ És necessari tornar a iniciar els serveis i programes que utilitzen NSS, ja que si no es fa això podrien deixar de poder fer cerques o autenticacions (per a serveis com l'ssh, això pot afectar la vostra capacitat per a entrar al sistema). Comproveu la següent llista separada per comes de scripts d'init.d amb serveis que s'han de tornar a iniciar ara, i corregiu-la si és necessari.
+ .
+ Nota: reiniciar l'ssh/telnetd no hauria d'afectar cap connexió existent.
+Description-cs.UTF-8: Služby, které se mají restartovat po aktualizaci knihovny GNU libc:
+ Běžící služby a programy využívající NSS se musí restartovat, protože jinak se může stát, že nebudou moci vyhledávat v systémových databázích nebo ověřovat uživatele. (U služeb typu ssh to může ovlivnit možnost přihlášení se.) Zkontrolujte prosím následující mezerami oddělený seznam služeb, které se mají restartovat a v případě potřeby jej opravte. Služby jsou v seznamu zastoupeny svými init.d skripty.
+ .
+ Poznámka: restart sshd/telnetd by neměl ovlivnit probíhající spojení.
+Description-da.UTF-8: Tjenester til genstart for GNU libc-biblioteksopgradering:
+ Kørende tjenester og programmer som bruger NSS skal genstartes, ellers vil de måske ikke mere kunne foretage opslag eller opnå godkendelse (for tjenester såsom ssh, kan dette påvirke din mulighed for at logge ind). Gennemse venligst den følgende kommaadskilte liste af init.d-skripter til tjenester som genstartes nu, og ret den hvis behovet er der.
+ .
+ Bemærk: Genstart af sshd/telnetd bør ikke påvirke eksisterende forbindelser.
+Description-de.UTF-8: Dienste, die beim GNU Libc-Bibliotheks-Upgrade neu gestartet werden sollen:
+ Laufende Dienste und Programme, die NSS verwenden, müssen neu gestartet werden, da sie andernfalls keine Überprüfungen oder Authentisierung mehr durchführen können (für Dienste wie ssh kann dies die Möglichkeit der Anmeldung betreffen). Bitte prüfen Sie, welche der Dienste in der folgenden, durch Leerzeichen getrennte Liste von init.d-Skripten neu gestartet werden sollen, und korrigieren Sie diese, falls notwendig.
+ .
+ Hinweis: das Neustarten von sshd/telnetd sollte existierende Verbindungen nicht beeinträchtigen.
+Description-el.UTF-8: Υπηρεσίες προς επανεκκίνηση, για την αναβάθμιση της βιβλιοθήκης GNU libc:
+ Υπηρεσίες και προγράμματα που χρησιμοποιούν NSS πρέπει να επανεκκινηθούν, διαφορετικά ίσως να μην μπορούν να κάνουν πια αναζητήσεις ή επαληθεύσεις (για υπηρεσίες όπως το ssh, αυτό μπορεί να επηρεάσει την δυνατότητα να συνδεθείτε). Παρακαλώ επαληθεύστε την ακόλουθη, χωρισμένη με διαστήματα, λίστα των σεναρίων init.d, για υπηρεσίες που θα επανεκκινηθούν τώρα και διορθώστε την αν χρειάζεται.
+ .
+ Σημείωση: η επανεκκίνηση των sshd/telnetd δεν θα πρέπει να επηρεάσει οποιεσδήποτε υπάρχουσες συνδέσεις.
+Description-es.UTF-8: Servicios a reiniciar para la actualización de la biblioteca libc de GNU:
+ Los servicios y programas en ejecución que utilicen NSS se necesitan reiniciar, o por el contrario puede que ya no sean capaces de realizar búsquedas o autenticación (para servicios como «ssh», esto puede afectar a su capacidad para iniciar sesión en el sistema). Por favor, revise la siguiente lista de scripts de «init.d», separada por espacios, de los servicios a reiniciar ahora y corríjala si es necesario.
+ .
+ Aviso: reiniciar «sshd»/«telnetd» no debería afectar a las conexiones activas.
+Description-eu.UTF-8: GNU libc liburutegi eguneraketan berrabiarazi behar diren zerbitzuak:
+ NSS erabiltzen duten abiaraziriko programa eta zerbitzuak berrabiarazi egin behar dira, besteka hauek ez dira bilaketak egin edo autentifikatzeko gai izango (ssh bezalako zerbitzuentzat, saio hasteko ahalmenean eragin dezake). Mesedez gainbegiratu berrabiaraziko diren zerbitzuen init.d script-en gakoz bereiziriko zerrenda eta zuzendu behar izanen gero.
+ .
+ Oharra: sshd/telnetd berrabiarazteak ez luke sorturik dauden konexioetan eragin beharko.
+Description-fi.UTF-8: Palvelut, jotka tulee käynnistää uudelleen GNU libc -kirjastoa päivitettäessä:
+ Käynnissä olevat palvelut ja ohjelmat, jotka käyttävät NSS:ää, täytyy käynnistää uudelleen. Muuten ne eivät välttämättä enää pysty tekemään hakuja tai tunnistautumisia (esimerkiksi ssh:n kanssa kirjautuminen ei välttämättä onnistu). Tarkista alla oleva välilyönnein eroteltu lista niiden palveluiden init.d-komentosarjoista, jotka käynnistetään nyt uudelleen, ja korjaa sitä tarvittaessa.
+ .
+ Huomautus: sshd:n tai telnetd:n uudelleenkäynnistyksen ei pitäisi vaikuttaa olemassa oleviin yhteyksiin.
+Description-fr.UTF-8: Services à redémarrer lors de la mise à niveau de la bibliothèque C de GNU :
+ Les services et programmes qui utilisent NSS (« Name Service Switch ») doivent être redémarrés car leur système d'authentification risque de ne plus fonctionner (pour des services comme SSH, cela peut empêcher les connexions). Veuillez contrôler et éventuellement corriger la liste des services qui seront redémarrés maintenant (identifiés par le nom de leur script de démarrage).
+ .
+ Veuillez noter que le redémarrage de telnetd ou sshd n'affectera pas les connexions existantes.
+Description-gl.UTF-8: Servizos a reiniciar para a actualización da biblioteca GNU libc:
+ É necesario reiniciar os servizos e programas que están a empregar NSS; se non se fai, é posible que deixen de poder realizar buscas ou autenticacións (para algúns servizos, coma ssh, isto pode afectar á súa capacidade de se conectar á máquina). Revise a seguinte lista de scripts de init.d de servizos que se van reiniciar agora, e corríxaa se é preciso.
+ .
+ Nota: o reinicio de sshd/telnetd non debería afectar ás conexións existentes.
+Description-hu.UTF-8: A GNU libc könyvtár frissítéséhez újraindítandó szolgáltatások:
+ Azokat a szolgáltatásokat és programokat, amelyek az NSS-t használják, újra kell indítani, különben előfordulhat, hogy nem tudnak keresni vagy bejelentkezni (az ssh szolgáltatás esetén például előfordulhat, hogy leáll a bejelentkezés). Kérlek ellenőrizd ezt a szóközzel tagolt listát, ami az újraindítandó szolgáltatások init.d scriptjeit tartalmazza, és ha szükséges, javítsd ki.
+ .
+ Egy apróság: az sshd/telnetd újraindítása elvileg nem érinti a létező kapcsolatokat.
+Description-it.UTF-8: Servizi da riavviare per l'aggiornamento della libreria GNU libc:
+ I servizi e i programmi in esecuzione che usano NSS devono essere riavviati altrimenti potrebbero non essere più in grado di effettuare ricerche o autenticazioni (i servizi tipo ssh potrebbero avere problemi d'accesso). Controllare il seguente elenco di nomi di script per init.d separati da uno spazio relativi ai servizi che devono essere riavviati e, se necessario, correggerlo.
+ .
+ Nota: il riavvio di sshd/telnetd non ha alcun effetto sulle connessioni già attive.
+Description-ja.UTF-8: GNU libc ライブラリの更新で再起動するサービス:
+ NSS を利用している実行中のサービスおよびプログラムは、再起動する必要があります。さもないと、ルックアップおよび認証がもう利用できないことになります (ssh のようなサービスでは、これはログインできるかどうかに影響します)。以下のスペースで区切られた、以下の init.d スクリプト一覧を確認して、サービスをここで再起動する必要があれば修正してください。
+ .
+ 補足: sshd/telnetd の再起動は既存の接続には影響しないはずです。
+Description-ko.UTF-8: GNU libc 라이브러리 업그레이드로 인해 다시 시작시킬 서비스 목록:
+ NSS를 사용중인 서비스와 프로그램들을 다시 시작시키지 않으면 색인 작업이나 인증 작업을 더 이상 사용할 수 없게 됩니다(ssh와 같은 서비스의 경우 로그인에 영향을 줄 수 있습니다). 다시 시작시킬 init.d 스크립트 서비스를 빈칸으로 연결시킨 이 목록을 검토하여 필요한 경우 수정해주십시오.
+ .
+ 참고: sshd/telnetd를 다시 시작시키더라도 기존 연결에는 영향이 없을 것입니다.
+Description-lt.UTF-8: Tarnybos, kurias reikia paleisti iš naujo po GNU libc bibliotekos atnaujinimo:
+ Veikiančios tarnybos ir programos, naudojančios NSS, turi būti paleistos iš naujo, kitaip jose gali sutrikti autentikavimas (tokioms tarnyboms kaip ssh tai gali reikšti, kad negalėsite prisijungti). Peržiūrėkite toliau esantį tarpeliais atskirtų init.d scenarijų, kurie dabar bus paleisti iš naujo, sąrašą, ir, jei reikia, pataisykite.
+ .
+ Pastaba: sshd/telnetd paleidimas iš naujo neturėtų paveikti aktyvių prisijungimų.
+Description-nb.UTF-8: Tjenester som skal restartes for oppgradering av GNU libc-biblioteket:
+ Tjenester og programmer som nå kjører og bruker NSS må startes på nytt, ellers vil de kanskje ikke kunne gjøre oppslag eller autentisering lenger (for tjenester slik som ssh kan dette påvirke din mulighet til å logge inn). Se gjennom denne lista over init.d-skripter som skal restartes nå, og rett opp hvis det trengs.
+ .
+ Merk: om sshd/telnetd restartes skulle det ikke påvirke eksisterende tilkoblinger.
+Description-nl.UTF-8: Omwille van de opwaardering van 'GNU libc' te herstarten diensten:
+ Actieve diensten en programma's die NSS gebruiken dienen herstart te worden, zo niet kunnen ze mogelijk geen opzoekingen en authenticatie meer doen (voor diensten zoals ssh kan dit gevolgen hebben voor de mogelijkheid om in te loggen). Gelieve de volgende, met spaties gescheiden lijst van init.d-scripts voor diensten die herstart dienen te worden te controleren en indien nodig bij te werken.
+ .
+ Opmerking: herstarten van sshd/telnetd heeft normaal geen effect op bestaande verbindingen.
+Description-no.UTF-8: Tjenester som skal restartes for oppgradering av GNU libc-biblioteket:
+ Tjenester og programmer som nå kjører og bruker NSS må startes på nytt, ellers vil de kanskje ikke kunne gjøre oppslag eller autentisering lenger (for tjenester slik som ssh kan dette påvirke din mulighet til å logge inn). Se gjennom denne lista over init.d-skripter som skal restartes nå, og rett opp hvis det trengs.
+ .
+ Merk: om sshd/telnetd restartes skulle det ikke påvirke eksisterende tilkoblinger.
+Description-pl.UTF-8: Usługi wymagające restartu po aktualizacji GNU libc:
+ Uruchomione usługi i programy wykorzystujące NSS wymagają restartu. W przeciwnym wypadku operacje związane z autoryzacją nie będą działały prawidłowo. Przy usługach takich jak ssh będzie to oznaczało brak możliwości zalogowania. 
+ Zalecane jest przejrzenie listy skryptów startowych i jej ewentualne poprawienie.
+ .
+ Uwaga: restart sshd/telnetd nie powinien mieć wpływu na nawiązane już połączenia.
+Description-pt.UTF-8: Serviços a reiniciar para a actualização da biblioteca GNU libc:
+ Serviços e programas que estejam a correr que usem o NSS têm de ser reiniciados, de outra forma podem deixar de ser capazes de resolver nomes ou de autenticar utilizadores (para serviços como o ssh, isto pode afectar a sua capacidade de se ligar ao sistema). Por favor reveja a seguinte lista, separada por espaços, de scripts init.d para serviços a serem reiniciados agora, e corrija-a se for necessário.
+ .
+ Nota: reiniciar o sshd/telnetd não deve afectar nenhuma ligação existente.
+Description-pt_BR.UTF-8: Serviços a serem reiniciados para atualização da biblioteca GNU libc:
+ Serviços e programas em execução que usam NSS precisam ser reiniciados, caso contrário, eles podem não ser capazes de realizar consultas ou autenticação (para serviços como ssh, isto pode afetar sua habilidade de fazer login). Por favor, revise a seguinte lista separada por espaços de scripts init.d de serviços que serão reiniciados agora, e a corrija, se necessário.
+ .
+ Nota: reiniciar sshd/telnetd não deveria afetar quaisquer conexões existentes.
+Description-ro.UTF-8: Servicii ce trebuiesc repornite la înnoirea bibliotecii GNU libc:
+ Serviciile și programele care rulează și folosesc NSS trebuiesc repornite, altfel este posibil să nu mai poată efectua autentificarea sau căutarea numelor (în cazul serviciilor precum ssh, acest lucru poate determina imposibilitatea autentificării). Revizați următoarea listă ce conține, separate prin spațiu, scripturi init.d ale serviciilor ce trebuiesc repornite acum și corectați-o dacă este nevoie.
+ .
+ Notă: repornirea sshd/telnetd nu ar trebui să afecteze conexiunile existente.
+Description-ru.UTF-8: Для обновления GNU libc должны быть перезапущены следующие службы:
+ Запущенные службы и программы, использующие NSS, должны быть перезапущены, иначе они не будут способны выполнять поиск или аутентификацию (для таких служб как ssh, это может повлиять на возможность входа в систему). Просмотрите следующий разделённый пробелами список из сценариев init.d для служб, которые будут сейчас перезапущены, и отредактируйте его при необходимости.
+ .
+ Примечание: перезапуск sshd/telnetd не должен повлиять на какие-либо из существующих соединений.
+Description-sk.UTF-8: Služby, ktoré sa majú po aktualizácii knižnice GNU libc reštartovať:
+ Bežiace programy a služby, ktoré používajú NSS a majú sa reštartovať, inak by viac neboli schopné vykonávať vyhľadávanie a autentifikáciu (pri službách ako ssh toto môže mať vplyv na schopnosť prihlásiť sa). Prosím, skontrolujte nasledovný zoznam (položky sú oddelené medzerami) init.d skriptov služieb, ktoré je treba reštartovať a ak je to potrebné, opravte ho.
+ .
+ Pozn.: reštartovanie sshd/telnetd by nemalo mať vplyv na už nadviazané spojenia.
+Description-sv.UTF-8: Tjänster att starta om för uppgradering av GNU libc-biblioteket:
+ Körande tjänster och program som använder NSS behöver startas om, annars kanske de inte kan köra uppslag eller autentisering längre (för tjänster såsom ssh kan det påverka din möjlighet att logga in). Granska följande blankstegsseparerade lista över init.d-skript för tjänster som ska startas om nu, och gör ändringar om det behövs.
+ .
+ Observera: omstart av sshd/telnetd ska inte påverka befintliga anslutningar.
+Description-tr.UTF-8: GNU libc kitaplığının yükseltmesi için yeniden başlatılacak olan hizmetler:
+ NSS kullanan hizmetler ve programlar yeniden başlatılmalıdır. Başlatılmazlarsa, kimlik arama veya doğrulama gibi işlemleri düzgün yapamayacaklardır. Örneğin ssh hizmeti ile oturum açamayabilirsiniz. Lütfen yeniden başlatılacak hizmetlere ilişkin init.d betiklerinin boşluklarla ayrılmış aşağıdaki listesini inceleyin ve gerekiyorsa düzeltin.
+ .
+ Not: sshd/telnetd hizmetlerinin yeniden başlatılması, varolan bağlantıları etkilemez.
+Description-vi.UTF-8: Các dịch vụ cần khởi chạy lại để nâng cấp thư viện libc GNU:
+ Các dịch vụ và chương trình đều đang chạy khi sử dụng NSS thì cần phải được khởi chạy lại: không thì không còn có khả năng tra tìm hay xác thực lại (đối với dịch vụ như SSH, trường hợp này có thể ngăn cản bạn đăng nhập). Hãy xem lại danh sách định giới bằng dấu cách các văn lệnh init.d cho dịch vụ cần khởi chạy lại ngay bây giờ, và sửa nếu thích hợp.
+ .
+ Ghi chú : khởi chạy lại sshd/telnetd không nên có tác động kết nối đang chạy.
+Description-zh_CN.UTF-8: GNU libc 库升级需要重启如下的服务：
+ 使用 NSS 的服务和程序需要重启，否则可能无法查询或验证(对于 ssh 这类的服务，有可能导致你无法登录)。请检查下面需要重启的 init.d 脚本列表(空格分隔)，如有误请改正。
+ .
+ 提示：重启 sshd/telnetd 不会影响现有的连接。
+
+Template: glibc/restart-failed
+Type: error
+Description: Failure restarting some services for GNU libc upgrade
+ The following services could not be restarted for the GNU libc library upgrade:
+ .
+ ${services}
+ .
+ You will need to start these manually by running
+ 'invoke-rc.d <service> start'.
+Description-ar.UTF-8: فشلت عملية إعادة تشغيل بعض الخدمات لترقية GNU libc
+ تعذر إعادة تشغيل الخدمات التالية لترقية مكتبة GNU libc:
+ .
+ ${services}
+ .
+ عليك بتشغيل هذه الخدمات يدوياً بتنفيذ الأمر 'invoke-rc.d <service> start'.
+Description-ca.UTF-8: No s'ha pogut reiniciar alguns serveis per a l'actualització de GNU libc
+ No s'ha pogut reiniciar els serveis següents per a l'actualització de la biblioteca GNU libc:
+ .
+ ${services}
+ .
+ Haureu d'iniciar aquests serveis manualment executant «invoke-rc.d <servei> start».
+Description-cs.UTF-8: Chyba při restartu některých služeb během aktualizace GNU libc
+ Následující služby nemohly být během aktualizace knihovny GNU libc restartovány:
+ .
+ ${services}
+ .
+ Budete je muset spustit ručně příkazem „invoke-rc.d <služba> start“.
+Description-da.UTF-8: Kunne ikke genstarte udvalgte tjenester for GNU libc-opgraderingen
+ De følgende tjenester kunne ikke genstartes for GNU libc-biblioteksopgraderingen:
+ .
+ ${services}
+ .
+ Du skal genstarte disse manuelt ved at køre »invoke-rc.d <service> start«.
+Description-de.UTF-8: Fehler beim Neustarten einiger Dienste für das GNU Libc-Upgrade
+ Die folgenden Dienste konnten für das GNU Libc-Upgrade nicht neu gestartet werden:
+ .
+ ${services}
+ .
+ Sie müssen diese manuell starten, indem Sie »invoke-rc.d <service> start« ausführen.
+Description-el.UTF-8: Αποτυχία επανεκκίν�

@@ -1,0 +1,2138 @@
+ `name' may be any type of file
+           (directory, fifo, symbolic link, etc.). If given, `arcname'
+           specifies an alternative name for the file in the archive.
+           Directories are added recursively by default. This can be avoided by
+           setting `recursive' to False. `filter' is a function
+           that expects a TarInfo object argument and returns the changed
+           TarInfo object, if it returns None the TarInfo object will be
+           excluded from the archive.
+        """
+        self._check("awx")
+
+        if arcname is None:
+            arcname = name
+
+        # Skip if somebody tries to archive the archive...
+        if self.name is not None and os.path.abspath(name) == self.name:
+            self._dbg(2, "tarfile: Skipped %r" % name)
+            return
+
+        self._dbg(1, name)
+
+        # Create a TarInfo object from the file.
+        tarinfo = self.gettarinfo(name, arcname)
+
+        if tarinfo is None:
+            self._dbg(1, "tarfile: Unsupported type %r" % name)
+            return
+
+        # Change or exclude the TarInfo object.
+        if filter is not None:
+            tarinfo = filter(tarinfo)
+            if tarinfo is None:
+                self._dbg(2, "tarfile: Excluded %r" % name)
+                return
+
+        # Append the tar header and data to the archive.
+        if tarinfo.isreg():
+            with bltn_open(name, "rb") as f:
+                self.addfile(tarinfo, f)
+
+        elif tarinfo.isdir():
+            self.addfile(tarinfo)
+            if recursive:
+                for f in sorted(os.listdir(name)):
+                    self.add(os.path.join(name, f), os.path.join(arcname, f),
+                            recursive, filter=filter)
+
+        else:
+            self.addfile(tarinfo)
+
+    def addfile(self, tarinfo, fileobj=None):
+        """Add the TarInfo object `tarinfo' to the archive. If `tarinfo' represents
+           a non zero-size regular file, the `fileobj' argument should be a binary file,
+           and tarinfo.size bytes are read from it and added to the archive.
+           You can create TarInfo objects directly, or by using gettarinfo().
+        """
+        self._check("awx")
+
+        if fileobj is None and tarinfo.isreg() and tarinfo.size != 0:
+            raise ValueError("fileobj not provided for non zero-size regular file")
+
+        tarinfo = copy.copy(tarinfo)
+
+        buf = tarinfo.tobuf(self.format, self.encoding, self.errors)
+        self.fileobj.write(buf)
+        self.offset += len(buf)
+        bufsize=self.copybufsize
+        # If there's data to follow, append it.
+        if fileobj is not None:
+            copyfileobj(fileobj, self.fileobj, tarinfo.size, bufsize=bufsize)
+            blocks, remainder = divmod(tarinfo.size, BLOCKSIZE)
+            if remainder > 0:
+                self.fileobj.write(NUL * (BLOCKSIZE - remainder))
+                blocks += 1
+            self.offset += blocks * BLOCKSIZE
+
+        self.members.append(tarinfo)
+
+    def _get_filter_function(self, filter):
+        if filter is None:
+            filter = self.extraction_filter
+            if filter is None:
+                import warnings
+                warnings.warn(
+                    'Python 3.14 will, by default, filter extracted tar '
+                    + 'archives and reject files or modify their metadata. '
+                    + 'Use the filter argument to control this behavior.',
+                    DeprecationWarning, stacklevel=3)
+                return fully_trusted_filter
+            if isinstance(filter, str):
+                raise TypeError(
+                    'String names are not supported for '
+                    + 'TarFile.extraction_filter. Use a function such as '
+                    + 'tarfile.data_filter directly.')
+            return filter
+        if callable(filter):
+            return filter
+        try:
+            return _NAMED_FILTERS[filter]
+        except KeyError:
+            raise ValueError(f"filter {filter!r} not found") from None
+
+    def extractall(self, path=".", members=None, *, numeric_owner=False,
+                   filter=None):
+        """Extract all members from the archive to the current working
+           directory and set owner, modification time and permissions on
+           directories afterwards. `path' specifies a different directory
+           to extract to. `members' is optional and must be a subset of the
+           list returned by getmembers(). If `numeric_owner` is True, only
+           the numbers for user/group names are used and not the names.
+
+           The `filter` function will be called on each member just
+           before extraction.
+           It can return a changed TarInfo or None to skip the member.
+           String names of common filters are accepted.
+        """
+        directories = []
+
+        filter_function = self._get_filter_function(filter)
+        if members is None:
+            members = self
+
+        for member in members:
+            tarinfo, unfiltered = self._get_extract_tarinfo(
+                member, filter_function, path)
+            if tarinfo is None:
+                continue
+            if tarinfo.isdir():
+                # For directories, delay setting attributes until later,
+                # since permissions can interfere with extraction and
+                # extracting contents can reset mtime.
+                directories.append(unfiltered)
+            self._extract_one(tarinfo, path, set_attrs=not tarinfo.isdir(),
+                              numeric_owner=numeric_owner,
+                              filter_function=filter_function)
+
+        # Reverse sort directories.
+        directories.sort(key=lambda a: a.name, reverse=True)
+
+
+        # Set correct owner, mtime and filemode on directories.
+        for unfiltered in directories:
+            try:
+                # Need to re-apply any filter, to take the *current* filesystem
+                # state into account.
+                try:
+                    tarinfo = filter_function(unfiltered, path)
+                except _FILTER_ERRORS as exc:
+                    self._log_no_directory_fixup(unfiltered, repr(exc))
+                    continue
+                if tarinfo is None:
+                    self._log_no_directory_fixup(unfiltered,
+                                                 'excluded by filter')
+                    continue
+                dirpath = os.path.join(path, tarinfo.name)
+                try:
+                    lstat = os.lstat(dirpath)
+                except FileNotFoundError:
+                    self._log_no_directory_fixup(tarinfo, 'missing')
+                    continue
+                if not stat.S_ISDIR(lstat.st_mode):
+                    # This is no longer a directory; presumably a later
+                    # member overwrote the entry.
+                    self._log_no_directory_fixup(tarinfo, 'not a directory')
+                    continue
+                self.chown(tarinfo, dirpath, numeric_owner=numeric_owner)
+                self.utime(tarinfo, dirpath)
+                self.chmod(tarinfo, dirpath)
+            except ExtractError as e:
+                self._handle_nonfatal_error(e)
+
+    def _log_no_directory_fixup(self, member, reason):
+        self._dbg(2, "tarfile: Not fixing up directory %r (%s)" %
+                  (member.name, reason))
+
+    def extract(self, member, path="", set_attrs=True, *, numeric_owner=False,
+                filter=None):
+        """Extract a member from the archive to the current working directory,
+           using its full name. Its file information is extracted as accurately
+           as possible. `member' may be a filename or a TarInfo object. You can
+           specify a different directory using `path'. File attributes (owner,
+           mtime, mode) are set unless `set_attrs' is False. If `numeric_owner`
+           is True, only the numbers for user/group names are used and not
+           the names.
+
+           The `filter` function will be called before extraction.
+           It can return a changed TarInfo or None to skip the member.
+           String names of common filters are accepted.
+        """
+        filter_function = self._get_filter_function(filter)
+        tarinfo, unfiltered = self._get_extract_tarinfo(
+            member, filter_function, path)
+        if tarinfo is not None:
+            self._extract_one(tarinfo, path, set_attrs, numeric_owner)
+
+    def _get_extract_tarinfo(self, member, filter_function, path):
+        """Get (filtered, unfiltered) TarInfos from *member*
+
+        *member* might be a string.
+
+        Return (None, None) if not found.
+        """
+
+        if isinstance(member, str):
+            unfiltered = self.getmember(member)
+        else:
+            unfiltered = member
+
+        filtered = None
+        try:
+            filtered = filter_function(unfiltered, path)
+        except (OSError, UnicodeEncodeError, FilterError) as e:
+            self._handle_fatal_error(e)
+        except ExtractError as e:
+            self._handle_nonfatal_error(e)
+        if filtered is None:
+            self._dbg(2, "tarfile: Excluded %r" % unfiltered.name)
+            return None, None
+
+        # Prepare the link target for makelink().
+        if filtered.islnk():
+            filtered = copy.copy(filtered)
+            filtered._link_target = os.path.join(path, filtered.linkname)
+        return filtered, unfiltered
+
+    def _extract_one(self, tarinfo, path, set_attrs, numeric_owner,
+                     filter_function=None):
+        """Extract from filtered tarinfo to disk.
+
+           filter_function is only used when extracting a *different*
+           member (e.g. as fallback to creating a symlink)
+        """
+        self._check("r")
+
+        try:
+            self._extract_member(tarinfo, os.path.join(path, tarinfo.name),
+                                 set_attrs=set_attrs,
+                                 numeric_owner=numeric_owner,
+                                 filter_function=filter_function,
+                                 extraction_root=path)
+        except (OSError, UnicodeEncodeError) as e:
+            self._handle_fatal_error(e)
+        except ExtractError as e:
+            self._handle_nonfatal_error(e)
+
+    def _handle_nonfatal_error(self, e):
+        """Handle non-fatal error (ExtractError) according to errorlevel"""
+        if self.errorlevel > 1:
+            raise
+        else:
+            self._dbg(1, "tarfile: %s" % e)
+
+    def _handle_fatal_error(self, e):
+        """Handle "fatal" error according to self.errorlevel"""
+        if self.errorlevel > 0:
+            raise
+        elif isinstance(e, OSError):
+            if e.filename is None:
+                self._dbg(1, "tarfile: %s" % e.strerror)
+            else:
+                self._dbg(1, "tarfile: %s %r" % (e.strerror, e.filename))
+        else:
+            self._dbg(1, "tarfile: %s %s" % (type(e).__name__, e))
+
+    def extractfile(self, member):
+        """Extract a member from the archive as a file object. `member' may be
+           a filename or a TarInfo object. If `member' is a regular file or
+           a link, an io.BufferedReader object is returned. For all other
+           existing members, None is returned. If `member' does not appear
+           in the archive, KeyError is raised.
+        """
+        self._check("r")
+
+        if isinstance(member, str):
+            tarinfo = self.getmember(member)
+        else:
+            tarinfo = member
+
+        if tarinfo.isreg() or tarinfo.type not in SUPPORTED_TYPES:
+            # Members with unknown types are treated as regular files.
+            return self.fileobject(self, tarinfo)
+
+        elif tarinfo.islnk() or tarinfo.issym():
+            if isinstance(self.fileobj, _Stream):
+                # A small but ugly workaround for the case that someone tries
+                # to extract a (sym)link as a file-object from a non-seekable
+                # stream of tar blocks.
+                raise StreamError("cannot extract (sym)link as file object")
+            else:
+                # A (sym)link's file object is its target's file object.
+                return self.extractfile(self._find_link_target(tarinfo))
+        else:
+            # If there's no data associated with the member (directory, chrdev,
+            # blkdev, etc.), return None instead of a file object.
+            return None
+
+    def _extract_member(self, tarinfo, targetpath, set_attrs=True,
+                        numeric_owner=False, *, filter_function=None,
+                        extraction_root=None):
+        """Extract the filtered TarInfo object tarinfo to a physical
+           file called targetpath.
+
+           filter_function is only used when extracting a *different*
+           member (e.g. as fallback to creating a symlink)
+        """
+        # Fetch the TarInfo object for the given name
+        # and build the destination pathname, replacing
+        # forward slashes to platform specific separators.
+        targetpath = targetpath.rstrip("/")
+        targetpath = targetpath.replace("/", os.sep)
+
+        # Create all upper directories.
+        upperdirs = os.path.dirname(targetpath)
+        if upperdirs and not os.path.exists(upperdirs):
+            # Create directories that are not part of the archive with
+            # default permissions.
+            os.makedirs(upperdirs, exist_ok=True)
+
+        if tarinfo.islnk() or tarinfo.issym():
+            self._dbg(1, "%s -> %s" % (tarinfo.name, tarinfo.linkname))
+        else:
+            self._dbg(1, tarinfo.name)
+
+        if tarinfo.isreg():
+            self.makefile(tarinfo, targetpath)
+        elif tarinfo.isdir():
+            self.makedir(tarinfo, targetpath)
+        elif tarinfo.isfifo():
+            self.makefifo(tarinfo, targetpath)
+        elif tarinfo.ischr() or tarinfo.isblk():
+            self.makedev(tarinfo, targetpath)
+        elif tarinfo.islnk() or tarinfo.issym():
+            self.makelink_with_filter(
+                tarinfo, targetpath,
+                filter_function=filter_function,
+                extraction_root=extraction_root)
+        elif tarinfo.type not in SUPPORTED_TYPES:
+            self.makeunknown(tarinfo, targetpath)
+        else:
+            self.makefile(tarinfo, targetpath)
+
+        if set_attrs:
+            self.chown(tarinfo, targetpath, numeric_owner)
+            if not tarinfo.issym():
+                self.chmod(tarinfo, targetpath)
+                self.utime(tarinfo, targetpath)
+
+    #--------------------------------------------------------------------------
+    # Below are the different file methods. They are called via
+    # _extract_member() when extract() is called. They can be replaced in a
+    # subclass to implement other functionality.
+
+    def makedir(self, tarinfo, targetpath):
+        """Make a directory called targetpath.
+        """
+        try:
+            if tarinfo.mode is None:
+                # Use the system's default mode
+                os.mkdir(targetpath)
+            else:
+                # Use a safe mode for the directory, the real mode is set
+                # later in _extract_member().
+                os.mkdir(targetpath, 0o700)
+        except FileExistsError:
+            if not os.path.isdir(targetpath):
+                raise
+
+    def makefile(self, tarinfo, targetpath):
+        """Make a file called targetpath.
+        """
+        source = self.fileobj
+        source.seek(tarinfo.offset_data)
+        bufsize = self.copybufsize
+        with bltn_open(targetpath, "wb") as target:
+            if tarinfo.sparse is not None:
+                for offset, size in tarinfo.sparse:
+                    target.seek(offset)
+                    copyfileobj(source, target, size, ReadError, bufsize)
+                target.seek(tarinfo.size)
+                target.truncate()
+            else:
+                copyfileobj(source, target, tarinfo.size, ReadError, bufsize)
+
+    def makeunknown(self, tarinfo, targetpath):
+        """Make a file from a TarInfo object with an unknown type
+           at targetpath.
+        """
+        self.makefile(tarinfo, targetpath)
+        self._dbg(1, "tarfile: Unknown file type %r, " \
+                     "extracted as regular file." % tarinfo.type)
+
+    def makefifo(self, tarinfo, targetpath):
+        """Make a fifo called targetpath.
+        """
+        if hasattr(os, "mkfifo"):
+            os.mkfifo(targetpath)
+        else:
+            raise ExtractError("fifo not supported by system")
+
+    def makedev(self, tarinfo, targetpath):
+        """Make a character or block device called targetpath.
+        """
+        if not hasattr(os, "mknod") or not hasattr(os, "makedev"):
+            raise ExtractError("special devices not supported by system")
+
+        mode = tarinfo.mode
+        if mode is None:
+            # Use mknod's default
+            mode = 0o600
+        if tarinfo.isblk():
+            mode |= stat.S_IFBLK
+        else:
+            mode |= stat.S_IFCHR
+
+        os.mknod(targetpath, mode,
+                 os.makedev(tarinfo.devmajor, tarinfo.devminor))
+
+    def makelink(self, tarinfo, targetpath):
+        return self.makelink_with_filter(tarinfo, targetpath, None, None)
+
+    def makelink_with_filter(self, tarinfo, targetpath,
+                             filter_function, extraction_root):
+        """Make a (symbolic) link called targetpath. If it cannot be created
+          (platform limitation), we try to make a copy of the referenced file
+          instead of a link.
+
+          filter_function is only used when extracting a *different*
+          member (e.g. as fallback to creating a link).
+        """
+        keyerror_to_extracterror = False
+        try:
+            # For systems that support symbolic and hard links.
+            if tarinfo.issym():
+                if os.path.lexists(targetpath):
+                    # Avoid FileExistsError on following os.symlink.
+                    os.unlink(targetpath)
+                os.symlink(tarinfo.linkname, targetpath)
+                return
+            else:
+                if os.path.exists(tarinfo._link_target):
+                    os.link(tarinfo._link_target, targetpath)
+                    return
+        except symlink_exception:
+            keyerror_to_extracterror = True
+
+        try:
+            unfiltered = self._find_link_target(tarinfo)
+        except KeyError:
+            if keyerror_to_extracterror:
+                raise ExtractError(
+                    "unable to resolve link inside archive") from None
+            else:
+                raise
+
+        if filter_function is None:
+            filtered = unfiltered
+        else:
+            if extraction_root is None:
+                raise ExtractError(
+                    "makelink_with_filter: if filter_function is not None, "
+                    + "extraction_root must also not be None")
+            try:
+                filtered = filter_function(unfiltered, extraction_root)
+            except _FILTER_ERRORS as cause:
+                raise LinkFallbackError(tarinfo, unfiltered.name) from cause
+        if filtered is not None:
+            self._extract_member(filtered, targetpath,
+                                 filter_function=filter_function,
+                                 extraction_root=extraction_root)
+
+    def chown(self, tarinfo, targetpath, numeric_owner):
+        """Set owner of targetpath according to tarinfo. If numeric_owner
+           is True, use .gid/.uid instead of .gname/.uname. If numeric_owner
+           is False, fall back to .gid/.uid when the search based on name
+           fails.
+        """
+        if hasattr(os, "geteuid") and os.geteuid() == 0:
+            # We have to be root to do so.
+            g = tarinfo.gid
+            u = tarinfo.uid
+            if not numeric_owner:
+                try:
+                    if grp and tarinfo.gname:
+                        g = grp.getgrnam(tarinfo.gname)[2]
+                except KeyError:
+                    pass
+                try:
+                    if pwd and tarinfo.uname:
+                        u = pwd.getpwnam(tarinfo.uname)[2]
+                except KeyError:
+                    pass
+            if g is None:
+                g = -1
+            if u is None:
+                u = -1
+            try:
+                if tarinfo.issym() and hasattr(os, "lchown"):
+                    os.lchown(targetpath, u, g)
+                else:
+                    os.chown(targetpath, u, g)
+            except (OSError, OverflowError) as e:
+                # OverflowError can be raised if an ID doesn't fit in `id_t`
+                raise ExtractError("could not change owner") from e
+
+    def chmod(self, tarinfo, targetpath):
+        """Set file permissions of targetpath according to tarinfo.
+        """
+        if tarinfo.mode is None:
+            return
+        try:
+            os.chmod(targetpath, tarinfo.mode)
+        except OSError as e:
+            raise ExtractError("could not change mode") from e
+
+    def utime(self, tarinfo, targetpath):
+        """Set modification time of targetpath according to tarinfo.
+        """
+        mtime = tarinfo.mtime
+        if mtime is None:
+            return
+        if not hasattr(os, 'utime'):
+            return
+        try:
+            os.utime(targetpath, (mtime, mtime))
+        except OSError as e:
+            raise ExtractError("could not change modification time") from e
+
+    #--------------------------------------------------------------------------
+    def next(self):
+        """Return the next member of the archive as a TarInfo object, when
+           TarFile is opened for reading. Return None if there is no more
+           available.
+        """
+        self._check("ra")
+        if self.firstmember is not None:
+            m = self.firstmember
+            self.firstmember = None
+            return m
+
+        # Advance the file pointer.
+        if self.offset != self.fileobj.tell():
+            if self.offset == 0:
+                return None
+            self.fileobj.seek(self.offset - 1)
+            if not self.fileobj.read(1):
+                raise ReadError("unexpected end of data")
+
+        # Read the next block.
+        tarinfo = None
+        while True:
+            try:
+                tarinfo = self.tarinfo.fromtarfile(self)
+            except EOFHeaderError as e:
+                if self.ignore_zeros:
+                    self._dbg(2, "0x%X: %s" % (self.offset, e))
+                    self.offset += BLOCKSIZE
+                    continue
+            except InvalidHeaderError as e:
+                if self.ignore_zeros:
+                    self._dbg(2, "0x%X: %s" % (self.offset, e))
+                    self.offset += BLOCKSIZE
+                    continue
+                elif self.offset == 0:
+                    raise ReadError(str(e)) from None
+            except EmptyHeaderError:
+                if self.offset == 0:
+                    raise ReadError("empty file") from None
+            except TruncatedHeaderError as e:
+                if self.offset == 0:
+                    raise ReadError(str(e)) from None
+            except SubsequentHeaderError as e:
+                raise ReadError(str(e)) from None
+            except Exception as e:
+                try:
+                    import zlib
+                    if isinstance(e, zlib.error):
+                        raise ReadError(f'zlib error: {e}') from None
+                    else:
+                        raise e
+                except ImportError:
+                    raise e
+            break
+
+        if tarinfo is not None:
+            # if streaming the file we do not want to cache the tarinfo
+            if not self.stream:
+                self.members.append(tarinfo)
+        else:
+            self._loaded = True
+
+        return tarinfo
+
+    #--------------------------------------------------------------------------
+    # Little helper methods:
+
+    def _getmember(self, name, tarinfo=None, normalize=False):
+        """Find an archive member by name from bottom to top.
+           If tarinfo is given, it is used as the starting point.
+        """
+        # Ensure that all members have been loaded.
+        members = self.getmembers()
+
+        # Limit the member search list up to tarinfo.
+        skipping = False
+        if tarinfo is not None:
+            try:
+                index = members.index(tarinfo)
+            except ValueError:
+                # The given starting point might be a (modified) copy.
+                # We'll later skip members until we find an equivalent.
+                skipping = True
+            else:
+                # Happy fast path
+                members = members[:index]
+
+        if normalize:
+            name = os.path.normpath(name)
+
+        for member in reversed(members):
+            if skipping:
+                if tarinfo.offset == member.offset:
+                    skipping = False
+                continue
+            if normalize:
+                member_name = os.path.normpath(member.name)
+            else:
+                member_name = member.name
+
+            if name == member_name:
+                return member
+
+        if skipping:
+            # Starting point was not found
+            raise ValueError(tarinfo)
+
+    def _load(self):
+        """Read through the entire archive file and look for readable
+           members. This should not run if the file is set to stream.
+        """
+        if not self.stream:
+            while self.next() is not None:
+                pass
+            self._loaded = True
+
+    def _check(self, mode=None):
+        """Check if TarFile is still open, and if the operation's mode
+           corresponds to TarFile's mode.
+        """
+        if self.closed:
+            raise OSError("%s is closed" % self.__class__.__name__)
+        if mode is not None and self.mode not in mode:
+            raise OSError("bad operation for mode %r" % self.mode)
+
+    def _find_link_target(self, tarinfo):
+        """Find the target member of a symlink or hardlink member in the
+           archive.
+        """
+        if tarinfo.issym():
+            # Always search the entire archive.
+            linkname = "/".join(filter(None, (os.path.dirname(tarinfo.name), tarinfo.linkname)))
+            limit = None
+        else:
+            # Search the archive before the link, because a hard link is
+            # just a reference to an already archived file.
+            linkname = tarinfo.linkname
+            limit = tarinfo
+
+        member = self._getmember(linkname, tarinfo=limit, normalize=True)
+        if member is None:
+            raise KeyError("linkname %r not found" % linkname)
+        return member
+
+    def __iter__(self):
+        """Provide an iterator object.
+        """
+        if self._loaded:
+            yield from self.members
+            return
+
+        # Yield items using TarFile's next() method.
+        # When all members have been read, set TarFile as _loaded.
+        index = 0
+        # Fix for SF #1100429: Under rare circumstances it can
+        # happen that getmembers() is called during iteration,
+        # which will have already exhausted the next() method.
+        if self.firstmember is not None:
+            tarinfo = self.next()
+            index += 1
+            yield tarinfo
+
+        while True:
+            if index < len(self.members):
+                tarinfo = self.members[index]
+            elif not self._loaded:
+                tarinfo = self.next()
+                if not tarinfo:
+                    self._loaded = True
+                    return
+            else:
+                return
+            index += 1
+            yield tarinfo
+
+    def _dbg(self, level, msg):
+        """Write debugging output to sys.stderr.
+        """
+        if level <= self.debug:
+            print(msg, file=sys.stderr)
+
+    def __enter__(self):
+        self._check()
+        return self
+
+    def __exit__(self, type, value, traceback):
+        if type is None:
+            self.close()
+        else:
+            # An exception occurred. We must not call close() because
+            # it would try to write end-of-archive blocks and padding.
+            if not self._extfileobj:
+                self.fileobj.close()
+            self.closed = True
+
+#--------------------
+# exported functions
+#--------------------
+
+def is_tarfile(name):
+    """Return True if name points to a tar archive that we
+       are able to handle, else return False.
+
+       'name' should be a string, file, or file-like object.
+    """
+    try:
+        if hasattr(name, "read"):
+            pos = name.tell()
+            t = open(fileobj=name)
+            name.seek(pos)
+        else:
+            t = open(name)
+        t.close()
+        return True
+    except TarError:
+        return False
+
+open = TarFile.open
+
+
+def main():
+    import argparse
+
+    description = 'A simple command-line interface for tarfile module.'
+    parser = argparse.ArgumentParser(description=description)
+    parser.add_argument('-v', '--verbose', action='store_true', default=False,
+                        help='Verbose output')
+    parser.add_argument('--filter', metavar='<filtername>',
+                        choices=_NAMED_FILTERS,
+                        help='Filter for extraction')
+
+    group = parser.add_mutually_exclusive_group(required=True)
+    group.add_argument('-l', '--list', metavar='<tarfile>',
+                       help='Show listing of a tarfile')
+    group.add_argument('-e', '--extract', nargs='+',
+                       metavar=('<tarfile>', '<output_dir>'),
+                       help='Extract tarfile into target dir')
+    group.add_argument('-c', '--create', nargs='+',
+                       metavar=('<name>', '<file>'),
+                       help='Create tarfile from sources')
+    group.add_argument('-t', '--test', metavar='<tarfile>',
+                       help='Test if a tarfile is valid')
+
+    args = parser.parse_args()
+
+    if args.filter and args.extract is None:
+        parser.exit(1, '--filter is only valid for extraction\n')
+
+    if args.test is not None:
+        src = args.test
+        if is_tarfile(src):
+            with open(src, 'r') as tar:
+                tar.getmembers()
+                print(tar.getmembers(), file=sys.stderr)
+            if args.verbose:
+                print('{!r} is a tar archive.'.format(src))
+        else:
+            parser.exit(1, '{!r} is not a tar archive.\n'.format(src))
+
+    elif args.list is not None:
+        src = args.list
+        if is_tarfile(src):
+            with TarFile.open(src, 'r:*') as tf:
+                tf.list(verbose=args.verbose)
+        else:
+            parser.exit(1, '{!r} is not a tar archive.\n'.format(src))
+
+    elif args.extract is not None:
+        if len(args.extract) == 1:
+            src = args.extract[0]
+            curdir = os.curdir
+        elif len(args.extract) == 2:
+            src, curdir = args.extract
+        else:
+            parser.exit(1, parser.format_help())
+
+        if is_tarfile(src):
+            with TarFile.open(src, 'r:*') as tf:
+                tf.extractall(path=curdir, filter=args.filter)
+            if args.verbose:
+                if curdir == '.':
+                    msg = '{!r} file is extracted.'.format(src)
+                else:
+                    msg = ('{!r} file is extracted '
+                           'into {!r} directory.').format(src, curdir)
+                print(msg)
+        else:
+            parser.exit(1, '{!r} is not a tar archive.\n'.format(src))
+
+    elif args.create is not None:
+        tar_name = args.create.pop(0)
+        _, ext = os.path.splitext(tar_name)
+        compressions = {
+            # gz
+            '.gz': 'gz',
+            '.tgz': 'gz',
+            # xz
+            '.xz': 'xz',
+            '.txz': 'xz',
+            # bz2
+            '.bz2': 'bz2',
+            '.tbz': 'bz2',
+            '.tbz2': 'bz2',
+            '.tb2': 'bz2',
+        }
+        tar_mode = 'w:' + compressions[ext] if ext in compressions else 'w'
+        tar_files = args.create
+
+        with TarFile.open(tar_name, tar_mode) as tf:
+            for file_name in tar_files:
+                tf.add(file_name)
+
+        if args.verbose:
+            print('{!r} file created.'.format(tar_name))
+
+if __name__ == '__main__':
+    main()
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               """Temporary files.
+
+This module provides generic, low- and high-level interfaces for
+creating temporary files and directories.  All of the interfaces
+provided by this module can be used without fear of race conditions
+except for 'mktemp'.  'mktemp' is subject to race conditions and
+should not be used; it is provided for backward compatibility only.
+
+The default path names are returned as str.  If you supply bytes as
+input, all return values will be in bytes.  Ex:
+
+    >>> tempfile.mkstemp()
+    (4, '/tmp/tmptpu9nin8')
+    >>> tempfile.mkdtemp(suffix=b'')
+    b'/tmp/tmppbi8f0hy'
+
+This module also provides some data items to the user:
+
+  TMP_MAX  - maximum number of names that will be tried before
+             giving up.
+  tempdir  - If this is set to a string before the first use of
+             any routine from this module, it will be considered as
+             another candidate location to store temporary files.
+"""
+
+__all__ = [
+    "NamedTemporaryFile", "TemporaryFile", # high level safe interfaces
+    "SpooledTemporaryFile", "TemporaryDirectory",
+    "mkstemp", "mkdtemp",                  # low level safe interfaces
+    "mktemp",                              # deprecated unsafe interface
+    "TMP_MAX", "gettempprefix",            # constants
+    "tempdir", "gettempdir",
+    "gettempprefixb", "gettempdirb",
+   ]
+
+
+# Imports.
+
+import functools as _functools
+import warnings as _warnings
+import io as _io
+import os as _os
+try:
+  import shutil as _shutil
+  _rmtree = _shutil.rmtree
+except ImportError:
+  import sys as _sys
+  import stat as _stat
+
+  # version vulnerable to race conditions
+  def _rmtree_unsafe(path, onexc):
+      def onerror(err):
+          if not isinstance(err, FileNotFoundError):
+              onexc(os.scandir, err.filename, err)
+      results = os.walk(path, topdown=False, onerror=onerror, followlinks=os._walk_symlinks_as_files)
+      for dirpath, dirnames, filenames in results:
+          for name in dirnames:
+              fullname = os.path.join(dirpath, name)
+              try:
+                  os.rmdir(fullname)
+              except FileNotFoundError:
+                  continue
+              except OSError as err:
+                  onexc(os.rmdir, fullname, err)
+          for name in filenames:
+              fullname = os.path.join(dirpath, name)
+              try:
+                  os.unlink(fullname)
+              except FileNotFoundError:
+                  continue
+              except OSError as err:
+                  onexc(os.unlink, fullname, err)
+      try:
+          os.rmdir(path)
+      except FileNotFoundError:
+          pass
+      except OSError as err:
+          onexc(os.rmdir, path, err)
+
+  # Version using fd-based APIs to protect against races
+  def _rmtree_safe_fd(stack, onexc):
+      # Each stack item has four elements:
+      # * func: The first operation to perform: os.lstat, os.close or os.rmdir.
+      #   Walking a directory starts with an os.lstat() to detect symlinks; in
+      #   this case, func is updated before subsequent operations and passed to
+      #   onexc() if an error occurs.
+      # * dirfd: Open file descriptor, or None if we're processing the top-level
+      #   directory given to rmtree() and the user didn't supply dir_fd.
+      # * path: Path of file to operate upon. This is passed to onexc() if an
+      #   error occurs.
+      # * orig_entry: os.DirEntry, or None if we're processing the top-level
+      #   directory given to rmtree(). We used the cached stat() of the entry to
+      #   save a call to os.lstat() when walking subdirectories.
+      func, dirfd, path, orig_entry = stack.pop()
+      name = path if orig_entry is None else orig_entry.name
+      try:
+          if func is os.close:
+              os.close(dirfd)
+              return
+          if func is os.rmdir:
+              os.rmdir(name, dir_fd=dirfd)
+              return
+
+          # Note: To guard against symlink races, we use the standard
+          # lstat()/open()/fstat() trick.
+          assert func is os.lstat
+          if orig_entry is None:
+              orig_st = os.lstat(name, dir_fd=dirfd)
+          else:
+              orig_st = orig_entry.stat(follow_symlinks=False)
+
+          func = os.open  # For error reporting.
+          topfd = os.open(name, os.O_RDONLY | os.O_NONBLOCK, dir_fd=dirfd)
+
+          func = os.path.islink  # For error reporting.
+          try:
+              if not os.path.samestat(orig_st, os.fstat(topfd)):
+                  # Symlinks to directories are forbidden, see GH-46010.
+                  raise OSError("Cannot call rmtree on a symbolic link")
+              stack.append((os.rmdir, dirfd, path, orig_entry))
+          finally:
+              stack.append((os.close, topfd, path, orig_entry))
+
+          func = os.scandir  # For error reporting.
+          with os.scandir(topfd) as scandir_it:
+              entries = list(scandir_it)
+          for entry in entries:
+              fullname = os.path.join(path, entry.name)
+              try:
+                  if entry.is_dir(follow_symlinks=False):
+                      # Traverse into sub-directory.
+                      stack.append((os.lstat, topfd, fullname, entry))
+                      continue
+              except FileNotFoundError:
+                  continue
+              except OSError:
+                  pass
+              try:
+                  os.unlink(entry.name, dir_fd=topfd)
+              except FileNotFoundError:
+                  continue
+              except OSError as err:
+                  onexc(os.unlink, fullname, err)
+      except FileNotFoundError as err:
+          if orig_entry is None or func is os.close:
+              err.filename = path
+              onexc(func, path, err)
+      except OSError as err:
+          err.filename = path
+          onexc(func, path, err)
+
+  _use_fd_functions = ({os.open, os.stat, os.unlink, os.rmdir} <=
+                       os.supports_dir_fd and
+                       os.scandir in os.supports_fd and
+                       os.stat in os.supports_follow_symlinks)
+
+  def _rmtree(path, ignore_errors=False, onerror=None, *, onexc=None, dir_fd=None):
+      """Recursively delete a directory tree.
+
+      If dir_fd is not None, it should be a file descriptor open to a directory;
+      path will then be relative to that directory.
+      dir_fd may not be implemented on your platform.
+      If it is unavailable, using it will raise a NotImplementedError.
+
+      If ignore_errors is set, errors are ignored; otherwise, if onexc or
+      onerror is set, it is called to handle the error with arguments (func,
+      path, exc_info) where func is platform and implementation dependent;
+      path is the argument to that function that caused it to fail; and
+      the value of exc_info describes the exception. For onexc it is the
+      exception instance, and for onerror it is a tuple as returned by
+      sys.exc_info().  If ignore_errors is false and both onexc and
+      onerror are None, the exception is reraised.
+
+      onerror is deprecated and only remains for backwards compatibility.
+      If both onerror and onexc are set, onerror is ignored and onexc is used.
+      """
+
+      sys.audit("tempfile._rmtree", path, dir_fd)
+      if ignore_errors:
+          def onexc(*args):
+              pass
+      elif onerror is None and onexc is None:
+          def onexc(*args):
+              raise
+      elif onexc is None:
+          if onerror is None:
+              def onexc(*args):
+                  raise
+          else:
+              # delegate to onerror
+              def onexc(*args):
+                  func, path, exc = args
+                  if exc is None:
+                      exc_info = None, None, None
+                  else:
+                      exc_info = type(exc), exc, exc.__traceback__
+                  return onerror(func, path, exc_info)
+
+      if _use_fd_functions:
+          # While the unsafe rmtree works fine on bytes, the fd based does not.
+          if isinstance(path, bytes):
+              path = os.fsdecode(path)
+          stack = [(os.lstat, dir_fd, path, None)]
+          try:
+              while stack:
+                  _rmtree_safe_fd(stack, onexc)
+          finally:
+              # Close any file descriptors still on the stack.
+              while stack:
+                  func, fd, path, entry = stack.pop()
+                  if func is not os.close:
+                      continue
+                  try:
+                      os.close(fd)
+                  except OSError as err:
+                      onexc(os.close, path, err)
+      else:
+          if dir_fd is not None:
+              raise NotImplementedError("dir_fd unavailable on this platform")
+          try:
+              st = os.lstat(path)
+          except OSError as err:
+              onexc(os.lstat, path, err)
+              return
+          try:
+              if _rmtree_islink(st):
+                  # symlinks to directories are forbidden, see bug #1669
+                  raise OSError("Cannot call rmtree on a symbolic link")
+          except OSError as err:
+              onexc(os.path.islink, path, err)
+              # can't continue even if onexc hook returns
+              return
+          return _rmtree_unsafe(path, onexc)
+
+import errno as _errno
+from random import Random as _Random
+import sys as _sys
+import types as _types
+import weakref as _weakref
+import _thread
+_allocate_lock = _thread.allocate_lock
+
+_text_openflags = _os.O_RDWR | _os.O_CREAT | _os.O_EXCL
+if hasattr(_os, 'O_NOFOLLOW'):
+    _text_openflags |= _os.O_NOFOLLOW
+
+_bin_openflags = _text_openflags
+if hasattr(_os, 'O_BINARY'):
+    _bin_openflags |= _os.O_BINARY
+
+if hasattr(_os, 'TMP_MAX'):
+    TMP_MAX = _os.TMP_MAX
+else:
+    TMP_MAX = 10000
+
+# This variable _was_ unused for legacy reasons, see issue 10354.
+# But as of 3.5 we actually use it at runtime so changing it would
+# have a possibly desirable side effect...  But we do not want to support
+# that as an API.  It is undocumented on purpose.  Do not depend on this.
+template = "tmp"
+
+# Internal routines.
+
+_once_lock = _allocate_lock()
+
+
+def _exists(fn):
+    try:
+        _os.lstat(fn)
+    except OSError:
+        return False
+    else:
+        return True
+
+
+def _infer_return_type(*args):
+    """Look at the type of all args and divine their implied return type."""
+    return_type = None
+    for arg in args:
+        if arg is None:
+            continue
+
+        if isinstance(arg, _os.PathLike):
+            arg = _os.fspath(arg)
+
+        if isinstance(arg, bytes):
+            if return_type is str:
+                raise TypeError("Can't mix bytes and non-bytes in "
+                                "path components.")
+            return_type = bytes
+        else:
+            if return_type is bytes:
+                raise TypeError("Can't mix bytes and non-bytes in "
+                                "path components.")
+            return_type = str
+    if return_type is None:
+        if tempdir is None or isinstance(tempdir, str):
+            return str  # tempfile APIs return a str by default.
+        else:
+            # we could check for bytes but it'll fail later on anyway
+            return bytes
+    return return_type
+
+
+def _sanitize_params(prefix, suffix, dir):
+    """Common parameter processing for most APIs in this module."""
+    output_type = _infer_return_type(prefix, suffix, dir)
+    if suffix is None:
+        suffix = output_type()
+    if prefix is None:
+        if output_type is str:
+            prefix = template
+        else:
+            prefix = _os.fsencode(template)
+    if dir is None:
+        if output_type is str:
+            dir = gettempdir()
+        else:
+            dir = gettempdirb()
+    return prefix, suffix, dir, output_type
+
+
+class _RandomNameSequence:
+    """An instance of _RandomNameSequence generates an endless
+    sequence of unpredictable strings which can safely be incorporated
+    into file names.  Each string is eight characters long.  Multiple
+    threads can safely use the same instance at the same time.
+
+    _RandomNameSequence is an iterator."""
+
+    characters = "abcdefghijklmnopqrstuvwxyz0123456789_"
+
+    @property
+    def rng(self):
+        cur_pid = _os.getpid()
+        if cur_pid != getattr(self, '_rng_pid', None):
+            self._rng = _Random()
+            self._rng_pid = cur_pid
+        return self._rng
+
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        return ''.join(self.rng.choices(self.characters, k=8))
+
+def _candidate_tempdir_list():
+    """Generate a list of candidate temporary directories which
+    _get_default_tempdir will try."""
+
+    dirlist = []
+
+    # First, try the environment.
+    for envname in 'TMPDIR', 'TEMP', 'TMP':
+        dirname = _os.getenv(envname)
+        if dirname: dirlist.append(dirname)
+
+    # Failing that, try OS-specific locations.
+    if _os.name == 'nt':
+        dirlist.extend([ _os.path.expanduser(r'~\AppData\Local\Temp'),
+                         _os.path.expandvars(r'%SYSTEMROOT%\Temp'),
+                         r'c:\temp', r'c:\tmp', r'\temp', r'\tmp' ])
+    else:
+        dirlist.extend([ '/tmp', '/var/tmp', '/usr/tmp' ])
+
+    # As a last resort, the current directory.
+    try:
+        dirlist.append(_os.getcwd())
+    except (AttributeError, OSError):
+        dirlist.append(_os.curdir)
+
+    return dirlist
+
+def _get_default_tempdir():
+    """Calculate the default directory to use for temporary files.
+    This routine should be called exactly once.
+
+    We determine whether or not a candidate temp dir is usable by
+    trying to create and write to a file in that directory.  If this
+    is successful, the test file is deleted.  To prevent denial of
+    service, the name of the test file must be randomized."""
+
+    namer = _RandomNameSequence()
+    dirlist = _candidate_tempdir_list()
+
+    for dir in dirlist:
+        if dir != _os.curdir:
+            dir = _os.path.abspath(dir)
+        # Try only a few names per directory.
+        for seq in range(100):
+            name = next(namer)
+            filename = _os.path.join(dir, name)
+            try:
+                fd = _os.open(filename, _bin_openflags, 0o600)
+                try:
+                    try:
+                        _os.write(fd, b'blat')
+                    finally:
+                        _os.close(fd)
+                finally:
+                    _os.unlink(filename)
+                return dir
+            except FileExistsError:
+                pass
+            except PermissionError:
+                # This exception is thrown when a directory with the chosen name
+                # already exists on windows.
+                if (_os.name == 'nt' and _os.path.isdir(dir) and
+                    _os.access(dir, _os.W_OK)):
+                    continue
+                break   # no point trying more names in this directory
+            except OSError:
+                break   # no point trying more names in this directory
+    raise FileNotFoundError(_errno.ENOENT,
+                            "No usable temporary directory found in %s" %
+                            dirlist)
+
+_name_sequence = None
+
+def _get_candidate_names():
+    """Common setup sequence for all user-callable interfaces."""
+
+    global _name_sequence
+    if _name_sequence is None:
+        _once_lock.acquire()
+        try:
+            if _name_sequence is None:
+                _name_sequence = _RandomNameSequence()
+        finally:
+            _once_lock.release()
+    return _name_sequence
+
+
+def _mkstemp_inner(dir, pre, suf, flags, output_type):
+    """Code common to mkstemp, TemporaryFile, and NamedTemporaryFile."""
+
+    dir = _os.path.abspath(dir)
+    names = _get_candidate_names()
+    if output_type is bytes:
+        names = map(_os.fsencode, names)
+
+    for seq in range(TMP_MAX):
+        name = next(names)
+        file = _os.path.join(dir, pre + name + suf)
+        _sys.audit("tempfile.mkstemp", file)
+        try:
+            fd = _os.open(file, flags, 0o600)
+        except FileExistsError:
+            continue    # try again
+        except PermissionError:
+            # This exception is thrown when a directory with the chosen name
+            # already exists on windows.
+            if (_os.name == 'nt' and _os.path.isdir(dir) and
+                _os.access(dir, _os.W_OK)):
+                continue
+            else:
+                raise
+        return fd, file
+
+    raise FileExistsError(_errno.EEXIST,
+                          "No usable temporary file name found")
+
+def _dont_follow_symlinks(func, path, *args):
+    # Pass follow_symlinks=False, unless not supported on this platform.
+    if func in _os.supports_follow_symlinks:
+        func(path, *args, follow_symlinks=False)
+    elif not _os.path.islink(path):
+        func(path, *args)
+
+def _resetperms(path):
+    try:
+        chflags = _os.chflags
+    except AttributeError:
+        pass
+    else:
+        _dont_follow_symlinks(chflags, path, 0)
+    _dont_follow_symlinks(_os.chmod, path, 0o700)
+
+
+# User visible interfaces.
+
+def gettempprefix():
+    """The default prefix for temporary directories as string."""
+    return _os.fsdecode(template)
+
+def gettempprefixb():
+    """The default prefix for temporary directories as bytes."""
+    return _os.fsencode(template)
+
+tempdir = None
+
+def _gettempdir():
+    """Private accessor for tempfile.tempdir."""
+    global tempdir
+    if tempdir is None:
+        _once_lock.acquire()
+        try:
+            if tempdir is None:
+                tempdir = _get_default_tempdir()
+        finally:
+            _once_lock.release()
+    return tempdir
+
+def gettempdir():
+    """Returns tempfile.tempdir as str."""
+    return _os.fsdecode(_gettempdir())
+
+def gettempdirb():
+    """Returns tempfile.tempdir as bytes."""
+    return _os.fsencode(_gettempdir())
+
+def mkstemp(suffix=None, prefix=None, dir=None, text=False):
+    """User-callable function to create and return a unique temporary
+    file.  The return value is a pair (fd, name) where fd is the
+    file descriptor returned by os.open, and name is the filename.
+
+    If 'suffix' is not None, the file name will end with that suffix,
+    otherwise there will be no suffix.
+
+    If 'prefix' is not None, the file name will begin with that prefix,
+    otherwise a default prefix is used.
+
+    If 'dir' is not None, the file will be created in that directory,
+    otherwise a default directory is used.
+
+    If 'text' is specified and true, the file is opened in text
+    mode.  Else (the default) the file is opened in binary mode.
+
+    If any of 'suffix', 'prefix' and 'dir' are not None, they must be the
+    same type.  If they are bytes, the returned name will be bytes; str
+    otherwise.
+
+    The file is readable and writable only by the creating user ID.
+    If the operating system uses permission bits to indicate whether a
+    file is executable, the file is executable by no one. The file
+    descriptor is not inherited by children of this process.
+
+    Caller is responsible for deleting the file when done with it.
+    """
+
+    prefix, suffix, dir, output_type = _sanitize_params(prefix, suffix, dir)
+
+    if text:
+        flags = _text_openflags
+    else:
+        flags = _bin_openflags
+
+    return _mkstemp_inner(dir, prefix, suffix, flags, output_type)
+
+
+def mkdtemp(suffix=None, prefix=None, dir=None):
+    """User-callable function to create and return a unique temporary
+    directory.  The return value is the pathname of the directory.
+
+    Arguments are as for mkstemp, except that the 'text' argument is
+    not accepted.
+
+    The directory is readable, writable, and searchable only by the
+    creating user.
+
+    Caller is responsible for deleting the directory when done with it.
+    """
+
+    prefix, suffix, dir, output_type = _sanitize_params(prefix, suffix, dir)
+
+    names = _get_candidate_names()
+    if output_type is bytes:
+        names = map(_os.fsencode, names)
+
+    for seq in range(TMP_MAX):
+        name = next(names)
+        file = _os.path.join(dir, prefix + name + suffix)
+        _sys.audit("tempfile.mkdtemp", file)
+        try:
+            _os.mkdir(file, 0o700)
+        except FileExistsError:
+            continue    # try again
+        except PermissionError:
+            # This exception is thrown when a directory with the chosen name
+            # already exists on windows.
+            if (_os.name == 'nt' and _os.path.isdir(dir) and
+                _os.access(dir, _os.W_OK)):
+                continue
+            else:
+                raise
+        return _os.path.abspath(file)
+
+    raise FileExistsError(_errno.EEXIST,
+                          "No usable temporary directory name found")
+
+def mktemp(suffix="", prefix=template, dir=None):
+    """User-callable function to return a unique temporary file name.  The
+    file is not created.
+
+    Arguments are similar to mkstemp, except that the 'text' argument is
+    not accepted, and suffix=None, prefix=None and bytes file names are not
+    supported.
+
+    THIS FUNCTION IS UNSAFE AND SHOULD NOT BE USED.  The file name may
+    refer to a file that did not exist at some point, but by the time
+    you get around to creating it, someone else may have beaten you to
+    the punch.
+    """
+
+##    from warnings import warn as _warn
+##    _warn("mktemp is a potential security risk to your program",
+##          RuntimeWarning, stacklevel=2)
+
+    if dir is None:
+        dir = gettempdir()
+
+    names = _get_candidate_names()
+    for seq in range(TMP_MAX):
+        name = next(names)
+        file = _os.path.join(dir, prefix + name + suffix)
+        if not _exists(file):
+            return file
+
+    raise FileExistsError(_errno.EEXIST,
+                          "No usable temporary filename found")
+
+
+class _TemporaryFileCloser:
+    """A separate object allowing proper closing of a temporary file's
+    underlying file object, without adding a __del__ method to the
+    temporary file."""
+
+    cleanup_called = False
+    close_called = False
+
+    def __init__(self, file, name, delete=True, delete_on_close=True):
+        self.file = file
+        self.name = name
+        self.delete = delete
+        self.delete_on_close = delete_on_close
+
+    def cleanup(self, windows=(_os.name == 'nt'), unlink=_os.unlink):
+        if not self.cleanup_called:
+            self.cleanup_called = True
+            try:
+                if not self.close_called:
+                    self.close_called = True
+                    self.file.close()
+            finally:
+                # Windows provides delete-on-close as a primitive, in which
+                # case the file was deleted by self.file.close().
+                if self.delete and not (windows and self.delete_on_close):
+                    try:
+                        unlink(self.name)
+                    except FileNotFoundError:
+                        pass
+
+    def close(self):
+        if not self.close_called:
+            self.close_called = True
+            try:
+                self.file.close()
+            finally:
+                if self.delete and self.delete_on_close:
+                    self.cleanup()
+
+    def __del__(self):
+        self.cleanup()
+
+
+class _TemporaryFileWrapper:
+    """Temporary file wrapper
+
+    This class provides a wrapper around files opened for
+    temporary use.  In particular, it seeks to automatically
+    remove the file when it is no longer needed.
+    """
+
+    def __init__(self, file, name, delete=True, delete_on_close=True):
+        self.file = file
+        self.name = name
+        self._closer = _TemporaryFileCloser(file, name, delete,
+                                            delete_on_close)
+
+    def __getattr__(self, name):
+        # Attribute lookups are delegated to the underlying file
+        # and cached for non-numeric results
+        # (i.e. methods are cached, closed and friends are not)
+        file = self.__dict__['file']
+        a = getattr(file, name)
+        if hasattr(a, '__call__'):
+            func = a
+            @_functools.wraps(func)
+            def func_wrapper(*args, **kwargs):
+                return func(*args, **kwargs)
+            # Avoid closing the file as long as the wrapper is alive,
+            # see issue #18879.
+            func_wrapper._closer = self._closer
+            a = func_wrapper
+        if not isinstance(a, int):
+            setattr(self, name, a)
+        return a
+
+    # The underlying __enter__ method returns the wrong object
+    # (self.file) so override it to return the wrapper
+    def __enter__(self):
+        self.file.__enter__()
+        return self
+
+    # Need to trap __exit__ as well to ensure the file gets
+    # deleted when used in a with statement
+    def __exit__(self, exc, value, tb):
+        result = self.file.__exit__(exc, value, tb)
+        self._closer.cleanup()
+        return result
+
+    def close(self):
+        """
+        Close the temporary file, possibly deleting it.
+        """
+        self._closer.close()
+
+    # iter() doesn't use __getattr__ to find the __iter__ method
+    def __iter__(self):
+        # Don't return iter(self.file), but yield from it to avoid closing
+        # file as long as it's being used as iterator (see issue #23700).  We
+        # can't use 'yield from' here because iter(file) returns the file
+        # object itself, which has a close method, and thus the file would get
+        # closed when the generator is finalized, due to PEP380 semantics.
+        for line in self.file:
+            yield line
+
+def NamedTemporaryFile(mode='w+b', buffering=-1, encoding=None,
+                       newline=None, suffix=None, prefix=None,
+                       dir=None, delete=True, *, errors=None,
+                       delete_on_close=True):
+    """Create and return a temporary file.
+    Arguments:
+    'prefix', 'suffix', 'dir' -- as for mkstemp.
+    'mode' -- the mode argument to io.open (default "w+b").
+    'buffering' -- the buffer size argument to io.open (default -1).
+    'encoding' -- the encoding argument to io.open (default None)
+    'newline' -- the newline argument to io.open (default None)
+    'delete' -- whether the file is automatically deleted (default True).
+    'delete_on_close' -- if 'delete', whether the file is deleted on close
+       (default True) or otherwise either on context manager exit
+       (if context manager was used) or on object finalization. .
+    'errors' -- the errors argument to io.open (default None)
+    The file is created as mkstemp() would do it.
+
+    Returns an object with a file-like interface; the name of the file
+    is accessible as its 'name' attribute.  The file will be automatically
+    deleted when it is closed unless the 'delete' argument is set to False.
+
+    On POSIX, NamedTemporaryFiles cannot be automatically deleted if
+    the creating process is terminated abruptly with a SIGKILL signal.
+    Windows can delete the file even in this case.
+    """
+
+    prefix, suffix, dir, output_type = _sanitize_params(prefix, suffix, dir)
+
+    flags = _bin_openflags
+
+    # Setting O_TEMPORARY in the flags causes the OS to delete
+    # the file when it is closed.  This is only supported by Windows.
+    if _os.name == 'nt' and delete and delete_on_close:
+        flags |= _os.O_TEMPORARY
+
+    if "b" not in mode:
+        encoding = _io.text_encoding(encoding)
+
+    name = None
+    def opener(*args):
+        nonlocal name
+        fd, name = _mkstemp_inner(dir, prefix, suffix, flags, output_type)
+        return fd
+    try:
+        file = _io.open(dir, mode, buffering=buffering,
+                        newline=newline, encoding=encoding, errors=errors,
+                        opener=opener)
+        try:
+            raw = getattr(file, 'buffer', file)
+            raw = getattr(raw, 'raw', raw)
+            raw.name = name
+            return _TemporaryFileWrapper(file, name, delete, delete_on_close)
+        except:
+            file.close()
+            raise
+    except:
+        if name is not None and not (
+            _os.name == 'nt' and delete and delete_on_close):
+            _os.unlink(name)
+        raise
+
+if _os.name != 'posix' or _sys.platform == 'cygwin':
+    # On non-POSIX and Cygwin systems, assume that we cannot unlink a file
+    # while it is open.
+    TemporaryFile = NamedTemporaryFile
+
+else:
+    # Is the O_TMPFILE flag available and does it work?
+    # The flag is set to False if os.open(dir, os.O_TMPFILE) raises an
+    # IsADirectoryError exception
+    _O_TMPFILE_WORKS = hasattr(_os, 'O_TMPFILE')
+
+    def TemporaryFile(mode='w+b', buffering=-1, encoding=None,
+                      newline=None, suffix=None, prefix=None,
+                      dir=None, *, errors=None):
+        """Create and return a temporary file.
+        Arguments:
+        'prefix', 'suffix', 'dir' -- as for mkstemp.
+        'mode' -- the mode argument to io.open (default "w+b").
+        'buffering' -- the buffer size argument to io.open (default -1).
+        'encoding' -- the encoding argument to io.open (default None)
+        'newline' -- the newline argument to io.open (default None)
+        'errors' -- the errors argument to io.open (default None)
+        The file is created as mkstemp() would do it.
+
+        Returns an object with a file-like interface.  The file has no
+        name, and will cease to exist when it is closed.
+        """
+        global _O_TMPFILE_WORKS
+
+        if "b" not in mode:
+            encoding = _io.text_encoding(encoding)
+
+        prefix, suffix, dir, output_type = _sanitize_params(prefix, suffix, dir)
+
+        flags = _bin_openflags
+        if _O_TMPFILE_WORKS:
+            fd = None
+            def opener(*args):
+                nonlocal fd
+                flags2 = (flags | _os.O_TMPFILE) & ~_os.O_CREAT
+                fd = _os.open(dir, flags2, 0o600)
+                return fd
+            try:
+                file = _io.open(dir, mode, buffering=buffering,
+                                newline=newline, encoding=encoding,
+                                errors=errors, opener=opener)
+                raw = getattr(file, 'buffer', file)
+                raw = getattr(raw, 'raw', raw)
+                raw.name = fd
+                return file
+            except IsADirectoryError:
+                # Linux kernel older than 3.11 ignores the O_TMPFILE flag:
+                # O_TMPFILE is read as O_DIRECTORY. Trying to open a directory
+                # with O_RDWR|O_DIRECTORY fails with IsADirectoryError, a
+                # directory cannot be open to write. Set flag to False to not
+                # try again.
+                _O_TMPFILE_WORKS = False
+            except OSError:
+                # The filesystem of the directory does not support O_TMPFILE.
+                # For example, OSError(95, 'Operation not supported').
+                #
+                # On Linux kernel older than 3.11, trying to open a regular
+                # file (or a symbolic link to a regular file) with O_TMPFILE
+                # fails with NotADirectoryError, because O_TMPFILE is read as
+                # O_DIRECTORY.
+                pass
+            # Fallback to _mkstemp_inner().
+
+        fd = None
+        def opener(*args):
+            nonlocal fd
+            fd, name = _mkstemp_inner(dir, prefix, suffix, flags, output_type)
+            try:
+                _os.unlink(name)
+            except BaseException as e:
+                _os.close(fd)
+                raise
+            return fd
+        file = _io.open(dir, mode, buffering=buffering,
+                        newline=newline, encoding=encoding, errors=errors,
+                        opener=opener)
+        raw = getattr(file, 'buffer', file)
+        raw = getattr(raw, 'raw', raw)
+        raw.name = fd
+        return file
+
+class SpooledTemporaryFile(_io.IOBase):
+    """Temporary file wrapper, specialized to switch from BytesIO
+    or StringIO to a real file when it exceeds a certain size or
+    when a fileno is needed.
+    """
+    _rolled = False
+
+    def __init__(self, max_size=0, mode='w+b', buffering=-1,
+                 encoding=None, newline=None,
+                 suffix=None, prefix=None, dir=None, *, errors=None):
+        if 'b' in mode:
+            self._file = _io.BytesIO()
+        else:
+            encoding = _io.text_encoding(encoding)
+            self._file = _io.TextIOWrapper(_io.BytesIO(),
+                            encoding=encoding, errors=errors,
+                            newline=newline)
+        self._max_size = max_size
+        self._rolled = False
+        self._TemporaryFileArgs = {'mode': mode, 'buffering': buffering,
+                                   'suffix': suffix, 'prefix': prefix,
+                                   'encoding': encoding, 'newline': newline,
+                                   'dir': dir, 'errors': errors}
+
+    __class_getitem__ = classmethod(_types.GenericAlias)
+
+    def _check(self, file):
+        if self._rolled: return
+        max_size = self._max_size
+        if max_size and file.tell() > max_size:
+            self.rollover()
+
+    def rollover(self):
+        if self._rolled: return
+        file = self._file
+        newfile = self._file = TemporaryFile(**self._TemporaryFileArgs)
+        del self._TemporaryFileArgs
+
+        pos = file.tell()
+        if hasattr(newfile, 'buffer'):
+            newfile.buffer.write(file.detach().getvalue())
+        else:
+            newfile.write(file.getvalue())
+        newfile.seek(pos, 0)
+
+        self._rolled = True
+
+    # The method caching trick from NamedTemporaryFile
+    # won't work here, because _file may change from a
+    # BytesIO/StringIO instance to a real file. So we list
+    # all the methods directly.
+
+    # Context management protocol
+    def __enter__(self):
+        if self._file.closed:
+            raise ValueError("Cannot enter context with closed file")
+        return self
+
+    def __exit__(self, exc, value, tb):
+        self._file.close()
+
+    # file protocol
+    def __iter__(self):
+        return self._file.__iter__()
+
+    def __del__(self):
+        if not self.closed:
+            _warnings.warn(
+                "Unclosed file {!r}".format(self),
+                ResourceWarning,
+                stacklevel=2,
+                source=self
+            )
+            self.close()
+
+    def close(self):
+        self._file.close()
+
+    @property
+    def closed(self):
+        return self._file.closed
+
+    @property
+    def encoding(self):
+        return self._file.encoding
+
+    @property
+    def errors(self):
+        return self._file.errors
+
+    def fileno(self):
+        self.rollover()
+        return self._file.fileno()
+
+    def flush(self):
+        self._file.flush()
+
+    def isatty(self):
+        return self._file.isatty()
+
+    @property
+    def mode(self):
+        try:
+            return self._file.mode
+        except AttributeError:
+            return self._TemporaryFileArgs['mode']
+
+    @property
+    def name(self):
+        try:
+            return self._file.name
+        except AttributeError:
+            return None
+
+    @property
+    def newlines(self):
+        return self._file.newlines
+
+    def readable(self):
+        return self._file.readable()
+
+    def read(self, *args):
+        return self._file.read(*args)
+
+    def read1(self, *args):
+        return self._file.read1(*args)
+
+    def readinto(self, b):
+        return self._file.readinto(b)
+
+    def readinto1(self, b):
+        return self._file.readinto1(b)
+
+    def readline(self, *args):
+        return self._file.readline(*args)
+
+    def readlines(self, *args):
+        return self._file.readlines(*args)
+
+    def seekable(self):
+        return self._file.seekable()
+
+    def seek(self, *args):
+        return self._file.seek(*args)
+
+    def tell(self):
+        return self._file.tell()
+
+    def truncate(self, size=None):
+        if size is None:
+            return self._file.truncate()
+        else:
+            if size > self._max_size:
+                self.rollover()
+            return self._file.truncate(size)
+
+    def writable(self):
+        return self._file.writable()
+
+    def write(self, s):
+        file = self._file
+        rv = file.write(s)
+        self._check(file)
+        return rv
+
+    def writelines(self, iterable):
+        if self._max_size == 0 or self._rolled:
+            return self._file.writelines(iterable)
+
+        it = iter(iterable)
+        for line in it:
+            self.write(line)
+            if self._rolled:
+                return self._file.writelines(it)
+
+    def detach(self):
+        return self._file.detach()
+
+
+class TemporaryDirectory:
+    """Create and return a temporary directory.  This has the same
+    behavior as mkdtemp but can be used as a context manager.  For
+    example:
+
+        with TemporaryDirectory() as tmpdir:
+            ...
+
+    Upon exiting the context, the directory and everything contained
+    in it are removed (unless delete=False is passed or an exception
+    is raised during cleanup and ignore_cleanup_errors is not True).
+
+    Optional Arguments:
+        suffix - A str suffix for the directory name.  (see mkdtemp)
+        prefix - A str prefix for the directory name.  (see mkdtemp)
+        dir - A directory to create this temp dir in.  (see mkdtemp)
+        ignore_cleanup_errors - False; ignore exceptions during cleanup?
+        delete - True; whether the directory is automatically deleted.
+    """
+
+    def __init__(self, suffix=None, prefix=None, dir=None,
+                 ignore_cleanup_errors=False, *, delete=True):
+        self.name = mkdtemp(suffix, prefix, dir)
+        self._ignore_cleanup_errors = ignore_cleanup_errors
+        self._delete = delete
+        self._finalizer = _weakref.finalize(
+            self, self._cleanup, self.name,
+            warn_message="Implicitly cleaning up {!r}".format(self),
+            ignore_errors=self._ignore_cleanup_errors, delete=self._delete)
+
+    @classmethod
+    def _rmtree(cls, name, ignore_errors=False, repeated=False):
+        def onexc(func, path, exc):
+            if isinstance(exc, PermissionError):
+                if repeated and path == name:
+                    if ignore_errors:
+                        return
+                    raise
+
+                try:
+                    if path != name:
+                        _resetperms(_os.path.dirname(path))
+                    _resetperms(path)
+
+                    try:
+                        _os.unlink(path)
+                    except IsADirectoryError:
+                        cls._rmtree(path, ignore_errors=ignore_errors)
+                    except PermissionError:
+                        # The PermissionError handler was originally added for
+                        # FreeBSD in directories, but it seems that it is raised
+                        # on Windows too.
+                        # bpo-43153: Calling _rmtree again may
+                        # raise NotADirectoryError and mask the PermissionError.
+                        # So we must re-raise the current PermissionError if
+                        # path is not a directory.
+                        if not _os.path.isdir(path) or _os.path.isjunction(path):
+                            if ignore_errors:
+                                return
+                            raise
+                        cls._rmtree(path, ignore_errors=ignore_errors,
+                                    repeated=(path == name))
+                except FileNotFoundError:
+                    pass
+            elif isinstance(exc, FileNotFoundError):
+                pass
+            else:
+                if not ignore_errors:
+                    raise
+
+        _rmtree(name, onexc=onexc)
+
+    @classmethod
+    def _cleanup(cls, name, warn_message, ignore_errors=False, delete=True):
+        if delete:
+            cls._rmtree(name, ignore_errors=ignore_errors)
+            _warnings.warn(warn_message, ResourceWarning)
+
+    def __repr__(self):
+        return "<{} {!r}>".format(self.__class__.__name__, self.name)
+
+    def __enter__(self):
+        return self.name
+
+    def __exit__(self, exc, value, tb):
+        if self._delete:
+            self.cleanup()
+
+    def cleanup(self):
+        if self._finalizer.detach() or _os.path.exists(self.name):
+            self._rmtree(self.name, ignore_errors=self._ignore_cleanup_errors)
+
+    __class_getitem__ = classmethod(_types.GenericAlias)
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  ˘   .   ˙   ..  ˙   __init__.py ˚   __main__.py ¸   __pycache__    libregrtest ,   regrtest.py -   support k   test_support.py l  \typinganndata                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       # Dummy file to make this directory a package.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 from test.libregrtest.main import main
+main(_add_python_opts=True)
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             ¸   .   ˘   ..  ˝    __init__.cpython-313.pyc˛    __main__.cpython-313.pycˇ    regrtest.cpython-313.pyc   àtest_support.cpython-313.pyc                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    Û
+    F\h/   „                   Û   ï g )N© r   Û    ⁄$/usr/lib/python3.13/test/__init__.py⁄<module>r      s   Òr                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              Û
+    F\hC   „                   Û   ï S SK Jr  \" SS9  g)È    )⁄mainT)⁄_add_python_optsN)⁄test.libregrtest.mainr   © Û    ⁄$/usr/lib/python3.13/test/__main__.py⁄<module>r	      s   › &Ÿ êd” r                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                Û
+    F\h  „                   ÛJ   ï S r SSKrSSKrSSKJr  \rS r\S:X  a  \" 5         gg)z^
+Script to run Python regression tests.
+
+Run this script with -h or --help for documentation.
+È    N)⁄mainc                  Û   ï [         R                  R                  [         R                  R                  [         R                  R	                  [
+        R                  S   5      5      5      n [        [
+        R                  5      S-
+  nUS:º  ap  [         R                  R                  [         R                  R                  [
+        R                  U   5      5      U :X  a  [
+        R                  U	 OUS-  nUS:º  a  Mp  [         R                  R                  [        5      q[        [         R                  R                  [
+        R                  S   5      :X  d   e[        5         g )Nr   È   )
+⁄os⁄path⁄abspath⁄normpath⁄dirname⁄sys⁄argv⁄len⁄__file__r   )⁄mydir⁄is     ⁄$/usr/lib/python3.13/test/regrtest.py⁄_mainr      s⁄   Ä Ù èGâGèOâOúBüGôG◊,—,¨RØW©WØ_©_ºSøXπX¿aπ[”-I”J”KÄE‹åCèHâHãò—ÄAÿ
+àqã&‹è7â7è?â?ú2ü7ô7◊+—+¨CØH©H∞Q©K”8”9∏U”B‹óëòë‡êâFàA	 àqç&Ù èwâwèâúx”(ÄHÙ îrówëwóë§sßx°x∞°{”3”3–3–3‰ÖFÛ    ⁄__main__)⁄__doc__r   r   ⁄test.libregrtest.mainr   ⁄main_in_temp_cwdr   ⁄__name__© r   r   ⁄<module>r      s6   ÒÛ 
+€ 
+› & – Ú8 àz”Ÿ	ÖG r                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               Û
+    F\hŒo  „                   Ûö  ï S SK r S SKrS SKrS SKrS SKrS SKrS SKrS SKrS SKrS SK	r	S SK
+r
+S SKrS SKrS SKrS SKrS SKrS SKJr  S SKJr  S SKJr  S SKJr  S SKJr  S SKJr  S SKJr  \R4                  r " S	 S
+\R6                  5      r\ R:                  S 5       r " S S\R>                  \5      r \!S:X  a  \RD                  " 5         gg)È    N)⁄support)⁄import_helper)⁄	os_helper)⁄script_helper)⁄socket_helper)⁄warnings_helper)⁄ExtraAssertionsc                   Û>   ^ ï \ rS rSrU 4S jrSU 4S jjrS rSrU =r$ )⁄LogCaptureHandlerÈ   c                 ÛX   >ï [         TU ]  [        R                  " 5       5        / U l        g ©N)⁄super⁄__init__⁄io⁄StringIO⁄records)⁄self⁄	__class__s    Ä⁄(/usr/lib/python3.13/test/test_support.pyr   ⁄LogCaptureHandler.__init__   s   ¯Ä ‹â—úüöõ‘'ÿàçÛ    c                 ÛZ   >ï U R                   R                  U5        [        TU ]  U5        g r   )r   ⁄appendr   ⁄emit)r   ⁄recordr   s     Är   r   ⁄LogCaptureHandler.emit#   s!   ¯Ä ÿèâ◊—òF‘#‹ââêV’r   c                 Û   ï e r   © )r   r   s     r   ⁄handleError⁄LogCaptureHandler.handleError'   s   Ä ÿr   )r   )⁄returnN)	⁄__name__⁄
+__module__⁄__qualname__⁄__firstlineno__r   r   r    ⁄__static_attributes__⁄__classcell__)r   s   @r   r   r      s   ¯Ü ı˜˜ r   r   c               #   Ûƒ   #   ï [        5       n [        R                  " 5       nUR                  U 5         U v ï  UR	                  U 5        g ! UR	                  U 5        f = f7fr   )r   ⁄logging⁄	getLogger⁄
+addHandler⁄removeHandler)⁄handler⁄root_loggers     r   ⁄_caplogr0   +   sO   È Ä ‰”!ÄG‹◊#“#”%ÄKÿ◊—ò7‘#+ÿä‡◊!—!†'’*¯à◊!—!†'’*¸s   Ç1A ¥A
+ ∏A ¡
+A¡A c                   Ûˆ  ï \ rS rSr\S 5       r\S 5       rS rS rS r	S r
+\R                  " S5      S	 5       rS
+ rS rS rS r\R&                  " 5       S 5       r\R&                  " 5       S 5       r\R&                  " 5       S 5       rS rS rS rS r\R6                  " 5       S 5       rS rS rS rS r S r!S r"S r#S r$S r%S r&S  r'S! r(S" r)S# r*S$ r+S% r,S& r-S' r. " S( S)5      r/ " S* S+5      r0S, r1S- r2S. r3\Rh                  " \5" \6S/5      =(       a	    \5" \6S05      S15      \R6                  " 5       S2 5       5       r7\Rp                  " 5       SFS4 j5       r9\Rt                  " S55      S6 5       r;S7 r<\Rz                  " \R|                  S85      \Rz                  " \R~                  S95      \Rz                  " \RÄ                  S:5      S; 5       5       5       rAS< rBS= rCS> rDS? rES@ rFSA rGSB rHSC rISD rJSErKg3)G⁄TestSupportÈ6   c                 ÛÍ   ï [        [        R                  5      n[        R                  " SSS9U l        [        R                  " [        SS9U l        [        [        R                  5      US-   :X  d   eg )Nztest.support.warnings_helperz.*used in test_support.*)⁄likez!.*You should NOT be seeing this.*È   )⁄len⁄warnings⁄filtersr   ⁄ignore_deprecations_from⁄_warnings_helper_tokenr#   ⁄_test_support_token©⁄cls⁄orig_filter_lens     r   ⁄
+setUpClass⁄TestSupport.setUpClass7   sf   Ä ‰úh◊.—.”/à‹%,◊%E“%Eÿ*–1KÒ&
+à‘"Ù #*◊"B“"B‹–>Ò#
+à‘Ù î8◊#—#”$®∏!—(;”;–;—;r   c                 Û–   ï [        [        R                  5      n[        R                  " U R
+                  U R                  5        [        [        R                  5      US-
+  :X  d   eg )Nr6   )r7   r8   r9   r   ⁄clear_ignored_deprecationsr;   r<   r=   s     r   ⁄tearDownClass⁄TestSupport.tearDownClassB   sR   Ä ‰úh◊.—.”/à‹◊*“*ÿ◊&—&ÿ◊#—#Ù	
+Ù î8◊#—#”$®∏!—(;”;–;—;r   c                 ÛL  ï [         R                  " SS9 n[        R                  " 5         [         R                  " S[
+        5        U Vs/ s H  n[        UR                  5      PM     nnSSS5        U R                  [        W5      SU5        gs  snf ! , (       d  f       N0= f)z9Test support.ignore_deprecations_from() silences warningsT)r   zYou should NOT be seeing this.Nr   )
+r8   ⁄catch_warningsr   ⁄_warn_about_deprecation⁄warn⁄DeprecationWarning⁄str⁄message⁄assertEqualr7   )r   ⁄warning_objs⁄w⁄messagess       r   ⁄$test_ignored_deprecations_are_silent⁄0TestSupport.test_ignored_deprecations_are_silentK   su   Ä ‰◊$“$®D“1∞\‹◊3“3‘5‹èMäM–:‘<N‘OŸ0<”=≤®1úòAüIôIû±àH–=˜ 2 	◊—úòXõ®®8’4˘Ú >˜ 2’1˙s   ï5B¡
+B¡)B¬B¬
+B#c                 Ûé   ï [         R                  " S5        U R                  [        R                  [         R                  S5        g )N⁄ftplib⁄foo)r   ⁄import_module⁄assertRaises⁄unittest⁄SkipTest©r   s    r   ⁄test_import_module⁄TestSupport.test_import_moduleS   s1   Ä ‹◊#“#†H‘-ÿ◊—ú(◊+—+‹'◊5—5∞uı	>r   c                 Û0   ï [         R                  " S5        g )NrT   )r   ⁄import_fresh_modulerZ   s    r   ⁄test_import_fresh_module⁄$TestSupport.test_import_fresh_moduleX   s   Ä ‹◊)“)®(’3r   c                 Û∆   ï U R                  [        R                  " U S5      U R                  5        U R	                  [
+        R                  [        R                  U S5        g )N⁄test_get_attributerU   )rM   r   ⁄get_attributerb   rW   rX   rY   rZ   s    r   rb   ⁄TestSupport.test_get_attribute[   sI   Ä ÿ◊—ú◊.“.®t–5I”Jÿ◊/—/Ù	1‡◊—ú(◊+—+¨W◊-B—-B¿D»%’Pr   zfailing buildbotsc                 Ûj   ï U R                  [        R                  " 5       [        R                  5        g r   )rM   r   ⁄get_original_stdout⁄sys⁄stdoutrZ   s    r   ⁄test_get_original_stdout⁄$TestSupport.test_get_original_stdout`   s   Ä ‡◊—ú◊4“4”6ºø
+π
+’Cr   c                 Û∏   ï SS K nU R                  S[        R                  5        [        R
+                  " S5        U R                  S[        R                  5        g )Nr   ⁄sched)rl   ⁄assertInrg   ⁄modulesr   ⁄unload⁄assertNotIn)r   rl   s     r   ⁄test_unload⁄TestSupport.test_unloadd   s9   Ä €ÿèâêgúsü{ô{‘+‹◊“òW‘%ÿ◊—ò§#ß+°+’.r   c                 Û$  ï [        [        SSS9 n S S S 5        [        R                  " [        5        U R	                  [
+        R                  R                  [        5      5        [        R                  " [        5        g ! , (       d  f       Nu= f)NrO   ˙utf-8©⁄encoding)⁄open⁄TESTFNr   ⁄unlink⁄assertFalse⁄os⁄path⁄exists)r   ⁄fs     r   ⁄test_unlink⁄TestSupport.test_unlinkj   sX   Ä ‹î&ò#®“0∞Aÿ˜ 1‰◊“ú‘ ÿ◊—úüôüô¨”/‘0‹◊“ú’ ˜	 1’0˙s   êB¬
+Bc                 Û  ï [         R                  S-   n[        R                  R	                  US5      n[        R
+                  " U5        [        R
+                  " U5        [         R                  " U5        U R                  [        R                  R                  U5      5        [        R                  " [        SS5         [         R                  " U5        S S S 5        [        R
+                  " U5        [        R
+                  " U5        [        R                  " U[        R                  [        R                  -  5        [        R                  " [        SS5         [         R                  " U5        S S S 5        U R                  [        R                  R                  U5      5        [        R
+                  " U5        [        R
+                  " U5        [        R                  " US5        [        R                  " [        SS5         [         R                  " U5        S S S 5        U R                  [        R                  R                  U5      5        g ! , (       d  f       GNá= f! , (       d  f       N˚= f! , (       d  f       N`= f)N⁄d⁄subdir⁄verboser   )r   rx   r{   r|   ⁄join⁄mkdir⁄rmtreerz   r}   r   ⁄	swap_attr⁄chmod⁄stat⁄S_IRUSR⁄S_IXUSR)r   ⁄dirpath⁄
+subdirpaths      r   ⁄test_rmtree⁄TestSupport.test_rmtreeq   sÇ  Ä ‹◊"—"†S—(à‹óWëWó\ë\†'®8”4à
+‹
+èäê‘‹
+èäê‘‹◊“ò‘!ÿ◊—úüôüô®”0‘1‹◊“úw®	∞1’5‹◊“òW‘%˜ 6Ù 	èäê‘‹
+èäê‘‹
+èäêú$ü,ô,§tß|°|—3‘4‹◊“úw®	∞1’5‹◊“òW‘%˜ 6‡◊—úüôüô®”0‘1‰
+èäê‘‹
+èäê‘‹
+èäêò!‘‹◊“úw®	∞1’5‹◊“òW‘%˜ 6‡◊—úüôüô®”0’1˜ 6÷5˙˜ 6’5˙˜ 6’5˙s$   √ I≈I)»	I:…
+I&…)
+I7…:
+Jc                 Ûﬁ  ï [         S-   n[        USSS9 n[        SUS9  S S S 5        [        R                  R                  S[        R                  5        [        R                  " 5          [        [         5      nU R                  [         [        R                  5        [        R                  " [         5        U R                  [         [        R                  5        [        R                  S	 [         R"                  " U5        [         R$                  " S5        g ! , (       d  f       GN= f! [        R                  S	 [         R"                  " U5        [         R$                  " S5        f = f)	Nz.pyrO   rt   ru   zfoo = 1©⁄filer   ⁄__pycache__)rx   rw   ⁄printrg   r|   ⁄insertr{   ⁄curdir⁄	importlib⁄invalidate_caches⁄
+__import__rm   rn   r   ⁄forgetrp   r   ry   rá   )r   ⁄mod_filenamer~   ⁄mods       r   ⁄test_forget⁄TestSupport.test_forgetâ   sÁ   Ä ‹†ë~à‹ê,†®g“6∏!‹ê)†!“$˜ 7‰èâèâòú2ü9ô9‘%‹◊#“#‘%		,‹úV”$àCÿèMâMú&§#ß+°+‘.‰◊ “ §‘(ÿ◊—úV§Sß[°[‘1‰óëòê‹◊“ò\‘*‹◊“ò]’+˜ 7÷6˚Ù óëòê‹◊“ò\‘*‹◊“ò]’+˙s   ïD¡,A1D- ƒ
+D*ƒ-?E,c                 Ûp   ï [         R                  " [        R                  S45      nUR	                  5         g )Nr   )⁄socket⁄create_serverr   ⁄HOST⁄close©r   ⁄ss     r   ⁄	test_HOST⁄TestSupport.test_HOSTö   s&   Ä ‰◊ “ §-◊"4—"4∞a–!8”9àÿ	èâç	r   c                 Ûö   ï [         R                  " 5       n[        R                  " [         R                  U45      nUR                  5         g r   )r   ⁄find_unused_portr°   r¢   r£   r§   )r   ⁄portr¶   s      r   ⁄test_find_unused_port⁄!TestSupport.test_find_unused_portü   s4   Ä ‰◊-“-”/à‹◊ “ §-◊"4—"4∞d–!;”<àÿ	èâç	r   c                 Ûö   ï [         R                   " 5       n[        R                  " U5        UR                  5         UR	                  5         g r   )r°   r   ⁄	bind_port⁄listenr§   r•   s     r   ⁄test_bind_port⁄TestSupport.test_bind_port•   s-   Ä ‰èMäMãOà‹◊“†‘"ÿ	èâå
+ÿ	èâç	r   c                 Û¶  ï [         R                  " 5       n[        R                  R	                  U5      n [        R                  R                  US5      nU R                  [        R                  R                  U5      5        [        R                  " U5       nU R                  X25        U R                  [        R                  R                  U5      5        SSS5        U R                  [        R                  R                  U5      5        [        R                  " U5        g! , (       d  f       NS= f! [        R                  " U5        f = f)z8Test that temp_dir() creates and destroys its directory.⁄tempN)⁄tempfile⁄mkdtempr{   r|   ⁄realpathrÖ   rz   ⁄isdirr   ⁄temp_dirrM   ⁄
+assertTruerá   )r   ⁄
+parent_dirr|   ⁄	temp_paths       r   ⁄test_temp_dir⁄TestSupport.test_temp_dirÆ   sŸ   Ä ‰◊%“%”'à
+‹óWëW◊%—%†j”1à
+	)‹ó7ë7ó<ë<†
+®F”3àDÿ◊—úRüWôWü]ô]®4”0‘1‹◊#“#†D‘)®Yÿ◊ — †‘1ÿóë§ß°ß°®d” 3‘4˜ * ◊—úRüWôWü]ô]®4”0‘1‰◊“òZ’(˜ *’)˚Ù
+ ◊“òZ’(˙s%   ∂A$D8 ¬A D'√6D8 ƒ'
+D5ƒ1D8 ƒ8Ec                 Û  ï [         R                  " 5        nU R                  [        R                  R                  U5      5        SSS5        U R                  [        R                  R                  W5      5        g! , (       d  f       N== f)zTest passing no path.N)r   rπ   r∫   r{   r|   r∏   rz   )r   rº   s     r   ⁄test_temp_dir__path_none⁄$TestSupport.test_temp_dir__path_noneΩ   sR   Ä ‰◊“‘!†YÿèOâOúBüGôGüMôM®)”4‘5˜ "‡◊—úüôüô†y”1’2˜ "’!˙s   ñ/A<¡<
+B
+c                 Û∫  ï S n[         R                  " 5       n[        R                  R	                  U5      n U R                  [        R                  R                  U5      5        U R                  [        X5        U R                  [        R                  R                  U5      5        [        R                  " U5        g! [        R                  " U5        f = f)z-Test passing a directory that already exists.c                 Ûh   ï [         R                  " U 5       n[        S5      e! , (       d  f       g = f©Nzshould not get here)r   rπ   ⁄	Exception)r|   rº   s     r   ⁄call_temp_dir⁄MTestSupport.test_temp_dir__existing_dir__quiet_default.<locals>.call_temp_dir≈   s'   Ä ‹◊#“#†D‘)®Y‹– 5”6–6˜ *’)˙Û   ó#£
+1N)rµ   r∂   r{   r|   r∑   r∫   r∏   rW   ⁄FileExistsError⁄shutilrá   )r   r∆   r|   s      r   ⁄*test_temp_dir__existing_dir__quiet_default⁄6TestSupport.test_temp_dir__existing_dir__quiet_default√   sã   Ä Ú	7Ù ◊“”!à‹èwâw◊—†”%à	 ÿèOâOúBüGôGüMôM®$”/‘0ÿ◊—úo®}‘C‡èOâOúBüGôGüMôM®$”/‘0‰èMäMò$’¯åFèMäMò$’˙s   πA2C √Cc                 Ûê  ï [         R                  " 5       n[        R                  R	                  U5      n [
+        R                  " 5        n[        5        n[        R                  " USS9 nU R                  X5        SSS5        UR                   Vs/ s H  n[        UR                  5      PM     nnSSS5        SSS5        U R                  [        R                  R                  U5      5        [         R"                  " U5        U R%                  W/ 5        U R                  ['        WR(                  5      S5        UR(                  S   nU R+                  UR-                  5       SU< S35        g! , (       d  f       N˝= fs  snf ! , (       d  f       N‹= f! , (       d  f       NÂ= f! [         R"                  " U5        f = f)z=Test passing a directory that already exists with quiet=True.T©⁄quietNÈ   r   z5tests may fail, unable to create temporary directory ˙: )rµ   r∂   r{   r|   r∑   r   ⁄check_warningsr0   r   rπ   rM   r8   rK   rL   r∫   r∏   r    rá   ⁄assertListEqualr7   r   ⁄assertStartsWith⁄
+getMessage)r   r|   ⁄recorder⁄caplogrº   rO   r8   r   s           r   ⁄'test_temp_dir__existing_dir__quiet_true⁄3TestSupport.test_temp_dir__existing_dir__quiet_true”   sD  Ä ‰◊“”!à‹èwâw◊—†”%à	 ‹ ◊/“/‘1∞Xºwºy»F‹◊'“'®∞D“9∏Yÿ◊$—$†T‘5˜ :‡4<◊4E“4E”F“4E®qúC†ß	°	ûN—4Eê–F˜ @I◊1
+ èOâOúBüGôGüMôM®$”/‘0‰èMäMò$‘‡◊—òX†r‘*ÿ◊—úòVü^ô^”,®a‘0ÿóë†—"àÿ◊—ÿ◊—”#ÿ#'°(®".ı	
+˜ :’9¸‚F˜ @IΩy˙◊1’1˚Ù èMäMò$’˙s_   ∂F- ¡F¡F¡,E5¡>F¬F¬3F¬5F¬=6F- ≈5
+F≈?F∆
+F	∆F∆
+F*∆&F- ∆-Gc                 ÛZ   ï [         R                  " S[        R                  " S5      5        g)z?Test that a forked child process does not remove the directory.˙-ca  
+            import os
+            from test import support
+            from test.support import os_helper
+            with os_helper.temp_cwd() as temp_path:
+                pid = os.fork()
+                if pid != 0:
+                    # parent process
+
+                    # wait for the child to terminate
+                    support.wait_process(pid, exitcode=0)
+
+                    # Make sure that temp_path is still present. When the child
+                    # process leaves the 'temp_cwd'-context, the __exit__()-
+                    # method of the context must not remove the temporary
+                    # directory.
+                    if not os.path.isdir(temp_path):
+                        raise AssertionError("Child removed temp_path.")
+        N)r   ⁄assert_python_ok⁄textwrap⁄dedentrZ   s    r   ⁄test_temp_dir__forked_child⁄'TestSupport.test_temp_dir__forked_childÎ   s$   Ä Ù
+ 	◊&“&†t¨XØ_™_ >Û .ı 	r   c                 Û¢  ï [         R                  " 5       n[        R                  " 5        n[        R                  " U5       nU R                  X25        U R                  [         R                  " 5       U5        S S S 5        S S S 5        U R                  [         R                  " 5       U5        g ! , (       d  f       N<= f! , (       d  f       NE= fr   )r{   ⁄getcwdr   rπ   ⁄
+change_cwdrM   )r   ⁄original_cwdrº   ⁄new_cwds       r   ⁄test_change_cwd⁄TestSupport.test_change_cwd  sÉ   Ä ‹óyíyì{à‰◊“‘!†Y‹◊%“%†i‘0∞Gÿ◊ — †‘4ÿ◊ — §ß¢£®g‘6˜ 1˜ "
+ 	◊—úüöõ†l’3˜	 1’0˙˜ "’!˙s#   ´C ¡7B/¡9C ¬/
+B=	¬9C √ 
+Cc                 ÛJ  ï [         R                  " 5       nS n[        R                  " 5        n[         R                  R                  US5      nU R                  [        UU5        SSS5        U R                  [         R                  " 5       U5        g! , (       d  f       N4= f)z&Test passing a non-existent directory.c                 Ûh   ï [         R                  " U 5       n[        S5      e! , (       d  f       g = frƒ   )r   r„   r≈   )r|   rÂ   s     r   ⁄call_change_cwd⁄FTestSupport.test_change_cwd__non_existent_dir.<locals>.call_change_cwd  s'   Ä ‹◊%“%†d‘+®w‹– 5”6–6˜ ,’+˙r»   ⁄does_not_existN)	r{   r‚   r   rπ   r|   rÖ   rW   ⁄FileNotFoundErrorrM   )r   r‰   rÍ   rª   ⁄non_existent_dirs        r   ⁄!test_change_cwd__non_existent_dir⁄-TestSupport.test_change_cwd__non_existent_dir  st   Ä ‰óyíyì{àÚ	7Ù ◊“‘!†Z‹!üwôwü|ô|®J–8H”I–ÿ◊—‘/∞ÿ.Ù0˜ "
+ 	◊—úüöõ†l’3˜ "’!˙s   Æ8B¬
+B"c           	      Ûz  ï [         R                  " 5       n[        R                  " 5        n[         R                  R                  US5      n[        R                  " 5        n[        5        n[        R                  " USS9 nU R                  Xa5        U R                  [         R                  " 5       U5        SSS5        UR                   Vs/ s H  n[        UR                  5      PM     nnSSS5        SSS5        SSS5        U R                  W/ 5        U R                  [        WR                   5      S5        UR                   S   n	U R#                  U	R%                  5       SW< S35        g! , (       d  f       N¡= fs  snf ! , (       d  f       N†= f! , (       d  f       N©= f! , (       d  f       N≤= f)	z6Test passing a non-existent directory with quiet=True.rÏ   TrŒ   Nr–   r   ˙Btests may fail, unable to change the current working directory to r—   )r{   r‚   r   rπ   r|   rÖ   r   r“   r0   r„   rM   r8   rK   rL   r”   r7   r   r‘   r’   )
+r   r‰   rª   ⁄bad_dirr÷   r◊   rÂ   rO   r8   r   s
+             r   ⁄-test_change_cwd__non_existent_dir__quiet_true⁄9TestSupport.test_change_cwd__non_existent_dir__quiet_true  s@  Ä ‰óyíyì{à‰◊“‘!†Z‹ógëgólël†:–/?”@àG‹ ◊/“/‘1∞Xºwºy»F‹◊)“)®'∏“>¿'ÿ◊$—$†W‘;ÿ◊$—$§RßY¢Y£[∞'‘:˜ ? 5=◊4E“4E”F“4E®qúC†ß	°	ûN—4Eê–F˜	 @I◊1˜ " 	◊—òX†r‘*ÿ◊—úòVü^ô^”,®a‘0ÿóë†—"àÿ◊—ÿ◊—”‡ëòB ı	
+˜ ?’>¸Ú G˜	 @IΩy˙◊1’1˙˜ "’!˙s_   ´6F,¡!F¡,F
+¬7E4	¬9F
+√F
+√.F
+√0F√8F,≈4
+F≈>F
+∆
+
+F∆F∆
+F)	∆%F,∆,
+F:c                 ÛZ  ï [         S-   n[        R                  " 5        n[        5        n[        R
+                  " USS9    SSS5        UR                   Vs/ s H  n[        UR                  5      PM     nnSSS5        SSS5        U R                  W/ 5        U R                  [        WR                  5      S5        UR                  S   nU R                  UR                  5       SU< S35        g! , (       d  f       Nπ= fs  snf ! , (       d  f       Nò= f! , (       d  f       N°= f)	z0Check the warning message when os.chdir() fails.⁄_does_not_existT)r|   rœ   Nr–   r   rÚ   r—   )rx   r   r“   r0   r   r„   r8   rK   rL   r”   rM   r7   r   r‘   r’   )r   r|   r÷   r◊   rO   rP   r   s          r   ⁄test_change_cwd__chdir_warning⁄*TestSupport.test_change_cwd__chdir_warning7  sÂ   Ä ‰–)—)à‹◊+“+‘-∞º7º9»‹◊%“%®4∞t”<ÿ˜ =‡08◊0A“0A”B“0A®1úòAüIôIû—0AàH–B˜ <E◊-
+ 	◊—òX†r‘*ÿ◊—úòVü^ô^”,®a‘0ÿóë†—"àÿ◊—ÿ◊—”‡ëòı	
+˜ =’<¸‚B˜ <EΩ9˙◊-’-˙sF   üD™D¡ C5¡D¡D¡7D¡9D√5
+D√?Dƒ
+D	ƒDƒ
+D*c                 ÛÃ  ï [         R                  " 5       n[        R                  " [        S9   U R                  [         R                  R                  [         R                  " 5       5      [        5        S S S 5        U R                  [         R                  R                  [        5      5        U R                  [         R                  " 5       U5        g ! , (       d  f       Nf= f)N©⁄name)
+r{   r‚   r   ⁄temp_cwdrx   rM   r|   ⁄basenamerz   r}   )r   ⁄heres     r   ⁄test_temp_cwd⁄TestSupport.test_temp_cwdK  s   Ä ‹èyäyã{à‹◊“§V”,ÿ◊—úRüWôW◊-—-¨bØi™i´k”:ºF‘C˜ -‡◊—úüôüô¨”/‘0ÿ◊—úüöõ†d’+˜ -’,˙s   ÆAC√
+C#c                 Ûú  ï [         R                  " 5       n[        R                  " SS9 nU R	                  X!5        U R                  [         R                  R                  U5      5        U R                  [         R                  " 5       U5        SSS5        U R                  [         R                  " 5       U5        g! , (       d  f       N4= f)z Test passing None to temp_cwd().Nr˚   )	r{   r‚   r   r˝   ⁄assertNotEqualr∫   r|   r∏   rM   )r   r‰   rÂ   s      r   ⁄test_temp_cwd__name_none⁄$TestSupport.test_temp_cwd__name_noneS  sÄ   Ä ‰óyíyì{à‹◊“†T“*®gÿ◊—†‘6ÿèOâOúBüGôGüMôM®'”2‘3ÿ◊—úRüYöYõ[®'‘2˜ + 	◊—úüöõ†l’3˜	 +’*˙s   ™A%B=¬=
+Cc                 ÛX   ï U R                  [        R                  " SSSS.5      S5        g )NÈ   r6   r–   )r  r6   r–   z{1: 1, 2: 2, 3: 3})rM   r   ⁄sortdictrZ   s    r   ⁄test_sortdict⁄TestSupport.test_sortdict\  s$   Ä ÿ◊—ú◊)“)®Q∞!∞q©/”:–<P’Qr   c                 Û"  ï [         R                  " 5       nU R                  [        5       n[        R
+                  " US5        S S S 5        U R                  WR                  R                  [        R                  5        g ! , (       d  f       NC= f)Ns   foo)
+r   ⁄make_bad_fdrW   ⁄OSErrorr{   ⁄writerM   ⁄	exception⁄errno⁄EBADF)r   ⁄fd⁄cms      r   ⁄test_make_bad_fd⁄TestSupport.test_make_bad_fd_  sZ   Ä ‹◊"“"”$àÿ◊—úw‘'®2‹èHäHêRò‘ ˜ (‡◊—òüô◊+—+¨UØ[©[’9˜ (’'˙s   ´B ¬ 
+Bc                 Ûæ   ï [         R                  " U SSSS9  U R                  [        5         [         R                  " U S5        S S S 5        g ! , (       d  f       g = f)Nz	def classr–   È   )⁄lineno⁄offsetzx=1)r   ⁄check_syntax_errorrW   ⁄AssertionErrorrZ   s    r   ⁄test_check_syntax_error⁄#TestSupport.test_check_syntax_errore  s@   Ä ‹◊"“"†4®∏Q¿q“Iÿ◊—ú~’.‹◊&“&†t®U‘3˜ /◊.÷.˙s   ≠A¡
+Ac                 Ûê   ï SS K n[        R                  " S5         UR                  " S5        S S S 5        g ! , (       d  f       g = f)Nr   ⁄pprint)rò   r   ⁄CleanImportrV   )r   rò   s     r   ⁄test_CleanImport⁄TestSupport.test_CleanImportj  s-   Ä €‹◊&“&†x’0ÿ◊#“#†H‘-˜ 1◊0÷0˙s	   õ7∑
+Ac                 Ûf  ï [         R                  " SS5         U R                  S[        R                  5        U R                  S[        R                  5        S S S 5        U R                  S[        R                  5        U R                  S[        R                  5        g ! , (       d  f       NO= f)NrU   ⁄bar)r   ⁄DirsOnSysPathrm   rg   r|   rp   rZ   s    r   ⁄test_DirsOnSysPath⁄TestSupport.test_DirsOnSysPatho  sn   Ä ‹◊(“(®∞’6ÿèMâMò%§ß°‘*ÿèMâMò%§ß°‘*˜ 7 	◊—ò§ß°‘)ÿ◊—ò§ß°’)˜	 7’6˙s   òAB"¬"
+B0c                 Û∏   ï [         R                  " 5        n[        S5        S S S 5        U R                  WR	                  5       S5        g ! , (       d  f       N/= f)N⁄hello˙hello
+)r   ⁄captured_stdoutrï   rM   ⁄getvalue)r   rh   s     r   ⁄test_captured_stdout⁄ TestSupport.test_captured_stdoutv  s<   Ä ‹◊$“$‘&®&‹ê'åN˜ '‡◊—òüô”*®I’6˜ '’&˙s   ñA¡
+Ac                 Û“   ï [         R                  " 5        n[        S[        R                  S9  S S S 5        U R                  WR                  5       S5        g ! , (       d  f       N/= f)Nr)  rí   r*  )r   ⁄captured_stderrrï   rg   ⁄stderrrM   r,  )r   r1  s     r   ⁄test_captured_stderr⁄ TestSupport.test_captured_stderr{  sC   Ä ‹◊$“$‘&®&‹ê'§ß
+°
+“+˜ '‡◊—òüô”*®I’6˜ '’&˙s   ñA¡
+A&c                 Ûﬁ   ï [         R                  " 5        nUR                  S5        UR                  S5        [	        5       nS S S 5        U R                  WS5        g ! , (       d  f       N!= f)Nr*  r   r)  )r   ⁄captured_stdinr  ⁄seek⁄inputrM   )r   ⁄stdin⁄captureds      r   ⁄test_captured_stdin⁄TestSupport.test_captured_stdinÄ  sN   Ä ‹◊#“#‘%®ÿèKâKò	‘"ÿèJâJêqåM‰ìwàH˜	 &
+ 	◊—ò†7’+˜ &’%˙s   ñ-A¡
+A,c                 Û.   ï [         R                  " 5         g r   )r   ⁄
+gc_collectrZ   s    r   ⁄test_gc_collect⁄TestSupport.test_gc_collectà  s   Ä ‹◊“’r   c                 ÛV   ï U R                  [        R                  " 5       [        5        g r   )⁄assertIsInstancer   ⁄python_is_optimized⁄boolrZ   s    r   ⁄test_python_is_optimized⁄$TestSupport.test_python_is_optimizedã  s   Ä ÿ◊—úg◊9“9”;ºT’Br   c                 Ûæ  ï  " S S5      nU" 5       nSUl         [        R                  " USS5       nU R                  UR                   S5        U R                  US5        S S S 5        U R      

@@ -1,0 +1,3027 @@
+rn a reverse iterator over the keys, values or items of the
+   dictionary. The view will be iterated in reverse order of the
+   insertion.
+
+   Changed in version 3.8: Dictionary views are now reversible.
+
+dictview.mapping
+
+   Return a "types.MappingProxyType" that wraps the original
+   dictionary to which the view refers.
+
+   Added in version 3.10.
+
+Keys views are set-like since their entries are unique and *hashable*.
+Items views also have set-like operations since the (key, value) pairs
+are unique and the keys are hashable. If all values in an items view
+are hashable as well, then the items view can interoperate with other
+sets. (Values views are not treated as set-like since the entries are
+generally not unique.)  For set-like views, all of the operations
+defined for the abstract base class "collections.abc.Set" are
+available (for example, "==", "<", or "^").  While using set
+operators, set-like views accept any iterable as the other operand,
+unlike sets which only accept sets as the input.
+
+An example of dictionary view usage:
+
+   >>> dishes = {'eggs': 2, 'sausage': 1, 'bacon': 1, 'spam': 500}
+   >>> keys = dishes.keys()
+   >>> values = dishes.values()
+
+   >>> # iteration
+   >>> n = 0
+   >>> for val in values:
+   ...     n += val
+   ...
+   >>> print(n)
+   504
+
+   >>> # keys and values are iterated over in the same order (insertion order)
+   >>> list(keys)
+   ['eggs', 'sausage', 'bacon', 'spam']
+   >>> list(values)
+   [2, 1, 1, 500]
+
+   >>> # view objects are dynamic and reflect dict changes
+   >>> del dishes['eggs']
+   >>> del dishes['sausage']
+   >>> list(keys)
+   ['bacon', 'spam']
+
+   >>> # set operations
+   >>> keys & {'eggs', 'bacon', 'salad'}
+   {'bacon'}
+   >>> keys ^ {'sausage', 'juice'} == {'juice', 'sausage', 'bacon', 'spam'}
+   True
+   >>> keys | ['juice', 'juice', 'juice'] == {'bacon', 'spam', 'juice'}
+   True
+
+   >>> # get back a read-only proxy for the original dictionary
+   >>> values.mapping
+   mappingproxy({'bacon': 1, 'spam': 500})
+   >>> values.mapping['spam']
+   500
+''',
+    'typesmethods': r'''Methods
+*******
+
+Methods are functions that are called using the attribute notation.
+There are two flavors: built-in methods (such as "append()" on lists)
+and class instance method. Built-in methods are described with the
+types that support them.
+
+If you access a method (a function defined in a class namespace)
+through an instance, you get a special object: a *bound method* (also
+called instance method) object. When called, it will add the "self"
+argument to the argument list.  Bound methods have two special read-
+only attributes: "m.__self__" is the object on which the method
+operates, and "m.__func__" is the function implementing the method.
+Calling "m(arg-1, arg-2, ..., arg-n)" is completely equivalent to
+calling "m.__func__(m.__self__, arg-1, arg-2, ..., arg-n)".
+
+Like function objects, bound method objects support getting arbitrary
+attributes.  However, since method attributes are actually stored on
+the underlying function object ("method.__func__"), setting method
+attributes on bound methods is disallowed.  Attempting to set an
+attribute on a method results in an "AttributeError" being raised.  In
+order to set a method attribute, you need to explicitly set it on the
+underlying function object:
+
+   >>> class C:
+   ...     def method(self):
+   ...         pass
+   ...
+   >>> c = C()
+   >>> c.method.whoami = 'my name is method'  # can't set on the method
+   Traceback (most recent call last):
+     File "<stdin>", line 1, in <module>
+   AttributeError: 'method' object has no attribute 'whoami'
+   >>> c.method.__func__.whoami = 'my name is method'
+   >>> c.method.whoami
+   'my name is method'
+
+See Instance methods for more information.
+''',
+    'typesmodules': r'''Modules
+*******
+
+The only special operation on a module is attribute access: "m.name",
+where *m* is a module and *name* accesses a name defined in *m*’s
+symbol table. Module attributes can be assigned to.  (Note that the
+"import" statement is not, strictly speaking, an operation on a module
+object; "import foo" does not require a module object named *foo* to
+exist, rather it requires an (external) *definition* for a module
+named *foo* somewhere.)
+
+A special attribute of every module is "__dict__". This is the
+dictionary containing the module’s symbol table. Modifying this
+dictionary will actually change the module’s symbol table, but direct
+assignment to the "__dict__" attribute is not possible (you can write
+"m.__dict__['a'] = 1", which defines "m.a" to be "1", but you can’t
+write "m.__dict__ = {}").  Modifying "__dict__" directly is not
+recommended.
+
+Modules built into the interpreter are written like this: "<module
+'sys' (built-in)>".  If loaded from a file, they are written as
+"<module 'os' from '/usr/local/lib/pythonX.Y/os.pyc'>".
+''',
+    'typesseq': r'''Sequence Types — "list", "tuple", "range"
+*****************************************
+
+There are three basic sequence types: lists, tuples, and range
+objects. Additional sequence types tailored for processing of binary
+data and text strings are described in dedicated sections.
+
+
+Common Sequence Operations
+==========================
+
+The operations in the following table are supported by most sequence
+types, both mutable and immutable. The "collections.abc.Sequence" ABC
+is provided to make it easier to correctly implement these operations
+on custom sequence types.
+
+This table lists the sequence operations sorted in ascending priority.
+In the table, *s* and *t* are sequences of the same type, *n*, *i*,
+*j* and *k* are integers and *x* is an arbitrary object that meets any
+type and value restrictions imposed by *s*.
+
+The "in" and "not in" operations have the same priorities as the
+comparison operations. The "+" (concatenation) and "*" (repetition)
+operations have the same priority as the corresponding numeric
+operations. [3]
+
++----------------------------+----------------------------------+------------+
+| Operation                  | Result                           | Notes      |
+|============================|==================================|============|
+| "x in s"                   | "True" if an item of *s* is      | (1)        |
+|                            | equal to *x*, else "False"       |            |
++----------------------------+----------------------------------+------------+
+| "x not in s"               | "False" if an item of *s* is     | (1)        |
+|                            | equal to *x*, else "True"        |            |
++----------------------------+----------------------------------+------------+
+| "s + t"                    | the concatenation of *s* and *t* | (6)(7)     |
++----------------------------+----------------------------------+------------+
+| "s * n" or "n * s"         | equivalent to adding *s* to      | (2)(7)     |
+|                            | itself *n* times                 |            |
++----------------------------+----------------------------------+------------+
+| "s[i]"                     | *i*th item of *s*, origin 0      | (3)(9)     |
++----------------------------+----------------------------------+------------+
+| "s[i:j]"                   | slice of *s* from *i* to *j*     | (3)(4)     |
++----------------------------+----------------------------------+------------+
+| "s[i:j:k]"                 | slice of *s* from *i* to *j*     | (3)(5)     |
+|                            | with step *k*                    |            |
++----------------------------+----------------------------------+------------+
+| "len(s)"                   | length of *s*                    |            |
++----------------------------+----------------------------------+------------+
+| "min(s)"                   | smallest item of *s*             |            |
++----------------------------+----------------------------------+------------+
+| "max(s)"                   | largest item of *s*              |            |
++----------------------------+----------------------------------+------------+
+| "s.index(x[, i[, j]])"     | index of the first occurrence of | (8)        |
+|                            | *x* in *s* (at or after index    |            |
+|                            | *i* and before index *j*)        |            |
++----------------------------+----------------------------------+------------+
+| "s.count(x)"               | total number of occurrences of   |            |
+|                            | *x* in *s*                       |            |
++----------------------------+----------------------------------+------------+
+
+Sequences of the same type also support comparisons.  In particular,
+tuples and lists are compared lexicographically by comparing
+corresponding elements. This means that to compare equal, every
+element must compare equal and the two sequences must be of the same
+type and have the same length.  (For full details see Comparisons in
+the language reference.)
+
+Forward and reversed iterators over mutable sequences access values
+using an index.  That index will continue to march forward (or
+backward) even if the underlying sequence is mutated.  The iterator
+terminates only when an "IndexError" or a "StopIteration" is
+encountered (or when the index drops below zero).
+
+Notes:
+
+1. While the "in" and "not in" operations are used only for simple
+   containment testing in the general case, some specialised sequences
+   (such as "str", "bytes" and "bytearray") also use them for
+   subsequence testing:
+
+      >>> "gg" in "eggs"
+      True
+
+2. Values of *n* less than "0" are treated as "0" (which yields an
+   empty sequence of the same type as *s*).  Note that items in the
+   sequence *s* are not copied; they are referenced multiple times.
+   This often haunts new Python programmers; consider:
+
+      >>> lists = [[]] * 3
+      >>> lists
+      [[], [], []]
+      >>> lists[0].append(3)
+      >>> lists
+      [[3], [3], [3]]
+
+   What has happened is that "[[]]" is a one-element list containing
+   an empty list, so all three elements of "[[]] * 3" are references
+   to this single empty list.  Modifying any of the elements of
+   "lists" modifies this single list. You can create a list of
+   different lists this way:
+
+      >>> lists = [[] for i in range(3)]
+      >>> lists[0].append(3)
+      >>> lists[1].append(5)
+      >>> lists[2].append(7)
+      >>> lists
+      [[3], [5], [7]]
+
+   Further explanation is available in the FAQ entry How do I create a
+   multidimensional list?.
+
+3. If *i* or *j* is negative, the index is relative to the end of
+   sequence *s*: "len(s) + i" or "len(s) + j" is substituted.  But
+   note that "-0" is still "0".
+
+4. The slice of *s* from *i* to *j* is defined as the sequence of
+   items with index *k* such that "i <= k < j".  If *i* or *j* is
+   greater than "len(s)", use "len(s)".  If *i* is omitted or "None",
+   use "0".  If *j* is omitted or "None", use "len(s)".  If *i* is
+   greater than or equal to *j*, the slice is empty.
+
+5. The slice of *s* from *i* to *j* with step *k* is defined as the
+   sequence of items with index  "x = i + n*k" such that "0 <= n <
+   (j-i)/k".  In other words, the indices are "i", "i+k", "i+2*k",
+   "i+3*k" and so on, stopping when *j* is reached (but never
+   including *j*).  When *k* is positive, *i* and *j* are reduced to
+   "len(s)" if they are greater. When *k* is negative, *i* and *j* are
+   reduced to "len(s) - 1" if they are greater.  If *i* or *j* are
+   omitted or "None", they become “end” values (which end depends on
+   the sign of *k*).  Note, *k* cannot be zero. If *k* is "None", it
+   is treated like "1".
+
+6. Concatenating immutable sequences always results in a new object.
+   This means that building up a sequence by repeated concatenation
+   will have a quadratic runtime cost in the total sequence length.
+   To get a linear runtime cost, you must switch to one of the
+   alternatives below:
+
+   * if concatenating "str" objects, you can build a list and use
+     "str.join()" at the end or else write to an "io.StringIO"
+     instance and retrieve its value when complete
+
+   * if concatenating "bytes" objects, you can similarly use
+     "bytes.join()" or "io.BytesIO", or you can do in-place
+     concatenation with a "bytearray" object.  "bytearray" objects are
+     mutable and have an efficient overallocation mechanism
+
+   * if concatenating "tuple" objects, extend a "list" instead
+
+   * for other types, investigate the relevant class documentation
+
+7. Some sequence types (such as "range") only support item sequences
+   that follow specific patterns, and hence don’t support sequence
+   concatenation or repetition.
+
+8. "index" raises "ValueError" when *x* is not found in *s*. Not all
+   implementations support passing the additional arguments *i* and
+   *j*. These arguments allow efficient searching of subsections of
+   the sequence. Passing the extra arguments is roughly equivalent to
+   using "s[i:j].index(x)", only without copying any data and with the
+   returned index being relative to the start of the sequence rather
+   than the start of the slice.
+
+9. An "IndexError" is raised if *i* is outside the sequence range.
+
+
+Immutable Sequence Types
+========================
+
+The only operation that immutable sequence types generally implement
+that is not also implemented by mutable sequence types is support for
+the "hash()" built-in.
+
+This support allows immutable sequences, such as "tuple" instances, to
+be used as "dict" keys and stored in "set" and "frozenset" instances.
+
+Attempting to hash an immutable sequence that contains unhashable
+values will result in "TypeError".
+
+
+Mutable Sequence Types
+======================
+
+The operations in the following table are defined on mutable sequence
+types. The "collections.abc.MutableSequence" ABC is provided to make
+it easier to correctly implement these operations on custom sequence
+types.
+
+In the table *s* is an instance of a mutable sequence type, *t* is any
+iterable object and *x* is an arbitrary object that meets any type and
+value restrictions imposed by *s* (for example, "bytearray" only
+accepts integers that meet the value restriction "0 <= x <= 255").
+
++--------------------------------+----------------------------------+-----------------------+
+| Operation                      | Result                           | Notes                 |
+|================================|==================================|=======================|
+| "s[i] = x"                     | item *i* of *s* is replaced by   |                       |
+|                                | *x*                              |                       |
++--------------------------------+----------------------------------+-----------------------+
+| "del s[i]"                     | removes item *i* of *s*          |                       |
++--------------------------------+----------------------------------+-----------------------+
+| "s[i:j] = t"                   | slice of *s* from *i* to *j* is  |                       |
+|                                | replaced by the contents of the  |                       |
+|                                | iterable *t*                     |                       |
++--------------------------------+----------------------------------+-----------------------+
+| "del s[i:j]"                   | same as "s[i:j] = []"            |                       |
++--------------------------------+----------------------------------+-----------------------+
+| "s[i:j:k] = t"                 | the elements of "s[i:j:k]" are   | (1)                   |
+|                                | replaced by those of *t*         |                       |
++--------------------------------+----------------------------------+-----------------------+
+| "del s[i:j:k]"                 | removes the elements of          |                       |
+|                                | "s[i:j:k]" from the list         |                       |
++--------------------------------+----------------------------------+-----------------------+
+| "s.append(x)"                  | appends *x* to the end of the    |                       |
+|                                | sequence (same as                |                       |
+|                                | "s[len(s):len(s)] = [x]")        |                       |
++--------------------------------+----------------------------------+-----------------------+
+| "s.clear()"                    | removes all items from *s* (same | (5)                   |
+|                                | as "del s[:]")                   |                       |
++--------------------------------+----------------------------------+-----------------------+
+| "s.copy()"                     | creates a shallow copy of *s*    | (5)                   |
+|                                | (same as "s[:]")                 |                       |
++--------------------------------+----------------------------------+-----------------------+
+| "s.extend(t)" or "s += t"      | extends *s* with the contents of |                       |
+|                                | *t* (for the most part the same  |                       |
+|                                | as "s[len(s):len(s)] = t")       |                       |
++--------------------------------+----------------------------------+-----------------------+
+| "s *= n"                       | updates *s* with its contents    | (6)                   |
+|                                | repeated *n* times               |                       |
++--------------------------------+----------------------------------+-----------------------+
+| "s.insert(i, x)"               | inserts *x* into *s* at the      |                       |
+|                                | index given by *i* (same as      |                       |
+|                                | "s[i:i] = [x]")                  |                       |
++--------------------------------+----------------------------------+-----------------------+
+| "s.pop()" or "s.pop(i)"        | retrieves the item at *i* and    | (2)                   |
+|                                | also removes it from *s*         |                       |
++--------------------------------+----------------------------------+-----------------------+
+| "s.remove(x)"                  | removes the first item from *s*  | (3)                   |
+|                                | where "s[i]" is equal to *x*     |                       |
++--------------------------------+----------------------------------+-----------------------+
+| "s.reverse()"                  | reverses the items of *s* in     | (4)                   |
+|                                | place                            |                       |
++--------------------------------+----------------------------------+-----------------------+
+
+Notes:
+
+1. If *k* is not equal to "1", *t* must have the same length as the
+   slice it is replacing.
+
+2. The optional argument *i* defaults to "-1", so that by default the
+   last item is removed and returned.
+
+3. "remove()" raises "ValueError" when *x* is not found in *s*.
+
+4. The "reverse()" method modifies the sequence in place for economy
+   of space when reversing a large sequence.  To remind users that it
+   operates by side effect, it does not return the reversed sequence.
+
+5. "clear()" and "copy()" are included for consistency with the
+   interfaces of mutable containers that don’t support slicing
+   operations (such as "dict" and "set"). "copy()" is not part of the
+   "collections.abc.MutableSequence" ABC, but most concrete mutable
+   sequence classes provide it.
+
+   Added in version 3.3: "clear()" and "copy()" methods.
+
+6. The value *n* is an integer, or an object implementing
+   "__index__()".  Zero and negative values of *n* clear the sequence.
+   Items in the sequence are not copied; they are referenced multiple
+   times, as explained for "s * n" under Common Sequence Operations.
+
+
+Lists
+=====
+
+Lists are mutable sequences, typically used to store collections of
+homogeneous items (where the precise degree of similarity will vary by
+application).
+
+class list([iterable])
+
+   Lists may be constructed in several ways:
+
+   * Using a pair of square brackets to denote the empty list: "[]"
+
+   * Using square brackets, separating items with commas: "[a]", "[a,
+     b, c]"
+
+   * Using a list comprehension: "[x for x in iterable]"
+
+   * Using the type constructor: "list()" or "list(iterable)"
+
+   The constructor builds a list whose items are the same and in the
+   same order as *iterable*’s items.  *iterable* may be either a
+   sequence, a container that supports iteration, or an iterator
+   object.  If *iterable* is already a list, a copy is made and
+   returned, similar to "iterable[:]". For example, "list('abc')"
+   returns "['a', 'b', 'c']" and "list( (1, 2, 3) )" returns "[1, 2,
+   3]". If no argument is given, the constructor creates a new empty
+   list, "[]".
+
+   Many other operations also produce lists, including the "sorted()"
+   built-in.
+
+   Lists implement all of the common and mutable sequence operations.
+   Lists also provide the following additional method:
+
+   sort(*, key=None, reverse=False)
+
+      This method sorts the list in place, using only "<" comparisons
+      between items. Exceptions are not suppressed - if any comparison
+      operations fail, the entire sort operation will fail (and the
+      list will likely be left in a partially modified state).
+
+      "sort()" accepts two arguments that can only be passed by
+      keyword (keyword-only arguments):
+
+      *key* specifies a function of one argument that is used to
+      extract a comparison key from each list element (for example,
+      "key=str.lower"). The key corresponding to each item in the list
+      is calculated once and then used for the entire sorting process.
+      The default value of "None" means that list items are sorted
+      directly without calculating a separate key value.
+
+      The "functools.cmp_to_key()" utility is available to convert a
+      2.x style *cmp* function to a *key* function.
+
+      *reverse* is a boolean value.  If set to "True", then the list
+      elements are sorted as if each comparison were reversed.
+
+      This method modifies the sequence in place for economy of space
+      when sorting a large sequence.  To remind users that it operates
+      by side effect, it does not return the sorted sequence (use
+      "sorted()" to explicitly request a new sorted list instance).
+
+      The "sort()" method is guaranteed to be stable.  A sort is
+      stable if it guarantees not to change the relative order of
+      elements that compare equal — this is helpful for sorting in
+      multiple passes (for example, sort by department, then by salary
+      grade).
+
+      For sorting examples and a brief sorting tutorial, see Sorting
+      Techniques.
+
+      **CPython implementation detail:** While a list is being sorted,
+      the effect of attempting to mutate, or even inspect, the list is
+      undefined.  The C implementation of Python makes the list appear
+      empty for the duration, and raises "ValueError" if it can detect
+      that the list has been mutated during a sort.
+
+
+Tuples
+======
+
+Tuples are immutable sequences, typically used to store collections of
+heterogeneous data (such as the 2-tuples produced by the "enumerate()"
+built-in). Tuples are also used for cases where an immutable sequence
+of homogeneous data is needed (such as allowing storage in a "set" or
+"dict" instance).
+
+class tuple([iterable])
+
+   Tuples may be constructed in a number of ways:
+
+   * Using a pair of parentheses to denote the empty tuple: "()"
+
+   * Using a trailing comma for a singleton tuple: "a," or "(a,)"
+
+   * Separating items with commas: "a, b, c" or "(a, b, c)"
+
+   * Using the "tuple()" built-in: "tuple()" or "tuple(iterable)"
+
+   The constructor builds a tuple whose items are the same and in the
+   same order as *iterable*’s items.  *iterable* may be either a
+   sequence, a container that supports iteration, or an iterator
+   object.  If *iterable* is already a tuple, it is returned
+   unchanged. For example, "tuple('abc')" returns "('a', 'b', 'c')"
+   and "tuple( [1, 2, 3] )" returns "(1, 2, 3)". If no argument is
+   given, the constructor creates a new empty tuple, "()".
+
+   Note that it is actually the comma which makes a tuple, not the
+   parentheses. The parentheses are optional, except in the empty
+   tuple case, or when they are needed to avoid syntactic ambiguity.
+   For example, "f(a, b, c)" is a function call with three arguments,
+   while "f((a, b, c))" is a function call with a 3-tuple as the sole
+   argument.
+
+   Tuples implement all of the common sequence operations.
+
+For heterogeneous collections of data where access by name is clearer
+than access by index, "collections.namedtuple()" may be a more
+appropriate choice than a simple tuple object.
+
+
+Ranges
+======
+
+The "range" type represents an immutable sequence of numbers and is
+commonly used for looping a specific number of times in "for" loops.
+
+class range(stop)
+class range(start, stop[, step])
+
+   The arguments to the range constructor must be integers (either
+   built-in "int" or any object that implements the "__index__()"
+   special method).  If the *step* argument is omitted, it defaults to
+   "1". If the *start* argument is omitted, it defaults to "0". If
+   *step* is zero, "ValueError" is raised.
+
+   For a positive *step*, the contents of a range "r" are determined
+   by the formula "r[i] = start + step*i" where "i >= 0" and "r[i] <
+   stop".
+
+   For a negative *step*, the contents of the range are still
+   determined by the formula "r[i] = start + step*i", but the
+   constraints are "i >= 0" and "r[i] > stop".
+
+   A range object will be empty if "r[0]" does not meet the value
+   constraint. Ranges do support negative indices, but these are
+   interpreted as indexing from the end of the sequence determined by
+   the positive indices.
+
+   Ranges containing absolute values larger than "sys.maxsize" are
+   permitted but some features (such as "len()") may raise
+   "OverflowError".
+
+   Range examples:
+
+      >>> list(range(10))
+      [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+      >>> list(range(1, 11))
+      [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+      >>> list(range(0, 30, 5))
+      [0, 5, 10, 15, 20, 25]
+      >>> list(range(0, 10, 3))
+      [0, 3, 6, 9]
+      >>> list(range(0, -10, -1))
+      [0, -1, -2, -3, -4, -5, -6, -7, -8, -9]
+      >>> list(range(0))
+      []
+      >>> list(range(1, 0))
+      []
+
+   Ranges implement all of the common sequence operations except
+   concatenation and repetition (due to the fact that range objects
+   can only represent sequences that follow a strict pattern and
+   repetition and concatenation will usually violate that pattern).
+
+   start
+
+      The value of the *start* parameter (or "0" if the parameter was
+      not supplied)
+
+   stop
+
+      The value of the *stop* parameter
+
+   step
+
+      The value of the *step* parameter (or "1" if the parameter was
+      not supplied)
+
+The advantage of the "range" type over a regular "list" or "tuple" is
+that a "range" object will always take the same (small) amount of
+memory, no matter the size of the range it represents (as it only
+stores the "start", "stop" and "step" values, calculating individual
+items and subranges as needed).
+
+Range objects implement the "collections.abc.Sequence" ABC, and
+provide features such as containment tests, element index lookup,
+slicing and support for negative indices (see Sequence Types — list,
+tuple, range):
+
+>>> r = range(0, 20, 2)
+>>> r
+range(0, 20, 2)
+>>> 11 in r
+False
+>>> 10 in r
+True
+>>> r.index(10)
+5
+>>> r[5]
+10
+>>> r[:5]
+range(0, 10, 2)
+>>> r[-1]
+18
+
+Testing range objects for equality with "==" and "!=" compares them as
+sequences.  That is, two range objects are considered equal if they
+represent the same sequence of values.  (Note that two range objects
+that compare equal might have different "start", "stop" and "step"
+attributes, for example "range(0) == range(2, 1, 3)" or "range(0, 3,
+2) == range(0, 4, 2)".)
+
+Changed in version 3.2: Implement the Sequence ABC. Support slicing
+and negative indices. Test "int" objects for membership in constant
+time instead of iterating through all items.
+
+Changed in version 3.3: Define ‘==’ and ‘!=’ to compare range objects
+based on the sequence of values they define (instead of comparing
+based on object identity).Added the "start", "stop" and "step"
+attributes.
+
+See also:
+
+  * The linspace recipe shows how to implement a lazy version of range
+    suitable for floating-point applications.
+''',
+    'typesseq-mutable': r'''Mutable Sequence Types
+**********************
+
+The operations in the following table are defined on mutable sequence
+types. The "collections.abc.MutableSequence" ABC is provided to make
+it easier to correctly implement these operations on custom sequence
+types.
+
+In the table *s* is an instance of a mutable sequence type, *t* is any
+iterable object and *x* is an arbitrary object that meets any type and
+value restrictions imposed by *s* (for example, "bytearray" only
+accepts integers that meet the value restriction "0 <= x <= 255").
+
++--------------------------------+----------------------------------+-----------------------+
+| Operation                      | Result                           | Notes                 |
+|================================|==================================|=======================|
+| "s[i] = x"                     | item *i* of *s* is replaced by   |                       |
+|                                | *x*                              |                       |
++--------------------------------+----------------------------------+-----------------------+
+| "del s[i]"                     | removes item *i* of *s*          |                       |
++--------------------------------+----------------------------------+-----------------------+
+| "s[i:j] = t"                   | slice of *s* from *i* to *j* is  |                       |
+|                                | replaced by the contents of the  |                       |
+|                                | iterable *t*                     |                       |
++--------------------------------+----------------------------------+-----------------------+
+| "del s[i:j]"                   | same as "s[i:j] = []"            |                       |
++--------------------------------+----------------------------------+-----------------------+
+| "s[i:j:k] = t"                 | the elements of "s[i:j:k]" are   | (1)                   |
+|                                | replaced by those of *t*         |                       |
++--------------------------------+----------------------------------+-----------------------+
+| "del s[i:j:k]"                 | removes the elements of          |                       |
+|                                | "s[i:j:k]" from the list         |                       |
++--------------------------------+----------------------------------+-----------------------+
+| "s.append(x)"                  | appends *x* to the end of the    |                       |
+|                                | sequence (same as                |                       |
+|                                | "s[len(s):len(s)] = [x]")        |                       |
++--------------------------------+----------------------------------+-----------------------+
+| "s.clear()"                    | removes all items from *s* (same | (5)                   |
+|                                | as "del s[:]")                   |                       |
++--------------------------------+----------------------------------+-----------------------+
+| "s.copy()"                     | creates a shallow copy of *s*    | (5)                   |
+|                                | (same as "s[:]")                 |                       |
++--------------------------------+----------------------------------+-----------------------+
+| "s.extend(t)" or "s += t"      | extends *s* with the contents of |                       |
+|                                | *t* (for the most part the same  |                       |
+|                                | as "s[len(s):len(s)] = t")       |                       |
++--------------------------------+----------------------------------+-----------------------+
+| "s *= n"                       | updates *s* with its contents    | (6)                   |
+|                                | repeated *n* times               |                       |
++--------------------------------+----------------------------------+-----------------------+
+| "s.insert(i, x)"               | inserts *x* into *s* at the      |                       |
+|                                | index given by *i* (same as      |                       |
+|                                | "s[i:i] = [x]")                  |                       |
++--------------------------------+----------------------------------+-----------------------+
+| "s.pop()" or "s.pop(i)"        | retrieves the item at *i* and    | (2)                   |
+|                                | also removes it from *s*         |                       |
++--------------------------------+----------------------------------+-----------------------+
+| "s.remove(x)"                  | removes the first item from *s*  | (3)                   |
+|                                | where "s[i]" is equal to *x*     |                       |
++--------------------------------+----------------------------------+-----------------------+
+| "s.reverse()"                  | reverses the items of *s* in     | (4)                   |
+|                                | place                            |                       |
++--------------------------------+----------------------------------+-----------------------+
+
+Notes:
+
+1. If *k* is not equal to "1", *t* must have the same length as the
+   slice it is replacing.
+
+2. The optional argument *i* defaults to "-1", so that by default the
+   last item is removed and returned.
+
+3. "remove()" raises "ValueError" when *x* is not found in *s*.
+
+4. The "reverse()" method modifies the sequence in place for economy
+   of space when reversing a large sequence.  To remind users that it
+   operates by side effect, it does not return the reversed sequence.
+
+5. "clear()" and "copy()" are included for consistency with the
+   interfaces of mutable containers that don’t support slicing
+   operations (such as "dict" and "set"). "copy()" is not part of the
+   "collections.abc.MutableSequence" ABC, but most concrete mutable
+   sequence classes provide it.
+
+   Added in version 3.3: "clear()" and "copy()" methods.
+
+6. The value *n* is an integer, or an object implementing
+   "__index__()".  Zero and negative values of *n* clear the sequence.
+   Items in the sequence are not copied; they are referenced multiple
+   times, as explained for "s * n" under Common Sequence Operations.
+''',
+    'unary': r'''Unary arithmetic and bitwise operations
+***************************************
+
+All unary arithmetic and bitwise operations have the same priority:
+
+   u_expr ::= power | "-" u_expr | "+" u_expr | "~" u_expr
+
+The unary "-" (minus) operator yields the negation of its numeric
+argument; the operation can be overridden with the "__neg__()" special
+method.
+
+The unary "+" (plus) operator yields its numeric argument unchanged;
+the operation can be overridden with the "__pos__()" special method.
+
+The unary "~" (invert) operator yields the bitwise inversion of its
+integer argument.  The bitwise inversion of "x" is defined as
+"-(x+1)".  It only applies to integral numbers or to custom objects
+that override the "__invert__()" special method.
+
+In all three cases, if the argument does not have the proper type, a
+"TypeError" exception is raised.
+''',
+    'while': r'''The "while" statement
+*********************
+
+The "while" statement is used for repeated execution as long as an
+expression is true:
+
+   while_stmt ::= "while" assignment_expression ":" suite
+                  ["else" ":" suite]
+
+This repeatedly tests the expression and, if it is true, executes the
+first suite; if the expression is false (which may be the first time
+it is tested) the suite of the "else" clause, if present, is executed
+and the loop terminates.
+
+A "break" statement executed in the first suite terminates the loop
+without executing the "else" clause’s suite.  A "continue" statement
+executed in the first suite skips the rest of the suite and goes back
+to testing the expression.
+''',
+    'with': r'''The "with" statement
+********************
+
+The "with" statement is used to wrap the execution of a block with
+methods defined by a context manager (see section With Statement
+Context Managers). This allows common "try"…"except"…"finally" usage
+patterns to be encapsulated for convenient reuse.
+
+   with_stmt          ::= "with" ( "(" with_stmt_contents ","? ")" | with_stmt_contents ) ":" suite
+   with_stmt_contents ::= with_item ("," with_item)*
+   with_item          ::= expression ["as" target]
+
+The execution of the "with" statement with one “item” proceeds as
+follows:
+
+1. The context expression (the expression given in the "with_item") is
+   evaluated to obtain a context manager.
+
+2. The context manager’s "__enter__()" is loaded for later use.
+
+3. The context manager’s "__exit__()" is loaded for later use.
+
+4. The context manager’s "__enter__()" method is invoked.
+
+5. If a target was included in the "with" statement, the return value
+   from "__enter__()" is assigned to it.
+
+   Note:
+
+     The "with" statement guarantees that if the "__enter__()" method
+     returns without an error, then "__exit__()" will always be
+     called. Thus, if an error occurs during the assignment to the
+     target list, it will be treated the same as an error occurring
+     within the suite would be. See step 7 below.
+
+6. The suite is executed.
+
+7. The context manager’s "__exit__()" method is invoked.  If an
+   exception caused the suite to be exited, its type, value, and
+   traceback are passed as arguments to "__exit__()". Otherwise, three
+   "None" arguments are supplied.
+
+   If the suite was exited due to an exception, and the return value
+   from the "__exit__()" method was false, the exception is reraised.
+   If the return value was true, the exception is suppressed, and
+   execution continues with the statement following the "with"
+   statement.
+
+   If the suite was exited for any reason other than an exception, the
+   return value from "__exit__()" is ignored, and execution proceeds
+   at the normal location for the kind of exit that was taken.
+
+The following code:
+
+   with EXPRESSION as TARGET:
+       SUITE
+
+is semantically equivalent to:
+
+   manager = (EXPRESSION)
+   enter = type(manager).__enter__
+   exit = type(manager).__exit__
+   value = enter(manager)
+   hit_except = False
+
+   try:
+       TARGET = value
+       SUITE
+   except:
+       hit_except = True
+       if not exit(manager, *sys.exc_info()):
+           raise
+   finally:
+       if not hit_except:
+           exit(manager, None, None, None)
+
+With more than one item, the context managers are processed as if
+multiple "with" statements were nested:
+
+   with A() as a, B() as b:
+       SUITE
+
+is semantically equivalent to:
+
+   with A() as a:
+       with B() as b:
+           SUITE
+
+You can also write multi-item context managers in multiple lines if
+the items are surrounded by parentheses. For example:
+
+   with (
+       A() as a,
+       B() as b,
+   ):
+       SUITE
+
+Changed in version 3.1: Support for multiple context expressions.
+
+Changed in version 3.10: Support for using grouping parentheses to
+break the statement in multiple lines.
+
+See also:
+
+  **PEP 343** - The “with” statement
+     The specification, background, and examples for the Python "with"
+     statement.
+''',
+    'yield': r'''The "yield" statement
+*********************
+
+   yield_stmt ::= yield_expression
+
+A "yield" statement is semantically equivalent to a yield expression.
+The "yield" statement can be used to omit the parentheses that would
+otherwise be required in the equivalent yield expression statement.
+For example, the yield statements
+
+   yield <expr>
+   yield from <expr>
+
+are equivalent to the yield expression statements
+
+   (yield <expr>)
+   (yield from <expr>)
+
+Yield expressions and statements are only used when defining a
+*generator* function, and are only used in the body of the generator
+function.  Using "yield" in a function definition is sufficient to
+cause that definition to create a generator function instead of a
+normal function.
+
+For full details of "yield" semantics, refer to the Yield expressions
+section.
+''',
+}
+                                                                                                                                                                                                                    '''A multi-producer, multi-consumer queue.'''
+
+import threading
+import types
+from collections import deque
+from heapq import heappush, heappop
+from time import monotonic as time
+try:
+    from _queue import SimpleQueue
+except ImportError:
+    SimpleQueue = None
+
+__all__ = [
+    'Empty',
+    'Full',
+    'ShutDown',
+    'Queue',
+    'PriorityQueue',
+    'LifoQueue',
+    'SimpleQueue',
+]
+
+
+try:
+    from _queue import Empty
+except ImportError:
+    class Empty(Exception):
+        'Exception raised by Queue.get(block=0)/get_nowait().'
+        pass
+
+class Full(Exception):
+    'Exception raised by Queue.put(block=0)/put_nowait().'
+    pass
+
+
+class ShutDown(Exception):
+    '''Raised when put/get with shut-down queue.'''
+
+
+class Queue:
+    '''Create a queue object with a given maximum size.
+
+    If maxsize is <= 0, the queue size is infinite.
+    '''
+
+    def __init__(self, maxsize=0):
+        self.maxsize = maxsize
+        self._init(maxsize)
+
+        # mutex must be held whenever the queue is mutating.  All methods
+        # that acquire mutex must release it before returning.  mutex
+        # is shared between the three conditions, so acquiring and
+        # releasing the conditions also acquires and releases mutex.
+        self.mutex = threading.Lock()
+
+        # Notify not_empty whenever an item is added to the queue; a
+        # thread waiting to get is notified then.
+        self.not_empty = threading.Condition(self.mutex)
+
+        # Notify not_full whenever an item is removed from the queue;
+        # a thread waiting to put is notified then.
+        self.not_full = threading.Condition(self.mutex)
+
+        # Notify all_tasks_done whenever the number of unfinished tasks
+        # drops to zero; thread waiting to join() is notified to resume
+        self.all_tasks_done = threading.Condition(self.mutex)
+        self.unfinished_tasks = 0
+
+        # Queue shutdown state
+        self.is_shutdown = False
+
+    def task_done(self):
+        '''Indicate that a formerly enqueued task is complete.
+
+        Used by Queue consumer threads.  For each get() used to fetch a task,
+        a subsequent call to task_done() tells the queue that the processing
+        on the task is complete.
+
+        If a join() is currently blocking, it will resume when all items
+        have been processed (meaning that a task_done() call was received
+        for every item that had been put() into the queue).
+
+        shutdown(immediate=True) calls task_done() for each remaining item in
+        the queue.
+
+        Raises a ValueError if called more times than there were items
+        placed in the queue.
+        '''
+        with self.all_tasks_done:
+            unfinished = self.unfinished_tasks - 1
+            if unfinished <= 0:
+                if unfinished < 0:
+                    raise ValueError('task_done() called too many times')
+                self.all_tasks_done.notify_all()
+            self.unfinished_tasks = unfinished
+
+    def join(self):
+        '''Blocks until all items in the Queue have been gotten and processed.
+
+        The count of unfinished tasks goes up whenever an item is added to the
+        queue. The count goes down whenever a consumer thread calls task_done()
+        to indicate the item was retrieved and all work on it is complete.
+
+        When the count of unfinished tasks drops to zero, join() unblocks.
+        '''
+        with self.all_tasks_done:
+            while self.unfinished_tasks:
+                self.all_tasks_done.wait()
+
+    def qsize(self):
+        '''Return the approximate size of the queue (not reliable!).'''
+        with self.mutex:
+            return self._qsize()
+
+    def empty(self):
+        '''Return True if the queue is empty, False otherwise (not reliable!).
+
+        This method is likely to be removed at some point.  Use qsize() == 0
+        as a direct substitute, but be aware that either approach risks a race
+        condition where a queue can grow before the result of empty() or
+        qsize() can be used.
+
+        To create code that needs to wait for all queued tasks to be
+        completed, the preferred technique is to use the join() method.
+        '''
+        with self.mutex:
+            return not self._qsize()
+
+    def full(self):
+        '''Return True if the queue is full, False otherwise (not reliable!).
+
+        This method is likely to be removed at some point.  Use qsize() >= n
+        as a direct substitute, but be aware that either approach risks a race
+        condition where a queue can shrink before the result of full() or
+        qsize() can be used.
+        '''
+        with self.mutex:
+            return 0 < self.maxsize <= self._qsize()
+
+    def put(self, item, block=True, timeout=None):
+        '''Put an item into the queue.
+
+        If optional args 'block' is true and 'timeout' is None (the default),
+        block if necessary until a free slot is available. If 'timeout' is
+        a non-negative number, it blocks at most 'timeout' seconds and raises
+        the Full exception if no free slot was available within that time.
+        Otherwise ('block' is false), put an item on the queue if a free slot
+        is immediately available, else raise the Full exception ('timeout'
+        is ignored in that case).
+
+        Raises ShutDown if the queue has been shut down.
+        '''
+        with self.not_full:
+            if self.is_shutdown:
+                raise ShutDown
+            if self.maxsize > 0:
+                if not block:
+                    if self._qsize() >= self.maxsize:
+                        raise Full
+                elif timeout is None:
+                    while self._qsize() >= self.maxsize:
+                        self.not_full.wait()
+                        if self.is_shutdown:
+                            raise ShutDown
+                elif timeout < 0:
+                    raise ValueError("'timeout' must be a non-negative number")
+                else:
+                    endtime = time() + timeout
+                    while self._qsize() >= self.maxsize:
+                        remaining = endtime - time()
+                        if remaining <= 0.0:
+                            raise Full
+                        self.not_full.wait(remaining)
+                        if self.is_shutdown:
+                            raise ShutDown
+            self._put(item)
+            self.unfinished_tasks += 1
+            self.not_empty.notify()
+
+    def get(self, block=True, timeout=None):
+        '''Remove and return an item from the queue.
+
+        If optional args 'block' is true and 'timeout' is None (the default),
+        block if necessary until an item is available. If 'timeout' is
+        a non-negative number, it blocks at most 'timeout' seconds and raises
+        the Empty exception if no item was available within that time.
+        Otherwise ('block' is false), return an item if one is immediately
+        available, else raise the Empty exception ('timeout' is ignored
+        in that case).
+
+        Raises ShutDown if the queue has been shut down and is empty,
+        or if the queue has been shut down immediately.
+        '''
+        with self.not_empty:
+            if self.is_shutdown and not self._qsize():
+                raise ShutDown
+            if not block:
+                if not self._qsize():
+                    raise Empty
+            elif timeout is None:
+                while not self._qsize():
+                    self.not_empty.wait()
+                    if self.is_shutdown and not self._qsize():
+                        raise ShutDown
+            elif timeout < 0:
+                raise ValueError("'timeout' must be a non-negative number")
+            else:
+                endtime = time() + timeout
+                while not self._qsize():
+                    remaining = endtime - time()
+                    if remaining <= 0.0:
+                        raise Empty
+                    self.not_empty.wait(remaining)
+                    if self.is_shutdown and not self._qsize():
+                        raise ShutDown
+            item = self._get()
+            self.not_full.notify()
+            return item
+
+    def put_nowait(self, item):
+        '''Put an item into the queue without blocking.
+
+        Only enqueue the item if a free slot is immediately available.
+        Otherwise raise the Full exception.
+        '''
+        return self.put(item, block=False)
+
+    def get_nowait(self):
+        '''Remove and return an item from the queue without blocking.
+
+        Only get an item if one is immediately available. Otherwise
+        raise the Empty exception.
+        '''
+        return self.get(block=False)
+
+    def shutdown(self, immediate=False):
+        '''Shut-down the queue, making queue gets and puts raise ShutDown.
+
+        By default, gets will only raise once the queue is empty. Set
+        'immediate' to True to make gets raise immediately instead.
+
+        All blocked callers of put() and get() will be unblocked. If
+        'immediate', a task is marked as done for each item remaining in
+        the queue, which may unblock callers of join().
+        '''
+        with self.mutex:
+            self.is_shutdown = True
+            if immediate:
+                while self._qsize():
+                    self._get()
+                    if self.unfinished_tasks > 0:
+                        self.unfinished_tasks -= 1
+                # release all blocked threads in `join()`
+                self.all_tasks_done.notify_all()
+            # All getters need to re-check queue-empty to raise ShutDown
+            self.not_empty.notify_all()
+            self.not_full.notify_all()
+
+    # Override these methods to implement other queue organizations
+    # (e.g. stack or priority queue).
+    # These will only be called with appropriate locks held
+
+    # Initialize the queue representation
+    def _init(self, maxsize):
+        self.queue = deque()
+
+    def _qsize(self):
+        return len(self.queue)
+
+    # Put a new item in the queue
+    def _put(self, item):
+        self.queue.append(item)
+
+    # Get an item from the queue
+    def _get(self):
+        return self.queue.popleft()
+
+    __class_getitem__ = classmethod(types.GenericAlias)
+
+
+class PriorityQueue(Queue):
+    '''Variant of Queue that retrieves open entries in priority order (lowest first).
+
+    Entries are typically tuples of the form:  (priority number, data).
+    '''
+
+    def _init(self, maxsize):
+        self.queue = []
+
+    def _qsize(self):
+        return len(self.queue)
+
+    def _put(self, item):
+        heappush(self.queue, item)
+
+    def _get(self):
+        return heappop(self.queue)
+
+
+class LifoQueue(Queue):
+    '''Variant of Queue that retrieves most recently added entries first.'''
+
+    def _init(self, maxsize):
+        self.queue = []
+
+    def _qsize(self):
+        return len(self.queue)
+
+    def _put(self, item):
+        self.queue.append(item)
+
+    def _get(self):
+        return self.queue.pop()
+
+
+class _PySimpleQueue:
+    '''Simple, unbounded FIFO queue.
+
+    This pure Python implementation is not reentrant.
+    '''
+    # Note: while this pure Python version provides fairness
+    # (by using a threading.Semaphore which is itself fair, being based
+    #  on threading.Condition), fairness is not part of the API contract.
+    # This allows the C version to use a different implementation.
+
+    def __init__(self):
+        self._queue = deque()
+        self._count = threading.Semaphore(0)
+
+    def put(self, item, block=True, timeout=None):
+        '''Put the item on the queue.
+
+        The optional 'block' and 'timeout' arguments are ignored, as this method
+        never blocks.  They are provided for compatibility with the Queue class.
+        '''
+        self._queue.append(item)
+        self._count.release()
+
+    def get(self, block=True, timeout=None):
+        '''Remove and return an item from the queue.
+
+        If optional args 'block' is true and 'timeout' is None (the default),
+        block if necessary until an item is available. If 'timeout' is
+        a non-negative number, it blocks at most 'timeout' seconds and raises
+        the Empty exception if no item was available within that time.
+        Otherwise ('block' is false), return an item if one is immediately
+        available, else raise the Empty exception ('timeout' is ignored
+        in that case).
+        '''
+        if timeout is not None and timeout < 0:
+            raise ValueError("'timeout' must be a non-negative number")
+        if not self._count.acquire(block, timeout):
+            raise Empty
+        return self._queue.popleft()
+
+    def put_nowait(self, item):
+        '''Put an item into the queue without blocking.
+
+        This is exactly equivalent to `put(item, block=False)` and is only provided
+        for compatibility with the Queue class.
+        '''
+        return self.put(item, block=False)
+
+    def get_nowait(self):
+        '''Remove and return an item from the queue without blocking.
+
+        Only get an item if one is immediately available. Otherwise
+        raise the Empty exception.
+        '''
+        return self.get(block=False)
+
+    def empty(self):
+        '''Return True if the queue is empty, False otherwise (not reliable!).'''
+        return len(self._queue) == 0
+
+    def qsize(self):
+        '''Return the approximate size of the queue (not reliable!).'''
+        return len(self._queue)
+
+    __class_getitem__ = classmethod(types.GenericAlias)
+
+
+if SimpleQueue is None:
+    SimpleQueue = _PySimpleQueue
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       #! /usr/bin/python3.13
+
+"""Conversions to/from quoted-printable transport encoding as per RFC 1521."""
+
+# (Dec 1991 version).
+
+__all__ = ["encode", "decode", "encodestring", "decodestring"]
+
+ESCAPE = b'='
+MAXLINESIZE = 76
+HEX = b'0123456789ABCDEF'
+EMPTYSTRING = b''
+
+try:
+    from binascii import a2b_qp, b2a_qp
+except ImportError:
+    a2b_qp = None
+    b2a_qp = None
+
+
+def needsquoting(c, quotetabs, header):
+    """Decide whether a particular byte ordinal needs to be quoted.
+
+    The 'quotetabs' flag indicates whether embedded tabs and spaces should be
+    quoted.  Note that line-ending tabs and spaces are always encoded, as per
+    RFC 1521.
+    """
+    assert isinstance(c, bytes)
+    if c in b' \t':
+        return quotetabs
+    # if header, we have to escape _ because _ is used to escape space
+    if c == b'_':
+        return header
+    return c == ESCAPE or not (b' ' <= c <= b'~')
+
+def quote(c):
+    """Quote a single character."""
+    assert isinstance(c, bytes) and len(c)==1
+    c = ord(c)
+    return ESCAPE + bytes((HEX[c//16], HEX[c%16]))
+
+
+
+def encode(input, output, quotetabs, header=False):
+    """Read 'input', apply quoted-printable encoding, and write to 'output'.
+
+    'input' and 'output' are binary file objects. The 'quotetabs' flag
+    indicates whether embedded tabs and spaces should be quoted. Note that
+    line-ending tabs and spaces are always encoded, as per RFC 1521.
+    The 'header' flag indicates whether we are encoding spaces as _ as per RFC
+    1522."""
+
+    if b2a_qp is not None:
+        data = input.read()
+        odata = b2a_qp(data, quotetabs=quotetabs, header=header)
+        output.write(odata)
+        return
+
+    def write(s, output=output, lineEnd=b'\n'):
+        # RFC 1521 requires that the line ending in a space or tab must have
+        # that trailing character encoded.
+        if s and s[-1:] in b' \t':
+            output.write(s[:-1] + quote(s[-1:]) + lineEnd)
+        elif s == b'.':
+            output.write(quote(s) + lineEnd)
+        else:
+            output.write(s + lineEnd)
+
+    prevline = None
+    while line := input.readline():
+        outline = []
+        # Strip off any readline induced trailing newline
+        stripped = b''
+        if line[-1:] == b'\n':
+            line = line[:-1]
+            stripped = b'\n'
+        # Calculate the un-length-limited encoded line
+        for c in line:
+            c = bytes((c,))
+            if needsquoting(c, quotetabs, header):
+                c = quote(c)
+            if header and c == b' ':
+                outline.append(b'_')
+            else:
+                outline.append(c)
+        # First, write out the previous line
+        if prevline is not None:
+            write(prevline)
+        # Now see if we need any soft line breaks because of RFC-imposed
+        # length limitations.  Then do the thisline->prevline dance.
+        thisline = EMPTYSTRING.join(outline)
+        while len(thisline) > MAXLINESIZE:
+            # Don't forget to include the soft line break `=' sign in the
+            # length calculation!
+            write(thisline[:MAXLINESIZE-1], lineEnd=b'=\n')
+            thisline = thisline[MAXLINESIZE-1:]
+        # Write out the current line
+        prevline = thisline
+    # Write out the last line, without a trailing newline
+    if prevline is not None:
+        write(prevline, lineEnd=stripped)
+
+def encodestring(s, quotetabs=False, header=False):
+    if b2a_qp is not None:
+        return b2a_qp(s, quotetabs=quotetabs, header=header)
+    from io import BytesIO
+    infp = BytesIO(s)
+    outfp = BytesIO()
+    encode(infp, outfp, quotetabs, header)
+    return outfp.getvalue()
+
+
+
+def decode(input, output, header=False):
+    """Read 'input', apply quoted-printable decoding, and write to 'output'.
+    'input' and 'output' are binary file objects.
+    If 'header' is true, decode underscore as space (per RFC 1522)."""
+
+    if a2b_qp is not None:
+        data = input.read()
+        odata = a2b_qp(data, header=header)
+        output.write(odata)
+        return
+
+    new = b''
+    while line := input.readline():
+        i, n = 0, len(line)
+        if n > 0 and line[n-1:n] == b'\n':
+            partial = 0; n = n-1
+            # Strip trailing whitespace
+            while n > 0 and line[n-1:n] in b" \t\r":
+                n = n-1
+        else:
+            partial = 1
+        while i < n:
+            c = line[i:i+1]
+            if c == b'_' and header:
+                new = new + b' '; i = i+1
+            elif c != ESCAPE:
+                new = new + c; i = i+1
+            elif i+1 == n and not partial:
+                partial = 1; break
+            elif i+1 < n and line[i+1:i+2] == ESCAPE:
+                new = new + ESCAPE; i = i+2
+            elif i+2 < n and ishex(line[i+1:i+2]) and ishex(line[i+2:i+3]):
+                new = new + bytes((unhex(line[i+1:i+3]),)); i = i+3
+            else: # Bad escape sequence -- leave it in
+                new = new + c; i = i+1
+        if not partial:
+            output.write(new + b'\n')
+            new = b''
+    if new:
+        output.write(new)
+
+def decodestring(s, header=False):
+    if a2b_qp is not None:
+        return a2b_qp(s, header=header)
+    from io import BytesIO
+    infp = BytesIO(s)
+    outfp = BytesIO()
+    decode(infp, outfp, header=header)
+    return outfp.getvalue()
+
+
+
+# Other helper functions
+def ishex(c):
+    """Return true if the byte ordinal 'c' is a hexadecimal digit in ASCII."""
+    assert isinstance(c, bytes)
+    return b'0' <= c <= b'9' or b'a' <= c <= b'f' or b'A' <= c <= b'F'
+
+def unhex(s):
+    """Get the integer value of a hexadecimal number."""
+    bits = 0
+    for c in s:
+        c = bytes((c,))
+        if b'0' <= c <= b'9':
+            i = ord('0')
+        elif b'a' <= c <= b'f':
+            i = ord('a')-10
+        elif b'A' <= c <= b'F':
+            i = ord(b'A')-10
+        else:
+            assert False, "non-hex digit "+repr(c)
+        bits = bits*16 + (ord(c) - i)
+    return bits
+
+
+
+def main():
+    import sys
+    import getopt
+    try:
+        opts, args = getopt.getopt(sys.argv[1:], 'td')
+    except getopt.error as msg:
+        sys.stdout = sys.stderr
+        print(msg)
+        print("usage: quopri [-t | -d] [file] ...")
+        print("-t: quote tabs")
+        print("-d: decode; default encode")
+        sys.exit(2)
+    deco = False
+    tabs = False
+    for o, a in opts:
+        if o == '-t': tabs = True
+        if o == '-d': deco = True
+    if tabs and deco:
+        sys.stdout = sys.stderr
+        print("-t and -d are mutually exclusive")
+        sys.exit(2)
+    if not args: args = ['-']
+    sts = 0
+    for file in args:
+        if file == '-':
+            fp = sys.stdin.buffer
+        else:
+            try:
+                fp = open(file, "rb")
+            except OSError as msg:
+                sys.stderr.write("%s: can't open (%s)\n" % (file, msg))
+                sts = 1
+                continue
+        try:
+            if deco:
+                decode(fp, sys.stdout.buffer)
+            else:
+                encode(fp, sys.stdout.buffer, tabs)
+        finally:
+            if file != '-':
+                fp.close()
+    if sts:
+        sys.exit(sts)
+
+
+
+if __name__ == '__main__':
+    main()
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 """Random variable generators.
+
+    bytes
+    -----
+           uniform bytes (values between 0 and 255)
+
+    integers
+    --------
+           uniform within range
+
+    sequences
+    ---------
+           pick random element
+           pick random sample
+           pick weighted random sample
+           generate random permutation
+
+    distributions on the real line:
+    ------------------------------
+           uniform
+           triangular
+           normal (Gaussian)
+           lognormal
+           negative exponential
+           gamma
+           beta
+           pareto
+           Weibull
+
+    distributions on the circle (angles 0 to 2pi)
+    ---------------------------------------------
+           circular uniform
+           von Mises
+
+    discrete distributions
+    ----------------------
+           binomial
+
+
+General notes on the underlying Mersenne Twister core generator:
+
+* The period is 2**19937-1.
+* It is one of the most extensively tested generators in existence.
+* The random() method is implemented in C, executes in a single Python step,
+  and is, therefore, threadsafe.
+
+"""
+
+# Translated by Guido van Rossum from C source provided by
+# Adrian Baddeley.  Adapted by Raymond Hettinger for use with
+# the Mersenne Twister  and os.urandom() core generators.
+
+from math import log as _log, exp as _exp, pi as _pi, e as _e, ceil as _ceil
+from math import sqrt as _sqrt, acos as _acos, cos as _cos, sin as _sin
+from math import tau as TWOPI, floor as _floor, isfinite as _isfinite
+from math import lgamma as _lgamma, fabs as _fabs, log2 as _log2
+from os import urandom as _urandom
+from _collections_abc import Sequence as _Sequence
+from operator import index as _index
+from itertools import accumulate as _accumulate, repeat as _repeat
+from bisect import bisect as _bisect
+import os as _os
+import _random
+
+__all__ = [
+    "Random",
+    "SystemRandom",
+    "betavariate",
+    "binomialvariate",
+    "choice",
+    "choices",
+    "expovariate",
+    "gammavariate",
+    "gauss",
+    "getrandbits",
+    "getstate",
+    "lognormvariate",
+    "normalvariate",
+    "paretovariate",
+    "randbytes",
+    "randint",
+    "random",
+    "randrange",
+    "sample",
+    "seed",
+    "setstate",
+    "shuffle",
+    "triangular",
+    "uniform",
+    "vonmisesvariate",
+    "weibullvariate",
+]
+
+NV_MAGICCONST = 4 * _exp(-0.5) / _sqrt(2.0)
+LOG4 = _log(4.0)
+SG_MAGICCONST = 1.0 + _log(4.5)
+BPF = 53        # Number of bits in a float
+RECIP_BPF = 2 ** -BPF
+_ONE = 1
+_sha512 = None
+
+
+class Random(_random.Random):
+    """Random number generator base class used by bound module functions.
+
+    Used to instantiate instances of Random to get generators that don't
+    share state.
+
+    Class Random can also be subclassed if you want to use a different basic
+    generator of your own devising: in that case, override the following
+    methods:  random(), seed(), getstate(), and setstate().
+    Optionally, implement a getrandbits() method so that randrange()
+    can cover arbitrarily large ranges.
+
+    """
+
+    VERSION = 3     # used by getstate/setstate
+
+    def __init__(self, x=None):
+        """Initialize an instance.
+
+        Optional argument x controls seeding, as for Random.seed().
+        """
+
+        self.seed(x)
+        self.gauss_next = None
+
+    def seed(self, a=None, version=2):
+        """Initialize internal state from a seed.
+
+        The only supported seed types are None, int, float,
+        str, bytes, and bytearray.
+
+        None or no argument seeds from current time or from an operating
+        system specific randomness source if available.
+
+        If *a* is an int, all bits are used.
+
+        For version 2 (the default), all of the bits are used if *a* is a str,
+        bytes, or bytearray.  For version 1 (provided for reproducing random
+        sequences from older versions of Python), the algorithm for str and
+        bytes generates a narrower range of seeds.
+
+        """
+
+        if version == 1 and isinstance(a, (str, bytes)):
+            a = a.decode('latin-1') if isinstance(a, bytes) else a
+            x = ord(a[0]) << 7 if a else 0
+            for c in map(ord, a):
+                x = ((1000003 * x) ^ c) & 0xFFFFFFFFFFFFFFFF
+            x ^= len(a)
+            a = -2 if x == -1 else x
+
+        elif version == 2 and isinstance(a, (str, bytes, bytearray)):
+            global _sha512
+            if _sha512 is None:
+                try:
+                    # hashlib is pretty heavy to load, try lean internal
+                    # module first
+                    from _sha2 import sha512 as _sha512
+                except ImportError:
+                    # fallback to official implementation
+                    from hashlib import sha512 as _sha512
+
+            if isinstance(a, str):
+                a = a.encode()
+            a = int.from_bytes(a + _sha512(a).digest())
+
+        elif not isinstance(a, (type(None), int, float, str, bytes, bytearray)):
+            raise TypeError('The only supported seed types are:\n'
+                            'None, int, float, str, bytes, and bytearray.')
+
+        super().seed(a)
+        self.gauss_next = None
+
+    def getstate(self):
+        """Return internal state; can be passed to setstate() later."""
+        return self.VERSION, super().getstate(), self.gauss_next
+
+    def setstate(self, state):
+        """Restore internal state from object returned by getstate()."""
+        version = state[0]
+        if version == 3:
+            version, internalstate, self.gauss_next = state
+            super().setstate(internalstate)
+        elif version == 2:
+            version, internalstate, self.gauss_next = state
+            # In version 2, the state was saved as signed ints, which causes
+            #   inconsistencies between 32/64-bit systems. The state is
+            #   really unsigned 32-bit ints, so we convert negative ints from
+            #   version 2 to positive longs for version 3.
+            try:
+                internalstate = tuple(x % (2 ** 32) for x in internalstate)
+            except ValueError as e:
+                raise TypeError from e
+            super().setstate(internalstate)
+        else:
+            raise ValueError("state with version %s passed to "
+                             "Random.setstate() of version %s" %
+                             (version, self.VERSION))
+
+
+    ## -------------------------------------------------------
+    ## ---- Methods below this point do not need to be overridden or extended
+    ## ---- when subclassing for the purpose of using a different core generator.
+
+
+    ## -------------------- pickle support  -------------------
+
+    # Issue 17489: Since __reduce__ was defined to fix #759889 this is no
+    # longer called; we leave it here because it has been here since random was
+    # rewritten back in 2001 and why risk breaking something.
+    def __getstate__(self):  # for pickle
+        return self.getstate()
+
+    def __setstate__(self, state):  # for pickle
+        self.setstate(state)
+
+    def __reduce__(self):
+        return self.__class__, (), self.getstate()
+
+
+    ## ---- internal support method for evenly distributed integers ----
+
+    def __init_subclass__(cls, /, **kwargs):
+        """Control how subclasses generate random integers.
+
+        The algorithm a subclass can use depends on the random() and/or
+        getrandbits() implementation available to it and determines
+        whether it can generate random integers from arbitrarily large
+        ranges.
+        """
+
+        for c in cls.__mro__:
+            if '_randbelow' in c.__dict__:
+                # just inherit it
+                break
+            if 'getrandbits' in c.__dict__:
+                cls._randbelow = cls._randbelow_with_getrandbits
+                break
+            if 'random' in c.__dict__:
+                cls._randbelow = cls._randbelow_without_getrandbits
+                break
+
+    def _randbelow_with_getrandbits(self, n):
+        "Return a random int in the range [0,n).  Defined for n > 0."
+
+        getrandbits = self.getrandbits
+        k = n.bit_length()
+        r = getrandbits(k)  # 0 <= r < 2**k
+        while r >= n:
+            r = getrandbits(k)
+        return r
+
+    def _randbelow_without_getrandbits(self, n, maxsize=1<<BPF):
+        """Return a random int in the range [0,n).  Defined for n > 0.
+
+        The implementation does not use getrandbits, but only random.
+        """
+
+        random = self.random
+        if n >= maxsize:
+            from warnings import warn
+            warn("Underlying random() generator does not supply \n"
+                 "enough bits to choose from a population range this large.\n"
+                 "To remove the range limitation, add a getrandbits() method.")
+            return _floor(random() * n)
+        rem = maxsize % n
+        limit = (maxsize - rem) / maxsize   # int(limit * maxsize) % n == 0
+        r = random()
+        while r >= limit:
+            r = random()
+        return _floor(r * maxsize) % n
+
+    _randbelow = _randbelow_with_getrandbits
+
+
+    ## --------------------------------------------------------
+    ## ---- Methods below this point generate custom distributions
+    ## ---- based on the methods defined above.  They do not
+    ## ---- directly touch the underlying generator and only
+    ## ---- access randomness through the methods:  random(),
+    ## ---- getrandbits(), or _randbelow().
+
+
+    ## -------------------- bytes methods ---------------------
+
+    def randbytes(self, n):
+        """Generate n random bytes."""
+        return self.getrandbits(n * 8).to_bytes(n, 'little')
+
+
+    ## -------------------- integer methods  -------------------
+
+    def randrange(self, start, stop=None, step=_ONE):
+        """Choose a random item from range(stop) or range(start, stop[, step]).
+
+        Roughly equivalent to ``choice(range(start, stop, step))`` but
+        supports arbitrarily large ranges and is optimized for common cases.
+
+        """
+
+        # This code is a bit messy to make it fast for the
+        # common case while still doing adequate error checking.
+        istart = _index(start)
+        if stop is None:
+            # We don't check for "step != 1" because it hasn't been
+            # type checked and converted to an integer yet.
+            if step is not _ONE:
+                raise TypeError("Missing a non-None stop argument")
+            if istart > 0:
+                return self._randbelow(istart)
+            raise ValueError("empty range for randrange()")
+
+        # Stop argument supplied.
+        istop = _index(stop)
+        width = istop - istart
+        istep = _index(step)
+        # Fast path.
+        if istep == 1:
+            if width > 0:
+                return istart + self._randbelow(width)
+            raise ValueError(f"empty range in randrange({start}, {stop})")
+
+        # Non-unit step argument supplied.
+        if istep > 0:
+            n = (width + istep - 1) // istep
+        elif istep < 0:
+            n = (width + istep + 1) // istep
+        else:
+            raise ValueError("zero step for randrange()")
+        if n <= 0:
+            raise ValueError(f"empty range in randrange({start}, {stop}, {step})")
+        return istart + istep * self._randbelow(n)
+
+    def randint(self, a, b):
+        """Return random integer in range [a, b], including both end points.
+        """
+
+        return self.randrange(a, b+1)
+
+
+    ## -------------------- sequence methods  -------------------
+
+    def choice(self, seq):
+        """Choose a random element from a non-empty sequence."""
+
+        # As an accommodation for NumPy, we don't use "if not seq"
+        # because bool(numpy.array()) raises a ValueError.
+        if not len(seq):
+            raise IndexError('Cannot choose from an empty sequence')
+        return seq[self._randbelow(len(seq))]
+
+    def shuffle(self, x):
+        """Shuffle list x in place, and return None."""
+
+        randbelow = self._randbelow
+        for i in reversed(range(1, len(x))):
+            # pick an element in x[:i+1] with which to exchange x[i]
+            j = randbelow(i + 1)
+            x[i], x[j] = x[j], x[i]
+
+    def sample(self, population, k, *, counts=None):
+        """Chooses k unique random elements from a population sequence.
+
+        Returns a new list containing elements from the population while
+        leaving the original population unchanged.  The resulting list is
+        in selection order so that all sub-slices will also be valid random
+        samples.  This allows raffle winners (the sample) to be partitioned
+        into grand prize and second place winners (the subslices).
+
+        Members of the population need not be hashable or unique.  If the
+        population contains repeats, then each occurrence is a possible
+        selection in the sample.
+
+        Repeated elements can be specified one at a time or with the optional
+        counts parameter.  For example:
+
+            sample(['red', 'blue'], counts=[4, 2], k=5)
+
+        is equivalent to:
+
+            sample(['red', 'red', 'red', 'red', 'blue', 'blue'], k=5)
+
+        To choose a sample from a range of integers, use range() for the
+        population argument.  This is especially fast and space efficient
+        for sampling from a large population:
+
+            sample(range(10000000), 60)
+
+        """
+
+        # Sampling without replacement entails tracking either potential
+        # selections (the pool) in a list or previous selections in a set.
+
+        # When the number of selections is small compared to the
+        # population, then tracking selections is efficient, requiring
+        # only a small set and an occasional reselection.  For
+        # a larger number of selections, the pool tracking method is
+        # preferred since the list takes less space than the
+        # set and it doesn't suffer from frequent reselections.
+
+        # The number of calls to _randbelow() is kept at or near k, the
+        # theoretical minimum.  This is important because running time
+        # is dominated by _randbelow() and because it extracts the
+        # least entropy from the underlying random number generators.
+
+        # Memory requirements are kept to the smaller of a k-length
+        # set or an n-length list.
+
+        # There are other sampling algorithms that do not require
+        # auxiliary memory, but they were rejected because they made
+        # too many calls to _randbelow(), making them slower and
+        # causing them to eat more entropy than necessary.
+
+        if not isinstance(population, _Sequence):
+            raise TypeError("Population must be a sequence.  "
+                            "For dicts or sets, use sorted(d).")
+        n = len(population)
+        if counts is not None:
+            cum_counts = list(_accumulate(counts))
+            if len(cum_counts) != n:
+                raise ValueError('The number of counts does not match the population')
+            total = cum_counts.pop() if cum_counts else 0
+            if not isinstance(total, int):
+                raise TypeError('Counts must be integers')
+            if total < 0:
+                raise ValueError('Counts must be non-negative')
+            selections = self.sample(range(total), k=k)
+            bisect = _bisect
+            return [population[bisect(cum_counts, s)] for s in selections]
+        randbelow = self._randbelow
+        if not 0 <= k <= n:
+            raise ValueError("Sample larger than population or is negative")
+        result = [None] * k
+        setsize = 21        # size of a small set minus size of an empty list
+        if k > 5:
+            setsize += 4 ** _ceil(_log(k * 3, 4))  # table size for big sets
+        if n <= setsize:
+            # An n-length list is smaller than a k-length set.
+            # Invariant:  non-selected at pool[0 : n-i]
+            pool = list(population)
+            for i in range(k):
+                j = randbelow(n - i)
+                result[i] = pool[j]
+                pool[j] = pool[n - i - 1]  # move non-selected item into vacancy
+        else:
+            selected = set()
+            selected_add = selected.add
+            for i in range(k):
+                j = randbelow(n)
+                while j in selected:
+                    j = randbelow(n)
+                selected_add(j)
+                result[i] = population[j]
+        return result
+
+    def choices(self, population, weights=None, *, cum_weights=None, k=1):
+        """Return a k sized list of population elements chosen with replacement.
+
+        If the relative weights or cumulative weights are not specified,
+        the selections are made with equal probability.
+
+        """
+        random = self.random
+        n = len(population)
+        if cum_weights is None:
+            if weights is None:
+                floor = _floor
+                n += 0.0    # convert to float for a small speed improvement
+                return [population[floor(random() * n)] for i in _repeat(None, k)]
+            try:
+                cum_weights = list(_accumulate(weights))
+            except TypeError:
+                if not isinstance(weights, int):
+                    raise
+                k = weights
+                raise TypeError(
+                    f'The number of choices must be a keyword argument: {k=}'
+                ) from None
+        elif weights is not None:
+            raise TypeError('Cannot specify both weights and cumulative weights')
+        if len(cum_weights) != n:
+            raise ValueError('The number of weights does not match the population')
+        total = cum_weights[-1] + 0.0   # convert to float
+        if total <= 0.0:
+            raise ValueError('Total of weights must be greater than zero')
+        if not _isfinite(total):
+            raise ValueError('Total of weights must be finite')
+        bisect = _bisect
+        hi = n - 1
+        return [population[bisect(cum_weights, random() * total, 0, hi)]
+                for i in _repeat(None, k)]
+
+
+    ## -------------------- real-valued distributions  -------------------
+
+    def uniform(self, a, b):
+        """Get a random number in the range [a, b) or [a, b] depending on rounding.
+
+        The mean (expected value) and variance of the random variable are:
+
+            E[X] = (a + b) / 2
+            Var[X] = (b - a) ** 2 / 12
+
+        """
+        return a + (b - a) * self.random()
+
+    def triangular(self, low=0.0, high=1.0, mode=None):
+        """Triangular distribution.
+
+        Continuous distribution bounded by given lower and upper limits,
+        and having a given mode value in-between.
+
+        http://en.wikipedia.org/wiki/Triangular_distribution
+
+        The mean (expected value) and variance of the random variable are:
+
+            E[X] = (low + high + mode) / 3
+            Var[X] = (low**2 + high**2 + mode**2 - low*high - low*mode - high*mode) / 18
+
+        """
+        u = self.random()
+        try:
+            c = 0.5 if mode is None else (mode - low) / (high - low)
+        except ZeroDivisionError:
+            return low
+        if u > c:
+            u = 1.0 - u
+            c = 1.0 - c
+            low, high = high, low
+        return low + (high - low) * _sqrt(u * c)
+
+    def normalvariate(self, mu=0.0, sigma=1.0):
+        """Normal distribution.
+
+        mu is the mean, and sigma is the standard deviation.
+
+        """
+        # Uses Kinderman and Monahan method. Reference: Kinderman,
+        # A.J. and Monahan, J.F., "Computer generation of random
+        # variables using the ratio of uniform deviates", ACM Trans
+        # Math Software, 3, (1977), pp257-260.
+
+        random = self.random
+        while True:
+            u1 = random()
+            u2 = 1.0 - random()
+            z = NV_MAGICCONST * (u1 - 0.5) / u2
+            zz = z * z / 4.0
+            if zz <= -_log(u2):
+                break
+        return mu + z * sigma
+
+    def gauss(self, mu=0.0, sigma=1.0):
+        """Gaussian distribution.
+
+        mu is the mean, and sigma is the standard deviation.  This is
+        slightly faster than the normalvariate() function.
+
+        Not thread-safe without a lock around calls.
+
+        """
+        # When x and y are two variables from [0, 1), uniformly
+        # distributed, then
+        #
+        #    cos(2*pi*x)*sqrt(-2*log(1-y))
+        #    sin(2*pi*x)*sqrt(-2*log(1-y))
+        #
+        # are two *independent* variables with normal distribution
+        # (mu = 0, sigma = 1).
+        # (Lambert Meertens)
+        # (corrected version; bug discovered by Mike Miller, fixed by LM)
+
+        # Multithreading note: When two threads call this function
+        # simultaneously, it is possible that they will receive the
+        # same return value.  The window is very small though.  To
+        # avoid this, you have to use a lock around all calls.  (I
+        # didn't want to slow this down in the serial case by using a
+        # lock here.)
+
+        random = self.random
+        z = self.gauss_next
+        self.gauss_next = None
+        if z is None:
+            x2pi = random() * TWOPI
+            g2rad = _sqrt(-2.0 * _log(1.0 - random()))
+            z = _cos(x2pi) * g2rad
+            self.gauss_next = _sin(x2pi) * g2rad
+
+        return mu + z * sigma
+
+    def lognormvariate(self, mu, sigma):
+        """Log normal distribution.
+
+        If you take the natural logarithm of this distribution, you'll get a
+        normal distribution with mean mu and standard deviation sigma.
+        mu can have any value, and sigma must be greater than zero.
+
+        """
+        return _exp(self.normalvariate(mu, sigma))
+
+    def expovariate(self, lambd=1.0):
+        """Exponential distribution.
+
+        lambd is 1.0 divided by the desired mean.  It should be
+        nonzero.  (The parameter would be called "lambda", but that is
+        a reserved word in Python.)  Returned values range from 0 to
+        positive infinity if lambd is positive, and from negative
+        infinity to 0 if lambd is negative.
+
+        The mean (expected value) and variance of the random variable are:
+
+            E[X] = 1 / lambd
+            Var[X] = 1 / lambd ** 2
+
+        """
+        # we use 1-random() instead of random() to preclude the
+        # possibility of taking the log of zero.
+
+        return -_log(1.0 - self.random()) / lambd
+
+    def vonmisesvariate(self, mu, kappa):
+        """Circular data distribution.
+
+        mu is the mean angle, expressed in radians between 0 and 2*pi, and
+        kappa is the concentration parameter, which must be greater than or
+        equal to zero.  If kappa is equal to zero, this distribution reduces
+        to a uniform random angle over the range 0 to 2*pi.
+
+        """
+        # Based upon an algorithm published in: Fisher, N.I.,
+        # "Statistical Analysis of Circular Data", Cambridge
+        # University Press, 1993.
+
+        # Thanks to Magnus Kessler for a correction to the
+        # implementation of step 4.
+
+        random = self.random
+        if kappa <= 1e-6:
+            return TWOPI * random()
+
+        s = 0.5 / kappa
+        r = s + _sqrt(1.0 + s * s)
+
+        while True:
+            u1 = random()
+            z = _cos(_pi * u1)
+
+            d = z / (r + z)
+            u2 = random()
+            if u2 < 1.0 - d * d or u2 <= (1.0 - d) * _exp(d):
+                break
+
+        q = 1.0 / r
+        f = (q + z) / (1.0 + q * z)
+        u3 = random()
+        if u3 > 0.5:
+            theta = (mu + _acos(f)) % TWOPI
+        else:
+            theta = (mu - _acos(f)) % TWOPI
+
+        return theta
+
+    def gammavariate(self, alpha, beta):
+        """Gamma distribution.  Not the gamma function!
+
+        Conditions on the parameters are alpha > 0 and beta > 0.
+
+        The probability distribution function is:
+
+                    x ** (alpha - 1) * math.exp(-x / beta)
+          pdf(x) =  --------------------------------------
+                      math.gamma(alpha) * beta ** alpha
+
+        The mean (expected value) and variance of the random variable are:
+
+            E[X] = alpha * beta
+            Var[X] = alpha * beta ** 2
+
+        """
+
+        # Warning: a few older sources define the gamma distribution in terms
+        # of alpha > -1.0
+        if alpha <= 0.0 or beta <= 0.0:
+            raise ValueError('gammavariate: alpha and beta must be > 0.0')
+
+        random = self.random
+        if alpha > 1.0:
+
+            # Uses R.C.H. Cheng, "The generation of Gamma
+            # variables with non-integral shape parameters",
+            # Applied Statistics, (1977), 26, No. 1, p71-74
+
+            ainv = _sqrt(2.0 * alpha - 1.0)
+            bbb = alpha - LOG4
+            ccc = alpha + ainv
+
+            while True:
+                u1 = random()
+                if not 1e-7 < u1 < 0.9999999:
+                    continue
+                u2 = 1.0 - random()
+                v = _log(u1 / (1.0 - u1)) / ainv
+                x = alpha * _exp(v)
+                z = u1 * u1 * u2
+                r = bbb + ccc * v - x
+                if r + SG_MAGICCONST - 4.5 * z >= 0.0 or r >= _log(z):
+                    return x * beta
+
+        elif alpha == 1.0:
+            # expovariate(1/beta)
+            return -_log(1.0 - random()) * beta
+
+        else:
+            # alpha is between 0 and 1 (exclusive)
+            # Uses ALGORITHM GS of Statistical Computing - Kennedy & Gentle
+            while True:
+                u = random()
+                b = (_e + alpha) / _e
+                p = b * u
+                if p <= 1.0:
+                    x = p ** (1.0 / alpha)
+                else:
+                    x = -_log((b - p) / alpha)
+                u1 = random()
+                if p > 1.0:
+                    if u1 <= x ** (alpha - 1.0):
+                        break
+                elif u1 <= _exp(-x):
+                    break
+            return x * beta
+
+    def betavariate(self, alpha, beta):
+        """Beta distribution.
+
+        Conditions on the parameters are alpha > 0 and beta > 0.
+        Returned values range between 0 and 1.
+
+        The mean (expected value) and variance of the random variable are:
+
+            E[X] = alpha / (alpha + beta)
+            Var[X] = alpha * beta / ((alpha + beta)**2 * (alpha + beta + 1))
+
+        """
+        ## See
+        ## http://mail.python.org/pipermail/python-bugs-list/2001-January/003752.html
+        ## for Ivan Frohne's insightful analysis of why the original implementation:
+        ##
+        ##    def betavariate(self, alpha, beta):
+        ##        # Discrete Event Simulation in C, pp 87-88.
+        ##
+        ##        y = self.expovariate(alpha)
+        ##        z = self.expovariate(1.0/beta)
+        ##        return z/(y+z)
+        ##
+        ## was dead wrong, and how it probably got that way.
+
+        # This version due to Janne Sinkkonen, and matches all the std
+        # texts (e.g., Knuth Vol 2 Ed 3 pg 134 "the beta distribution").
+        y = self.gammavariate(alpha, 1.0)
+        if y:
+            return y / (y + self.gammavariate(beta, 1.0))
+        return 0.0
+
+    def paretovariate(self, alpha):
+        """Pareto distribution.  alpha is the shape parameter."""
+        # Jain, pg. 495
+
+        u = 1.0 - self.random()
+        return u ** (-1.0 / alpha)
+
+    def weibullvariate(self, alpha, beta):
+        """Weibull distribution.
+
+        alpha is the scale parameter and beta is the shape parameter.
+
+        """
+        # Jain, pg. 499; bug fix courtesy Bill Arms
+
+        u = 1.0 - self.random()
+        return alpha * (-_log(u)) ** (1.0 / beta)
+
+
+    ## -------------------- discrete  distributions  ---------------------
+
+    def binomialvariate(self, n=1, p=0.5):
+        """Binomial random variable.
+
+        Gives the number of successes for *n* independent trials
+        with the probability of success in each trial being *p*:
+
+            sum(random() < p for i in range(n))
+
+        Returns an integer in the range:   0 <= X <= n
+
+        The mean (expected value) and variance of the random variable are:
+
+            E[X] = n * p
+            Var[x] = n * p * (1 - p)
+
+        """
+        # Error check inputs and handle edge cases
+        if n < 0:
+            raise ValueError("n must be non-negative")
+        if p <= 0.0 or p >= 1.0:
+            if p == 0.0:
+                return 0
+            if p == 1.0:
+                return n
+            raise ValueError("p must be in the range 0.0 <= p <= 1.0")
+
+        random = self.random
+
+        # Fast path for a common case
+        if n == 1:
+            return _index(random() < p)
+
+        # Exploit symmetry to establish:  p <= 0.5
+        if p > 0.5:
+            return n - self.binomialvariate(n, 1.0 - p)
+
+        if n * p < 10.0:
+            # BG: Geometric method by Devroye with running time of O(np).
+            # https://dl.acm.org/doi/pdf/10.1145/42372.42381
+            x = y = 0
+            c = _log2(1.0 - p)
+            if not c:
+                return x
+            while True:
+                y += _floor(_log2(random()) / c) + 1
+                if y > n:
+                    return x
+                x += 1
+
+        # BTRS: Transformed rejection with squeeze method by Wolfgang Hörmann
+        # https://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.47.8407&rep=rep1&type=pdf
+        assert n*p >= 10.0 and p <= 0.5
+        setup_complete = False
+
+        spq = _sqrt(n * p * (1.0 - p))  # Standard deviation of the distribution
+        b = 1.15 + 2.53 * spq
+        a = -0.0873 + 0.0248 * b + 0.01 * p
+        c = n * p + 0.5
+        vr = 0.92 - 4.2 / b
+
+        while True:
+
+            u = random()
+            u -= 0.5
+            us = 0.5 - _fabs(u)
+            k = _floor((2.0 * a / us + b) * u + c)
+            if k < 0 or k > n:
+                continue
+
+            # The early-out "squeeze" test substantially reduces
+            # the number of acceptance condition evaluations.
+            v = random()
+            if us >= 0.07 and v <= vr:
+                return k
+
+            # Acceptance-rejection test.
+            # Note, the original paper erroneously omits the call to log(v)
+            # when comparing to the log of the rescaled binomial distribution.
+            if not setup_complete:
+                alpha = (2.83 + 5.1 / b) * spq
+                lpq = _log(p / (1.0 - p))
+                m = _floor((n + 1) * p)         # Mode of the distribution
+                h = _lgamma(m + 1) + _lgamma(n - m + 1)
+                setup_complete = True           # Only needs to be done once
+            v *= alpha / (a / (us * us) + b)
+            if _log(v) <= h - _lgamma(k + 1) - _lgamma(n - k + 1) + (k - m) * lpq:
+                return k
+
+
+## ------------------------------------------------------------------
+## --------------- Operating System Random Source  ------------------
+
+
+class SystemRandom(Random):
+    """Alternate random number generator using sources provided
+    by the operating system (such as /dev/urandom on Unix or
+    CryptGenRandom on Windows).
+
+     Not available on all systems (see os.urandom() for details).
+
+    """
+
+    def random(self):
+        """Get the next random number in the range 0.0 <= X < 1.0."""
+        return (int.from_bytes(_urandom(7)) >> 3) * RECIP_BPF
+
+    def getrandbits(self, k):
+        """getrandbits(k) -> x.  Generates an int with k random bits."""
+        if k < 0:
+            raise ValueError('number of bits must be non-negative')
+        numbytes = (k + 7) // 8                       # bits / 8 and rounded up
+        x = int.from_bytes(_urandom(numbytes))
+        return x >> (numbytes * 8 - k)                # trim excess bits
+
+    def randbytes(self, n):
+        """Generate n random bytes."""
+        # os.urandom(n) fails with ValueError for n < 0
+        # and returns an empty bytes string for n == 0.
+        return _urandom(n)
+
+    def seed(self, *args, **kwds):
+        "Stub method.  Not used for a system random number generator."
+        return None
+
+    def _notimplemented(self, *args, **kwds):
+        "Method should not be called for a system random number generator."
+        raise NotImplementedError('System entropy source does not have state.')
+    getstate = setstate = _notimplemented
+
+
+# ----------------------------------------------------------------------
+# Create one instance, seeded from current time, and export its methods
+# as module-level functions.  The functions share state across all uses
+# (both in the user's code and in the Python libraries), but that's fine
+# for most programs and is easier for the casual user than making them
+# instantiate their own Random() instance.
+
+_inst = Random()
+seed = _inst.seed
+random = _inst.random
+uniform = _inst.uniform
+triangular = _inst.triangular
+randint = _inst.randint
+choice = _inst.choice
+randrange = _inst.randrange
+sample = _inst.sample
+shuffle = _inst.shuffle
+choices = _inst.choices
+normalvariate = _inst.normalvariate
+lognormvariate = _inst.lognormvariate
+expovariate = _inst.expovariate
+vonmisesvariate = _inst.vonmisesvariate
+gammavariate = _inst.gammavariate
+gauss = _inst.gauss
+betavariate = _inst.betavariate
+binomialvariate = _inst.binomialvariate
+paretovariate = _inst.paretovariate
+weibullvariate = _inst.weibullvariate
+getstate = _inst.getstate
+setstate = _inst.setstate
+getrandbits = _inst.getrandbits
+randbytes = _inst.randbytes
+
+
+## ------------------------------------------------------
+## ----------------- test program -----------------------
+
+def _test_generator(n, func, args):
+    from statistics import stdev, fmean as mean
+    from time import perf_counter
+
+    t0 = perf_counter()
+    data = [func(*args) for i in _repeat(None, n)]
+    t1 = perf_counter()
+
+    xbar = mean(data)
+    sigma = stdev(data, xbar)
+    low = min(data)
+    high = max(data)
+
+    print(f'{t1 - t0:.3f} sec, {n} times {func.__name__}{args!r}')
+    print('avg %g, stddev %g, min %g, max %g\n' % (xbar, sigma, low, high))
+
+
+def _test(N=10_000):
+    _test_generator(N, random, ())
+    _test_generator(N, normalvariate, (0.0, 1.0))
+    _test_generator(N, lognormvariate, (0.0, 1.0))
+    _test_generator(N, vonmisesvariate, (0.0, 1.0))
+    _test_generator(N, binomialvariate, (15, 0.60))
+    _test_generator(N, binomialvariate, (100, 0.75))
+    _test_generator(N, gammavariate, (0.01, 1.0))
+    _test_generator(N, gammavariate, (0.1, 1.0))
+    _test_generator(N, gammavariate, (0.1, 2.0))
+    _test_generator(N, gammavariate, (0.5, 1.0))
+    _test_generator(N, gammavariate, (0.9, 1.0))
+    _test_generator(N, gammavariate, (1.0, 1.0))
+    _test_generator(N, gammavariate, (2.0, 1.0))
+    _test_generator(N, gammavariate, (20.0, 1.0))
+    _test_generator(N, gammavariate, (200.0, 1.0))
+    _test_generator(N, gauss, (0.0, 1.0))
+    _test_generator(N, betavariate, (3.0, 3.0))
+    _test_generator(N, triangular, (0.0, 1.0, 1.0 / 3.0))
+
+
+## ------------------------------------------------------
+## ------------------ fork support  ---------------------
+
+if hasattr(_os, "fork"):
+    _os.register_at_fork(after_in_child=_inst.seed)
+
+
+# ------------------------------------------------------
+# -------------- command-line interface ----------------
+
+
+def _parse_args(arg_list: list[str] | None):
+    import argparse
+    parser = argparse.ArgumentParser(
+        formatter_class=argparse.RawTextHelpFormatter)
+    group = parser.add_mutually_exclusive_group()
+    group.add_argument(
+        "-c", "--choice", nargs="+",
+        help="print a random choice")
+    group.add_argument(
+        "-i", "--integer", type=int, metavar="N",
+        help="print a random integer between 1 and N inclusive")
+    group.add_argument(
+        "-f", "--float", type=float, metavar="N",
+        help="print a random floating-point number between 0 and N inclusive")
+    group.add_argument(
+        "--test", type=int, const=10_000, nargs="?",
+        help=argparse.SUPPRESS)
+    parser.add_argument("input", nargs="*",
+                        help="""\
+if no options given, output depends on the input
+    string or multiple: same as --choice
+    integer: same as --integer
+    float: same as --float""")
+    args = parser.parse_args(arg_list)
+    return args, parser.format_help()
+
+
+def main(arg_list: list[str] | None = None) -> int | str:
+    args, help_text = _parse_args(arg_list)
+
+    # Explicit arguments
+    if args.choice:
+        return choice(args.choice)
+
+    if args.integer is not None:
+        return randint(1, args.integer)
+
+    if args.float is not None:
+        return uniform(0, args.float)
+
+    if args.test:
+        _test(args.test)
+        return ""
+
+    # No explicit argument, select based on input
+    if len(args.input) == 1:
+        val = args.input[0]
+        try:
+            # Is it an integer?
+            val = int(val)
+            return randint(1, val)
+        except ValueError:
+            try:
+                # Is it a float?
+                val = float(val)
+                return uniform(0, val)
+            except ValueError:
+                # Split in case of space-separated string: "a b c"
+                return choice(val.split())
+
+    if len(args.input) >= 2:
+        return choice(args.input)
+
+    return help_text
+
+
+if __name__ == '__main__':
+    print(main())
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  �   .   �   ..  �   __init__.py �   __pycache__ �   _casefix.py �   _compiler.py�   _constants.py   �  �
+_parser.py                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              #
+# Secret Labs' Regular Expression Engine
+#
+# re-compatible interface for the sre matching engine
+#
+# Copyright (c) 1998-2001 by Secret Labs AB.  All rights reserved.
+#
+# This version of the SRE library can be redistributed under CNRI's
+# Python 1.6 license.  For any other use, please contact Secret Labs
+# AB (info@pythonware.com).
+#
+# Portions of this engine have been developed in cooperation with
+# CNRI.  Hewlett-Packard provided funding for 1.6 integration and
+# other compatibility work.
+#
+
+r"""Support for regular expressions (RE).
+
+This module provides regular expression matching operations similar to
+those found in Perl.  It supports both 8-bit and Unicode strings; both
+the pattern and the strings being processed can contain null bytes and
+characters outside the US ASCII range.
+
+Regular expressions can contain both special and ordinary characters.
+Most ordinary characters, like "A", "a", or "0", are the simplest
+regular expressions; they simply match themselves.  You can
+concatenate ordinary characters, so last matches the string 'last'.
+
+The special characters are:
+    "."      Matches any character except a newline.
+    "^"      Matches the start of the string.
+    "$"      Matches the end of the string or just before the newline at
+             the end of the string.
+    "*"      Matches 0 or more (greedy) repetitions of the preceding RE.
+             Greedy means that it will match as many repetitions as possible.
+    "+"      Matches 1 or more (greedy) repetitions of the preceding RE.
+    "?"      Matches 0 or 1 (greedy) of the preceding RE.
+    *?,+?,?? Non-greedy versions of the previous three special characters.
+    {m,n}    Matches from m to n repetitions of the preceding RE.
+    {m,n}?   Non-greedy version of the above.
+    "\\"     Either escapes special characters or signals a special sequence.
+    []       Indicates a set of characters.
+             A "^" as the first character indicates a complementing set.
+    "|"      A|B, creates an RE that will match either A or B.
+    (...)    Matches the RE inside the parentheses.
+             The contents can be retrieved or matched later in the string.
+    (?aiLmsux) The letters set the corresponding flags defined below.
+    (?:...)  Non-grouping version of regular parentheses.
+    (?P<name>...) The substring matched by the group is accessible by name.
+    (?P=name)     Matches the text matched earlier by the group named name.
+    (?#...)  A comment; ignored.
+    (?=...)  Matches if ... matches next, but doesn't consume the string.
+    (?!...)  Matches if ... doesn't match next.
+    (?<=...) Matches if preceded by ... (must be fixed length).
+    (?<!...) Matches if not preceded by ... (must be fixed length).
+    (?(id/name)yes|no) Matches yes pattern if the group with id/name matched,
+                       the (optional) no pattern otherwise.
+
+The special sequences consist of "\\" and a character from the list
+below.  If the ordinary character is not on the list, then the
+resulting RE will match the second character.
+    \number  Matches the contents of the group of the same number.
+    \A       Matches only at the start of the string.
+    \Z       Matches only at the end of the string.
+    \b       Matches the empty string, but only at the start or end of a word.
+    \B       Matches the empty string, but not at the start or end of a word.
+    \d       Matches any decimal digit; equivalent to the set [0-9] in
+             bytes patterns or string patterns with the ASCII flag.
+             In string patterns without the ASCII flag, it will match the whole
+             range of Unicode digits.
+    \D       Matches any non-digit character; equivalent to [^\d].
+    \s       Matches any whitespace character; equivalent to [ \t\n\r\f\v] in
+             bytes patterns or string patterns with the ASCII flag.
+             In string patterns without the ASCII flag, it will match the whole
+             range of Unicode whitespace characters.
+    \S       Matches any non-whitespace character; equivalent to [^\s].
+    \w       Matches any alphanumeric character; equivalent to [a-zA-Z0-9_]
+             in bytes patterns or string patterns with the ASCII flag.
+             In string patterns without the ASCII flag, it will match the
+             range of Unicode alphanumeric characters (letters plus digits
+             plus underscore).
+             With LOCALE, it will match the set [0-9_] plus characters defined
+             as letters for the current locale.
+    \W       Matches the complement of \w.
+    \\       Matches a literal backslash.
+
+This module exports the following functions:
+    match     Match a regular expression pattern to the beginning of a string.
+    fullmatch Match a regular expression pattern to all of a string.
+    search    Search a string for the presence of a pattern.
+    sub       Substitute occurrences of a pattern found in a string.
+    subn      Same as sub, but also return the number of substitutions made.
+    split     Split a string by the occurrences of a pattern.
+    findall   Find all occurrences of a pattern in a string.
+    finditer  Return an iterator yielding a Match object for each match.
+    compile   Compile a pattern into a Pattern object.
+    purge     Clear the regular expression cache.
+    escape    Backslash all non-alphanumerics in a string.
+
+Each function other than purge and escape can take an optional 'flags' argument
+consisting of one or more of the following module constants, joined by "|".
+A, L, and U are mutually exclusive.
+    A  ASCII       For string patterns, make \w, \W, \b, \B, \d, \D
+                   match the corresponding ASCII character categories
+                   (rather than the whole Unicode categories, which is the
+                   default).
+                   For bytes patterns, this flag is the only available
+                   behaviour and needn't be specified.
+    I  IGNORECASE  Perform case-insensitive matching.
+    L  LOCALE      Make \w, \W, \b, \B, dependent on the current locale.
+    M  MULTILINE   "^" matches the beginning of lines (after a newline)
+                   as well as the string.
+                   "$" matches the end of lines (before a newline) as well
+                   as the end of the string.
+    S  DOTALL      "." matches any character at all, including the newline.
+    X  VERBOSE     Ignore whitespace and comments for nicer looking RE's.
+    U  UNICODE     For compatibility only. Ignored for string patterns (it
+                   is the default), and forbidden for bytes patterns.
+
+This module also defines exception 'PatternError', aliased to 'error' for
+backward compatibility.
+
+"""
+
+import enum
+from . import _compiler, _parser
+import functools
+import _sre
+
+
+# public symbols
+__all__ = [
+    "match", "fullmatch", "search", "sub", "subn", "split",
+    "findall", "finditer", "compile", "purge", "escape",
+    "error", "Pattern", "Match", "A", "I", "L", "M", "S", "X", "U",
+    "ASCII", "IGNORECASE", "LOCALE", "MULTILINE", "DOTALL", "VERBOSE",
+    "UNICODE", "NOFLAG", "RegexFlag", "PatternError"
+]
+
+__version__ = "2.2.1"
+
+@enum.global_enum
+@enum._simple_enum(enum.IntFlag, boundary=enum.KEEP)
+class RegexFlag:
+    NOFLAG = 0
+    ASCII = A = _compiler.SRE_FLAG_ASCII # assume ascii "locale"
+    IGNORECASE = I = _compiler.SRE_FLAG_IGNORECASE # ignore case
+    LOCALE = L = _compiler.SRE_FLAG_LOCALE # assume current 8-bit locale
+    UNICODE = U = _compiler.SRE_FLAG_UNICODE # assume unicode "locale"
+    MULTILINE = M = _compiler.SRE_FLAG_MULTILINE # make anchors look for newline
+    DOTALL = S = _compiler.SRE_FLAG_DOTALL # make dot match newline
+    VERBOSE = X = _compiler.SRE_FLAG_VERBOSE # ignore whitespace and comments
+    # sre extensions (experimental, don't rely on these)
+    DEBUG = _compiler.SRE_FLAG_DEBUG # dump pattern after compilation
+    __str__ = object.__str__
+    _numeric_repr_ = hex
+
+# sre exception
+PatternError = error = _compiler.PatternError
+
+# --------------------------------------------------------------------
+# public interface
+
+def match(pattern, string, flags=0):
+    """Try to apply the pattern at the start of the string, returning
+    a Match object, or None if no match was found."""
+    return _compile(pattern, flags).match(string)
+
+def fullmatch(pattern, string, flags=0):
+    """Try to apply the pattern to all of the string, returning
+    a Match object, or None if no match was found."""
+    return _compile(pattern, flags).fullmatch(string)
+
+def search(pattern, string, flags=0):
+    """Scan through string looking for a match to the pattern, returning
+    a Match object, or None if no match was found."""
+    return _compile(pattern, flags).search(string)
+
+class _ZeroSentinel(int):
+    pass
+_zero_sentinel = _ZeroSentinel()
+
+def sub(pattern, repl, string, *args, count=_zero_sentinel, flags=_zero_sentinel):
+    """Return the string obtained by replacing the leftmost
+    non-overlapping occurrences of the pattern in string by the
+    replacement repl.  repl can be either a string or a callable;
+    if a string, backslash escapes in it are processed.  If it is
+    a callable, it's passed the Match object and must return
+    a replacement string to be used."""
+    if args:
+        if count is not _zero_sentinel:
+            raise TypeError("sub() got multiple values for argument 'count'")
+        count, *args = args
+        if args:
+            if flags is not _zero_sentinel:
+                raise TypeError("sub() got multiple values for argument 'flags'")
+            flags, *args = args
+            if args:
+                raise TypeError("sub() takes from 3 to 5 positional arguments "
+                                "but %d were given" % (5 + len(args)))
+
+        import warnings
+        warnings.warn(
+            "'count' is passed as positional argument",
+            DeprecationWarning, stacklevel=2
+        )
+
+    return _compile(pattern, flags).sub(repl, string, count)
+sub.__text_signature__ = '(pattern, repl, string, count=0, flags=0)'
+
+def subn(pattern, repl, string, *args, count=_zero_sentinel, flags=_zero_sentinel):
+    """Return a 2-tuple containing (new_string, number).
+    new_string is the string obtained by replacing the leftmost
+    non-overlapping occurrences of the pattern in the source
+    string by the replacement repl.  number is the number of
+    substitutions that were made. repl can be either a string or a
+    callable; if a string, backslash escapes in it are processed.
+    If it is a callable, it's passed the Match object and must
+    return a replacement string to be used."""
+    if args:
+        if count is not _zero_sentinel:
+            raise TypeError("subn() got multiple values for argument 'count'")
+        count, *args = args
+        if args:
+            if flags is not _zero_sentinel:
+                raise TypeError("subn() got multiple values for argument 'flags'")
+            flags, *args = args
+            if args:
+                raise TypeError("subn() takes from 3 to 5 positional arguments "
+                                "but %d were given" % (5 + len(args)))
+
+        import warnings
+        warnings.warn(
+            "'count' is passed as positional argument",
+            DeprecationWarning, stacklevel=2
+        )
+
+    return _compile(pattern, flags).subn(repl, string, count)
+subn.__text_signature__ = '(pattern, repl, string, count=0, flags=0)'
+
+def split(pattern, string, *args, maxsplit=_zero_sentinel, flags=_zero_sentinel):
+    """Split the source string by the occurrences of the pattern,
+    returning a list containing the resulting substrings.  If
+    capturing parentheses are used in pattern, then the text of all
+    groups in the pattern are also returned as part of the resulting
+    list.  If maxsplit is nonzero, at most maxsplit splits occur,
+    and the remainder of the string is returned as the final element
+    of the list."""
+    if args:
+        if maxsplit is not _zero_sentinel:
+            raise TypeError("split() got multiple values for argument 'maxsplit'")
+        maxsplit, *args = args
+        if args:
+            if flags is not _zero_sentinel:
+                raise TypeError("split() got multiple values for argument 'flags'")
+            flags, *args = args
+            if args:
+                raise TypeError("split() takes from 2 to 4 positional arguments "
+                                "but %d were given" % (4 + len(args)))
+
+        import warnings
+        warnings.warn(
+            "'maxsplit' is passed as positional argument",
+            DeprecationWarning, stacklevel=2
+        )
+
+    return _compile(pattern, flags).split(string, maxsplit)
+split.__text_signature__ = '(pattern, string, maxsplit=0, flags=0)'
+
+def findall(pattern, string, flags=0):
+    """Return a list of all non-overlapping matches in the string.
+
+    If one or more capturing groups are present in the pattern, return
+    a list of groups; this will be a list of tuples if the pattern
+    has more than one group.
+
+    Empty matches are included in the result."""
+    return _compile(pattern, flags).findall(string)
+
+def finditer(pattern, string, flags=0):
+    """Return an iterator over all non-overlapping matches in the
+    string.  For each match, the iterator returns a Match object.
+
+    Empty matches are included in the result."""
+    return _compile(pattern, flags).finditer(string)
+
+def compile(pattern, flags=0):
+    "Compile a regular expression pattern, returning a Pattern object."
+    return _compile(pattern, flags)
+
+def purge():
+    "Clear the regular expression caches"
+    _cache.clear()
+    _cache2.clear()
+    _compile_template.cache_clear()
+
+
+# SPECIAL_CHARS
+# closing ')', '}' and ']'
+# '-' (a range in character set)
+# '&', '~', (extended character set operations)
+# '#' (comment) and WHITESPACE (ignored) in verbose mode
+_special_chars_map = {i: '\\' + chr(i) for i in b'()[]{}?*+-|^$\\.&~# \t\n\r\v\f'}
+
+def escape(pattern):
+    """
+    Escape special characters in a string.
+    """
+    if isinstance(pattern, str):
+        return pattern.translate(_special_chars_map)
+    else:
+        pattern = str(pattern, 'latin1')
+        return pattern.translate(_special_chars_map).encode('latin1')
+
+Pattern = type(_compiler.compile('', 0))
+Match = type(_compiler.compile('', 0).match(''))
+
+# --------------------------------------------------------------------
+# internals
+
+# Use the fact that dict keeps the insertion order.
+# _cache2 uses the simple FIFO policy which has better latency.
+# _cache uses the LRU policy which has better hit rate.
+_cache = {}  # LRU
+_cache2 = {}  # FIFO
+_MAXCACHE = 512
+_MAXCACHE2 = 256
+assert _MAXCACHE2 < _MAXCACHE
+
+def _compile(pattern, flags):
+    # internal: compile pattern
+    if isinstance(flags, RegexFlag):
+        flags = flags.value
+    try:
+        return _cache2[type(pattern), pattern, flags]
+    except KeyError:
+        pass
+
+    key = (type(pattern), pattern, flags)
+    # Item in _cache should be moved to the end if found.
+    p = _cache.pop(key, None)
+    if p is None:
+        if isinstance(pattern, Pattern):
+            if flags:
+                raise ValueError(
+                    "cannot process flags argument with a compiled pattern")
+            return pattern
+        if not _compiler.isstring(pattern):
+            raise TypeError("first argument must be string or compiled pattern")
+        p = _compiler.compile(pattern, flags)
+        if flags & DEBUG:
+            return p
+        if len(_cache) >= _MAXCACHE:
+            # Drop the least recently used item.
+            # next(iter(_cache)) is known to have linear amortized time,
+            # but it is used here to avoid a dependency from using OrderedDict.
+            # For the small _MAXCACHE value it doesn't make much of a difference.
+            try:
+                del _cache[next(iter(_cache))]
+            except (StopIteration, RuntimeError, KeyError):
+                pass
+    # Append to the end.
+    _cache[key] = p
+
+    if len(_cache2) >= _MAXCACHE2:
+        # Drop the oldest item.
+        try:
+            del _cache2[next(iter(_cache2))]
+        except (StopIteration, RuntimeError, KeyError):
+            pass
+    _cache2[key] = p
+    return p
+
+@functools.lru_cache(_MAXCACHE)
+def _compile_template(pattern, repl):
+    # internal: compile replacement pattern
+    return _sre.template(pattern, _parser.parse_template(repl, pattern))
+
+# register myself for pickling
+
+import copyreg
+
+def _pickle(p):
+    return _compile, (p.pattern, p.flags)
+
+copyreg.pickle(Pattern, _pickle, _compile)
+
+# --------------------------------------------------------------------
+# experimental stuff (see python-dev discussions for details)
+
+class Scanner:
+    def __init__(self, lexicon, flags=0):
+        from ._constants import BRANCH, SUBPATTERN
+        if isinstance(flags, RegexFlag):
+            flags = flags.value
+        self.lexicon = lexicon
+        # combine phrases into a compound pattern
+        p = []
+        s = _parser.State()
+        s.flags = flags
+        for phrase, action in lexicon:
+            gid = s.opengroup()
+            p.append(_parser.SubPattern(s, [
+                (SUBPATTERN, (gid, 0, 0, _parser.parse(phrase, flags))),
+                ]))
+            s.closegroup(gid, p[-1])
+        p = _parser.SubPattern(s, [(BRANCH, (None, p))])
+        self.scanner = _compiler.compile(p)
+    def scan(self, string):
+        result = []
+        append = result.append
+        match = self.scanner.scanner(string).match
+        i = 0
+        while True:
+            m = match()
+            if not m:
+                break
+            j = m.end()
+            if i == j:
+                break
+            action = self.lexicon[m.lastindex-1][1]
+            if callable(action):
+                self.match = m
+                action = action(self, m.group())
+            if action is not None:
+                append(action)
+            i = j
+        return result, string[i:]
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            

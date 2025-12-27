@@ -1,0 +1,3238 @@
+ big charset, first a bitmap of all characters in the
+    # set is constructed. Then, this bitmap is sliced into chunks of 256
+    # characters, duplicate chunks are eliminated, and each chunk is
+    # given a number. In the compiled expression, the charset is
+    # represented by a 32-bit word sequence, consisting of one word for
+    # the number of different chunks, a sequence of 256 bytes (64 words)
+    # of chunk numbers indexed by their original chunk position, and a
+    # sequence of 256-bit chunks (8 words each).
+
+    # Compression is normally good: in a typical charset, large ranges of
+    # Unicode will be either completely excluded (e.g. if only cyrillic
+    # letters are to be matched), or completely included (e.g. if large
+    # subranges of Kanji match). These ranges will be represented by
+    # chunks of all one-bits or all zero-bits.
+
+    # Matching can be also done efficiently: the more significant byte of
+    # the Unicode character is an index into the chunk number, and the
+    # less significant byte is a bit index in the chunk (just like the
+    # CHARSET matching).
+
+    charmap = bytes(charmap) # should be hashable
+    comps = {}
+    mapping = bytearray(256)
+    block = 0
+    data = bytearray()
+    for i in range(0, 65536, 256):
+        chunk = charmap[i: i + 256]
+        if chunk in comps:
+            mapping[i // 256] = comps[chunk]
+        else:
+            mapping[i // 256] = comps[chunk] = block
+            block += 1
+            data += chunk
+    data = _mk_bitmap(data)
+    data[0:0] = [block] + _bytes_to_codes(mapping)
+    out.append((BIGCHARSET, data))
+    out += tail
+    return out, hascased
+
+_CODEBITS = _sre.CODESIZE * 8
+MAXCODE = (1 << _CODEBITS) - 1
+_BITS_TRANS = b'0' + b'1' * 255
+def _mk_bitmap(bits, _CODEBITS=_CODEBITS, _int=int):
+    s = bits.translate(_BITS_TRANS)[::-1]
+    return [_int(s[i - _CODEBITS: i], 2)
+            for i in range(len(s), 0, -_CODEBITS)]
+
+def _bytes_to_codes(b):
+    # Convert block indices to word array
+    a = memoryview(b).cast('I')
+    assert a.itemsize == _sre.CODESIZE
+    assert len(a) * a.itemsize == len(b)
+    return a.tolist()
+
+def _simple(p):
+    # check if this subpattern is a "simple" operator
+    if len(p) != 1:
+        return False
+    op, av = p[0]
+    if op is SUBPATTERN:
+        return av[0] is None and _simple(av[-1])
+    return op in _UNIT_CODES
+
+def _generate_overlap_table(prefix):
+    """
+    Generate an overlap table for the following prefix.
+    An overlap table is a table of the same size as the prefix which
+    informs about the potential self-overlap for each index in the prefix:
+    - if overlap[i] == 0, prefix[i:] can't overlap prefix[0:...]
+    - if overlap[i] == k with 0 < k <= i, prefix[i-k+1:i+1] overlaps with
+      prefix[0:k]
+    """
+    table = [0] * len(prefix)
+    for i in range(1, len(prefix)):
+        idx = table[i - 1]
+        while prefix[i] != prefix[idx]:
+            if idx == 0:
+                table[i] = 0
+                break
+            idx = table[idx - 1]
+        else:
+            table[i] = idx + 1
+    return table
+
+def _get_iscased(flags):
+    if not flags & SRE_FLAG_IGNORECASE:
+        return None
+    elif flags & SRE_FLAG_UNICODE:
+        return _sre.unicode_iscased
+    else:
+        return _sre.ascii_iscased
+
+def _get_literal_prefix(pattern, flags):
+    # look for literal prefix
+    prefix = []
+    prefixappend = prefix.append
+    prefix_skip = None
+    iscased = _get_iscased(flags)
+    for op, av in pattern.data:
+        if op is LITERAL:
+            if iscased and iscased(av):
+                break
+            prefixappend(av)
+        elif op is SUBPATTERN:
+            group, add_flags, del_flags, p = av
+            flags1 = _combine_flags(flags, add_flags, del_flags)
+            if flags1 & SRE_FLAG_IGNORECASE and flags1 & SRE_FLAG_LOCALE:
+                break
+            prefix1, prefix_skip1, got_all = _get_literal_prefix(p, flags1)
+            if prefix_skip is None:
+                if group is not None:
+                    prefix_skip = len(prefix)
+                elif prefix_skip1 is not None:
+                    prefix_skip = len(prefix) + prefix_skip1
+            prefix.extend(prefix1)
+            if not got_all:
+                break
+        else:
+            break
+    else:
+        return prefix, prefix_skip, True
+    return prefix, prefix_skip, False
+
+def _get_charset_prefix(pattern, flags):
+    while True:
+        if not pattern.data:
+            return None
+        op, av = pattern.data[0]
+        if op is not SUBPATTERN:
+            break
+        group, add_flags, del_flags, pattern = av
+        flags = _combine_flags(flags, add_flags, del_flags)
+        if flags & SRE_FLAG_IGNORECASE and flags & SRE_FLAG_LOCALE:
+            return None
+
+    iscased = _get_iscased(flags)
+    if op is LITERAL:
+        if iscased and iscased(av):
+            return None
+        return [(op, av)]
+    elif op is BRANCH:
+        charset = []
+        charsetappend = charset.append
+        for p in av[1]:
+            if not p:
+                return None
+            op, av = p[0]
+            if op is LITERAL and not (iscased and iscased(av)):
+                charsetappend((op, av))
+            else:
+                return None
+        return charset
+    elif op is IN:
+        charset = av
+        if iscased:
+            for op, av in charset:
+                if op is LITERAL:
+                    if iscased(av):
+                        return None
+                elif op is RANGE:
+                    if av[1] > 0xffff:
+                        return None
+                    if any(map(iscased, range(av[0], av[1]+1))):
+                        return None
+        return charset
+    return None
+
+def _compile_info(code, pattern, flags):
+    # internal: compile an info block.  in the current version,
+    # this contains min/max pattern width, and an optional literal
+    # prefix or a character map
+    lo, hi = pattern.getwidth()
+    if hi > MAXCODE:
+        hi = MAXCODE
+    if lo == 0:
+        code.extend([INFO, 4, 0, lo, hi])
+        return
+    # look for a literal prefix
+    prefix = []
+    prefix_skip = 0
+    charset = [] # not used
+    if not (flags & SRE_FLAG_IGNORECASE and flags & SRE_FLAG_LOCALE):
+        # look for literal prefix
+        prefix, prefix_skip, got_all = _get_literal_prefix(pattern, flags)
+        # if no prefix, look for charset prefix
+        if not prefix:
+            charset = _get_charset_prefix(pattern, flags)
+##     if prefix:
+##         print("*** PREFIX", prefix, prefix_skip)
+##     if charset:
+##         print("*** CHARSET", charset)
+    # add an info block
+    emit = code.append
+    emit(INFO)
+    skip = len(code); emit(0)
+    # literal flag
+    mask = 0
+    if prefix:
+        mask = SRE_INFO_PREFIX
+        if prefix_skip is None and got_all:
+            mask = mask | SRE_INFO_LITERAL
+    elif charset:
+        mask = mask | SRE_INFO_CHARSET
+    emit(mask)
+    # pattern length
+    if lo < MAXCODE:
+        emit(lo)
+    else:
+        emit(MAXCODE)
+        prefix = prefix[:MAXCODE]
+    emit(hi)
+    # add literal prefix
+    if prefix:
+        emit(len(prefix)) # length
+        if prefix_skip is None:
+            prefix_skip =  len(prefix)
+        emit(prefix_skip) # skip
+        code.extend(prefix)
+        # generate overlap table
+        code.extend(_generate_overlap_table(prefix))
+    elif charset:
+        charset, hascased = _optimize_charset(charset)
+        assert not hascased
+        _compile_charset(charset, flags, code)
+    code[skip] = len(code) - skip
+
+def isstring(obj):
+    return isinstance(obj, (str, bytes))
+
+def _code(p, flags):
+
+    flags = p.state.flags | flags
+    code = []
+
+    # compile info block
+    _compile_info(code, p, flags)
+
+    # compile the pattern
+    _compile(code, p.data, flags)
+
+    code.append(SUCCESS)
+
+    return code
+
+def _hex_code(code):
+    return '[%s]' % ', '.join('%#0*x' % (_sre.CODESIZE*2+2, x) for x in code)
+
+def dis(code):
+    import sys
+
+    labels = set()
+    level = 0
+    offset_width = len(str(len(code) - 1))
+
+    def dis_(start, end):
+        def print_(*args, to=None):
+            if to is not None:
+                labels.add(to)
+                args += ('(to %d)' % (to,),)
+            print('%*d%s ' % (offset_width, start, ':' if start in labels else '.'),
+                  end='  '*(level-1))
+            print(*args)
+
+        def print_2(*args):
+            print(end=' '*(offset_width + 2*level))
+            print(*args)
+
+        nonlocal level
+        level += 1
+        i = start
+        while i < end:
+            start = i
+            op = code[i]
+            i += 1
+            op = OPCODES[op]
+            if op in (SUCCESS, FAILURE, ANY, ANY_ALL,
+                      MAX_UNTIL, MIN_UNTIL, NEGATE):
+                print_(op)
+            elif op in (LITERAL, NOT_LITERAL,
+                        LITERAL_IGNORE, NOT_LITERAL_IGNORE,
+                        LITERAL_UNI_IGNORE, NOT_LITERAL_UNI_IGNORE,
+                        LITERAL_LOC_IGNORE, NOT_LITERAL_LOC_IGNORE):
+                arg = code[i]
+                i += 1
+                print_(op, '%#02x (%r)' % (arg, chr(arg)))
+            elif op is AT:
+                arg = code[i]
+                i += 1
+                arg = str(ATCODES[arg])
+                assert arg[:3] == 'AT_'
+                print_(op, arg[3:])
+            elif op is CATEGORY:
+                arg = code[i]
+                i += 1
+                arg = str(CHCODES[arg])
+                assert arg[:9] == 'CATEGORY_'
+                print_(op, arg[9:])
+            elif op in (IN, IN_IGNORE, IN_UNI_IGNORE, IN_LOC_IGNORE):
+                skip = code[i]
+                print_(op, skip, to=i+skip)
+                dis_(i+1, i+skip)
+                i += skip
+            elif op in (RANGE, RANGE_UNI_IGNORE):
+                lo, hi = code[i: i+2]
+                i += 2
+                print_(op, '%#02x %#02x (%r-%r)' % (lo, hi, chr(lo), chr(hi)))
+            elif op is CHARSET:
+                print_(op, _hex_code(code[i: i + 256//_CODEBITS]))
+                i += 256//_CODEBITS
+            elif op is BIGCHARSET:
+                arg = code[i]
+                i += 1
+                mapping = list(b''.join(x.to_bytes(_sre.CODESIZE, sys.byteorder)
+                                        for x in code[i: i + 256//_sre.CODESIZE]))
+                print_(op, arg, mapping)
+                i += 256//_sre.CODESIZE
+                level += 1
+                for j in range(arg):
+                    print_2(_hex_code(code[i: i + 256//_CODEBITS]))
+                    i += 256//_CODEBITS
+                level -= 1
+            elif op in (MARK, GROUPREF, GROUPREF_IGNORE, GROUPREF_UNI_IGNORE,
+                        GROUPREF_LOC_IGNORE):
+                arg = code[i]
+                i += 1
+                print_(op, arg)
+            elif op is JUMP:
+                skip = code[i]
+                print_(op, skip, to=i+skip)
+                i += 1
+            elif op is BRANCH:
+                skip = code[i]
+                print_(op, skip, to=i+skip)
+                while skip:
+                    dis_(i+1, i+skip)
+                    i += skip
+                    start = i
+                    skip = code[i]
+                    if skip:
+                        print_('branch', skip, to=i+skip)
+                    else:
+                        print_(FAILURE)
+                i += 1
+            elif op in (REPEAT, REPEAT_ONE, MIN_REPEAT_ONE,
+                        POSSESSIVE_REPEAT, POSSESSIVE_REPEAT_ONE):
+                skip, min, max = code[i: i+3]
+                if max == MAXREPEAT:
+                    max = 'MAXREPEAT'
+                print_(op, skip, min, max, to=i+skip)
+                dis_(i+3, i+skip)
+                i += skip
+            elif op is GROUPREF_EXISTS:
+                arg, skip = code[i: i+2]
+                print_(op, arg, skip, to=i+skip)
+                i += 2
+            elif op in (ASSERT, ASSERT_NOT):
+                skip, arg = code[i: i+2]
+                print_(op, skip, arg, to=i+skip)
+                dis_(i+2, i+skip)
+                i += skip
+            elif op is ATOMIC_GROUP:
+                skip = code[i]
+                print_(op, skip, to=i+skip)
+                dis_(i+1, i+skip)
+                i += skip
+            elif op is INFO:
+                skip, flags, min, max = code[i: i+4]
+                if max == MAXREPEAT:
+                    max = 'MAXREPEAT'
+                print_(op, skip, bin(flags), min, max, to=i+skip)
+                start = i+4
+                if flags & SRE_INFO_PREFIX:
+                    prefix_len, prefix_skip = code[i+4: i+6]
+                    print_2('  prefix_skip', prefix_skip)
+                    start = i + 6
+                    prefix = code[start: start+prefix_len]
+                    print_2('  prefix',
+                            '[%s]' % ', '.join('%#02x' % x for x in prefix),
+                            '(%r)' % ''.join(map(chr, prefix)))
+                    start += prefix_len
+                    print_2('  overlap', code[start: start+prefix_len])
+                    start += prefix_len
+                if flags & SRE_INFO_CHARSET:
+                    level += 1
+                    print_2('in')
+                    dis_(start, i+skip)
+                    level -= 1
+                i += skip
+            else:
+                raise ValueError(op)
+
+        level -= 1
+
+    dis_(0, len(code))
+
+
+def compile(p, flags=0):
+    # internal: convert pattern list to internal format
+
+    if isstring(p):
+        pattern = p
+        p = _parser.parse(p, flags)
+    else:
+        pattern = None
+
+    code = _code(p, flags)
+
+    if flags & SRE_FLAG_DEBUG:
+        print()
+        dis(code)
+
+    # map in either direction
+    groupindex = p.state.groupdict
+    indexgroup = [None] * p.state.groups
+    for k, i in groupindex.items():
+        indexgroup[i] = k
+
+    return _sre.compile(
+        pattern, flags | p.state.flags, code,
+        p.state.groups-1,
+        groupindex, tuple(indexgroup)
+        )
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              #
+# Secret Labs' Regular Expression Engine
+#
+# various symbols used by the regular expression engine.
+# run this script to update the _sre include files!
+#
+# Copyright (c) 1998-2001 by Secret Labs AB.  All rights reserved.
+#
+# See the __init__.py file for information on usage and redistribution.
+#
+
+"""Internal support module for sre"""
+
+# update when constants are added or removed
+
+MAGIC = 20230612
+
+from _sre import MAXREPEAT, MAXGROUPS
+
+# SRE standard exception (access as sre.error)
+# should this really be here?
+
+class PatternError(Exception):
+    """Exception raised for invalid regular expressions.
+
+    Attributes:
+
+        msg: The unformatted error message
+        pattern: The regular expression pattern
+        pos: The index in the pattern where compilation failed (may be None)
+        lineno: The line corresponding to pos (may be None)
+        colno: The column corresponding to pos (may be None)
+    """
+
+    __module__ = 're'
+
+    def __init__(self, msg, pattern=None, pos=None):
+        self.msg = msg
+        self.pattern = pattern
+        self.pos = pos
+        if pattern is not None and pos is not None:
+            msg = '%s at position %d' % (msg, pos)
+            if isinstance(pattern, str):
+                newline = '\n'
+            else:
+                newline = b'\n'
+            self.lineno = pattern.count(newline, 0, pos) + 1
+            self.colno = pos - pattern.rfind(newline, 0, pos)
+            if newline in pattern:
+                msg = '%s (line %d, column %d)' % (msg, self.lineno, self.colno)
+        else:
+            self.lineno = self.colno = None
+        super().__init__(msg)
+
+
+# Backward compatibility after renaming in 3.13
+error = PatternError
+
+class _NamedIntConstant(int):
+    def __new__(cls, value, name):
+        self = super(_NamedIntConstant, cls).__new__(cls, value)
+        self.name = name
+        return self
+
+    def __repr__(self):
+        return self.name
+
+    __reduce__ = None
+
+MAXREPEAT = _NamedIntConstant(MAXREPEAT, 'MAXREPEAT')
+
+def _makecodes(*names):
+    items = [_NamedIntConstant(i, name) for i, name in enumerate(names)]
+    globals().update({item.name: item for item in items})
+    return items
+
+# operators
+OPCODES = _makecodes(
+    # failure=0 success=1 (just because it looks better that way :-)
+    'FAILURE', 'SUCCESS',
+
+    'ANY', 'ANY_ALL',
+    'ASSERT', 'ASSERT_NOT',
+    'AT',
+    'BRANCH',
+    'CATEGORY',
+    'CHARSET', 'BIGCHARSET',
+    'GROUPREF', 'GROUPREF_EXISTS',
+    'IN',
+    'INFO',
+    'JUMP',
+    'LITERAL',
+    'MARK',
+    'MAX_UNTIL',
+    'MIN_UNTIL',
+    'NOT_LITERAL',
+    'NEGATE',
+    'RANGE',
+    'REPEAT',
+    'REPEAT_ONE',
+    'SUBPATTERN',
+    'MIN_REPEAT_ONE',
+    'ATOMIC_GROUP',
+    'POSSESSIVE_REPEAT',
+    'POSSESSIVE_REPEAT_ONE',
+
+    'GROUPREF_IGNORE',
+    'IN_IGNORE',
+    'LITERAL_IGNORE',
+    'NOT_LITERAL_IGNORE',
+
+    'GROUPREF_LOC_IGNORE',
+    'IN_LOC_IGNORE',
+    'LITERAL_LOC_IGNORE',
+    'NOT_LITERAL_LOC_IGNORE',
+
+    'GROUPREF_UNI_IGNORE',
+    'IN_UNI_IGNORE',
+    'LITERAL_UNI_IGNORE',
+    'NOT_LITERAL_UNI_IGNORE',
+    'RANGE_UNI_IGNORE',
+
+    # The following opcodes are only occurred in the parser output,
+    # but not in the compiled code.
+    'MIN_REPEAT', 'MAX_REPEAT',
+)
+del OPCODES[-2:] # remove MIN_REPEAT and MAX_REPEAT
+
+# positions
+ATCODES = _makecodes(
+    'AT_BEGINNING', 'AT_BEGINNING_LINE', 'AT_BEGINNING_STRING',
+    'AT_BOUNDARY', 'AT_NON_BOUNDARY',
+    'AT_END', 'AT_END_LINE', 'AT_END_STRING',
+
+    'AT_LOC_BOUNDARY', 'AT_LOC_NON_BOUNDARY',
+
+    'AT_UNI_BOUNDARY', 'AT_UNI_NON_BOUNDARY',
+)
+
+# categories
+CHCODES = _makecodes(
+    'CATEGORY_DIGIT', 'CATEGORY_NOT_DIGIT',
+    'CATEGORY_SPACE', 'CATEGORY_NOT_SPACE',
+    'CATEGORY_WORD', 'CATEGORY_NOT_WORD',
+    'CATEGORY_LINEBREAK', 'CATEGORY_NOT_LINEBREAK',
+
+    'CATEGORY_LOC_WORD', 'CATEGORY_LOC_NOT_WORD',
+
+    'CATEGORY_UNI_DIGIT', 'CATEGORY_UNI_NOT_DIGIT',
+    'CATEGORY_UNI_SPACE', 'CATEGORY_UNI_NOT_SPACE',
+    'CATEGORY_UNI_WORD', 'CATEGORY_UNI_NOT_WORD',
+    'CATEGORY_UNI_LINEBREAK', 'CATEGORY_UNI_NOT_LINEBREAK',
+)
+
+
+# replacement operations for "ignore case" mode
+OP_IGNORE = {
+    LITERAL: LITERAL_IGNORE,
+    NOT_LITERAL: NOT_LITERAL_IGNORE,
+}
+
+OP_LOCALE_IGNORE = {
+    LITERAL: LITERAL_LOC_IGNORE,
+    NOT_LITERAL: NOT_LITERAL_LOC_IGNORE,
+}
+
+OP_UNICODE_IGNORE = {
+    LITERAL: LITERAL_UNI_IGNORE,
+    NOT_LITERAL: NOT_LITERAL_UNI_IGNORE,
+}
+
+AT_MULTILINE = {
+    AT_BEGINNING: AT_BEGINNING_LINE,
+    AT_END: AT_END_LINE
+}
+
+AT_LOCALE = {
+    AT_BOUNDARY: AT_LOC_BOUNDARY,
+    AT_NON_BOUNDARY: AT_LOC_NON_BOUNDARY
+}
+
+AT_UNICODE = {
+    AT_BOUNDARY: AT_UNI_BOUNDARY,
+    AT_NON_BOUNDARY: AT_UNI_NON_BOUNDARY
+}
+
+CH_LOCALE = {
+    CATEGORY_DIGIT: CATEGORY_DIGIT,
+    CATEGORY_NOT_DIGIT: CATEGORY_NOT_DIGIT,
+    CATEGORY_SPACE: CATEGORY_SPACE,
+    CATEGORY_NOT_SPACE: CATEGORY_NOT_SPACE,
+    CATEGORY_WORD: CATEGORY_LOC_WORD,
+    CATEGORY_NOT_WORD: CATEGORY_LOC_NOT_WORD,
+    CATEGORY_LINEBREAK: CATEGORY_LINEBREAK,
+    CATEGORY_NOT_LINEBREAK: CATEGORY_NOT_LINEBREAK
+}
+
+CH_UNICODE = {
+    CATEGORY_DIGIT: CATEGORY_UNI_DIGIT,
+    CATEGORY_NOT_DIGIT: CATEGORY_UNI_NOT_DIGIT,
+    CATEGORY_SPACE: CATEGORY_UNI_SPACE,
+    CATEGORY_NOT_SPACE: CATEGORY_UNI_NOT_SPACE,
+    CATEGORY_WORD: CATEGORY_UNI_WORD,
+    CATEGORY_NOT_WORD: CATEGORY_UNI_NOT_WORD,
+    CATEGORY_LINEBREAK: CATEGORY_UNI_LINEBREAK,
+    CATEGORY_NOT_LINEBREAK: CATEGORY_UNI_NOT_LINEBREAK
+}
+
+# flags
+SRE_FLAG_IGNORECASE = 2 # case insensitive
+SRE_FLAG_LOCALE = 4 # honour system locale
+SRE_FLAG_MULTILINE = 8 # treat target as multiline string
+SRE_FLAG_DOTALL = 16 # treat target as a single string
+SRE_FLAG_UNICODE = 32 # use unicode "locale"
+SRE_FLAG_VERBOSE = 64 # ignore whitespace and comments
+SRE_FLAG_DEBUG = 128 # debugging
+SRE_FLAG_ASCII = 256 # use ascii "locale"
+
+# flags for INFO primitive
+SRE_INFO_PREFIX = 1 # has prefix
+SRE_INFO_LITERAL = 2 # entire pattern is literal (given by prefix)
+SRE_INFO_CHARSET = 4 # pattern starts with character from given set
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             #
+# Secret Labs' Regular Expression Engine
+#
+# convert re-style regular expression to sre pattern
+#
+# Copyright (c) 1998-2001 by Secret Labs AB.  All rights reserved.
+#
+# See the __init__.py file for information on usage and redistribution.
+#
+
+"""Internal support module for sre"""
+
+# XXX: show string offset and offending character for all errors
+
+from ._constants import *
+
+SPECIAL_CHARS = ".\\[{()*+?^$|"
+REPEAT_CHARS = "*+?{"
+
+DIGITS = frozenset("0123456789")
+
+OCTDIGITS = frozenset("01234567")
+HEXDIGITS = frozenset("0123456789abcdefABCDEF")
+ASCIILETTERS = frozenset("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
+
+WHITESPACE = frozenset(" \t\n\r\v\f")
+
+_REPEATCODES = frozenset({MIN_REPEAT, MAX_REPEAT, POSSESSIVE_REPEAT})
+_UNITCODES = frozenset({ANY, RANGE, IN, LITERAL, NOT_LITERAL, CATEGORY})
+
+ESCAPES = {
+    r"\a": (LITERAL, ord("\a")),
+    r"\b": (LITERAL, ord("\b")),
+    r"\f": (LITERAL, ord("\f")),
+    r"\n": (LITERAL, ord("\n")),
+    r"\r": (LITERAL, ord("\r")),
+    r"\t": (LITERAL, ord("\t")),
+    r"\v": (LITERAL, ord("\v")),
+    r"\\": (LITERAL, ord("\\"))
+}
+
+CATEGORIES = {
+    r"\A": (AT, AT_BEGINNING_STRING), # start of string
+    r"\b": (AT, AT_BOUNDARY),
+    r"\B": (AT, AT_NON_BOUNDARY),
+    r"\d": (IN, [(CATEGORY, CATEGORY_DIGIT)]),
+    r"\D": (IN, [(CATEGORY, CATEGORY_NOT_DIGIT)]),
+    r"\s": (IN, [(CATEGORY, CATEGORY_SPACE)]),
+    r"\S": (IN, [(CATEGORY, CATEGORY_NOT_SPACE)]),
+    r"\w": (IN, [(CATEGORY, CATEGORY_WORD)]),
+    r"\W": (IN, [(CATEGORY, CATEGORY_NOT_WORD)]),
+    r"\Z": (AT, AT_END_STRING), # end of string
+}
+
+FLAGS = {
+    # standard flags
+    "i": SRE_FLAG_IGNORECASE,
+    "L": SRE_FLAG_LOCALE,
+    "m": SRE_FLAG_MULTILINE,
+    "s": SRE_FLAG_DOTALL,
+    "x": SRE_FLAG_VERBOSE,
+    # extensions
+    "a": SRE_FLAG_ASCII,
+    "u": SRE_FLAG_UNICODE,
+}
+
+TYPE_FLAGS = SRE_FLAG_ASCII | SRE_FLAG_LOCALE | SRE_FLAG_UNICODE
+GLOBAL_FLAGS = SRE_FLAG_DEBUG
+
+# Maximal value returned by SubPattern.getwidth().
+# Must be larger than MAXREPEAT, MAXCODE and sys.maxsize.
+MAXWIDTH = 1 << 64
+
+class State:
+    # keeps track of state for parsing
+    def __init__(self):
+        self.flags = 0
+        self.groupdict = {}
+        self.groupwidths = [None]  # group 0
+        self.lookbehindgroups = None
+        self.grouprefpos = {}
+    @property
+    def groups(self):
+        return len(self.groupwidths)
+    def opengroup(self, name=None):
+        gid = self.groups
+        self.groupwidths.append(None)
+        if self.groups > MAXGROUPS:
+            raise error("too many groups")
+        if name is not None:
+            ogid = self.groupdict.get(name, None)
+            if ogid is not None:
+                raise error("redefinition of group name %r as group %d; "
+                            "was group %d" % (name, gid,  ogid))
+            self.groupdict[name] = gid
+        return gid
+    def closegroup(self, gid, p):
+        self.groupwidths[gid] = p.getwidth()
+    def checkgroup(self, gid):
+        return gid < self.groups and self.groupwidths[gid] is not None
+
+    def checklookbehindgroup(self, gid, source):
+        if self.lookbehindgroups is not None:
+            if not self.checkgroup(gid):
+                raise source.error('cannot refer to an open group')
+            if gid >= self.lookbehindgroups:
+                raise source.error('cannot refer to group defined in the same '
+                                   'lookbehind subpattern')
+
+class SubPattern:
+    # a subpattern, in intermediate form
+    def __init__(self, state, data=None):
+        self.state = state
+        if data is None:
+            data = []
+        self.data = data
+        self.width = None
+
+    def dump(self, level=0):
+        seqtypes = (tuple, list)
+        for op, av in self.data:
+            print(level*"  " + str(op), end='')
+            if op is IN:
+                # member sublanguage
+                print()
+                for op, a in av:
+                    print((level+1)*"  " + str(op), a)
+            elif op is BRANCH:
+                print()
+                for i, a in enumerate(av[1]):
+                    if i:
+                        print(level*"  " + "OR")
+                    a.dump(level+1)
+            elif op is GROUPREF_EXISTS:
+                condgroup, item_yes, item_no = av
+                print('', condgroup)
+                item_yes.dump(level+1)
+                if item_no:
+                    print(level*"  " + "ELSE")
+                    item_no.dump(level+1)
+            elif isinstance(av, SubPattern):
+                print()
+                av.dump(level+1)
+            elif isinstance(av, seqtypes):
+                nl = False
+                for a in av:
+                    if isinstance(a, SubPattern):
+                        if not nl:
+                            print()
+                        a.dump(level+1)
+                        nl = True
+                    else:
+                        if not nl:
+                            print(' ', end='')
+                        print(a, end='')
+                        nl = False
+                if not nl:
+                    print()
+            else:
+                print('', av)
+    def __repr__(self):
+        return repr(self.data)
+    def __len__(self):
+        return len(self.data)
+    def __delitem__(self, index):
+        del self.data[index]
+    def __getitem__(self, index):
+        if isinstance(index, slice):
+            return SubPattern(self.state, self.data[index])
+        return self.data[index]
+    def __setitem__(self, index, code):
+        self.data[index] = code
+    def insert(self, index, code):
+        self.data.insert(index, code)
+    def append(self, code):
+        self.data.append(code)
+    def getwidth(self):
+        # determine the width (min, max) for this subpattern
+        if self.width is not None:
+            return self.width
+        lo = hi = 0
+        for op, av in self.data:
+            if op is BRANCH:
+                i = MAXWIDTH
+                j = 0
+                for av in av[1]:
+                    l, h = av.getwidth()
+                    i = min(i, l)
+                    j = max(j, h)
+                lo = lo + i
+                hi = hi + j
+            elif op is ATOMIC_GROUP:
+                i, j = av.getwidth()
+                lo = lo + i
+                hi = hi + j
+            elif op is SUBPATTERN:
+                i, j = av[-1].getwidth()
+                lo = lo + i
+                hi = hi + j
+            elif op in _REPEATCODES:
+                i, j = av[2].getwidth()
+                lo = lo + i * av[0]
+                if av[1] == MAXREPEAT and j:
+                    hi = MAXWIDTH
+                else:
+                    hi = hi + j * av[1]
+            elif op in _UNITCODES:
+                lo = lo + 1
+                hi = hi + 1
+            elif op is GROUPREF:
+                i, j = self.state.groupwidths[av]
+                lo = lo + i
+                hi = hi + j
+            elif op is GROUPREF_EXISTS:
+                i, j = av[1].getwidth()
+                if av[2] is not None:
+                    l, h = av[2].getwidth()
+                    i = min(i, l)
+                    j = max(j, h)
+                else:
+                    i = 0
+                lo = lo + i
+                hi = hi + j
+            elif op is SUCCESS:
+                break
+        self.width = min(lo, MAXWIDTH), min(hi, MAXWIDTH)
+        return self.width
+
+class Tokenizer:
+    def __init__(self, string):
+        self.istext = isinstance(string, str)
+        self.string = string
+        if not self.istext:
+            string = str(string, 'latin1')
+        self.decoded_string = string
+        self.index = 0
+        self.next = None
+        self.__next()
+    def __next(self):
+        index = self.index
+        try:
+            char = self.decoded_string[index]
+        except IndexError:
+            self.next = None
+            return
+        if char == "\\":
+            index += 1
+            try:
+                char += self.decoded_string[index]
+            except IndexError:
+                raise error("bad escape (end of pattern)",
+                            self.string, len(self.string) - 1) from None
+        self.index = index + 1
+        self.next = char
+    def match(self, char):
+        if char == self.next:
+            self.__next()
+            return True
+        return False
+    def get(self):
+        this = self.next
+        self.__next()
+        return this
+    def getwhile(self, n, charset):
+        result = ''
+        for _ in range(n):
+            c = self.next
+            if c not in charset:
+                break
+            result += c
+            self.__next()
+        return result
+    def getuntil(self, terminator, name):
+        result = ''
+        while True:
+            c = self.next
+            self.__next()
+            if c is None:
+                if not result:
+                    raise self.error("missing " + name)
+                raise self.error("missing %s, unterminated name" % terminator,
+                                 len(result))
+            if c == terminator:
+                if not result:
+                    raise self.error("missing " + name, 1)
+                break
+            result += c
+        return result
+    @property
+    def pos(self):
+        return self.index - len(self.next or '')
+    def tell(self):
+        return self.index - len(self.next or '')
+    def seek(self, index):
+        self.index = index
+        self.__next()
+
+    def error(self, msg, offset=0):
+        if not self.istext:
+            msg = msg.encode('ascii', 'backslashreplace').decode('ascii')
+        return error(msg, self.string, self.tell() - offset)
+
+    def checkgroupname(self, name, offset):
+        if not (self.istext or name.isascii()):
+            msg = "bad character in group name %a" % name
+            raise self.error(msg, len(name) + offset)
+        if not name.isidentifier():
+            msg = "bad character in group name %r" % name
+            raise self.error(msg, len(name) + offset)
+
+def _class_escape(source, escape):
+    # handle escape code inside character class
+    code = ESCAPES.get(escape)
+    if code:
+        return code
+    code = CATEGORIES.get(escape)
+    if code and code[0] is IN:
+        return code
+    try:
+        c = escape[1:2]
+        if c == "x":
+            # hexadecimal escape (exactly two digits)
+            escape += source.getwhile(2, HEXDIGITS)
+            if len(escape) != 4:
+                raise source.error("incomplete escape %s" % escape, len(escape))
+            return LITERAL, int(escape[2:], 16)
+        elif c == "u" and source.istext:
+            # unicode escape (exactly four digits)
+            escape += source.getwhile(4, HEXDIGITS)
+            if len(escape) != 6:
+                raise source.error("incomplete escape %s" % escape, len(escape))
+            return LITERAL, int(escape[2:], 16)
+        elif c == "U" and source.istext:
+            # unicode escape (exactly eight digits)
+            escape += source.getwhile(8, HEXDIGITS)
+            if len(escape) != 10:
+                raise source.error("incomplete escape %s" % escape, len(escape))
+            c = int(escape[2:], 16)
+            chr(c) # raise ValueError for invalid code
+            return LITERAL, c
+        elif c == "N" and source.istext:
+            import unicodedata
+            # named unicode escape e.g. \N{EM DASH}
+            if not source.match('{'):
+                raise source.error("missing {")
+            charname = source.getuntil('}', 'character name')
+            try:
+                c = ord(unicodedata.lookup(charname))
+            except (KeyError, TypeError):
+                raise source.error("undefined character name %r" % charname,
+                                   len(charname) + len(r'\N{}')) from None
+            return LITERAL, c
+        elif c in OCTDIGITS:
+            # octal escape (up to three digits)
+            escape += source.getwhile(2, OCTDIGITS)
+            c = int(escape[1:], 8)
+            if c > 0o377:
+                raise source.error('octal escape value %s outside of '
+                                   'range 0-0o377' % escape, len(escape))
+            return LITERAL, c
+        elif c in DIGITS:
+            raise ValueError
+        if len(escape) == 2:
+            if c in ASCIILETTERS:
+                raise source.error('bad escape %s' % escape, len(escape))
+            return LITERAL, ord(escape[1])
+    except ValueError:
+        pass
+    raise source.error("bad escape %s" % escape, len(escape))
+
+def _escape(source, escape, state):
+    # handle escape code in expression
+    code = CATEGORIES.get(escape)
+    if code:
+        return code
+    code = ESCAPES.get(escape)
+    if code:
+        return code
+    try:
+        c = escape[1:2]
+        if c == "x":
+            # hexadecimal escape
+            escape += source.getwhile(2, HEXDIGITS)
+            if len(escape) != 4:
+                raise source.error("incomplete escape %s" % escape, len(escape))
+            return LITERAL, int(escape[2:], 16)
+        elif c == "u" and source.istext:
+            # unicode escape (exactly four digits)
+            escape += source.getwhile(4, HEXDIGITS)
+            if len(escape) != 6:
+                raise source.error("incomplete escape %s" % escape, len(escape))
+            return LITERAL, int(escape[2:], 16)
+        elif c == "U" and source.istext:
+            # unicode escape (exactly eight digits)
+            escape += source.getwhile(8, HEXDIGITS)
+            if len(escape) != 10:
+                raise source.error("incomplete escape %s" % escape, len(escape))
+            c = int(escape[2:], 16)
+            chr(c) # raise ValueError for invalid code
+            return LITERAL, c
+        elif c == "N" and source.istext:
+            import unicodedata
+            # named unicode escape e.g. \N{EM DASH}
+            if not source.match('{'):
+                raise source.error("missing {")
+            charname = source.getuntil('}', 'character name')
+            try:
+                c = ord(unicodedata.lookup(charname))
+            except (KeyError, TypeError):
+                raise source.error("undefined character name %r" % charname,
+                                   len(charname) + len(r'\N{}')) from None
+            return LITERAL, c
+        elif c == "0":
+            # octal escape
+            escape += source.getwhile(2, OCTDIGITS)
+            return LITERAL, int(escape[1:], 8)
+        elif c in DIGITS:
+            # octal escape *or* decimal group reference (sigh)
+            if source.next in DIGITS:
+                escape += source.get()
+                if (escape[1] in OCTDIGITS and escape[2] in OCTDIGITS and
+                    source.next in OCTDIGITS):
+                    # got three octal digits; this is an octal escape
+                    escape += source.get()
+                    c = int(escape[1:], 8)
+                    if c > 0o377:
+                        raise source.error('octal escape value %s outside of '
+                                           'range 0-0o377' % escape,
+                                           len(escape))
+                    return LITERAL, c
+            # not an octal escape, so this is a group reference
+            group = int(escape[1:])
+            if group < state.groups:
+                if not state.checkgroup(group):
+                    raise source.error("cannot refer to an open group",
+                                       len(escape))
+                state.checklookbehindgroup(group, source)
+                return GROUPREF, group
+            raise source.error("invalid group reference %d" % group, len(escape) - 1)
+        if len(escape) == 2:
+            if c in ASCIILETTERS:
+                raise source.error("bad escape %s" % escape, len(escape))
+            return LITERAL, ord(escape[1])
+    except ValueError:
+        pass
+    raise source.error("bad escape %s" % escape, len(escape))
+
+def _uniq(items):
+    return list(dict.fromkeys(items))
+
+def _parse_sub(source, state, verbose, nested):
+    # parse an alternation: a|b|c
+
+    items = []
+    itemsappend = items.append
+    sourcematch = source.match
+    start = source.tell()
+    while True:
+        itemsappend(_parse(source, state, verbose, nested + 1,
+                           not nested and not items))
+        if not sourcematch("|"):
+            break
+        if not nested:
+            verbose = state.flags & SRE_FLAG_VERBOSE
+
+    if len(items) == 1:
+        return items[0]
+
+    subpattern = SubPattern(state)
+
+    # check if all items share a common prefix
+    while True:
+        prefix = None
+        for item in items:
+            if not item:
+                break
+            if prefix is None:
+                prefix = item[0]
+            elif item[0] != prefix:
+                break
+        else:
+            # all subitems start with a common "prefix".
+            # move it out of the branch
+            for item in items:
+                del item[0]
+            subpattern.append(prefix)
+            continue # check next one
+        break
+
+    # check if the branch can be replaced by a character set
+    set = []
+    for item in items:
+        if len(item) != 1:
+            break
+        op, av = item[0]
+        if op is LITERAL:
+            set.append((op, av))
+        elif op is IN and av[0][0] is not NEGATE:
+            set.extend(av)
+        else:
+            break
+    else:
+        # we can store this as a character set instead of a
+        # branch (the compiler may optimize this even more)
+        subpattern.append((IN, _uniq(set)))
+        return subpattern
+
+    subpattern.append((BRANCH, (None, items)))
+    return subpattern
+
+def _parse(source, state, verbose, nested, first=False):
+    # parse a simple pattern
+    subpattern = SubPattern(state)
+
+    # precompute constants into local variables
+    subpatternappend = subpattern.append
+    sourceget = source.get
+    sourcematch = source.match
+    _len = len
+    _ord = ord
+
+    while True:
+
+        this = source.next
+        if this is None:
+            break # end of pattern
+        if this in "|)":
+            break # end of subpattern
+        sourceget()
+
+        if verbose:
+            # skip whitespace and comments
+            if this in WHITESPACE:
+                continue
+            if this == "#":
+                while True:
+                    this = sourceget()
+                    if this is None or this == "\n":
+                        break
+                continue
+
+        if this[0] == "\\":
+            code = _escape(source, this, state)
+            subpatternappend(code)
+
+        elif this not in SPECIAL_CHARS:
+            subpatternappend((LITERAL, _ord(this)))
+
+        elif this == "[":
+            here = source.tell() - 1
+            # character set
+            set = []
+            setappend = set.append
+##          if sourcematch(":"):
+##              pass # handle character classes
+            if source.next == '[':
+                import warnings
+                warnings.warn(
+                    'Possible nested set at position %d' % source.tell(),
+                    FutureWarning, stacklevel=nested + 6
+                )
+            negate = sourcematch("^")
+            # check remaining characters
+            while True:
+                this = sourceget()
+                if this is None:
+                    raise source.error("unterminated character set",
+                                       source.tell() - here)
+                if this == "]" and set:
+                    break
+                elif this[0] == "\\":
+                    code1 = _class_escape(source, this)
+                else:
+                    if set and this in '-&~|' and source.next == this:
+                        import warnings
+                        warnings.warn(
+                            'Possible set %s at position %d' % (
+                                'difference' if this == '-' else
+                                'intersection' if this == '&' else
+                                'symmetric difference' if this == '~' else
+                                'union',
+                                source.tell() - 1),
+                            FutureWarning, stacklevel=nested + 6
+                        )
+                    code1 = LITERAL, _ord(this)
+                if sourcematch("-"):
+                    # potential range
+                    that = sourceget()
+                    if that is None:
+                        raise source.error("unterminated character set",
+                                           source.tell() - here)
+                    if that == "]":
+                        if code1[0] is IN:
+                            code1 = code1[1][0]
+                        setappend(code1)
+                        setappend((LITERAL, _ord("-")))
+                        break
+                    if that[0] == "\\":
+                        code2 = _class_escape(source, that)
+                    else:
+                        if that == '-':
+                            import warnings
+                            warnings.warn(
+                                'Possible set difference at position %d' % (
+                                    source.tell() - 2),
+                                FutureWarning, stacklevel=nested + 6
+                            )
+                        code2 = LITERAL, _ord(that)
+                    if code1[0] != LITERAL or code2[0] != LITERAL:
+                        msg = "bad character range %s-%s" % (this, that)
+                        raise source.error(msg, len(this) + 1 + len(that))
+                    lo = code1[1]
+                    hi = code2[1]
+                    if hi < lo:
+                        msg = "bad character range %s-%s" % (this, that)
+                        raise source.error(msg, len(this) + 1 + len(that))
+                    setappend((RANGE, (lo, hi)))
+                else:
+                    if code1[0] is IN:
+                        code1 = code1[1][0]
+                    setappend(code1)
+
+            set = _uniq(set)
+            # XXX: <fl> should move set optimization to compiler!
+            if _len(set) == 1 and set[0][0] is LITERAL:
+                # optimization
+                if negate:
+                    subpatternappend((NOT_LITERAL, set[0][1]))
+                else:
+                    subpatternappend(set[0])
+            else:
+                if negate:
+                    set.insert(0, (NEGATE, None))
+                # charmap optimization can't be added here because
+                # global flags still are not known
+                subpatternappend((IN, set))
+
+        elif this in REPEAT_CHARS:
+            # repeat previous item
+            here = source.tell()
+            if this == "?":
+                min, max = 0, 1
+            elif this == "*":
+                min, max = 0, MAXREPEAT
+
+            elif this == "+":
+                min, max = 1, MAXREPEAT
+            elif this == "{":
+                if source.next == "}":
+                    subpatternappend((LITERAL, _ord(this)))
+                    continue
+
+                min, max = 0, MAXREPEAT
+                lo = hi = ""
+                while source.next in DIGITS:
+                    lo += sourceget()
+                if sourcematch(","):
+                    while source.next in DIGITS:
+                        hi += sourceget()
+                else:
+                    hi = lo
+                if not sourcematch("}"):
+                    subpatternappend((LITERAL, _ord(this)))
+                    source.seek(here)
+                    continue
+
+                if lo:
+                    min = int(lo)
+                    if min >= MAXREPEAT:
+                        raise OverflowError("the repetition number is too large")
+                if hi:
+                    max = int(hi)
+                    if max >= MAXREPEAT:
+                        raise OverflowError("the repetition number is too large")
+                    if max < min:
+                        raise source.error("min repeat greater than max repeat",
+                                           source.tell() - here)
+            else:
+                raise AssertionError("unsupported quantifier %r" % (char,))
+            # figure out which item to repeat
+            if subpattern:
+                item = subpattern[-1:]
+            else:
+                item = None
+            if not item or item[0][0] is AT:
+                raise source.error("nothing to repeat",
+                                   source.tell() - here + len(this))
+            if item[0][0] in _REPEATCODES:
+                raise source.error("multiple repeat",
+                                   source.tell() - here + len(this))
+            if item[0][0] is SUBPATTERN:
+                group, add_flags, del_flags, p = item[0][1]
+                if group is None and not add_flags and not del_flags:
+                    item = p
+            if sourcematch("?"):
+                # Non-Greedy Match
+                subpattern[-1] = (MIN_REPEAT, (min, max, item))
+            elif sourcematch("+"):
+                # Possessive Match (Always Greedy)
+                subpattern[-1] = (POSSESSIVE_REPEAT, (min, max, item))
+            else:
+                # Greedy Match
+                subpattern[-1] = (MAX_REPEAT, (min, max, item))
+
+        elif this == ".":
+            subpatternappend((ANY, None))
+
+        elif this == "(":
+            start = source.tell() - 1
+            capture = True
+            atomic = False
+            name = None
+            add_flags = 0
+            del_flags = 0
+            if sourcematch("?"):
+                # options
+                char = sourceget()
+                if char is None:
+                    raise source.error("unexpected end of pattern")
+                if char == "P":
+                    # python extensions
+                    if sourcematch("<"):
+                        # named group: skip forward to end of name
+                        name = source.getuntil(">", "group name")
+                        source.checkgroupname(name, 1)
+                    elif sourcematch("="):
+                        # named backreference
+                        name = source.getuntil(")", "group name")
+                        source.checkgroupname(name, 1)
+                        gid = state.groupdict.get(name)
+                        if gid is None:
+                            msg = "unknown group name %r" % name
+                            raise source.error(msg, len(name) + 1)
+                        if not state.checkgroup(gid):
+                            raise source.error("cannot refer to an open group",
+                                               len(name) + 1)
+                        state.checklookbehindgroup(gid, source)
+                        subpatternappend((GROUPREF, gid))
+                        continue
+
+                    else:
+                        char = sourceget()
+                        if char is None:
+                            raise source.error("unexpected end of pattern")
+                        raise source.error("unknown extension ?P" + char,
+                                           len(char) + 2)
+                elif char == ":":
+                    # non-capturing group
+                    capture = False
+                elif char == "#":
+                    # comment
+                    while True:
+                        if source.next is None:
+                            raise source.error("missing ), unterminated comment",
+                                               source.tell() - start)
+                        if sourceget() == ")":
+                            break
+                    continue
+
+                elif char in "=!<":
+                    # lookahead assertions
+                    dir = 1
+                    if char == "<":
+                        char = sourceget()
+                        if char is None:
+                            raise source.error("unexpected end of pattern")
+                        if char not in "=!":
+                            raise source.error("unknown extension ?<" + char,
+                                               len(char) + 2)
+                        dir = -1 # lookbehind
+                        lookbehindgroups = state.lookbehindgroups
+                        if lookbehindgroups is None:
+                            state.lookbehindgroups = state.groups
+                    p = _parse_sub(source, state, verbose, nested + 1)
+                    if dir < 0:
+                        if lookbehindgroups is None:
+                            state.lookbehindgroups = None
+                    if not sourcematch(")"):
+                        raise source.error("missing ), unterminated subpattern",
+                                           source.tell() - start)
+                    if char == "=":
+                        subpatternappend((ASSERT, (dir, p)))
+                    elif p:
+                        subpatternappend((ASSERT_NOT, (dir, p)))
+                    else:
+                        subpatternappend((FAILURE, ()))
+                    continue
+
+                elif char == "(":
+                    # conditional backreference group
+                    condname = source.getuntil(")", "group name")
+                    if not (condname.isdecimal() and condname.isascii()):
+                        source.checkgroupname(condname, 1)
+                        condgroup = state.groupdict.get(condname)
+                        if condgroup is None:
+                            msg = "unknown group name %r" % condname
+                            raise source.error(msg, len(condname) + 1)
+                    else:
+                        condgroup = int(condname)
+                        if not condgroup:
+                            raise source.error("bad group number",
+                                               len(condname) + 1)
+                        if condgroup >= MAXGROUPS:
+                            msg = "invalid group reference %d" % condgroup
+                            raise source.error(msg, len(condname) + 1)
+                        if condgroup not in state.grouprefpos:
+                            state.grouprefpos[condgroup] = (
+                                source.tell() - len(condname) - 1
+                            )
+                        if not (condname.isdecimal() and condname.isascii()):
+                            import warnings
+                            warnings.warn(
+                                "bad character in group name %s at position %d" %
+                                (repr(condname) if source.istext else ascii(condname),
+                                 source.tell() - len(condname) - 1),
+                                DeprecationWarning, stacklevel=nested + 6
+                            )
+                    state.checklookbehindgroup(condgroup, source)
+                    item_yes = _parse(source, state, verbose, nested + 1)
+                    if source.match("|"):
+                        item_no = _parse(source, state, verbose, nested + 1)
+                        if source.next == "|":
+                            raise source.error("conditional backref with more than two branches")
+                    else:
+                        item_no = None
+                    if not source.match(")"):
+                        raise source.error("missing ), unterminated subpattern",
+                                           source.tell() - start)
+                    subpatternappend((GROUPREF_EXISTS, (condgroup, item_yes, item_no)))
+                    continue
+
+                elif char == ">":
+                    # non-capturing, atomic group
+                    capture = False
+                    atomic = True
+                elif char in FLAGS or char == "-":
+                    # flags
+                    flags = _parse_flags(source, state, char)
+                    if flags is None:  # global flags
+                        if not first or subpattern:
+                            raise source.error('global flags not at the start '
+                                               'of the expression',
+                                               source.tell() - start)
+                        verbose = state.flags & SRE_FLAG_VERBOSE
+                        continue
+
+                    add_flags, del_flags = flags
+                    capture = False
+                else:
+                    raise source.error("unknown extension ?" + char,
+                                       len(char) + 1)
+
+            # parse group contents
+            if capture:
+                try:
+                    group = state.opengroup(name)
+                except error as err:
+                    raise source.error(err.msg, len(name) + 1) from None
+            else:
+                group = None
+            sub_verbose = ((verbose or (add_flags & SRE_FLAG_VERBOSE)) and
+                           not (del_flags & SRE_FLAG_VERBOSE))
+            p = _parse_sub(source, state, sub_verbose, nested + 1)
+            if not source.match(")"):
+                raise source.error("missing ), unterminated subpattern",
+                                   source.tell() - start)
+            if group is not None:
+                state.closegroup(group, p)
+            if atomic:
+                assert group is None
+                subpatternappend((ATOMIC_GROUP, p))
+            else:
+                subpatternappend((SUBPATTERN, (group, add_flags, del_flags, p)))
+
+        elif this == "^":
+            subpatternappend((AT, AT_BEGINNING))
+
+        elif this == "$":
+            subpatternappend((AT, AT_END))
+
+        else:
+            raise AssertionError("unsupported special character %r" % (char,))
+
+    # unpack non-capturing groups
+    for i in range(len(subpattern))[::-1]:
+        op, av = subpattern[i]
+        if op is SUBPATTERN:
+            group, add_flags, del_flags, p = av
+            if group is None and not add_flags and not del_flags:
+                subpattern[i: i+1] = p
+
+    return subpattern
+
+def _parse_flags(source, state, char):
+    sourceget = source.get
+    add_flags = 0
+    del_flags = 0
+    if char != "-":
+        while True:
+            flag = FLAGS[char]
+            if source.istext:
+                if char == 'L':
+                    msg = "bad inline flags: cannot use 'L' flag with a str pattern"
+                    raise source.error(msg)
+            else:
+                if char == 'u':
+                    msg = "bad inline flags: cannot use 'u' flag with a bytes pattern"
+                    raise source.error(msg)
+            add_flags |= flag
+            if (flag & TYPE_FLAGS) and (add_flags & TYPE_FLAGS) != flag:
+                msg = "bad inline flags: flags 'a', 'u' and 'L' are incompatible"
+                raise source.error(msg)
+            char = sourceget()
+            if char is None:
+                raise source.error("missing -, : or )")
+            if char in ")-:":
+                break
+            if char not in FLAGS:
+                msg = "unknown flag" if char.isalpha() else "missing -, : or )"
+                raise source.error(msg, len(char))
+    if char == ")":
+        state.flags |= add_flags
+        return None
+    if add_flags & GLOBAL_FLAGS:
+        raise source.error("bad inline flags: cannot turn on global flag", 1)
+    if char == "-":
+        char = sourceget()
+        if char is None:
+            raise source.error("missing flag")
+        if char not in FLAGS:
+            msg = "unknown flag" if char.isalpha() else "missing flag"
+            raise source.error(msg, len(char))
+        while True:
+            flag = FLAGS[char]
+            if flag & TYPE_FLAGS:
+                msg = "bad inline flags: cannot turn off flags 'a', 'u' and 'L'"
+                raise source.error(msg)
+            del_flags |= flag
+            char = sourceget()
+            if char is None:
+                raise source.error("missing :")
+            if char == ":":
+                break
+            if char not in FLAGS:
+                msg = "unknown flag" if char.isalpha() else "missing :"
+                raise source.error(msg, len(char))
+    assert char == ":"
+    if del_flags & GLOBAL_FLAGS:
+        raise source.error("bad inline flags: cannot turn off global flag", 1)
+    if add_flags & del_flags:
+        raise source.error("bad inline flags: flag turned on and off", 1)
+    return add_flags, del_flags
+
+def fix_flags(src, flags):
+    # Check and fix flags according to the type of pattern (str or bytes)
+    if isinstance(src, str):
+        if flags & SRE_FLAG_LOCALE:
+            raise ValueError("cannot use LOCALE flag with a str pattern")
+        if not flags & SRE_FLAG_ASCII:
+            flags |= SRE_FLAG_UNICODE
+        elif flags & SRE_FLAG_UNICODE:
+            raise ValueError("ASCII and UNICODE flags are incompatible")
+    else:
+        if flags & SRE_FLAG_UNICODE:
+            raise ValueError("cannot use UNICODE flag with a bytes pattern")
+        if flags & SRE_FLAG_LOCALE and flags & SRE_FLAG_ASCII:
+            raise ValueError("ASCII and LOCALE flags are incompatible")
+    return flags
+
+def parse(str, flags=0, state=None):
+    # parse 're' pattern into list of (opcode, argument) tuples
+
+    source = Tokenizer(str)
+
+    if state is None:
+        state = State()
+    state.flags = flags
+    state.str = str
+
+    p = _parse_sub(source, state, flags & SRE_FLAG_VERBOSE, 0)
+    p.state.flags = fix_flags(str, p.state.flags)
+
+    if source.next is not None:
+        assert source.next == ")"
+        raise source.error("unbalanced parenthesis")
+
+    for g in p.state.grouprefpos:
+        if g >= p.state.groups:
+            msg = "invalid group reference %d" % g
+            raise error(msg, str, p.state.grouprefpos[g])
+
+    if flags & SRE_FLAG_DEBUG:
+        p.dump()
+
+    return p
+
+def parse_template(source, pattern):
+    # parse 're' replacement string into list of literals and
+    # group references
+    s = Tokenizer(source)
+    sget = s.get
+    result = []
+    literal = []
+    lappend = literal.append
+    def addliteral():
+        if s.istext:
+            result.append(''.join(literal))
+        else:
+            # The tokenizer implicitly decodes bytes objects as latin-1, we must
+            # therefore re-encode the final representation.
+            result.append(''.join(literal).encode('latin-1'))
+        del literal[:]
+    def addgroup(index, pos):
+        if index > pattern.groups:
+            raise s.error("invalid group reference %d" % index, pos)
+        addliteral()
+        result.append(index)
+    groupindex = pattern.groupindex
+    while True:
+        this = sget()
+        if this is None:
+            break # end of replacement string
+        if this[0] == "\\":
+            # group
+            c = this[1]
+            if c == "g":
+                if not s.match("<"):
+                    raise s.error("missing <")
+                name = s.getuntil(">", "group name")
+                if not (name.isdecimal() and name.isascii()):
+                    s.checkgroupname(name, 1)
+                    try:
+                        index = groupindex[name]
+                    except KeyError:
+                        raise IndexError("unknown group name %r" % name) from None
+                else:
+                    index = int(name)
+                    if index >= MAXGROUPS:
+                        raise s.error("invalid group reference %d" % index,
+                                      len(name) + 1)
+                    if not (name.isdecimal() and name.isascii()):
+                        import warnings
+                        warnings.warn(
+                            "bad character in group name %s at position %d" %
+                            (repr(name) if s.istext else ascii(name),
+                             s.tell() - len(name) - 1),
+                            DeprecationWarning, stacklevel=5
+                        )
+                addgroup(index, len(name) + 1)
+            elif c == "0":
+                if s.next in OCTDIGITS:
+                    this += sget()
+                    if s.next in OCTDIGITS:
+                        this += sget()
+                lappend(chr(int(this[1:], 8) & 0xff))
+            elif c in DIGITS:
+                isoctal = False
+                if s.next in DIGITS:
+                    this += sget()
+                    if (c in OCTDIGITS and this[2] in OCTDIGITS and
+                        s.next in OCTDIGITS):
+                        this += sget()
+                        isoctal = True
+                        c = int(this[1:], 8)
+                        if c > 0o377:
+                            raise s.error('octal escape value %s outside of '
+                                          'range 0-0o377' % this, len(this))
+                        lappend(chr(c))
+                if not isoctal:
+                    addgroup(int(this[1:]), len(this) - 1)
+            else:
+                try:
+                    this = chr(ESCAPES[this][1])
+                except KeyError:
+                    if c in ASCIILETTERS:
+                        raise s.error('bad escape %s' % this, len(this)) from None
+                lappend(this)
+        else:
+            lappend(this)
+    addliteral()
+    return result
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           """Redo the builtin repr() (representation) but with limits on most sizes."""
+
+__all__ = ["Repr", "repr", "recursive_repr"]
+
+import builtins
+from itertools import islice
+from _thread import get_ident
+
+def recursive_repr(fillvalue='...'):
+    'Decorator to make a repr function return fillvalue for a recursive call'
+
+    def decorating_function(user_function):
+        repr_running = set()
+
+        def wrapper(self):
+            key = id(self), get_ident()
+            if key in repr_running:
+                return fillvalue
+            repr_running.add(key)
+            try:
+                result = user_function(self)
+            finally:
+                repr_running.discard(key)
+            return result
+
+        # Can't use functools.wraps() here because of bootstrap issues
+        wrapper.__module__ = getattr(user_function, '__module__')
+        wrapper.__doc__ = getattr(user_function, '__doc__')
+        wrapper.__name__ = getattr(user_function, '__name__')
+        wrapper.__qualname__ = getattr(user_function, '__qualname__')
+        wrapper.__annotations__ = getattr(user_function, '__annotations__', {})
+        wrapper.__type_params__ = getattr(user_function, '__type_params__', ())
+        wrapper.__wrapped__ = user_function
+        return wrapper
+
+    return decorating_function
+
+class Repr:
+    _lookup = {
+        'tuple': 'builtins',
+        'list': 'builtins',
+        'array': 'array',
+        'set': 'builtins',
+        'frozenset': 'builtins',
+        'deque': 'collections',
+        'dict': 'builtins',
+        'str': 'builtins',
+        'int': 'builtins'
+    }
+
+    def __init__(
+        self, *, maxlevel=6, maxtuple=6, maxlist=6, maxarray=5, maxdict=4,
+        maxset=6, maxfrozenset=6, maxdeque=6, maxstring=30, maxlong=40,
+        maxother=30, fillvalue='...', indent=None,
+    ):
+        self.maxlevel = maxlevel
+        self.maxtuple = maxtuple
+        self.maxlist = maxlist
+        self.maxarray = maxarray
+        self.maxdict = maxdict
+        self.maxset = maxset
+        self.maxfrozenset = maxfrozenset
+        self.maxdeque = maxdeque
+        self.maxstring = maxstring
+        self.maxlong = maxlong
+        self.maxother = maxother
+        self.fillvalue = fillvalue
+        self.indent = indent
+
+    def repr(self, x):
+        return self.repr1(x, self.maxlevel)
+
+    def repr1(self, x, level):
+        cls = type(x)
+        typename = cls.__name__
+
+        if ' ' in typename:
+            parts = typename.split()
+            typename = '_'.join(parts)
+
+        method = getattr(self, 'repr_' + typename, None)
+        if method:
+            # not defined in this class
+            if typename not in self._lookup:
+                return method(x, level)
+            module = getattr(cls, '__module__', None)
+            # defined in this class and is the module intended
+            if module == self._lookup[typename]:
+                return method(x, level)
+
+        return self.repr_instance(x, level)
+
+    def _join(self, pieces, level):
+        if self.indent is None:
+            return ', '.join(pieces)
+        if not pieces:
+            return ''
+        indent = self.indent
+        if isinstance(indent, int):
+            if indent < 0:
+                raise ValueError(
+                    f'Repr.indent cannot be negative int (was {indent!r})'
+                )
+            indent *= ' '
+        try:
+            sep = ',\n' + (self.maxlevel - level + 1) * indent
+        except TypeError as error:
+            raise TypeError(
+                f'Repr.indent must be a str, int or None, not {type(indent)}'
+            ) from error
+        return sep.join(('', *pieces, ''))[1:-len(indent) or None]
+
+    def _repr_iterable(self, x, level, left, right, maxiter, trail=''):
+        n = len(x)
+        if level <= 0 and n:
+            s = self.fillvalue
+        else:
+            newlevel = level - 1
+            repr1 = self.repr1
+            pieces = [repr1(elem, newlevel) for elem in islice(x, maxiter)]
+            if n > maxiter:
+                pieces.append(self.fillvalue)
+            s = self._join(pieces, level)
+            if n == 1 and trail and self.indent is None:
+                right = trail + right
+        return '%s%s%s' % (left, s, right)
+
+    def repr_tuple(self, x, level):
+        return self._repr_iterable(x, level, '(', ')', self.maxtuple, ',')
+
+    def repr_list(self, x, level):
+        return self._repr_iterable(x, level, '[', ']', self.maxlist)
+
+    def repr_array(self, x, level):
+        if not x:
+            return "array('%s')" % x.typecode
+        header = "array('%s', [" % x.typecode
+        return self._repr_iterable(x, level, header, '])', self.maxarray)
+
+    def repr_set(self, x, level):
+        if not x:
+            return 'set()'
+        x = _possibly_sorted(x)
+        return self._repr_iterable(x, level, '{', '}', self.maxset)
+
+    def repr_frozenset(self, x, level):
+        if not x:
+            return 'frozenset()'
+        x = _possibly_sorted(x)
+        return self._repr_iterable(x, level, 'frozenset({', '})',
+                                   self.maxfrozenset)
+
+    def repr_deque(self, x, level):
+        return self._repr_iterable(x, level, 'deque([', '])', self.maxdeque)
+
+    def repr_dict(self, x, level):
+        n = len(x)
+        if n == 0:
+            return '{}'
+        if level <= 0:
+            return '{' + self.fillvalue + '}'
+        newlevel = level - 1
+        repr1 = self.repr1
+        pieces = []
+        for key in islice(_possibly_sorted(x), self.maxdict):
+            keyrepr = repr1(key, newlevel)
+            valrepr = repr1(x[key], newlevel)
+            pieces.append('%s: %s' % (keyrepr, valrepr))
+        if n > self.maxdict:
+            pieces.append(self.fillvalue)
+        s = self._join(pieces, level)
+        return '{%s}' % (s,)
+
+    def repr_str(self, x, level):
+        s = builtins.repr(x[:self.maxstring])
+        if len(s) > self.maxstring:
+            i = max(0, (self.maxstring-3)//2)
+            j = max(0, self.maxstring-3-i)
+            s = builtins.repr(x[:i] + x[len(x)-j:])
+            s = s[:i] + self.fillvalue + s[len(s)-j:]
+        return s
+
+    def repr_int(self, x, level):
+        s = builtins.repr(x) # XXX Hope this isn't too slow...
+        if len(s) > self.maxlong:
+            i = max(0, (self.maxlong-3)//2)
+            j = max(0, self.maxlong-3-i)
+            s = s[:i] + self.fillvalue + s[len(s)-j:]
+        return s
+
+    def repr_instance(self, x, level):
+        try:
+            s = builtins.repr(x)
+            # Bugs in x.__repr__() can cause arbitrary
+            # exceptions -- then make up something
+        except Exception:
+            return '<%s instance at %#x>' % (x.__class__.__name__, id(x))
+        if len(s) > self.maxother:
+            i = max(0, (self.maxother-3)//2)
+            j = max(0, self.maxother-3-i)
+            s = s[:i] + self.fillvalue + s[len(s)-j:]
+        return s
+
+
+def _possibly_sorted(x):
+    # Since not all sequences of items can be sorted and comparison
+    # functions may raise arbitrary exceptions, return an unsorted
+    # sequence in that case.
+    try:
+        return sorted(x)
+    except Exception:
+        return list(x)
+
+aRepr = Repr()
+repr = aRepr.repr
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        """Word completion for GNU readline.
+
+The completer completes keywords, built-ins and globals in a selectable
+namespace (which defaults to __main__); when completing NAME.NAME..., it
+evaluates (!) the expression up to the last dot and completes its attributes.
+
+It's very cool to do "import sys" type "sys.", hit the completion key (twice),
+and see the list of names defined by the sys module!
+
+Tip: to use the tab key as the completion key, call
+
+    readline.parse_and_bind("tab: complete")
+
+Notes:
+
+- Exceptions raised by the completer function are *ignored* (and generally cause
+  the completion to fail).  This is a feature -- since readline sets the tty
+  device in raw (or cbreak) mode, printing a traceback wouldn't work well
+  without some complicated hoopla to save, reset and restore the tty state.
+
+- The evaluation of the NAME.NAME... form may cause arbitrary application
+  defined code to be executed if an object with a __getattr__ hook is found.
+  Since it is the responsibility of the application (or the user) to enable this
+  feature, I consider this an acceptable risk.  More complicated expressions
+  (e.g. function calls or indexing operations) are *not* evaluated.
+
+- When the original stdin is not a tty device, GNU readline is never
+  used, and this module (and the readline module) are silently inactive.
+
+"""
+
+import atexit
+import builtins
+import inspect
+import keyword
+import re
+import __main__
+import warnings
+
+__all__ = ["Completer"]
+
+class Completer:
+    def __init__(self, namespace = None):
+        """Create a new completer for the command line.
+
+        Completer([namespace]) -> completer instance.
+
+        If unspecified, the default namespace where completions are performed
+        is __main__ (technically, __main__.__dict__). Namespaces should be
+        given as dictionaries.
+
+        Completer instances should be used as the completion mechanism of
+        readline via the set_completer() call:
+
+        readline.set_completer(Completer(my_namespace).complete)
+        """
+
+        if namespace and not isinstance(namespace, dict):
+            raise TypeError('namespace must be a dictionary')
+
+        # Don't bind to namespace quite yet, but flag whether the user wants a
+        # specific namespace or to use __main__.__dict__. This will allow us
+        # to bind to __main__.__dict__ at completion time, not now.
+        if namespace is None:
+            self.use_main_ns = 1
+        else:
+            self.use_main_ns = 0
+            self.namespace = namespace
+
+    def complete(self, text, state):
+        """Return the next possible completion for 'text'.
+
+        This is called successively with state == 0, 1, 2, ... until it
+        returns None.  The completion should begin with 'text'.
+
+        """
+        if self.use_main_ns:
+            self.namespace = __main__.__dict__
+
+        if not text.strip():
+            if state == 0:
+                if _readline_available:
+                    readline.insert_text('\t')
+                    readline.redisplay()
+                    return ''
+                else:
+                    return '\t'
+            else:
+                return None
+
+        if state == 0:
+            with warnings.catch_warnings(action="ignore"):
+                if "." in text:
+                    self.matches = self.attr_matches(text)
+                else:
+                    self.matches = self.global_matches(text)
+        try:
+            return self.matches[state]
+        except IndexError:
+            return None
+
+    def _callable_postfix(self, val, word):
+        if callable(val):
+            word += "("
+            try:
+                if not inspect.signature(val).parameters:
+                    word += ")"
+            except ValueError:
+                pass
+
+        return word
+
+    def global_matches(self, text):
+        """Compute matches when text is a simple name.
+
+        Return a list of all keywords, built-in functions and names currently
+        defined in self.namespace that match.
+
+        """
+        matches = []
+        seen = {"__builtins__"}
+        n = len(text)
+        for word in keyword.kwlist + keyword.softkwlist:
+            if word[:n] == text:
+                seen.add(word)
+                if word in {'finally', 'try'}:
+                    word = word + ':'
+                elif word not in {'False', 'None', 'True',
+                                  'break', 'continue', 'pass',
+                                  'else', '_'}:
+                    word = word + ' '
+                matches.append(word)
+        for nspace in [self.namespace, builtins.__dict__]:
+            for word, val in nspace.items():
+                if word[:n] == text and word not in seen:
+                    seen.add(word)
+                    matches.append(self._callable_postfix(val, word))
+        return matches
+
+    def attr_matches(self, text):
+        """Compute matches when text contains a dot.
+
+        Assuming the text is of the form NAME.NAME....[NAME], and is
+        evaluable in self.namespace, it will be evaluated and its attributes
+        (as revealed by dir()) are used as possible completions.  (For class
+        instances, class members are also considered.)
+
+        WARNING: this can still invoke arbitrary C code, if an object
+        with a __getattr__ hook is evaluated.
+
+        """
+        m = re.match(r"(\w+(\.\w+)*)\.(\w*)", text)
+        if not m:
+            return []
+        expr, attr = m.group(1, 3)
+        try:
+            thisobject = eval(expr, self.namespace)
+        except Exception:
+            return []
+
+        # get the content of the object, except __builtins__
+        words = set(dir(thisobject))
+        words.discard("__builtins__")
+
+        if hasattr(thisobject, '__class__'):
+            words.add('__class__')
+            words.update(get_class_members(thisobject.__class__))
+        matches = []
+        n = len(attr)
+        if attr == '':
+            noprefix = '_'
+        elif attr == '_':
+            noprefix = '__'
+        else:
+            noprefix = None
+        while True:
+            for word in words:
+                if (word[:n] == attr and
+                    not (noprefix and word[:n+1] == noprefix)):
+                    match = "%s.%s" % (expr, word)
+                    if isinstance(getattr(type(thisobject), word, None),
+                                  property):
+                        # bpo-44752: thisobject.word is a method decorated by
+                        # `@property`. What follows applies a postfix if
+                        # thisobject.word is callable, but know we know that
+                        # this is not callable (because it is a property).
+                        # Also, getattr(thisobject, word) will evaluate the
+                        # property method, which is not desirable.
+                        matches.append(match)
+                        continue
+                    if (value := getattr(thisobject, word, None)) is not None:
+                        matches.append(self._callable_postfix(value, match))
+                    else:
+                        matches.append(match)
+            if matches or not noprefix:
+                break
+            if noprefix == '_':
+                noprefix = '__'
+            else:
+                noprefix = None
+        matches.sort()
+        return matches
+
+def get_class_members(klass):
+    ret = dir(klass)
+    if hasattr(klass,'__bases__'):
+        for base in klass.__bases__:
+            ret = ret + get_class_members(base)
+    return ret
+
+try:
+    import readline
+except ImportError:
+    _readline_available = False
+else:
+    readline.set_completer(Completer().complete)
+    # Release references early at shutdown (the readline module's
+    # contents are quasi-immortal, and the completer function holds a
+    # reference to globals).
+    atexit.register(lambda: readline.set_completer(None))
+    _readline_available = True
+                                                                                                                                                                                                                                                                                  """runpy.py - locating and running Python code using the module namespace
+
+Provides support for locating and running Python scripts using the Python
+module namespace instead of the native filesystem.
+
+This allows Python code to play nicely with non-filesystem based PEP 302
+importers when locating support scripts as well as when importing modules.
+"""
+# Written by Nick Coghlan <ncoghlan at gmail.com>
+#    to implement PEP 338 (Executing Modules as Scripts)
+
+
+import sys
+import importlib.machinery # importlib first so we can test #15386 via -m
+import importlib.util
+import io
+import os
+
+__all__ = [
+    "run_module", "run_path",
+]
+
+# avoid 'import types' just for ModuleType
+ModuleType = type(sys)
+
+class _TempModule(object):
+    """Temporarily replace a module in sys.modules with an empty namespace"""
+    def __init__(self, mod_name):
+        self.mod_name = mod_name
+        self.module = ModuleType(mod_name)
+        self._saved_module = []
+
+    def __enter__(self):
+        mod_name = self.mod_name
+        try:
+            self._saved_module.append(sys.modules[mod_name])
+        except KeyError:
+            pass
+        sys.modules[mod_name] = self.module
+        return self
+
+    def __exit__(self, *args):
+        if self._saved_module:
+            sys.modules[self.mod_name] = self._saved_module[0]
+        else:
+            del sys.modules[self.mod_name]
+        self._saved_module = []
+
+class _ModifiedArgv0(object):
+    def __init__(self, value):
+        self.value = value
+        self._saved_value = self._sentinel = object()
+
+    def __enter__(self):
+        if self._saved_value is not self._sentinel:
+            raise RuntimeError("Already preserving saved value")
+        self._saved_value = sys.argv[0]
+        sys.argv[0] = self.value
+
+    def __exit__(self, *args):
+        self.value = self._sentinel
+        sys.argv[0] = self._saved_value
+
+# TODO: Replace these helpers with importlib._bootstrap_external functions.
+def _run_code(code, run_globals, init_globals=None,
+              mod_name=None, mod_spec=None,
+              pkg_name=None, script_name=None):
+    """Helper to run code in nominated namespace"""
+    if init_globals is not None:
+        run_globals.update(init_globals)
+    if mod_spec is None:
+        loader = None
+        fname = script_name
+        cached = None
+    else:
+        loader = mod_spec.loader
+        fname = mod_spec.origin
+        cached = mod_spec.cached
+        if pkg_name is None:
+            pkg_name = mod_spec.parent
+    run_globals.update(__name__ = mod_name,
+                       __file__ = fname,
+                       __cached__ = cached,
+                       __doc__ = None,
+                       __loader__ = loader,
+                       __package__ = pkg_name,
+                       __spec__ = mod_spec)
+    exec(code, run_globals)
+    return run_globals
+
+def _run_module_code(code, init_globals=None,
+                    mod_name=None, mod_spec=None,
+                    pkg_name=None, script_name=None):
+    """Helper to run code in new namespace with sys modified"""
+    fname = script_name if mod_spec is None else mod_spec.origin
+    with _TempModule(mod_name) as temp_module, _ModifiedArgv0(fname):
+        mod_globals = temp_module.module.__dict__
+        _run_code(code, mod_globals, init_globals,
+                  mod_name, mod_spec, pkg_name, script_name)
+    # Copy the globals of the temporary module, as they
+    # may be cleared when the temporary module goes away
+    return mod_globals.copy()
+
+# Helper to get the full name, spec and code for a module
+def _get_module_details(mod_name, error=ImportError):
+    if mod_name.startswith("."):
+        raise error("Relative module names not supported")
+    pkg_name, _, _ = mod_name.rpartition(".")
+    if pkg_name:
+        # Try importing the parent to avoid catching initialization errors
+        try:
+            __import__(pkg_name)
+        except ImportError as e:
+            # If the parent or higher ancestor package is missing, let the
+            # error be raised by find_spec() below and then be caught. But do
+            # not allow other errors to be caught.
+            if e.name is None or (e.name != pkg_name and
+                    not pkg_name.startswith(e.name + ".")):
+                raise
+        # Warn if the module has already been imported under its normal name
+        existing = sys.modules.get(mod_name)
+        if existing is not None and not hasattr(existing, "__path__"):
+            from warnings import warn
+            msg = "{mod_name!r} found in sys.modules after import of " \
+                "package {pkg_name!r}, but prior to execution of " \
+                "{mod_name!r}; this may result in unpredictable " \
+                "behaviour".format(mod_name=mod_name, pkg_name=pkg_name)
+            warn(RuntimeWarning(msg))
+
+    try:
+        spec = importlib.util.find_spec(mod_name)
+    except (ImportError, AttributeError, TypeError, ValueError) as ex:
+        # This hack fixes an impedance mismatch between pkgutil and
+        # importlib, where the latter raises other errors for cases where
+        # pkgutil previously raised ImportError
+        msg = "Error while finding module specification for {!r} ({}: {})"
+        if mod_name.endswith(".py"):
+            msg += (f". Try using '{mod_name[:-3]}' instead of "
+                    f"'{mod_name}' as the module name.")
+        raise error(msg.format(mod_name, type(ex).__name__, ex)) from ex
+    if spec is None:
+        raise error("No module named %s" % mod_name)
+    if spec.submodule_search_locations is not None:
+        if mod_name == "__main__" or mod_name.endswith(".__main__"):
+            raise error("Cannot use package as __main__ module")
+        try:
+            pkg_main_name = mod_name + ".__main__"
+            return _get_module_details(pkg_main_name, error)
+        except error as e:
+            if mod_name not in sys.modules:
+                raise  # No module loaded; being a package is irrelevant
+            raise error(("%s; %r is a package and cannot " +
+                               "be directly executed") %(e, mod_name))
+    loader = spec.loader
+    if loader is None:
+        raise error("%r is a namespace package and cannot be executed"
+                                                                 % mod_name)
+    try:
+        code = loader.get_code(mod_name)
+    except ImportError as e:
+        raise error(format(e)) from e
+    if code is None:
+        raise error("No code object available for %s" % mod_name)
+    return mod_name, spec, code
+
+class _Error(Exception):
+    """Error that _run_module_as_main() should report without a traceback"""
+
+# XXX ncoghlan: Should this be documented and made public?
+# (Current thoughts: don't repeat the mistake that lead to its
+# creation when run_module() no longer met the needs of
+# mainmodule.c, but couldn't be changed because it was public)
+def _run_module_as_main(mod_name, alter_argv=True):
+    """Runs the designated module in the __main__ namespace
+
+       Note that the executed module will have full access to the
+       __main__ namespace. If this is not desirable, the run_module()
+       function should be used to run the module code in a fresh namespace.
+
+       At the very least, these variables in __main__ will be overwritten:
+           __name__
+           __file__
+           __cached__
+           __loader__
+           __package__
+    """
+    try:
+        if alter_argv or mod_name != "__main__": # i.e. -m switch
+            mod_name, mod_spec, code = _get_module_details(mod_name, _Error)
+        else:          # i.e. directory or zipfile execution
+            mod_name, mod_spec, code = _get_main_module_details(_Error)
+    except _Error as exc:
+        msg = "%s: %s" % (sys.executable, exc)
+        sys.exit(msg)
+    main_globals = sys.modules["__main__"].__dict__
+    if alter_argv:
+        sys.argv[0] = mod_spec.origin
+    return _run_code(code, main_globals, None,
+                     "__main__", mod_spec)
+
+def run_module(mod_name, init_globals=None,
+               run_name=None, alter_sys=False):
+    """Execute a module's code without importing it.
+
+       mod_name -- an absolute module name or package name.
+
+       Optional arguments:
+       init_globals -- dictionary used to pre-populate the module’s
+       globals dictionary before the code is executed.
+
+       run_name -- if not None, this will be used for setting __name__;
+       otherwise, __name__ will be set to mod_name + '__main__' if the
+       named module is a package and to just mod_name otherwise.
+
+       alter_sys -- if True, sys.argv[0] is updated with the value of
+       __file__ and sys.modules[__name__] is updated with a temporary
+       module object for the module being executed. Both are
+       restored to their original values before the function returns.
+
+       Returns the resulting module globals dictionary.
+    """
+    mod_name, mod_spec, code = _get_module_details(mod_name)
+    if run_name is None:
+        run_name = mod_name
+    if alter_sys:
+        return _run_module_code(code, init_globals, run_name, mod_spec)
+    else:
+        # Leave the sys module alone
+        return _run_code(code, {}, init_globals, run_name, mod_spec)
+
+def _get_main_module_details(error=ImportError):
+    # Helper that gives a nicer error message when attempting to
+    # execute a zipfile or directory by invoking __main__.py
+    # Also moves the standard __main__ out of the way so that the
+    # preexisting __loader__ entry doesn't cause issues
+    main_name = "__main__"
+    saved_main = sys.modules[main_name]
+    del sys.modules[main_name]
+    try:
+        return _get_module_details(main_name)
+    except ImportError as exc:
+        if main_name in str(exc):
+            raise error("can't find %r module in %r" %
+                              (main_name, sys.path[0])) from exc
+        raise
+    finally:
+        sys.modules[main_name] = saved_main
+
+
+def _get_code_from_file(fname):
+    # Check for a compiled file first
+    from pkgutil import read_code
+    code_path = os.path.abspath(fname)
+    with io.open_code(code_path) as f:
+        code = read_code(f)
+    if code is None:
+        # That didn't work, so try it as normal source code
+        with io.open_code(code_path) as f:
+            code = compile(f.read(), fname, 'exec')
+    return code
+
+def run_path(path_name, init_globals=None, run_name=None):
+    """Execute code located at the specified filesystem location.
+
+       path_name -- filesystem location of a Python script, zipfile,
+       or directory containing a top level __main__.py script.
+
+       Optional arguments:
+       init_globals -- dictionary used to pre-populate the module’s
+       globals dictionary before the code is executed.
+
+       run_name -- if not None, this will be used to set __name__;
+       otherwise, '<run_path>' will be used for __name__.
+
+       Returns the resulting module globals dictionary.
+    """
+    if run_name is None:
+        run_name = "<run_path>"
+    pkg_name = run_name.rpartition(".")[0]
+    from pkgutil import get_importer
+    importer = get_importer(path_name)
+    path_name = os.fsdecode(path_name)
+    if isinstance(importer, type(None)):
+        # Not a valid sys.path entry, so run the code directly
+        # execfile() doesn't help as we want to allow compiled files
+        code = _get_code_from_file(path_name)
+        return _run_module_code(code, init_globals, run_name,
+                                pkg_name=pkg_name, script_name=path_name)
+    else:
+        # Finder is defined for path, so add it to
+        # the start of sys.path
+        sys.path.insert(0, path_name)
+        try:
+            # Here's where things are a little different from the run_module
+            # case. There, we only had to replace the module in sys while the
+            # code was running and doing so was somewhat optional. Here, we
+            # have no choice and we have to remove it even while we read the
+            # code. If we don't do this, a __loader__ attribute in the
+            # existing __main__ module may prevent location of the new module.
+            mod_name, mod_spec, code = _get_main_module_details()
+            with _TempModule(run_name) as temp_module, \
+                 _ModifiedArgv0(path_name):
+                mod_globals = temp_module.module.__dict__
+                return _run_code(code, mod_globals, init_globals,
+                                    run_name, mod_spec, pkg_name).copy()
+        finally:
+            try:
+                sys.path.remove(path_name)
+            except ValueError:
+                pass
+
+
+if __name__ == "__main__":
+    # Run the module specified as the next command line argument
+    if len(sys.argv) < 2:
+        print("No module specified for execution", file=sys.stderr)
+    else:
+        del sys.argv[0] # Make the requested module sys.argv[0]
+        _run_module_as_main(sys.argv[0])
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           """A generally useful event scheduler class.
+
+Each instance of this class manages its own queue.
+No multi-threading is implied; you are supposed to hack that
+yourself, or use a single instance per application.
+
+Each instance is parametrized with two functions, one that is
+supposed to return the current time, one that is supposed to
+implement a delay.  You can implement real-time scheduling by
+substituting time and sleep from built-in module time, or you can
+implement simulated time by writing your own functions.  This can
+also be used to integrate scheduling with STDWIN events; the delay
+function is allowed to modify the queue.  Time can be expressed as
+integers or floating-point numbers, as long as it is consistent.
+
+Events are specified by tuples (time, priority, action, argument, kwargs).
+As in UNIX, lower priority numbers mean higher priority; in this
+way the queue can be maintained as a priority queue.  Execution of the
+event means calling the action function, passing it the argument
+sequence in "argument" (remember that in Python, multiple function
+arguments are be packed in a sequence) and keyword parameters in "kwargs".
+The action function may be an instance method so it
+has another way to reference private data (besides global variables).
+"""
+
+import time
+import heapq
+from collections import namedtuple
+from itertools import count
+import threading
+from time import monotonic as _time
+
+__all__ = ["scheduler"]
+
+Event = namedtuple('Event', 'time, priority, sequence, action, argument, kwargs')
+Event.time.__doc__ = ('''Numeric type compatible with the return value of the
+timefunc function passed to the constructor.''')
+Event.priority.__doc__ = ('''Events scheduled for the same time will be executed
+in the order of their priority.''')
+Event.sequence.__doc__ = ('''A continually increasing sequence number that
+    separates events if time and priority are equal.''')
+Event.action.__doc__ = ('''Executing the event means executing
+action(*argument, **kwargs)''')
+Event.argument.__doc__ = ('''argument is a sequence holding the positional
+arguments for the action.''')
+Event.kwargs.__doc__ = ('''kwargs is a dictionary holding the keyword
+arguments for the action.''')
+
+_sentinel = object()
+
+class scheduler:
+
+    def __init__(self, timefunc=_time, delayfunc=time.sleep):
+        """Initialize a new instance, passing the time and delay
+        functions"""
+        self._queue = []
+        self._lock = threading.RLock()
+        self.timefunc = timefunc
+        self.delayfunc = delayfunc
+        self._sequence_generator = count()
+
+    def enterabs(self, time, priority, action, argument=(), kwargs=_sentinel):
+        """Enter a new event in the queue at an absolute time.
+
+        Returns an ID for the event which can be used to remove it,
+        if necessary.
+
+        """
+        if kwargs is _sentinel:
+            kwargs = {}
+
+        with self._lock:
+            event = Event(time, priority, next(self._sequence_generator),
+                          action, argument, kwargs)
+            heapq.heappush(self._queue, event)
+        return event # The ID
+
+    def enter(self, delay, priority, action, argument=(), kwargs=_sentinel):
+        """A variant that specifies the time as a relative time.
+
+        This is actually the more commonly used interface.
+
+        """
+        time = self.timefunc() + delay
+        return self.enterabs(time, priority, action, argument, kwargs)
+
+    def cancel(self, event):
+        """Remove an event from the queue.
+
+        This must be presented the ID as returned by enter().
+        If the event is not in the queue, this raises ValueError.
+
+        """
+        with self._lock:
+            self._queue.remove(event)
+            heapq.heapify(self._queue)
+
+    def empty(self):
+        """Check whether the queue is empty."""
+        with self._lock:
+            return not self._queue
+
+    def run(self, blocking=True):
+        """Execute events until the queue is empty.
+        If blocking is False executes the scheduled events due to
+        expire soonest (if any) and then return the deadline of the
+        next scheduled call in the scheduler.
+
+        When there is a positive delay until the first event, the
+        delay function is called and the event is left in the queue;
+        otherwise, the event is removed from the queue and executed
+        (its action function is called, passing it the argument).  If
+        the delay function returns prematurely, it is simply
+        restarted.
+
+        It is legal for both the delay function and the action
+        function to modify the queue or to raise an exception;
+        exceptions are not caught but the scheduler's state remains
+        well-defined so run() may be called again.
+
+        A questionable hack is added to allow other threads to run:
+        just after an event is executed, a delay of 0 is executed, to
+        avoid monopolizing the CPU when other threads are also
+        runnable.
+
+        """
+        # localize variable access to minimize overhead
+        # and to improve thread safety
+        lock = self._lock
+        q = self._queue
+        delayfunc = self.delayfunc
+        timefunc = self.timefunc
+        pop = heapq.heappop
+        while True:
+            with lock:
+                if not q:
+                    break
+                (time, priority, sequence, action,
+                 argument, kwargs) = q[0]
+                now = timefunc()
+                if time > now:
+                    delay = True
+                else:
+                    delay = False
+                    pop(q)
+            if delay:
+                if not blocking:
+                    return time - now
+                delayfunc(time - now)
+            else:
+                action(*argument, **kwargs)
+                delayfunc(0)   # Let other threads run
+
+    @property
+    def queue(self):
+        """An ordered list of upcoming events.
+
+        Events are named tuples with fields for:
+            time, priority, action, arguments, kwargs
+
+        """
+        # Use heapq to sort the queue rather than using 'sorted(self._queue)'.
+        # With heapq, two events scheduled at the same time will show in
+        # the actual order they would be retrieved.
+        with self._lock:
+            events = self._queue[:]
+        return list(map(heapq.heappop, [events]*len(events)))
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 """Generate cryptographically strong pseudo-random numbers suitable for
+managing secrets such as account authentication, tokens, and similar.
+
+See PEP 506 for more information.
+https://peps.python.org/pep-0506/
+
+"""
+
+__all__ = ['choice', 'randbelow', 'randbits', 'SystemRandom',
+           'token_bytes', 'token_hex', 'token_urlsafe',
+           'compare_digest',
+           ]
+
+
+import base64
+
+from hmac import compare_digest
+from random import SystemRandom
+
+_sysrand = SystemRandom()
+
+randbits = _sysrand.getrandbits
+choice = _sysrand.choice
+
+def randbelow(exclusive_upper_bound):
+    """Return a random int in the range [0, n)."""
+    if exclusive_upper_bound <= 0:
+        raise ValueError("Upper bound must be positive.")
+    return _sysrand._randbelow(exclusive_upper_bound)
+
+DEFAULT_ENTROPY = 32  # number of bytes to return by default
+
+def token_bytes(nbytes=None):
+    """Return a random byte string containing *nbytes* bytes.
+
+    If *nbytes* is ``None`` or not supplied, a reasonable
+    default is used.
+
+    >>> token_bytes(16)  #doctest:+SKIP
+    b'\\xebr\\x17D*t\\xae\\xd4\\xe3S\\xb6\\xe2\\xebP1\\x8b'
+
+    """
+    if nbytes is None:
+        nbytes = DEFAULT_ENTROPY
+    return _sysrand.randbytes(nbytes)
+
+def token_hex(nbytes=None):
+    """Return a random text string, in hexadecimal.
+
+    The string has *nbytes* random bytes, each byte converted to two
+    hex digits.  If *nbytes* is ``None`` or not supplied, a reasonable
+    default is used.
+
+    >>> token_hex(16)  #doctest:+SKIP
+    'f9bf78b9a18ce6d46a0cd2b0b86df9da'
+
+    """
+    return token_bytes(nbytes).hex()
+
+def token_urlsafe(nbytes=None):
+    """Return a random URL-safe text string, in Base64 encoding.
+
+    The string has *nbytes* random bytes.  If *nbytes* is ``None``
+    or not supplied, a reasonable default is used.
+
+    >>> token_urlsafe(16)  #doctest:+SKIP
+    'Drmhze6EPcv0fN_81Bj-nA'
+
+    """
+    tok = token_bytes(nbytes)
+    return base64.urlsafe_b64encode(tok).rstrip(b'=').decode('ascii')
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                """Selectors module.
+
+This module allows high-level and efficient I/O multiplexing, built upon the
+`select` module primitives.
+"""
+
+
+from abc import ABCMeta, abstractmethod
+from collections import namedtuple
+from collections.abc import Mapping
+import math
+import select
+import sys
+
+
+# generic events, that must be mapped to implementation-specific ones
+EVENT_READ = (1 << 0)
+EVENT_WRITE = (1 << 1)
+
+
+def _fileobj_to_fd(fileobj):
+    """Return a file descriptor from a file object.
+
+    Parameters:
+    fileobj -- file object or file descriptor
+
+    Returns:
+    corresponding file descriptor
+
+    Raises:
+    ValueError if the object is invalid
+    """
+    if isinstance(fileobj, int):
+        fd = fileobj
+    else:
+        try:
+            fd = int(fileobj.fileno())
+        except (AttributeError, TypeError, ValueError):
+            raise ValueError("Invalid file object: "
+                             "{!r}".format(fileobj)) from None
+    if fd < 0:
+        raise ValueError("Invalid file descriptor: {}".format(fd))
+    return fd
+
+
+SelectorKey = namedtuple('SelectorKey', ['fileobj', 'fd', 'events', 'data'])
+
+SelectorKey.__doc__ = """SelectorKey(fileobj, fd, events, data)
+
+    Object used to associate a file object to its backing
+    file descriptor, selected event mask, and attached data.
+"""
+SelectorKey.fileobj.__doc__ = 'File object registered.'
+SelectorKey.fd.__doc__ = 'Underlying file descriptor.'
+SelectorKey.events.__doc__ = 'Events that must be waited for on this file object.'
+SelectorKey.data.__doc__ = ('''Optional opaque data associated to this file object.
+For example, this could be used to store a per-client session ID.''')
+
+
+class _SelectorMapping(Mapping):
+    """Mapping of file objects to selector keys."""
+
+    def __init__(self, selector):
+        self._selector = selector
+
+    def __len__(self):
+        return len(self._selector._fd_to_key)
+
+    def get(self, fileobj, default=None):
+        fd = self._selector._fileobj_lookup(fileobj)
+        return self._selector._fd_to_key.get(fd, default)
+
+    def __getitem__(self, fileobj):
+        fd = self._selector._fileobj_lookup(fileobj)
+        key = self._selector._fd_to_key.get(fd)
+        if key is None:
+            raise KeyError("{!r} is not registered".format(fileobj))
+        return key
+
+    def __iter__(self):
+        return iter(self._selector._fd_to_key)
+
+
+class BaseSelector(metaclass=ABCMeta):
+    """Selector abstract base class.
+
+    A selector supports registering file objects to be monitored for specific
+    I/O events.
+
+    A file object is a file descriptor or any object with a `fileno()` method.
+    An arbitrary object can be attached to the file object, which can be used
+    for example to store context information, a callback, etc.
+
+    A selector can use various implementations (select(), poll(), epoll()...)
+    depending on the platform. The default `Selector` class uses the most
+    efficient implementation on the current platform.
+    """
+
+    @abstractmethod
+    def register(self, fileobj, events, data=None):
+        """Register a file object.
+
+        Parameters:
+        fileobj -- file object or file descriptor
+        events  -- events to monitor (bitwise mask of EVENT_READ|EVENT_WRITE)
+        data    -- attached data
+
+        Returns:
+        SelectorKey instance
+
+        Raises:
+        ValueError if events is invalid
+        KeyError if fileobj is already registered
+        OSError if fileobj is closed or otherwise is unacceptable to
+                the underlying system call (if a system call is made)
+
+        Note:
+        OSError may or may not be raised
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    def unregister(self, fileobj):
+        """Unregister a file object.
+
+        Parameters:
+        fileobj -- file object or file descriptor
+
+        Returns:
+        SelectorKey instance
+
+        Raises:
+        KeyError if fileobj is not registered
+
+        Note:
+        If fileobj is registered but has since been closed this does
+        *not* raise OSError (even if the wrapped syscall does)
+        """
+        raise NotImplementedError
+
+    def modify(self, fileobj, events, data=None):
+        """Change a registered file object monitored events or attached data.
+
+        Parameters:
+        fileobj -- file object or file descriptor
+        events  -- events to monitor (bitwise mask of EVENT_READ|EVENT_WRITE)
+        data    -- attached data
+
+        Returns:
+        SelectorKey instance
+
+        Raises:
+        Anything that unregister() or register() raises
+        """
+        self.unregister(fileobj)
+        return self.register(fileobj, events, data)
+
+    @abstractmethod
+    def select(self, timeout=None):
+        """Perform the actual selection, until some monitored file objects are
+        ready or a timeout expires.
+
+        Parameters:
+        timeout -- if timeout > 0, this specifies the maximum wait time, in
+                   seconds
+                   if timeout <= 0, the select() call won't block, and will
+                   report the currently ready file objects
+                   if timeout is None, select() will block until a monitored
+                   file object becomes ready
+
+        Returns:
+        list of (key, events) for ready file objects
+        `events` is a bitwise mask of EVENT_READ|EVENT_WRITE
+        """
+        raise NotImplementedError
+
+    def close(self):
+        """Close the selector.
+
+        This must be called to make sure that any underlying resource is freed.
+        """
+        pass
+
+    def get_key(self, fileobj):
+        """Return the key associated to a registered file object.
+
+        Returns:
+        SelectorKey for this file object
+        """
+        mapping = self.get_map()
+        if mapping is None:
+            raise RuntimeError('Selector is closed')
+        try:
+            return mapping[fileobj]
+        except KeyError:
+            raise KeyError("{!r} is not registered".format(fileobj)) from None
+
+    @abstractmethod
+    def get_map(self):
+        """Return a mapping of file objects to selector keys."""
+        raise NotImplementedError
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *args):
+        self.close()
+
+
+class _BaseSelectorImpl(BaseSelector):
+    """Base selector implementation."""
+
+    def __init__(self):
+        # this maps file descriptors to keys
+        self._fd_to_key = {}
+        # read-only mapping returned by get_map()
+        self._map = _SelectorMapping(self)
+
+    def _fileobj_lookup(self, fileobj):
+        """Return a file descriptor from a file object.
+
+        This wraps _fileobj_to_fd() to do an exhaustive search in case
+        the object is invalid but we still have it in our map.  This
+        is used by unregister() so we can unregister an object that
+        was previously registered even if it is closed.  It is also
+        used by _SelectorMapping.
+        """
+        try:
+            return _fileobj_to_fd(fileobj)
+        except ValueError:
+            # Do an exhaustive search.
+            for key in self._fd_to_key.values():
+                if key.fileobj is fileobj:
+                    return key.fd
+            # Raise ValueError after all.
+            raise
+
+    def register(self, fileobj, events, data=None):
+        if (not events) or (events & ~(EVENT_READ | EVENT_WRITE)):
+            raise ValueError("Invalid events: {!r}".format(events))
+
+        key = SelectorKey(fileobj, self._fileobj_lookup(fileobj), events, data)
+
+        if key.fd in self._fd_to_key:
+            raise KeyError("{!r} (FD {}) is already registered"
+                           .format(fileobj, key.fd))
+
+        self._fd_to_key[key.fd] = key
+        return key
+
+    def unregister(self, fileobj):
+        try:
+            key = self._fd_to_key.pop(self._fileobj_lookup(fileobj))
+        except KeyError:
+            raise KeyError("{!r} is not registered".format(fileobj)) from None
+        return key
+
+    def modify(self, fileobj, events, data=None):
+        try:
+            key = self._fd_to_key[self._fileobj_lookup(fileobj)]
+        except KeyError:
+            raise KeyError("{!r} is not registered".format(fileobj)) from None
+        if events != key.events:
+            self.unregister(fileobj)
+            key = self.register(fileobj, events, data)
+        elif data != key.data:
+            # Use a shortcut to update the data.
+            key = key._replace(data=data)
+            self._fd_to_key[key.fd] = key
+        return key
+
+    def close(self):
+        self._fd_to_key.clear()
+        self._map = None
+
+    def get_map(self):
+        return self._map
+
+
+
+class SelectSelector(_BaseSelectorImpl):
+    """Select-based selector."""
+
+    def __init__(self):
+        super().__init__()
+        self._readers = set()
+        self._writers = set()
+
+    def register(self, fileobj, events, data=None):
+        key = super().register(fileobj, events, data)
+        if events & EVENT_READ:
+            self._readers.add(key.fd)
+        if events & EVENT_WRITE:
+            self._writers.add(key.fd)
+        return key
+
+    def unregister(self, fileobj):
+        key = super().unregister(fileobj)
+        self._readers.discard(key.fd)
+        self._writers.discard(key.fd)
+        return key
+
+    if sys.platform == 'win32':
+        def _select(self, r, w, _, timeout=None):
+            r, w, x = select.select(r, w, w, timeout)
+            return r, w + x, []
+    else:
+        _select = select.select
+
+    def select(self, timeout=None):
+        timeout = None if timeout is None else max(timeout, 0)
+        ready = []
+        try:
+            r, w, _ = self._select(self._readers, self._writers, [], timeout)
+        except InterruptedError:
+            return ready
+        r = frozenset(r)
+        w = frozenset(w)
+        rw = r | w
+        fd_to_key_get = self._fd_to_key.get
+        for fd in rw:
+            key = fd_to_key_get(fd)
+            if key:
+                events = ((fd in r and EVENT_READ)
+                          | (fd in w and EVENT_WRITE))
+                ready.append((key, events & key.events))
+        return ready
+
+
+class _PollLikeSelector(_BaseSelectorImpl):
+    """Base class shared between poll, epoll and devpoll selectors."""
+    _selector_cls = None
+    _EVENT_READ = None
+    _EVENT_WRITE = None
+
+    def __init__(self):
+        super().__init__()
+        self._selector = self._selector_cls()
+
+    def register(self, fileobj, events, data=None):
+        key = super().register(fileobj, events, data)
+        poller_events = ((events & EVENT_READ and self._EVENT_READ)
+                         | (events & EVENT_WRITE and self._EVENT_WRITE) )
+        try:
+            self._selector.register(key.fd, poller_events)
+        except:
+            super().unregister(fileobj)
+            raise
+        return key
+
+    def unregister(self, fileobj):
+        key = super().unregister(fileobj)
+        try:
+            self._selector.unregister(key.fd)
+        except OSError:
+            # This can happen if the FD was closed since it
+            # was registered.
+            pass
+        return key
+
+    def modify(self, fileobj, events, data=None):
+        try:
+            key = self._fd_to_key[self._fileobj_lookup(fileobj)]
+        except KeyError:
+            raise KeyError(f"{fileobj!r} is not registered") from None
+
+        changed = False
+        if events != key.events:
+            selector_events = ((events & EVENT_READ and self._EVENT_READ)
+                               | (events & EVENT_WRITE and self._EVENT_WRITE))
+            try:
+                self._selector.modify(key.fd, selector_events)
+            except:
+                super().unregister(fileobj)
+                raise
+            changed = True
+        if data != key.data:
+            changed = True
+
+        if changed:
+            key = key._replace(events=events, data=data)
+            self._fd_to_key[key.fd] = key
+        return key
+
+    def select(self, timeout=None):
+        # This is shared between poll() and epoll().
+        # epoll() has a different signature and handling of timeout parameter.
+        if timeout is None:
+            timeout = None
+        elif timeout <= 0:
+            timeout = 0
+        else:
+            # poll() has a resolution of 1 millisecond, round away from
+            # zero to wait *at least* timeout seconds.
+            timeout = math.ceil(timeout * 1e3)
+        ready = []
+        try:
+            fd_event_list = self._selector.poll(timeout)
+        except InterruptedError:
+            return ready
+
+        fd_to_key_get = self._fd_to_key.get
+        for fd, event in fd_event_list:
+            key = fd_to_key_get(fd)
+            if key:
+                events = ((event & ~self._EVENT_READ and EVENT_WRITE)
+                           | (event & ~self._EVENT_WRITE and EVENT_READ))
+                ready.append((key, events & key.events))
+        return ready
+
+
+if hasattr(select, 'poll'):
+
+    class PollSelector(_PollLikeSelector):
+        """Poll-based selector."""
+        _selector_cls = select.poll
+        _EVENT_READ = select.POLLIN
+        _EVENT_WRITE = select.POLLOUT
+
+
+if hasattr(select, 'epoll'):
+
+    _NOT_EPOLLIN = ~select.EPOLLIN
+    _NOT_EPOLLOUT = ~select.EPOLLOUT
+
+    class EpollSelector(_PollLikeSelector):
+        """Epoll-based selector."""
+        _selector_cls = select.epoll
+        _EVENT_READ = select.EPOLLIN
+        _EVENT_WRITE = select.EPOLLOUT
+
+        def fileno(self):
+            return self._selector.fileno()
+
+        def select(self, timeout=None):
+            if timeout is None:
+                timeout = -1
+            elif timeout <= 0:
+                timeout = 0
+            else:
+                # epoll_wait() has a resolution of 1 millisecond, round away
+                # from zero to wait *at least* timeout seconds.
+                timeout = math.ceil(timeout * 1e3) * 1e-3
+
+            # epoll_wait() expects `maxevents` to be greater than zero;
+            # we want to make sure that `select()` can be called when no
+            # FD is registered.
+            max_ev = len(self._fd_to_key) or 1
+
+            ready = []
+            try:
+                fd_event_list = self._selector.poll(timeout, max_ev)
+            except InterruptedError:
+                return ready
+
+            fd_to_key = self._fd_to_key
+            for fd, event in fd_event_list:
+                key = fd_to_key.get(fd)
+                if key:
+                    events = ((event & _NOT_EPOLLIN and EVENT_WRITE)
+                              | (event & _NOT_EPOLLOUT and EVENT_READ))
+                    ready.append((key, events & key.events))
+            return ready
+
+        def close(self):
+            self._selector.close()
+            super().close()
+
+
+if hasattr(select, 'devpoll'):
+
+    class DevpollSelector(_PollLikeSelector):
+        """Solaris /dev/poll selector."""
+        _selector_cls = select.devpoll
+        _EVENT_READ = select.POLLIN
+        _EVENT_WRITE = select.POLLOUT
+
+        def fileno(self):
+            return self._selector.fileno()
+
+        def close(self):
+            self._selector.close()
+            super().close()
+
+
+if hasattr(select, 'kqueue'):
+
+    class KqueueSelector(_BaseSelectorImpl):
+        """Kqueue-based selector."""
+
+        def __init__(self):
+            super().__init__()
+            self._selector = select.kqueue()
+            self._max_events = 0
+
+        def fileno(self):
+            return self._selector.fileno()
+
+        def register(self, fileobj, events, data=None):
+            key = super().register(fileobj, events, data)
+            try:
+                if events & EVENT_READ:
+                    kev = select.kevent(key.fd, select.KQ_FILTER_READ,
+                                        select.KQ_EV_ADD)
+                    self._selector.control([kev], 0, 0)
+                    self._max_events += 1
+                if events & EVENT_WRITE:
+                    kev = select.kevent(key.fd, select.KQ_FILTER_WRITE,
+                                        select.KQ_EV_ADD)
+                    self._selector.control([kev], 0, 0)
+                    self._max_events += 1
+            except:
+                super().unregister(fileobj)
+                raise
+            return key
+
+        def unregister(self, fileobj):
+            key = super().unregister(fileobj)
+            if key.events & EVENT_READ:
+                kev = select.kevent(key.fd, select.KQ_FILT

@@ -1,0 +1,3143 @@
+Ranks are conventionally numbered starting from one; however,
+    setting *start* to zero allows the ranks to be used as array indices:
+
+        >>> prize = ['Gold', 'Silver', 'Bronze', 'Certificate']
+        >>> scores = [8.1, 7.3, 9.4, 8.3]
+        >>> [prize[int(i)] for i in _rank(scores, start=0, reverse=True)]
+        ['Bronze', 'Certificate', 'Gold', 'Silver']
+
+    """
+    # If this function becomes public at some point, more thought
+    # needs to be given to the signature.  A list of ints is
+    # plausible when ties is "min" or "max".  When ties is "average",
+    # either list[float] or list[Fraction] is plausible.
+
+    # Default handling of ties matches scipy.stats.mstats.spearmanr.
+    if ties != 'average':
+        raise ValueError(f'Unknown tie resolution method: {ties!r}')
+    if key is not None:
+        data = map(key, data)
+    val_pos = sorted(zip(data, count()), reverse=reverse)
+    i = start - 1
+    result = [0] * len(val_pos)
+    for _, g in groupby(val_pos, key=itemgetter(0)):
+        group = list(g)
+        size = len(group)
+        rank = i + (size + 1) / 2
+        for value, orig_pos in group:
+            result[orig_pos] = rank
+        i += size
+    return result
+
+
+def _integer_sqrt_of_frac_rto(n: int, m: int) -> int:
+    """Square root of n/m, rounded to the nearest integer using round-to-odd."""
+    # Reference: https://www.lri.fr/~melquion/doc/05-imacs17_1-expose.pdf
+    a = math.isqrt(n // m)
+    return a | (a*a*m != n)
+
+
+# For 53 bit precision floats, the bit width used in
+# _float_sqrt_of_frac() is 109.
+_sqrt_bit_width: int = 2 * sys.float_info.mant_dig + 3
+
+
+def _float_sqrt_of_frac(n: int, m: int) -> float:
+    """Square root of n/m as a float, correctly rounded."""
+    # See principle and proof sketch at: https://bugs.python.org/msg407078
+    q = (n.bit_length() - m.bit_length() - _sqrt_bit_width) // 2
+    if q >= 0:
+        numerator = _integer_sqrt_of_frac_rto(n, m << 2 * q) << q
+        denominator = 1
+    else:
+        numerator = _integer_sqrt_of_frac_rto(n << -2 * q, m)
+        denominator = 1 << -q
+    return numerator / denominator   # Convert to float
+
+
+def _decimal_sqrt_of_frac(n: int, m: int) -> Decimal:
+    """Square root of n/m as a Decimal, correctly rounded."""
+    # Premise:  For decimal, computing (n/m).sqrt() can be off
+    #           by 1 ulp from the correctly rounded result.
+    # Method:   Check the result, moving up or down a step if needed.
+    if n <= 0:
+        if not n:
+            return Decimal('0.0')
+        n, m = -n, -m
+
+    root = (Decimal(n) / Decimal(m)).sqrt()
+    nr, dr = root.as_integer_ratio()
+
+    plus = root.next_plus()
+    np, dp = plus.as_integer_ratio()
+    # test: n / m > ((root + plus) / 2) ** 2
+    if 4 * n * (dr*dp)**2 > m * (dr*np + dp*nr)**2:
+        return plus
+
+    minus = root.next_minus()
+    nm, dm = minus.as_integer_ratio()
+    # test: n / m < ((root + minus) / 2) ** 2
+    if 4 * n * (dr*dm)**2 < m * (dr*nm + dm*nr)**2:
+        return minus
+
+    return root
+
+
+# === Measures of central tendency (averages) ===
+
+def mean(data):
+    """Return the sample arithmetic mean of data.
+
+    >>> mean([1, 2, 3, 4, 4])
+    2.8
+
+    >>> from fractions import Fraction as F
+    >>> mean([F(3, 7), F(1, 21), F(5, 3), F(1, 3)])
+    Fraction(13, 21)
+
+    >>> from decimal import Decimal as D
+    >>> mean([D("0.5"), D("0.75"), D("0.625"), D("0.375")])
+    Decimal('0.5625')
+
+    If ``data`` is empty, StatisticsError will be raised.
+    """
+    T, total, n = _sum(data)
+    if n < 1:
+        raise StatisticsError('mean requires at least one data point')
+    return _convert(total / n, T)
+
+
+def fmean(data, weights=None):
+    """Convert data to floats and compute the arithmetic mean.
+
+    This runs faster than the mean() function and it always returns a float.
+    If the input dataset is empty, it raises a StatisticsError.
+
+    >>> fmean([3.5, 4.0, 5.25])
+    4.25
+    """
+    if weights is None:
+        try:
+            n = len(data)
+        except TypeError:
+            # Handle iterators that do not define __len__().
+            n = 0
+            def count(iterable):
+                nonlocal n
+                for n, x in enumerate(iterable, start=1):
+                    yield x
+            data = count(data)
+        total = fsum(data)
+        if not n:
+            raise StatisticsError('fmean requires at least one data point')
+        return total / n
+    if not isinstance(weights, (list, tuple)):
+        weights = list(weights)
+    try:
+        num = sumprod(data, weights)
+    except ValueError:
+        raise StatisticsError('data and weights must be the same length')
+    den = fsum(weights)
+    if not den:
+        raise StatisticsError('sum of weights must be non-zero')
+    return num / den
+
+
+def geometric_mean(data):
+    """Convert data to floats and compute the geometric mean.
+
+    Raises a StatisticsError if the input dataset is empty
+    or if it contains a negative value.
+
+    Returns zero if the product of inputs is zero.
+
+    No special efforts are made to achieve exact results.
+    (However, this may change in the future.)
+
+    >>> round(geometric_mean([54, 24, 36]), 9)
+    36.0
+    """
+    n = 0
+    found_zero = False
+    def count_positive(iterable):
+        nonlocal n, found_zero
+        for n, x in enumerate(iterable, start=1):
+            if x > 0.0 or math.isnan(x):
+                yield x
+            elif x == 0.0:
+                found_zero = True
+            else:
+                raise StatisticsError('No negative inputs allowed', x)
+    total = fsum(map(log, count_positive(data)))
+    if not n:
+        raise StatisticsError('Must have a non-empty dataset')
+    if math.isnan(total):
+        return math.nan
+    if found_zero:
+        return math.nan if total == math.inf else 0.0
+    return exp(total / n)
+
+
+def harmonic_mean(data, weights=None):
+    """Return the harmonic mean of data.
+
+    The harmonic mean is the reciprocal of the arithmetic mean of the
+    reciprocals of the data.  It can be used for averaging ratios or
+    rates, for example speeds.
+
+    Suppose a car travels 40 km/hr for 5 km and then speeds-up to
+    60 km/hr for another 5 km. What is the average speed?
+
+        >>> harmonic_mean([40, 60])
+        48.0
+
+    Suppose a car travels 40 km/hr for 5 km, and when traffic clears,
+    speeds-up to 60 km/hr for the remaining 30 km of the journey. What
+    is the average speed?
+
+        >>> harmonic_mean([40, 60], weights=[5, 30])
+        56.0
+
+    If ``data`` is empty, or any element is less than zero,
+    ``harmonic_mean`` will raise ``StatisticsError``.
+    """
+    if iter(data) is data:
+        data = list(data)
+    errmsg = 'harmonic mean does not support negative values'
+    n = len(data)
+    if n < 1:
+        raise StatisticsError('harmonic_mean requires at least one data point')
+    elif n == 1 and weights is None:
+        x = data[0]
+        if isinstance(x, (numbers.Real, Decimal)):
+            if x < 0:
+                raise StatisticsError(errmsg)
+            return x
+        else:
+            raise TypeError('unsupported type')
+    if weights is None:
+        weights = repeat(1, n)
+        sum_weights = n
+    else:
+        if iter(weights) is weights:
+            weights = list(weights)
+        if len(weights) != n:
+            raise StatisticsError('Number of weights does not match data size')
+        _, sum_weights, _ = _sum(w for w in _fail_neg(weights, errmsg))
+    try:
+        data = _fail_neg(data, errmsg)
+        T, total, count = _sum(w / x if w else 0 for w, x in zip(weights, data))
+    except ZeroDivisionError:
+        return 0
+    if total <= 0:
+        raise StatisticsError('Weighted sum must be positive')
+    return _convert(sum_weights / total, T)
+
+# FIXME: investigate ways to calculate medians without sorting? Quickselect?
+def median(data):
+    """Return the median (middle value) of numeric data.
+
+    When the number of data points is odd, return the middle data point.
+    When the number of data points is even, the median is interpolated by
+    taking the average of the two middle values:
+
+    >>> median([1, 3, 5])
+    3
+    >>> median([1, 3, 5, 7])
+    4.0
+
+    """
+    data = sorted(data)
+    n = len(data)
+    if n == 0:
+        raise StatisticsError("no median for empty data")
+    if n % 2 == 1:
+        return data[n // 2]
+    else:
+        i = n // 2
+        return (data[i - 1] + data[i]) / 2
+
+
+def median_low(data):
+    """Return the low median of numeric data.
+
+    When the number of data points is odd, the middle value is returned.
+    When it is even, the smaller of the two middle values is returned.
+
+    >>> median_low([1, 3, 5])
+    3
+    >>> median_low([1, 3, 5, 7])
+    3
+
+    """
+    data = sorted(data)
+    n = len(data)
+    if n == 0:
+        raise StatisticsError("no median for empty data")
+    if n % 2 == 1:
+        return data[n // 2]
+    else:
+        return data[n // 2 - 1]
+
+
+def median_high(data):
+    """Return the high median of data.
+
+    When the number of data points is odd, the middle value is returned.
+    When it is even, the larger of the two middle values is returned.
+
+    >>> median_high([1, 3, 5])
+    3
+    >>> median_high([1, 3, 5, 7])
+    5
+
+    """
+    data = sorted(data)
+    n = len(data)
+    if n == 0:
+        raise StatisticsError("no median for empty data")
+    return data[n // 2]
+
+
+def median_grouped(data, interval=1.0):
+    """Estimates the median for numeric data binned around the midpoints
+    of consecutive, fixed-width intervals.
+
+    The *data* can be any iterable of numeric data with each value being
+    exactly the midpoint of a bin.  At least one value must be present.
+
+    The *interval* is width of each bin.
+
+    For example, demographic information may have been summarized into
+    consecutive ten-year age groups with each group being represented
+    by the 5-year midpoints of the intervals:
+
+        >>> demographics = Counter({
+        ...    25: 172,   # 20 to 30 years old
+        ...    35: 484,   # 30 to 40 years old
+        ...    45: 387,   # 40 to 50 years old
+        ...    55:  22,   # 50 to 60 years old
+        ...    65:   6,   # 60 to 70 years old
+        ... })
+
+    The 50th percentile (median) is the 536th person out of the 1071
+    member cohort.  That person is in the 30 to 40 year old age group.
+
+    The regular median() function would assume that everyone in the
+    tricenarian age group was exactly 35 years old.  A more tenable
+    assumption is that the 484 members of that age group are evenly
+    distributed between 30 and 40.  For that, we use median_grouped().
+
+        >>> data = list(demographics.elements())
+        >>> median(data)
+        35
+        >>> round(median_grouped(data, interval=10), 1)
+        37.5
+
+    The caller is responsible for making sure the data points are separated
+    by exact multiples of *interval*.  This is essential for getting a
+    correct result.  The function does not check this precondition.
+
+    Inputs may be any numeric type that can be coerced to a float during
+    the interpolation step.
+
+    """
+    data = sorted(data)
+    n = len(data)
+    if not n:
+        raise StatisticsError("no median for empty data")
+
+    # Find the value at the midpoint. Remember this corresponds to the
+    # midpoint of the class interval.
+    x = data[n // 2]
+
+    # Using O(log n) bisection, find where all the x values occur in the data.
+    # All x will lie within data[i:j].
+    i = bisect_left(data, x)
+    j = bisect_right(data, x, lo=i)
+
+    # Coerce to floats, raising a TypeError if not possible
+    try:
+        interval = float(interval)
+        x = float(x)
+    except ValueError:
+        raise TypeError(f'Value cannot be converted to a float')
+
+    # Interpolate the median using the formula found at:
+    # https://www.cuemath.com/data/median-of-grouped-data/
+    L = x - interval / 2.0    # Lower limit of the median interval
+    cf = i                    # Cumulative frequency of the preceding interval
+    f = j - i                 # Number of elements in the median internal
+    return L + interval * (n / 2 - cf) / f
+
+
+def mode(data):
+    """Return the most common data point from discrete or nominal data.
+
+    ``mode`` assumes discrete data, and returns a single value. This is the
+    standard treatment of the mode as commonly taught in schools:
+
+        >>> mode([1, 1, 2, 3, 3, 3, 3, 4])
+        3
+
+    This also works with nominal (non-numeric) data:
+
+        >>> mode(["red", "blue", "blue", "red", "green", "red", "red"])
+        'red'
+
+    If there are multiple modes with same frequency, return the first one
+    encountered:
+
+        >>> mode(['red', 'red', 'green', 'blue', 'blue'])
+        'red'
+
+    If *data* is empty, ``mode``, raises StatisticsError.
+
+    """
+    pairs = Counter(iter(data)).most_common(1)
+    try:
+        return pairs[0][0]
+    except IndexError:
+        raise StatisticsError('no mode for empty data') from None
+
+
+def multimode(data):
+    """Return a list of the most frequently occurring values.
+
+    Will return more than one result if there are multiple modes
+    or an empty list if *data* is empty.
+
+    >>> multimode('aabbbbbbbbcc')
+    ['b']
+    >>> multimode('aabbbbccddddeeffffgg')
+    ['b', 'd', 'f']
+    >>> multimode('')
+    []
+    """
+    counts = Counter(iter(data))
+    if not counts:
+        return []
+    maxcount = max(counts.values())
+    return [value for value, count in counts.items() if count == maxcount]
+
+
+def kde(data, h, kernel='normal', *, cumulative=False):
+    """Kernel Density Estimation:  Create a continuous probability density
+    function or cumulative distribution function from discrete samples.
+
+    The basic idea is to smooth the data using a kernel function
+    to help draw inferences about a population from a sample.
+
+    The degree of smoothing is controlled by the scaling parameter h
+    which is called the bandwidth.  Smaller values emphasize local
+    features while larger values give smoother results.
+
+    The kernel determines the relative weights of the sample data
+    points.  Generally, the choice of kernel shape does not matter
+    as much as the more influential bandwidth smoothing parameter.
+
+    Kernels that give some weight to every sample point:
+
+       normal (gauss)
+       logistic
+       sigmoid
+
+    Kernels that only give weight to sample points within
+    the bandwidth:
+
+       rectangular (uniform)
+       triangular
+       parabolic (epanechnikov)
+       quartic (biweight)
+       triweight
+       cosine
+
+    If *cumulative* is true, will return a cumulative distribution function.
+
+    A StatisticsError will be raised if the data sequence is empty.
+
+    Example
+    -------
+
+    Given a sample of six data points, construct a continuous
+    function that estimates the underlying probability density:
+
+        >>> sample = [-2.1, -1.3, -0.4, 1.9, 5.1, 6.2]
+        >>> f_hat = kde(sample, h=1.5)
+
+    Compute the area under the curve:
+
+        >>> area = sum(f_hat(x) for x in range(-20, 20))
+        >>> round(area, 4)
+        1.0
+
+    Plot the estimated probability density function at
+    evenly spaced points from -6 to 10:
+
+        >>> for x in range(-6, 11):
+        ...     density = f_hat(x)
+        ...     plot = ' ' * int(density * 400) + 'x'
+        ...     print(f'{x:2}: {density:.3f} {plot}')
+        ...
+        -6: 0.002 x
+        -5: 0.009    x
+        -4: 0.031             x
+        -3: 0.070                             x
+        -2: 0.111                                             x
+        -1: 0.125                                                   x
+         0: 0.110                                            x
+         1: 0.086                                   x
+         2: 0.068                            x
+         3: 0.059                        x
+         4: 0.066                           x
+         5: 0.082                                 x
+         6: 0.082                                 x
+         7: 0.058                        x
+         8: 0.028            x
+         9: 0.009    x
+        10: 0.002 x
+
+    Estimate P(4.5 < X <= 7.5), the probability that a new sample value
+    will be between 4.5 and 7.5:
+
+        >>> cdf = kde(sample, h=1.5, cumulative=True)
+        >>> round(cdf(7.5) - cdf(4.5), 2)
+        0.22
+
+    References
+    ----------
+
+    Kernel density estimation and its application:
+    https://www.itm-conferences.org/articles/itmconf/pdf/2018/08/itmconf_sam2018_00037.pdf
+
+    Kernel functions in common use:
+    https://en.wikipedia.org/wiki/Kernel_(statistics)#kernel_functions_in_common_use
+
+    Interactive graphical demonstration and exploration:
+    https://demonstrations.wolfram.com/KernelDensityEstimation/
+
+    Kernel estimation of cumulative distribution function of a random variable with bounded support
+    https://www.econstor.eu/bitstream/10419/207829/1/10.21307_stattrans-2016-037.pdf
+
+    """
+
+    n = len(data)
+    if not n:
+        raise StatisticsError('Empty data sequence')
+
+    if not isinstance(data[0], (int, float)):
+        raise TypeError('Data sequence must contain ints or floats')
+
+    if h <= 0.0:
+        raise StatisticsError(f'Bandwidth h must be positive, not {h=!r}')
+
+    match kernel:
+
+        case 'normal' | 'gauss':
+            sqrt2pi = sqrt(2 * pi)
+            sqrt2 = sqrt(2)
+            K = lambda t: exp(-1/2 * t * t) / sqrt2pi
+            W = lambda t: 1/2 * (1.0 + erf(t / sqrt2))
+            support = None
+
+        case 'logistic':
+            # 1.0 / (exp(t) + 2.0 + exp(-t))
+            K = lambda t: 1/2 / (1.0 + cosh(t))
+            W = lambda t: 1.0 - 1.0 / (exp(t) + 1.0)
+            support = None
+
+        case 'sigmoid':
+            # (2/pi) / (exp(t) + exp(-t))
+            c1 = 1 / pi
+            c2 = 2 / pi
+            K = lambda t: c1 / cosh(t)
+            W = lambda t: c2 * atan(exp(t))
+            support = None
+
+        case 'rectangular' | 'uniform':
+            K = lambda t: 1/2
+            W = lambda t: 1/2 * t + 1/2
+            support = 1.0
+
+        case 'triangular':
+            K = lambda t: 1.0 - abs(t)
+            W = lambda t: t*t * (1/2 if t < 0.0 else -1/2) + t + 1/2
+            support = 1.0
+
+        case 'parabolic' | 'epanechnikov':
+            K = lambda t: 3/4 * (1.0 - t * t)
+            W = lambda t: -1/4 * t**3 + 3/4 * t + 1/2
+            support = 1.0
+
+        case 'quartic' | 'biweight':
+            K = lambda t: 15/16 * (1.0 - t * t) ** 2
+            W = lambda t: 3/16 * t**5 - 5/8 * t**3 + 15/16 * t + 1/2
+            support = 1.0
+
+        case 'triweight':
+            K = lambda t: 35/32 * (1.0 - t * t) ** 3
+            W = lambda t: 35/32 * (-1/7*t**7 + 3/5*t**5 - t**3 + t) + 1/2
+            support = 1.0
+
+        case 'cosine':
+            c1 = pi / 4
+            c2 = pi / 2
+            K = lambda t: c1 * cos(c2 * t)
+            W = lambda t: 1/2 * sin(c2 * t) + 1/2
+            support = 1.0
+
+        case _:
+            raise StatisticsError(f'Unknown kernel name: {kernel!r}')
+
+    if support is None:
+
+        def pdf(x):
+            n = len(data)
+            return sum(K((x - x_i) / h) for x_i in data) / (n * h)
+
+        def cdf(x):
+            n = len(data)
+            return sum(W((x - x_i) / h) for x_i in data) / n
+
+    else:
+
+        sample = sorted(data)
+        bandwidth = h * support
+
+        def pdf(x):
+            nonlocal n, sample
+            if len(data) != n:
+                sample = sorted(data)
+                n = len(data)
+            i = bisect_left(sample, x - bandwidth)
+            j = bisect_right(sample, x + bandwidth)
+            supported = sample[i : j]
+            return sum(K((x - x_i) / h) for x_i in supported) / (n * h)
+
+        def cdf(x):
+            nonlocal n, sample
+            if len(data) != n:
+                sample = sorted(data)
+                n = len(data)
+            i = bisect_left(sample, x - bandwidth)
+            j = bisect_right(sample, x + bandwidth)
+            supported = sample[i : j]
+            return sum((W((x - x_i) / h) for x_i in supported), i) / n
+
+    if cumulative:
+        cdf.__doc__ = f'CDF estimate with {h=!r} and {kernel=!r}'
+        return cdf
+
+    else:
+        pdf.__doc__ = f'PDF estimate with {h=!r} and {kernel=!r}'
+        return pdf
+
+
+# Notes on methods for computing quantiles
+# ----------------------------------------
+#
+# There is no one perfect way to compute quantiles.  Here we offer
+# two methods that serve common needs.  Most other packages
+# surveyed offered at least one or both of these two, making them
+# "standard" in the sense of "widely-adopted and reproducible".
+# They are also easy to explain, easy to compute manually, and have
+# straight-forward interpretations that aren't surprising.
+
+# The default method is known as "R6", "PERCENTILE.EXC", or "expected
+# value of rank order statistics". The alternative method is known as
+# "R7", "PERCENTILE.INC", or "mode of rank order statistics".
+
+# For sample data where there is a positive probability for values
+# beyond the range of the data, the R6 exclusive method is a
+# reasonable choice.  Consider a random sample of nine values from a
+# population with a uniform distribution from 0.0 to 1.0.  The
+# distribution of the third ranked sample point is described by
+# betavariate(alpha=3, beta=7) which has mode=0.250, median=0.286, and
+# mean=0.300.  Only the latter (which corresponds with R6) gives the
+# desired cut point with 30% of the population falling below that
+# value, making it comparable to a result from an inv_cdf() function.
+# The R6 exclusive method is also idempotent.
+
+# For describing population data where the end points are known to
+# be included in the data, the R7 inclusive method is a reasonable
+# choice.  Instead of the mean, it uses the mode of the beta
+# distribution for the interior points.  Per Hyndman & Fan, "One nice
+# property is that the vertices of Q7(p) divide the range into n - 1
+# intervals, and exactly 100p% of the intervals lie to the left of
+# Q7(p) and 100(1 - p)% of the intervals lie to the right of Q7(p)."
+
+# If needed, other methods could be added.  However, for now, the
+# position is that fewer options make for easier choices and that
+# external packages can be used for anything more advanced.
+
+def quantiles(data, *, n=4, method='exclusive'):
+    """Divide *data* into *n* continuous intervals with equal probability.
+
+    Returns a list of (n - 1) cut points separating the intervals.
+
+    Set *n* to 4 for quartiles (the default).  Set *n* to 10 for deciles.
+    Set *n* to 100 for percentiles which gives the 99 cuts points that
+    separate *data* in to 100 equal sized groups.
+
+    The *data* can be any iterable containing sample.
+    The cut points are linearly interpolated between data points.
+
+    If *method* is set to *inclusive*, *data* is treated as population
+    data.  The minimum value is treated as the 0th percentile and the
+    maximum value is treated as the 100th percentile.
+    """
+    if n < 1:
+        raise StatisticsError('n must be at least 1')
+    data = sorted(data)
+    ld = len(data)
+    if ld < 2:
+        if ld == 1:
+            return data * (n - 1)
+        raise StatisticsError('must have at least one data point')
+
+    if method == 'inclusive':
+        m = ld - 1
+        result = []
+        for i in range(1, n):
+            j, delta = divmod(i * m, n)
+            interpolated = (data[j] * (n - delta) + data[j + 1] * delta) / n
+            result.append(interpolated)
+        return result
+
+    if method == 'exclusive':
+        m = ld + 1
+        result = []
+        for i in range(1, n):
+            j = i * m // n                               # rescale i to m/n
+            j = 1 if j < 1 else ld-1 if j > ld-1 else j  # clamp to 1 .. ld-1
+            delta = i*m - j*n                            # exact integer math
+            interpolated = (data[j - 1] * (n - delta) + data[j] * delta) / n
+            result.append(interpolated)
+        return result
+
+    raise ValueError(f'Unknown method: {method!r}')
+
+
+# === Measures of spread ===
+
+# See http://mathworld.wolfram.com/Variance.html
+#     http://mathworld.wolfram.com/SampleVariance.html
+
+
+def variance(data, xbar=None):
+    """Return the sample variance of data.
+
+    data should be an iterable of Real-valued numbers, with at least two
+    values. The optional argument xbar, if given, should be the mean of
+    the data. If it is missing or None, the mean is automatically calculated.
+
+    Use this function when your data is a sample from a population. To
+    calculate the variance from the entire population, see ``pvariance``.
+
+    Examples:
+
+    >>> data = [2.75, 1.75, 1.25, 0.25, 0.5, 1.25, 3.5]
+    >>> variance(data)
+    1.3720238095238095
+
+    If you have already calculated the mean of your data, you can pass it as
+    the optional second argument ``xbar`` to avoid recalculating it:
+
+    >>> m = mean(data)
+    >>> variance(data, m)
+    1.3720238095238095
+
+    This function does not check that ``xbar`` is actually the mean of
+    ``data``. Giving arbitrary values for ``xbar`` may lead to invalid or
+    impossible results.
+
+    Decimals and Fractions are supported:
+
+    >>> from decimal import Decimal as D
+    >>> variance([D("27.5"), D("30.25"), D("30.25"), D("34.5"), D("41.75")])
+    Decimal('31.01875')
+
+    >>> from fractions import Fraction as F
+    >>> variance([F(1, 6), F(1, 2), F(5, 3)])
+    Fraction(67, 108)
+
+    """
+    T, ss, c, n = _ss(data, xbar)
+    if n < 2:
+        raise StatisticsError('variance requires at least two data points')
+    return _convert(ss / (n - 1), T)
+
+
+def pvariance(data, mu=None):
+    """Return the population variance of ``data``.
+
+    data should be a sequence or iterable of Real-valued numbers, with at least one
+    value. The optional argument mu, if given, should be the mean of
+    the data. If it is missing or None, the mean is automatically calculated.
+
+    Use this function to calculate the variance from the entire population.
+    To estimate the variance from a sample, the ``variance`` function is
+    usually a better choice.
+
+    Examples:
+
+    >>> data = [0.0, 0.25, 0.25, 1.25, 1.5, 1.75, 2.75, 3.25]
+    >>> pvariance(data)
+    1.25
+
+    If you have already calculated the mean of the data, you can pass it as
+    the optional second argument to avoid recalculating it:
+
+    >>> mu = mean(data)
+    >>> pvariance(data, mu)
+    1.25
+
+    Decimals and Fractions are supported:
+
+    >>> from decimal import Decimal as D
+    >>> pvariance([D("27.5"), D("30.25"), D("30.25"), D("34.5"), D("41.75")])
+    Decimal('24.815')
+
+    >>> from fractions import Fraction as F
+    >>> pvariance([F(1, 4), F(5, 4), F(1, 2)])
+    Fraction(13, 72)
+
+    """
+    T, ss, c, n = _ss(data, mu)
+    if n < 1:
+        raise StatisticsError('pvariance requires at least one data point')
+    return _convert(ss / n, T)
+
+
+def stdev(data, xbar=None):
+    """Return the square root of the sample variance.
+
+    See ``variance`` for arguments and other details.
+
+    >>> stdev([1.5, 2.5, 2.5, 2.75, 3.25, 4.75])
+    1.0810874155219827
+
+    """
+    T, ss, c, n = _ss(data, xbar)
+    if n < 2:
+        raise StatisticsError('stdev requires at least two data points')
+    mss = ss / (n - 1)
+    if issubclass(T, Decimal):
+        return _decimal_sqrt_of_frac(mss.numerator, mss.denominator)
+    return _float_sqrt_of_frac(mss.numerator, mss.denominator)
+
+
+def pstdev(data, mu=None):
+    """Return the square root of the population variance.
+
+    See ``pvariance`` for arguments and other details.
+
+    >>> pstdev([1.5, 2.5, 2.5, 2.75, 3.25, 4.75])
+    0.986893273527251
+
+    """
+    T, ss, c, n = _ss(data, mu)
+    if n < 1:
+        raise StatisticsError('pstdev requires at least one data point')
+    mss = ss / n
+    if issubclass(T, Decimal):
+        return _decimal_sqrt_of_frac(mss.numerator, mss.denominator)
+    return _float_sqrt_of_frac(mss.numerator, mss.denominator)
+
+
+def _mean_stdev(data):
+    """In one pass, compute the mean and sample standard deviation as floats."""
+    T, ss, xbar, n = _ss(data)
+    if n < 2:
+        raise StatisticsError('stdev requires at least two data points')
+    mss = ss / (n - 1)
+    try:
+        return float(xbar), _float_sqrt_of_frac(mss.numerator, mss.denominator)
+    except AttributeError:
+        # Handle Nans and Infs gracefully
+        return float(xbar), float(xbar) / float(ss)
+
+def _sqrtprod(x: float, y: float) -> float:
+    "Return sqrt(x * y) computed with improved accuracy and without overflow/underflow."
+    h = sqrt(x * y)
+    if not isfinite(h):
+        if isinf(h) and not isinf(x) and not isinf(y):
+            # Finite inputs overflowed, so scale down, and recompute.
+            scale = 2.0 ** -512  # sqrt(1 / sys.float_info.max)
+            return _sqrtprod(scale * x, scale * y) / scale
+        return h
+    if not h:
+        if x and y:
+            # Non-zero inputs underflowed, so scale up, and recompute.
+            # Scale:  1 / sqrt(sys.float_info.min * sys.float_info.epsilon)
+            scale = 2.0 ** 537
+            return _sqrtprod(scale * x, scale * y) / scale
+        return h
+    # Improve accuracy with a differential correction.
+    # https://www.wolframalpha.com/input/?i=Maclaurin+series+sqrt%28h**2+%2B+x%29+at+x%3D0
+    d = sumprod((x, h), (y, -h))
+    return h + d / (2.0 * h)
+
+
+# === Statistics for relations between two inputs ===
+
+# See https://en.wikipedia.org/wiki/Covariance
+#     https://en.wikipedia.org/wiki/Pearson_correlation_coefficient
+#     https://en.wikipedia.org/wiki/Simple_linear_regression
+
+
+def covariance(x, y, /):
+    """Covariance
+
+    Return the sample covariance of two inputs *x* and *y*. Covariance
+    is a measure of the joint variability of two inputs.
+
+    >>> x = [1, 2, 3, 4, 5, 6, 7, 8, 9]
+    >>> y = [1, 2, 3, 1, 2, 3, 1, 2, 3]
+    >>> covariance(x, y)
+    0.75
+    >>> z = [9, 8, 7, 6, 5, 4, 3, 2, 1]
+    >>> covariance(x, z)
+    -7.5
+    >>> covariance(z, x)
+    -7.5
+
+    """
+    n = len(x)
+    if len(y) != n:
+        raise StatisticsError('covariance requires that both inputs have same number of data points')
+    if n < 2:
+        raise StatisticsError('covariance requires at least two data points')
+    xbar = fsum(x) / n
+    ybar = fsum(y) / n
+    sxy = sumprod((xi - xbar for xi in x), (yi - ybar for yi in y))
+    return sxy / (n - 1)
+
+
+def correlation(x, y, /, *, method='linear'):
+    """Pearson's correlation coefficient
+
+    Return the Pearson's correlation coefficient for two inputs. Pearson's
+    correlation coefficient *r* takes values between -1 and +1. It measures
+    the strength and direction of a linear relationship.
+
+    >>> x = [1, 2, 3, 4, 5, 6, 7, 8, 9]
+    >>> y = [9, 8, 7, 6, 5, 4, 3, 2, 1]
+    >>> correlation(x, x)
+    1.0
+    >>> correlation(x, y)
+    -1.0
+
+    If *method* is "ranked", computes Spearman's rank correlation coefficient
+    for two inputs.  The data is replaced by ranks.  Ties are averaged
+    so that equal values receive the same rank.  The resulting coefficient
+    measures the strength of a monotonic relationship.
+
+    Spearman's rank correlation coefficient is appropriate for ordinal
+    data or for continuous data that doesn't meet the linear proportion
+    requirement for Pearson's correlation coefficient.
+    """
+    n = len(x)
+    if len(y) != n:
+        raise StatisticsError('correlation requires that both inputs have same number of data points')
+    if n < 2:
+        raise StatisticsError('correlation requires at least two data points')
+    if method not in {'linear', 'ranked'}:
+        raise ValueError(f'Unknown method: {method!r}')
+    if method == 'ranked':
+        start = (n - 1) / -2            # Center rankings around zero
+        x = _rank(x, start=start)
+        y = _rank(y, start=start)
+    else:
+        xbar = fsum(x) / n
+        ybar = fsum(y) / n
+        x = [xi - xbar for xi in x]
+        y = [yi - ybar for yi in y]
+    sxy = sumprod(x, y)
+    sxx = sumprod(x, x)
+    syy = sumprod(y, y)
+    try:
+        return sxy / _sqrtprod(sxx, syy)
+    except ZeroDivisionError:
+        raise StatisticsError('at least one of the inputs is constant')
+
+
+LinearRegression = namedtuple('LinearRegression', ('slope', 'intercept'))
+
+
+def linear_regression(x, y, /, *, proportional=False):
+    """Slope and intercept for simple linear regression.
+
+    Return the slope and intercept of simple linear regression
+    parameters estimated using ordinary least squares. Simple linear
+    regression describes relationship between an independent variable
+    *x* and a dependent variable *y* in terms of a linear function:
+
+        y = slope * x + intercept + noise
+
+    where *slope* and *intercept* are the regression parameters that are
+    estimated, and noise represents the variability of the data that was
+    not explained by the linear regression (it is equal to the
+    difference between predicted and actual values of the dependent
+    variable).
+
+    The parameters are returned as a named tuple.
+
+    >>> x = [1, 2, 3, 4, 5]
+    >>> noise = NormalDist().samples(5, seed=42)
+    >>> y = [3 * x[i] + 2 + noise[i] for i in range(5)]
+    >>> linear_regression(x, y)  #doctest: +ELLIPSIS
+    LinearRegression(slope=3.17495..., intercept=1.00925...)
+
+    If *proportional* is true, the independent variable *x* and the
+    dependent variable *y* are assumed to be directly proportional.
+    The data is fit to a line passing through the origin.
+
+    Since the *intercept* will always be 0.0, the underlying linear
+    function simplifies to:
+
+        y = slope * x + noise
+
+    >>> y = [3 * x[i] + noise[i] for i in range(5)]
+    >>> linear_regression(x, y, proportional=True)  #doctest: +ELLIPSIS
+    LinearRegression(slope=2.90475..., intercept=0.0)
+
+    """
+    n = len(x)
+    if len(y) != n:
+        raise StatisticsError('linear regression requires that both inputs have same number of data points')
+    if n < 2:
+        raise StatisticsError('linear regression requires at least two data points')
+    if not proportional:
+        xbar = fsum(x) / n
+        ybar = fsum(y) / n
+        x = [xi - xbar for xi in x]  # List because used three times below
+        y = (yi - ybar for yi in y)  # Generator because only used once below
+    sxy = sumprod(x, y) + 0.0        # Add zero to coerce result to a float
+    sxx = sumprod(x, x)
+    try:
+        slope = sxy / sxx   # equivalent to:  covariance(x, y) / variance(x)
+    except ZeroDivisionError:
+        raise StatisticsError('x is constant')
+    intercept = 0.0 if proportional else ybar - slope * xbar
+    return LinearRegression(slope=slope, intercept=intercept)
+
+
+## Normal Distribution #####################################################
+
+
+def _normal_dist_inv_cdf(p, mu, sigma):
+    # There is no closed-form solution to the inverse CDF for the normal
+    # distribution, so we use a rational approximation instead:
+    # Wichura, M.J. (1988). "Algorithm AS241: The Percentage Points of the
+    # Normal Distribution".  Applied Statistics. Blackwell Publishing. 37
+    # (3): 477â€“484. doi:10.2307/2347330. JSTOR 2347330.
+    q = p - 0.5
+    if fabs(q) <= 0.425:
+        r = 0.180625 - q * q
+        # Hash sum: 55.88319_28806_14901_4439
+        num = (((((((2.50908_09287_30122_6727e+3 * r +
+                     3.34305_75583_58812_8105e+4) * r +
+                     6.72657_70927_00870_0853e+4) * r +
+                     4.59219_53931_54987_1457e+4) * r +
+                     1.37316_93765_50946_1125e+4) * r +
+                     1.97159_09503_06551_4427e+3) * r +
+                     1.33141_66789_17843_7745e+2) * r +
+                     3.38713_28727_96366_6080e+0) * q
+        den = (((((((5.22649_52788_52854_5610e+3 * r +
+                     2.87290_85735_72194_2674e+4) * r +
+                     3.93078_95800_09271_0610e+4) * r +
+                     2.12137_94301_58659_5867e+4) * r +
+                     5.39419_60214_24751_1077e+3) * r +
+                     6.87187_00749_20579_0830e+2) * r +
+                     4.23133_30701_60091_1252e+1) * r +
+                     1.0)
+        x = num / den
+        return mu + (x * sigma)
+    r = p if q <= 0.0 else 1.0 - p
+    r = sqrt(-log(r))
+    if r <= 5.0:
+        r = r - 1.6
+        # Hash sum: 49.33206_50330_16102_89036
+        num = (((((((7.74545_01427_83414_07640e-4 * r +
+                     2.27238_44989_26918_45833e-2) * r +
+                     2.41780_72517_74506_11770e-1) * r +
+                     1.27045_82524_52368_38258e+0) * r +
+                     3.64784_83247_63204_60504e+0) * r +
+                     5.76949_72214_60691_40550e+0) * r +
+                     4.63033_78461_56545_29590e+0) * r +
+                     1.42343_71107_49683_57734e+0)
+        den = (((((((1.05075_00716_44416_84324e-9 * r +
+                     5.47593_80849_95344_94600e-4) * r +
+                     1.51986_66563_61645_71966e-2) * r +
+                     1.48103_97642_74800_74590e-1) * r +
+                     6.89767_33498_51000_04550e-1) * r +
+                     1.67638_48301_8jš  kš  lš  mš                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  3803_84940e+0) * r +
+                     2.05319_16266_37758_82187e+0) * r +
+                     1.0)
+    else:
+        r = r - 5.0
+        # Hash sum: 47.52583_31754_92896_71629
+        num = (((((((2.01033_43992_92288_13265e-7 * r +
+                     2.71155_55687_43487_57815e-5) * r +
+                     1.24266_09473_88078_43860e-3) * r +
+                     2.65321_89526_57612_30930e-2) * r +
+                     2.96560_57182_85048_91230e-1) * r +
+                     1.78482_65399_17291_33580e+0) * r +
+                     5.46378_49111_64114_36990e+0) * r +
+                     6.65790_46435_01103_77720e+0)
+        den = (((((((2.04426_31033_89939_78564e-15 * r +
+                     1.42151_17583_16445_88870e-7) * r +
+                     1.84631_83175_10054_68180e-5) * r +
+                     7.86869_13114_56132_59100e-4) * r +
+                     1.48753_61290_85061_48525e-2) * r +
+                     1.36929_88092_27358_05310e-1) * r +
+                     5.99832_20655_58879_37690e-1) * r +
+                     1.0)
+    x = num / den
+    if q < 0.0:
+        x = -x
+    return mu + (x * sigma)
+
+
+# If available, use C implementation
+try:
+    from _statistics import _normal_dist_inv_cdf
+except ImportError:
+    pass
+
+
+class NormalDist:
+    "Normal distribution of a random variable"
+    # https://en.wikipedia.org/wiki/Normal_distribution
+    # https://en.wikipedia.org/wiki/Variance#Properties
+
+    __slots__ = {
+        '_mu': 'Arithmetic mean of a normal distribution',
+        '_sigma': 'Standard deviation of a normal distribution',
+    }
+
+    def __init__(self, mu=0.0, sigma=1.0):
+        "NormalDist where mu is the mean and sigma is the standard deviation."
+        if sigma < 0.0:
+            raise StatisticsError('sigma must be non-negative')
+        self._mu = float(mu)
+        self._sigma = float(sigma)
+
+    @classmethod
+    def from_samples(cls, data):
+        "Make a normal distribution instance from sample data."
+        return cls(*_mean_stdev(data))
+
+    def samples(self, n, *, seed=None):
+        "Generate *n* samples for a given mean and standard deviation."
+        rnd = random.random if seed is None else random.Random(seed).random
+        inv_cdf = _normal_dist_inv_cdf
+        mu = self._mu
+        sigma = self._sigma
+        return [inv_cdf(rnd(), mu, sigma) for _ in repeat(None, n)]
+
+    def pdf(self, x):
+        "Probability density function.  P(x <= X < x+dx) / dx"
+        variance = self._sigma * self._sigma
+        if not variance:
+            raise StatisticsError('pdf() not defined when sigma is zero')
+        diff = x - self._mu
+        return exp(diff * diff / (-2.0 * variance)) / sqrt(tau * variance)
+
+    def cdf(self, x):
+        "Cumulative distribution function.  P(X <= x)"
+        if not self._sigma:
+            raise StatisticsError('cdf() not defined when sigma is zero')
+        return 0.5 * (1.0 + erf((x - self._mu) / (self._sigma * _SQRT2)))
+
+    def inv_cdf(self, p):
+        """Inverse cumulative distribution function.  x : P(X <= x) = p
+
+        Finds the value of the random variable such that the probability of
+        the variable being less than or equal to that value equals the given
+        probability.
+
+        This function is also called the percent point function or quantile
+        function.
+        """
+        if p <= 0.0 or p >= 1.0:
+            raise StatisticsError('p must be in the range 0.0 < p < 1.0')
+        return _normal_dist_inv_cdf(p, self._mu, self._sigma)
+
+    def quantiles(self, n=4):
+        """Divide into *n* continuous intervals with equal probability.
+
+        Returns a list of (n - 1) cut points separating the intervals.
+
+        Set *n* to 4 for quartiles (the default).  Set *n* to 10 for deciles.
+        Set *n* to 100 for percentiles which gives the 99 cuts points that
+        separate the normal distribution in to 100 equal sized groups.
+        """
+        return [self.inv_cdf(i / n) for i in range(1, n)]
+
+    def overlap(self, other):
+        """Compute the overlapping coefficient (OVL) between two normal distributions.
+
+        Measures the agreement between two normal probability distributions.
+        Returns a value between 0.0 and 1.0 giving the overlapping area in
+        the two underlying probability density functions.
+
+            >>> N1 = NormalDist(2.4, 1.6)
+            >>> N2 = NormalDist(3.2, 2.0)
+            >>> N1.overlap(N2)
+            0.8035050657330205
+        """
+        # See: "The overlapping coefficient as a measure of agreement between
+        # probability distributions and point estimation of the overlap of two
+        # normal densities" -- Henry F. Inman and Edwin L. Bradley Jr
+        # http://dx.doi.org/10.1080/03610928908830127
+        if not isinstance(other, NormalDist):
+            raise TypeError('Expected another NormalDist instance')
+        X, Y = self, other
+        if (Y._sigma, Y._mu) < (X._sigma, X._mu):  # sort to assure commutativity
+            X, Y = Y, X
+        X_var, Y_var = X.variance, Y.variance
+        if not X_var or not Y_var:
+            raise StatisticsError('overlap() not defined when sigma is zero')
+        dv = Y_var - X_var
+        dm = fabs(Y._mu - X._mu)
+        if not dv:
+            return 1.0 - erf(dm / (2.0 * X._sigma * _SQRT2))
+        a = X._mu * Y_var - Y._mu * X_var
+        b = X._sigma * Y._sigma * sqrt(dm * dm + dv * log(Y_var / X_var))
+        x1 = (a + b) / dv
+        x2 = (a - b) / dv
+        return 1.0 - (fabs(Y.cdf(x1) - X.cdf(x1)) + fabs(Y.cdf(x2) - X.cdf(x2)))
+
+    def zscore(self, x):
+        """Compute the Standard Score.  (x - mean) / stdev
+
+        Describes *x* in terms of the number of standard deviations
+        above or below the mean of the normal distribution.
+        """
+        # https://www.statisticshowto.com/probability-and-statistics/z-score/
+        if not self._sigma:
+            raise StatisticsError('zscore() not defined when sigma is zero')
+        return (x - self._mu) / self._sigma
+
+    @property
+    def mean(self):
+        "Arithmetic mean of the normal distribution."
+        return self._mu
+
+    @property
+    def median(self):
+        "Return the median of the normal distribution"
+        return self._mu
+
+    @property
+    def mode(self):
+        """Return the mode of the normal distribution
+
+        The mode is the value x where which the probability density
+        function (pdf) takes its maximum value.
+        """
+        return self._mu
+
+    @property
+    def stdev(self):
+        "Standard deviation of the normal distribution."
+        return self._sigma
+
+    @property
+    def variance(self):
+        "Square of the standard deviation."
+        return self._sigma * self._sigma
+
+    def __add__(x1, x2):
+        """Add a constant or another NormalDist instance.
+
+        If *other* is a constant, translate mu by the constant,
+        leaving sigma unchanged.
+
+        If *other* is a NormalDist, add both the means and the variances.
+        Mathematically, this works only if the two distributions are
+        independent or if they are jointly normally distributed.
+        """
+        if isinstance(x2, NormalDist):
+            return NormalDist(x1._mu + x2._mu, hypot(x1._sigma, x2._sigma))
+        return NormalDist(x1._mu + x2, x1._sigma)
+
+    def __sub__(x1, x2):
+        """Subtract a constant or another NormalDist instance.
+
+        If *other* is a constant, translate by the constant mu,
+        leaving sigma unchanged.
+
+        If *other* is a NormalDist, subtract the means and add the variances.
+        Mathematically, this works only if the two distributions are
+        independent or if they are jointly normally distributed.
+        """
+        if isinstance(x2, NormalDist):
+            return NormalDist(x1._mu - x2._mu, hypot(x1._sigma, x2._sigma))
+        return NormalDist(x1._mu - x2, x1._sigma)
+
+    def __mul__(x1, x2):
+        """Multiply both mu and sigma by a constant.
+
+        Used for rescaling, perhaps to change measurement units.
+        Sigma is scaled with the absolute value of the constant.
+        """
+        return NormalDist(x1._mu * x2, x1._sigma * fabs(x2))
+
+    def __truediv__(x1, x2):
+        """Divide both mu and sigma by a constant.
+
+        Used for rescaling, perhaps to change measurement units.
+        Sigma is scaled with the absolute value of the constant.
+        """
+        return NormalDist(x1._mu / x2, x1._sigma / fabs(x2))
+
+    def __pos__(x1):
+        "Return a copy of the instance."
+        return NormalDist(x1._mu, x1._sigma)
+
+    def __neg__(x1):
+        "Negates mu while keeping sigma the same."
+        return NormalDist(-x1._mu, x1._sigma)
+
+    __radd__ = __add__
+
+    def __rsub__(x1, x2):
+        "Subtract a NormalDist from a constant or another NormalDist."
+        return -(x1 - x2)
+
+    __rmul__ = __mul__
+
+    def __eq__(x1, x2):
+        "Two NormalDist objects are equal if their mu and sigma are both equal."
+        if not isinstance(x2, NormalDist):
+            return NotImplemented
+        return x1._mu == x2._mu and x1._sigma == x2._sigma
+
+    def __hash__(self):
+        "NormalDist objects hash equal if their mu and sigma are both equal."
+        return hash((self._mu, self._sigma))
+
+    def __repr__(self):
+        return f'{type(self).__name__}(mu={self._mu!r}, sigma={self._sigma!r})'
+
+    def __getstate__(self):
+        return self._mu, self._sigma
+
+    def __setstate__(self, state):
+        self._mu, self._sigma = state
+
+
+## kde_random() ##############################################################
+
+def _newton_raphson(f_inv_estimate, f, f_prime, tolerance=1e-12):
+    def f_inv(y):
+        "Return x such that f(x) â‰ˆ y within the specified tolerance."
+        x = f_inv_estimate(y)
+        while abs(diff := f(x) - y) > tolerance:
+            x -= diff / f_prime(x)
+        return x
+    return f_inv
+
+def _quartic_invcdf_estimate(p):
+    sign, p = (1.0, p) if p <= 1/2 else (-1.0, 1.0 - p)
+    x = (2.0 * p) ** 0.4258865685331 - 1.0
+    if p >= 0.004 < 0.499:
+        x += 0.026818732 * sin(7.101753784 * p + 2.73230839482953)
+    return x * sign
+
+_quartic_invcdf = _newton_raphson(
+    f_inv_estimate = _quartic_invcdf_estimate,
+    f = lambda t: 3/16 * t**5 - 5/8 * t**3 + 15/16 * t + 1/2,
+    f_prime = lambda t: 15/16 * (1.0 - t * t) ** 2)
+
+def _triweight_invcdf_estimate(p):
+    sign, p = (1.0, p) if p <= 1/2 else (-1.0, 1.0 - p)
+    x = (2.0 * p) ** 0.3400218741872791 - 1.0
+    return x * sign
+
+_triweight_invcdf = _newton_raphson(
+    f_inv_estimate = _triweight_invcdf_estimate,
+    f = lambda t: 35/32 * (-1/7*t**7 + 3/5*t**5 - t**3 + t) + 1/2,
+    f_prime = lambda t: 35/32 * (1.0 - t * t) ** 3)
+
+_kernel_invcdfs = {
+    'normal': NormalDist().inv_cdf,
+    'logistic': lambda p: log(p / (1 - p)),
+    'sigmoid': lambda p: log(tan(p * pi/2)),
+    'rectangular': lambda p: 2*p - 1,
+    'parabolic': lambda p: 2 * cos((acos(2*p-1) + pi) / 3),
+    'quartic': _quartic_invcdf,
+    'triweight': _triweight_invcdf,
+    'triangular': lambda p: sqrt(2*p) - 1 if p < 1/2 else 1 - sqrt(2 - 2*p),
+    'cosine': lambda p: 2 * asin(2*p - 1) / pi,
+}
+_kernel_invcdfs['gauss'] = _kernel_invcdfs['normal']
+_kernel_invcdfs['uniform'] = _kernel_invcdfs['rectangular']
+_kernel_invcdfs['epanechnikov'] = _kernel_invcdfs['parabolic']
+_kernel_invcdfs['biweight'] = _kernel_invcdfs['quartic']
+
+def kde_random(data, h, kernel='normal', *, seed=None):
+    """Return a function that makes a random selection from the estimated
+    probability density function created by kde(data, h, kernel).
+
+    Providing a *seed* allows reproducible selections within a single
+    thread.  The seed may be an integer, float, str, or bytes.
+
+    A StatisticsError will be raised if the *data* sequence is empty.
+
+    Example:
+
+    >>> data = [-2.1, -1.3, -0.4, 1.9, 5.1, 6.2]
+    >>> rand = kde_random(data, h=1.5, seed=8675309)
+    >>> new_selections = [rand() for i in range(10)]
+    >>> [round(x, 1) for x in new_selections]
+    [0.7, 6.2, 1.2, 6.9, 7.0, 1.8, 2.5, -0.5, -1.8, 5.6]
+
+    """
+    n = len(data)
+    if not n:
+        raise StatisticsError('Empty data sequence')
+
+    if not isinstance(data[0], (int, float)):
+        raise TypeError('Data sequence must contain ints or floats')
+
+    if h <= 0.0:
+        raise StatisticsError(f'Bandwidth h must be positive, not {h=!r}')
+
+    kernel_invcdf = _kernel_invcdfs.get(kernel)
+    if kernel_invcdf is None:
+        raise StatisticsError(f'Unknown kernel name: {kernel!r}')
+
+    prng = _random.Random(seed)
+    random = prng.random
+    choice = prng.choice
+
+    def rand():
+        return choice(data) + h * kernel_invcdf(random())
+
+    rand.__doc__ = f'Random KDE selection with {h=!r} and {kernel=!r}'
+
+    return rand
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         """A collection of string constants.
+
+Public module variables:
+
+whitespace -- a string containing all ASCII whitespace
+ascii_lowercase -- a string containing all ASCII lowercase letters
+ascii_uppercase -- a string containing all ASCII uppercase letters
+ascii_letters -- a string containing all ASCII letters
+digits -- a string containing all ASCII decimal digits
+hexdigits -- a string containing all ASCII hexadecimal digits
+octdigits -- a string containing all ASCII octal digits
+punctuation -- a string containing all ASCII punctuation characters
+printable -- a string containing all ASCII characters considered printable
+
+"""
+
+__all__ = ["ascii_letters", "ascii_lowercase", "ascii_uppercase", "capwords",
+           "digits", "hexdigits", "octdigits", "printable", "punctuation",
+           "whitespace", "Formatter", "Template"]
+
+import _string
+
+# Some strings for ctype-style character classification
+whitespace = ' \t\n\r\v\f'
+ascii_lowercase = 'abcdefghijklmnopqrstuvwxyz'
+ascii_uppercase = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+ascii_letters = ascii_lowercase + ascii_uppercase
+digits = '0123456789'
+hexdigits = digits + 'abcdef' + 'ABCDEF'
+octdigits = '01234567'
+punctuation = r"""!"#$%&'()*+,-./:;<=>?@[\]^_`{|}~"""
+printable = digits + ascii_letters + punctuation + whitespace
+
+# Functions which aren't available as string methods.
+
+# Capitalize the words in a string, e.g. " aBc  dEf " -> "Abc Def".
+def capwords(s, sep=None):
+    """capwords(s [,sep]) -> string
+
+    Split the argument into words using split, capitalize each
+    word using capitalize, and join the capitalized words using
+    join.  If the optional second argument sep is absent or None,
+    runs of whitespace characters are replaced by a single space
+    and leading and trailing whitespace are removed, otherwise
+    sep is used to split and join the words.
+
+    """
+    return (sep or ' ').join(map(str.capitalize, s.split(sep)))
+
+
+####################################################################
+import re as _re
+from collections import ChainMap as _ChainMap
+
+_sentinel_dict = {}
+
+class Template:
+    """A string class for supporting $-substitutions."""
+
+    delimiter = '$'
+    # r'[a-z]' matches to non-ASCII letters when used with IGNORECASE, but
+    # without the ASCII flag.  We can't add re.ASCII to flags because of
+    # backward compatibility.  So we use the ?a local flag and [a-z] pattern.
+    # See https://bugs.python.org/issue31672
+    idpattern = r'(?a:[_a-z][_a-z0-9]*)'
+    braceidpattern = None
+    flags = _re.IGNORECASE
+
+    def __init_subclass__(cls):
+        super().__init_subclass__()
+        if 'pattern' in cls.__dict__:
+            pattern = cls.pattern
+        else:
+            delim = _re.escape(cls.delimiter)
+            id = cls.idpattern
+            bid = cls.braceidpattern or cls.idpattern
+            pattern = fr"""
+            {delim}(?:
+              (?P<escaped>{delim})  |   # Escape sequence of two delimiters
+              (?P<named>{id})       |   # delimiter and a Python identifier
+              {{(?P<braced>{bid})}} |   # delimiter and a braced identifier
+              (?P<invalid>)             # Other ill-formed delimiter exprs
+            )
+            """
+        cls.pattern = _re.compile(pattern, cls.flags | _re.VERBOSE)
+
+    def __init__(self, template):
+        self.template = template
+
+    # Search for $$, $identifier, ${identifier}, and any bare $'s
+
+    def _invalid(self, mo):
+        i = mo.start('invalid')
+        lines = self.template[:i].splitlines(keepends=True)
+        if not lines:
+            colno = 1
+            lineno = 1
+        else:
+            colno = i - len(''.join(lines[:-1]))
+            lineno = len(lines)
+        raise ValueError('Invalid placeholder in string: line %d, col %d' %
+                         (lineno, colno))
+
+    def substitute(self, mapping=_sentinel_dict, /, **kws):
+        if mapping is _sentinel_dict:
+            mapping = kws
+        elif kws:
+            mapping = _ChainMap(kws, mapping)
+        # Helper function for .sub()
+        def convert(mo):
+            # Check the most common path first.
+            named = mo.group('named') or mo.group('braced')
+            if named is not None:
+                return str(mapping[named])
+            if mo.group('escaped') is not None:
+                return self.delimiter
+            if mo.group('invalid') is not None:
+                self._invalid(mo)
+            raise ValueError('Unrecognized named group in pattern',
+                             self.pattern)
+        return self.pattern.sub(convert, self.template)
+
+    def safe_substitute(self, mapping=_sentinel_dict, /, **kws):
+        if mapping is _sentinel_dict:
+            mapping = kws
+        elif kws:
+            mapping = _ChainMap(kws, mapping)
+        # Helper function for .sub()
+        def convert(mo):
+            named = mo.group('named') or mo.group('braced')
+            if named is not None:
+                try:
+                    return str(mapping[named])
+                except KeyError:
+                    return mo.group()
+            if mo.group('escaped') is not None:
+                return self.delimiter
+            if mo.group('invalid') is not None:
+                return mo.group()
+            raise ValueError('Unrecognized named group in pattern',
+                             self.pattern)
+        return self.pattern.sub(convert, self.template)
+
+    def is_valid(self):
+        for mo in self.pattern.finditer(self.template):
+            if mo.group('invalid') is not None:
+                return False
+            if (mo.group('named') is None
+                and mo.group('braced') is None
+                and mo.group('escaped') is None):
+                # If all the groups are None, there must be
+                # another group we're not expecting
+                raise ValueError('Unrecognized named group in pattern',
+                    self.pattern)
+        return True
+
+    def get_identifiers(self):
+        ids = []
+        for mo in self.pattern.finditer(self.template):
+            named = mo.group('named') or mo.group('braced')
+            if named is not None and named not in ids:
+                # add a named group only the first time it appears
+                ids.append(named)
+            elif (named is None
+                and mo.group('invalid') is None
+                and mo.group('escaped') is None):
+                # If all the groups are None, there must be
+                # another group we're not expecting
+                raise ValueError('Unrecognized named group in pattern',
+                    self.pattern)
+        return ids
+
+# Initialize Template.pattern.  __init_subclass__() is automatically called
+# only for subclasses, not for the Template class itself.
+Template.__init_subclass__()
+
+
+########################################################################
+# the Formatter class
+# see PEP 3101 for details and purpose of this class
+
+# The hard parts are reused from the C implementation.  They're exposed as "_"
+# prefixed methods of str.
+
+# The overall parser is implemented in _string.formatter_parser.
+# The field name parser is implemented in _string.formatter_field_name_split
+
+class Formatter:
+    def format(self, format_string, /, *args, **kwargs):
+        return self.vformat(format_string, args, kwargs)
+
+    def vformat(self, format_string, args, kwargs):
+        used_args = set()
+        result, _ = self._vformat(format_string, args, kwargs, used_args, 2)
+        self.check_unused_args(used_args, args, kwargs)
+        return result
+
+    def _vformat(self, format_string, args, kwargs, used_args, recursion_depth,
+                 auto_arg_index=0):
+        if recursion_depth < 0:
+            raise ValueError('Max string recursion exceeded')
+        result = []
+        for literal_text, field_name, format_spec, conversion in \
+                self.parse(format_string):
+
+            # output the literal text
+            if literal_text:
+                result.append(literal_text)
+
+            # if there's a field, output it
+            if field_name is not None:
+                # this is some markup, find the object and do
+                #  the formatting
+
+                # handle arg indexing when empty field_names are given.
+                if field_name == '':
+                    if auto_arg_index is False:
+                        raise ValueError('cannot switch from manual field '
+                                         'specification to automatic field '
+                                         'numbering')
+                    field_name = str(auto_arg_index)
+                    auto_arg_index += 1
+                elif field_name.isdigit():
+                    if auto_arg_index:
+                        raise ValueError('cannot switch from manual field '
+                                         'specification to automatic field '
+                                         'numbering')
+                    # disable auto arg incrementing, if it gets
+                    # used later on, then an exception will be raised
+                    auto_arg_index = False
+
+                # given the field_name, find the object it references
+                #  and the argument it came from
+                obj, arg_used = self.get_field(field_name, args, kwargs)
+                used_args.add(arg_used)
+
+                # do any conversion on the resulting object
+                obj = self.convert_field(obj, conversion)
+
+                # expand the format spec, if needed
+                format_spec, auto_arg_index = self._vformat(
+                    format_spec, args, kwargs,
+                    used_args, recursion_depth-1,
+                    auto_arg_index=auto_arg_index)
+
+                # format the object and append to the result
+                result.append(self.format_field(obj, format_spec))
+
+        return ''.join(result), auto_arg_index
+
+
+    def get_value(self, key, args, kwargs):
+        if isinstance(key, int):
+            return args[key]
+        else:
+            return kwargs[key]
+
+
+    def check_unused_args(self, used_args, args, kwargs):
+        pass
+
+
+    def format_field(self, value, format_spec):
+        return format(value, format_spec)
+
+
+    def convert_field(self, value, conversion):
+        # do any conversion on the resulting object
+        if conversion is None:
+            return value
+        elif conversion == 's':
+            return str(value)
+        elif conversion == 'r':
+            return repr(value)
+        elif conversion == 'a':
+            return ascii(value)
+        raise ValueError("Unknown conversion specifier {0!s}".format(conversion))
+
+
+    # returns an iterable that contains tuples of the form:
+    # (literal_text, field_name, format_spec, conversion)
+    # literal_text can be zero length
+    # field_name can be None, in which case there's no
+    #  object to format and output
+    # if field_name is not None, it is looked up, formatted
+    #  with format_spec and conversion and then used
+    def parse(self, format_string):
+        return _string.formatter_parser(format_string)
+
+
+    # given a field_name, find the object it references.
+    #  field_name:   the field being looked up, e.g. "0.name"
+    #                 or "lookup[3]"
+    #  used_args:    a set of which args have been used
+    #  args, kwargs: as passed in to vformat
+    def get_field(self, field_name, args, kwargs):
+        first, rest = _string.formatter_field_name_split(field_name)
+
+        obj = self.get_value(first, args, kwargs)
+
+        # loop through the rest of the field_name, doing
+        #  getattr or getitem as needed
+        for is_attr, i in rest:
+            if is_attr:
+                obj = getattr(obj, i)
+            else:
+                obj = obj[i]
+
+        return obj, first
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      # This file is generated by mkstringprep.py. DO NOT EDIT.
+"""Library that exposes various tables found in the StringPrep RFC 3454.
+
+There are two kinds of tables: sets, for which a member test is provided,
+and mappings, for which a mapping function is provided.
+"""
+
+from unicodedata import ucd_3_2_0 as unicodedata
+
+assert unicodedata.unidata_version == '3.2.0'
+
+def in_table_a1(code):
+    if unicodedata.category(code) != 'Cn': return False
+    c = ord(code)
+    if 0xFDD0 <= c < 0xFDF0: return False
+    return (c & 0xFFFF) not in (0xFFFE, 0xFFFF)
+
+
+b1_set = set([173, 847, 6150, 6155, 6156, 6157, 8203, 8204, 8205, 8288, 65279] + list(range(65024,65040)))
+def in_table_b1(code):
+    return ord(code) in b1_set
+
+
+b3_exceptions = {
+0xb5:'\u03bc', 0xdf:'ss', 0x130:'i\u0307', 0x149:'\u02bcn',
+0x17f:'s', 0x1f0:'j\u030c', 0x345:'\u03b9', 0x37a:' \u03b9',
+0x390:'\u03b9\u0308\u0301', 0x3b0:'\u03c5\u0308\u0301', 0x3c2:'\u03c3', 0x3d0:'\u03b2',
+0x3d1:'\u03b8', 0x3d2:'\u03c5', 0x3d3:'\u03cd', 0x3d4:'\u03cb',
+0x3d5:'\u03c6', 0x3d6:'\u03c0', 0x3f0:'\u03ba', 0x3f1:'\u03c1',
+0x3f2:'\u03c3', 0x3f5:'\u03b5', 0x587:'\u0565\u0582', 0x1e96:'h\u0331',
+0x1e97:'t\u0308', 0x1e98:'w\u030a', 0x1e99:'y\u030a', 0x1e9a:'a\u02be',
+0x1e9b:'\u1e61', 0x1f50:'\u03c5\u0313', 0x1f52:'\u03c5\u0313\u0300', 0x1f54:'\u03c5\u0313\u0301',
+0x1f56:'\u03c5\u0313\u0342', 0x1f80:'\u1f00\u03b9', 0x1f81:'\u1f01\u03b9', 0x1f82:'\u1f02\u03b9',
+0x1f83:'\u1f03\u03b9', 0x1f84:'\u1f04\u03b9', 0x1f85:'\u1f05\u03b9', 0x1f86:'\u1f06\u03b9',
+0x1f87:'\u1f07\u03b9', 0x1f88:'\u1f00\u03b9', 0x1f89:'\u1f01\u03b9', 0x1f8a:'\u1f02\u03b9',
+0x1f8b:'\u1f03\u03b9', 0x1f8c:'\u1f04\u03b9', 0x1f8d:'\u1f05\u03b9', 0x1f8e:'\u1f06\u03b9',
+0x1f8f:'\u1f07\u03b9', 0x1f90:'\u1f20\u03b9', 0x1f91:'\u1f21\u03b9', 0x1f92:'\u1f22\u03b9',
+0x1f93:'\u1f23\u03b9', 0x1f94:'\u1f24\u03b9', 0x1f95:'\u1f25\u03b9', 0x1f96:'\u1f26\u03b9',
+0x1f97:'\u1f27\u03b9', 0x1f98:'\u1f20\u03b9', 0x1f99:'\u1f21\u03b9', 0x1f9a:'\u1f22\u03b9',
+0x1f9b:'\u1f23\u03b9', 0x1f9c:'\u1f24\u03b9', 0x1f9d:'\u1f25\u03b9', 0x1f9e:'\u1f26\u03b9',
+0x1f9f:'\u1f27\u03b9', 0x1fa0:'\u1f60\u03b9', 0x1fa1:'\u1f61\u03b9', 0x1fa2:'\u1f62\u03b9',
+0x1fa3:'\u1f63\u03b9', 0x1fa4:'\u1f64\u03b9', 0x1fa5:'\u1f65\u03b9', 0x1fa6:'\u1f66\u03b9',
+0x1fa7:'\u1f67\u03b9', 0x1fa8:'\u1f60\u03b9', 0x1fa9:'\u1f61\u03b9', 0x1faa:'\u1f62\u03b9',
+0x1fab:'\u1f63\u03b9', 0x1fac:'\u1f64\u03b9', 0x1fad:'\u1f65\u03b9', 0x1fae:'\u1f66\u03b9',
+0x1faf:'\u1f67\u03b9', 0x1fb2:'\u1f70\u03b9', 0x1fb3:'\u03b1\u03b9', 0x1fb4:'\u03ac\u03b9',
+0x1fb6:'\u03b1\u0342', 0x1fb7:'\u03b1\u0342\u03b9', 0x1fbc:'\u03b1\u03b9', 0x1fbe:'\u03b9',
+0x1fc2:'\u1f74\u03b9', 0x1fc3:'\u03b7\u03b9', 0x1fc4:'\u03ae\u03b9', 0x1fc6:'\u03b7\u0342',
+0x1fc7:'\u03b7\u0342\u03b9', 0x1fcc:'\u03b7\u03b9', 0x1fd2:'\u03b9\u0308\u0300', 0x1fd3:'\u03b9\u0308\u0301',
+0x1fd6:'\u03b9\u0342', 0x1fd7:'\u03b9\u0308\u0342', 0x1fe2:'\u03c5\u0308\u0300', 0x1fe3:'\u03c5\u0308\u0301',
+0x1fe4:'\u03c1\u0313', 0x1fe6:'\u03c5\u0342', 0x1fe7:'\u03c5\u0308\u0342', 0x1ff2:'\u1f7c\u03b9',
+0x1ff3:'\u03c9\u03b9', 0x1ff4:'\u03ce\u03b9', 0x1ff6:'\u03c9\u0342', 0x1ff7:'\u03c9\u0342\u03b9',
+0x1ffc:'\u03c9\u03b9', 0x20a8:'rs', 0x2102:'c', 0x2103:'\xb0c',
+0x2107:'\u025b', 0x2109:'\xb0f', 0x210b:'h', 0x210c:'h',
+0x210d:'h', 0x2110:'i', 0x2111:'i', 0x2112:'l',
+0x2115:'n', 0x2116:'no', 0x2119:'p', 0x211a:'q',
+0x211b:'r', 0x211c:'r', 0x211d:'r', 0x2120:'sm',
+0x2121:'tel', 0x2122:'tm', 0x2124:'z', 0x2128:'z',
+0x212c:'b', 0x212d:'c', 0x2130:'e', 0x2131:'f',
+0x2133:'m', 0x213e:'\u03b3', 0x213f:'\u03c0', 0x2145:'d',
+0x3371:'hpa', 0x3373:'au', 0x3375:'ov', 0x3380:'pa',
+0x3381:'na', 0x3382:'\u03bca', 0x3383:'ma', 0x3384:'ka',
+0x3385:'kb', 0x3386:'mb', 0x3387:'gb', 0x338a:'pf',
+0x338b:'nf', 0x338c:'\u03bcf', 0x3390:'hz', 0x3391:'khz',
+0x3392:'mhz', 0x3393:'ghz', 0x3394:'thz', 0x33a9:'pa',
+0x33aa:'kpa', 0x33ab:'mpa', 0x33ac:'gpa', 0x33b4:'pv',
+0x33b5:'nv', 0x33b6:'\u03bcv', 0x33b7:'mv', 0x33b8:'kv',
+0x33b9:'mv', 0x33ba:'pw', 0x33bb:'nw', 0x33bc:'\u03bcw',
+0x33bd:'mw', 0x33be:'kw', 0x33bf:'mw', 0x33c0:'k\u03c9',
+0x33c1:'m\u03c9', 0x33c3:'bq', 0x33c6:'c\u2215kg', 0x33c7:'co.',
+0x33c8:'db', 0x33c9:'gy', 0x33cb:'hp', 0x33cd:'kk',
+0x33ce:'km', 0x33d7:'ph', 0x33d9:'ppm', 0x33da:'pr',
+0x33dc:'sv', 0x33dd:'wb', 0xfb00:'ff', 0xfb01:'fi',
+0xfb02:'fl', 0xfb03:'ffi', 0xfb04:'ffl', 0xfb05:'st',
+0xfb06:'st', 0xfb13:'\u0574\u0576', 0xfb14:'\u0574\u0565', 0xfb15:'\u0574\u056b',
+0xfb16:'\u057e\u0576', 0xfb17:'\u0574\u056d', 0x1d400:'a', 0x1d401:'b',
+0x1d402:'c', 0x1d403:'d', 0x1d404:'e', 0x1d405:'f',
+0x1d406:'g', 0x1d407:'h', 0x1d408:'i', 0x1d409:'j',
+0x1d40a:'k', 0x1d40b:'l', 0x1d40c:'m', 0x1d40d:'n',
+0x1d40e:'o', 0x1d40f:'p', 0x1d410:'q', 0x1d411:'r',
+0x1d412:'s', 0x1d413:'t', 0x1d414:'u', 0x1d415:'v',
+0x1d416:'w', 0x1d417:'x', 0x1d418:'y', 0x1d419:'z',
+0x1d434:'a', 0x1d435:'b', 0x1d436:'c', 0x1d437:'d',
+0x1d438:'e', 0x1d439:'f', 0x1d43a:'g', 0x1d43b:'h',
+0x1d43c:'i', 0x1d43d:'j', 0x1d43e:'k', 0x1d43f:'l',
+0x1d440:'m', 0x1d441:'n', 0x1d442:'o', 0x1d443:'p',
+0x1d444:'q', 0x1d445:'r', 0x1d446:'s', 0x1d447:'t',
+0x1d448:'u', 0x1d449:'v', 0x1d44a:'w', 0x1d44b:'x',
+0x1d44c:'y', 0x1d44d:'z', 0x1d468:'a', 0x1d469:'b',
+0x1d46a:'c', 0x1d46b:'d', 0x1d46c:'e', 0x1d46d:'f',
+0x1d46e:'g', 0x1d46f:'h', 0x1d470:'i', 0x1d471:'j',
+0x1d472:'k', 0x1d473:'l', 0x1d474:'m', 0x1d475:'n',
+0x1d476:'o', 0x1d477:'p', 0x1d478:'q', 0x1d479:'r',
+0x1d47a:'s', 0x1d47b:'t', 0x1d47c:'u', 0x1d47d:'v',
+0x1d47e:'w', 0x1d47f:'x', 0x1d480:'y', 0x1d481:'z',
+0x1d49c:'a', 0x1d49e:'c', 0x1d49f:'d', 0x1d4a2:'g',
+0x1d4a5:'j', 0x1d4a6:'k', 0x1d4a9:'n', 0x1d4aa:'o',
+0x1d4ab:'p', 0x1d4ac:'q', 0x1d4ae:'s', 0x1d4af:'t',
+0x1d4b0:'u', 0x1d4b1:'v', 0x1d4b2:'w', 0x1d4b3:'x',
+0x1d4b4:'y', 0x1d4b5:'z', 0x1d4d0:'a', 0x1d4d1:'b',
+0x1d4d2:'c', 0x1d4d3:'d', 0x1d4d4:'e', 0x1d4d5:'f',
+0x1d4d6:'g', 0x1d4d7:'h', 0x1d4d8:'i', 0x1d4d9:'j',
+0x1d4da:'k', 0x1d4db:'l', 0x1d4dc:'m', 0x1d4dd:'n',
+0x1d4de:'o', 0x1d4df:'p', 0x1d4e0:'q', 0x1d4e1:'r',
+0x1d4e2:'s', 0x1d4e3:'t', 0x1d4e4:'u', 0x1d4e5:'v',
+0x1d4e6:'w', 0x1d4e7:'x', 0x1d4e8:'y', 0x1d4e9:'z',
+0x1d504:'a', 0x1d505:'b', 0x1d507:'d', 0x1d508:'e',
+0x1d509:'f', 0x1d50a:'g', 0x1d50d:'j', 0x1d50e:'k',
+0x1d50f:'l', 0x1d510:'m', 0x1d511:'n', 0x1d512:'o',
+0x1d513:'p', 0x1d514:'q', 0x1d516:'s', 0x1d517:'t',
+0x1d518:'u', 0x1d519:'v', 0x1d51a:'w', 0x1d51b:'x',
+0x1d51c:'y', 0x1d538:'a', 0x1d539:'b', 0x1d53b:'d',
+0x1d53c:'e', 0x1d53d:'f', 0x1d53e:'g', 0x1d540:'i',
+0x1d541:'j', 0x1d542:'k', 0x1d543:'l', 0x1d544:'m',
+0x1d546:'o', 0x1d54a:'s', 0x1d54b:'t', 0x1d54c:'u',
+0x1d54d:'v', 0x1d54e:'w', 0x1d54f:'x', 0x1d550:'y',
+0x1d56c:'a', 0x1d56d:'b', 0x1d56e:'c', 0x1d56f:'d',
+0x1d570:'e', 0x1d571:'f', 0x1d572:'g', 0x1d573:'h',
+0x1d574:'i', 0x1d575:'j', 0x1d576:'k', 0x1d577:'l',
+0x1d578:'m', 0x1d579:'n', 0x1d57a:'o', 0x1d57b:'p',
+0x1d57c:'q', 0x1d57d:'r', 0x1d57e:'s', 0x1d57f:'t',
+0x1d580:'u', 0x1d581:'v', 0x1d582:'w', 0x1d583:'x',
+0x1d584:'y', 0x1d585:'z', 0x1d5a0:'a', 0x1d5a1:'b',
+0x1d5a2:'c', 0x1d5a3:'d', 0x1d5a4:'e', 0x1d5a5:'f',
+0x1d5a6:'g', 0x1d5a7:'h', 0x1d5a8:'i', 0x1d5a9:'j',
+0x1d5aa:'k', 0x1d5ab:'l', 0x1d5ac:'m', 0x1d5ad:'n',
+0x1d5ae:'o', 0x1d5af:'p', 0x1d5b0:'q', 0x1d5b1:'r',
+0x1d5b2:'s', 0x1d5b3:'t', 0x1d5b4:'u', 0x1d5b5:'v',
+0x1d5b6:'w', 0x1d5b7:'x', 0x1d5b8:'y', 0x1d5b9:'z',
+0x1d5d4:'a', 0x1d5d5:'b', 0x1d5d6:'c', 0x1d5d7:'d',
+0x1d5d8:'e', 0x1d5d9:'f', 0x1d5da:'g', 0x1d5db:'h',
+0x1d5dc:'i', 0x1d5dd:'j', 0x1d5de:'k', 0x1d5df:'l',
+0x1d5e0:'m', 0x1d5e1:'n', 0x1d5e2:'o', 0x1d5e3:'p',
+0x1d5e4:'q', 0x1d5e5:'r', 0x1d5e6:'s', 0x1d5e7:'t',
+0x1d5e8:'u', 0x1d5e9:'v', 0x1d5ea:'w', 0x1d5eb:'x',
+0x1d5ec:'y', 0x1d5ed:'z', 0x1d608:'a', 0x1d609:'b',
+0x1d60a:'c', 0x1d60b:'d', 0x1d60c:'e', 0x1d60d:'f',
+0x1d60e:'g', 0x1d60f:'h', 0x1d610:'i', 0x1d611:'j',
+0x1d612:'k', 0x1d613:'l', 0x1d614:'m', 0x1d615:'n',
+0x1d616:'o', 0x1d617:'p', 0x1d618:'q', 0x1d619:'r',
+0x1d61a:'s', 0x1d61b:'t', 0x1d61c:'u', 0x1d61d:'v',
+0x1d61e:'w', 0x1d61f:'x', 0x1d620:'y', 0x1d621:'z',
+0x1d63c:'a', 0x1d63d:'b', 0x1d63e:'c', 0x1d63f:'d',
+0x1d640:'e', 0x1d641:'f', 0x1d642:'g', 0x1d643:'h',
+0x1d644:'i', 0x1d645:'j', 0x1d646:'k', 0x1d647:'l',
+0x1d648:'m', 0x1d649:'n', 0x1d64a:'o', 0x1d64b:'p',
+0x1d64c:'q', 0x1d64d:'r', 0x1d64e:'s', 0x1d64f:'t',
+0x1d650:'u', 0x1d651:'v', 0x1d652:'w', 0x1d653:'x',
+0x1d654:'y', 0x1d655:'z', 0x1d670:'a', 0x1d671:'b',
+0x1d672:'c', 0x1d673:'d', 0x1d674:'e', 0x1d675:'f',
+0x1d676:'g', 0x1d677:'h', 0x1d678:'i', 0x1d679:'j',
+0x1d67a:'k', 0x1d67b:'l', 0x1d67c:'m', 0x1d67d:'n',
+0x1d67e:'o', 0x1d67f:'p', 0x1d680:'q', 0x1d681:'r',
+0x1d682:'s', 0x1d683:'t', 0x1d684:'u', 0x1d685:'v',
+0x1d686:'w', 0x1d687:'x', 0x1d688:'y', 0x1d689:'z',
+0x1d6a8:'\u03b1', 0x1d6a9:'\u03b2', 0x1d6aa:'\u03b3', 0x1d6ab:'\u03b4',
+0x1d6ac:'\u03b5', 0x1d6ad:'\u03b6', 0x1d6ae:'\u03b7', 0x1d6af:'\u03b8',
+0x1d6b0:'\u03b9', 0x1d6b1:'\u03ba', 0x1d6b2:'\u03bb', 0x1d6b3:'\u03bc',
+0x1d6b4:'\u03bd', 0x1d6b5:'\u03be', 0x1d6b6:'\u03bf', 0x1d6b7:'\u03c0',
+0x1d6b8:'\u03c1', 0x1d6b9:'\u03b8', 0x1d6ba:'\u03c3', 0x1d6bb:'\u03c4',
+0x1d6bc:'\u03c5', 0x1d6bd:'\u03c6', 0x1d6be:'\u03c7', 0x1d6bf:'\u03c8',
+0x1d6c0:'\u03c9', 0x1d6d3:'\u03c3', 0x1d6e2:'\u03b1', 0x1d6e3:'\u03b2',
+0x1d6e4:'\u03b3', 0x1d6e5:'\u03b4', 0x1d6e6:'\u03b5', 0x1d6e7:'\u03b6',
+0x1d6e8:'\u03b7', 0x1d6e9:'\u03b8', 0x1d6ea:'\u03b9', 0x1d6eb:'\u03ba',
+0x1d6ec:'\u03bb', 0x1d6ed:'\u03bc', 0x1d6ee:'\u03bd', 0x1d6ef:'\u03be',
+0x1d6f0:'\u03bf', 0x1d6f1:'\u03c0', 0x1d6f2:'\u03c1', 0x1d6f3:'\u03b8',
+0x1d6f4:'\u03c3', 0x1d6f5:'\u03c4', 0x1d6f6:'\u03c5', 0x1d6f7:'\u03c6',
+0x1d6f8:'\u03c7', 0x1d6f9:'\u03c8', 0x1d6fa:'\u03c9', 0x1d70d:'\u03c3',
+0x1d71c:'\u03b1', 0x1d71d:'\u03b2', 0x1d71e:'\u03b3', 0x1d71f:'\u03b4',
+0x1d720:'\u03b5', 0x1d721:'\u03b6', 0x1d722:'\u03b7', 0x1d723:'\u03b8',
+0x1d724:'\u03b9', 0x1d725:'\u03ba', 0x1d726:'\u03bb', 0x1d727:'\u03bc',
+0x1d728:'\u03bd', 0x1d729:'\u03be', 0x1d72a:'\u03bf', 0x1d72b:'\u03c0',
+0x1d72c:'\u03c1', 0x1d72d:'\u03b8', 0x1d72e:'\u03c3', 0x1d72f:'\u03c4',
+0x1d730:'\u03c5', 0x1d731:'\u03c6', 0x1d732:'\u03c7', 0x1d733:'\u03c8',
+0x1d734:'\u03c9', 0x1d747:'\u03c3', 0x1d756:'\u03b1', 0x1d757:'\u03b2',
+0x1d758:'\u03b3', 0x1d759:'\u03b4', 0x1d75a:'\u03b5', 0x1d75b:'\u03b6',
+0x1d75c:'\u03b7', 0x1d75d:'\u03b8', 0x1d75e:'\u03b9', 0x1d75f:'\u03ba',
+0x1d760:'\u03bb', 0x1d761:'\u03bc', 0x1d762:'\u03bd', 0x1d763:'\u03be',
+0x1d764:'\u03bf', 0x1d765:'\u03c0', 0x1d766:'\u03c1', 0x1d767:'\u03b8',
+0x1d768:'\u03c3', 0x1d769:'\u03c4', 0x1d76a:'\u03c5', 0x1d76b:'\u03c6',
+0x1d76c:'\u03c7', 0x1d76d:'\u03c8', 0x1d76e:'\u03c9', 0x1d781:'\u03c3',
+0x1d790:'\u03b1', 0x1d791:'\u03b2', 0x1d792:'\u03b3', 0x1d793:'\u03b4',
+0x1d794:'\u03b5', 0x1d795:'\u03b6', 0x1d796:'\u03b7', 0x1d797:'\u03b8',
+0x1d798:'\u03b9', 0x1d799:'\u03ba', 0x1d79a:'\u03bb', 0x1d79b:'\u03bc',
+0x1d79c:'\u03bd', 0x1d79d:'\u03be', 0x1d79e:'\u03bf', 0x1d79f:'\u03c0',
+0x1d7a0:'\u03c1', 0x1d7a1:'\u03b8', 0x1d7a2:'\u03c3', 0x1d7a3:'\u03c4',
+0x1d7a4:'\u03c5', 0x1d7a5:'\u03c6', 0x1d7a6:'\u03c7', 0x1d7a7:'\u03c8',
+0x1d7a8:'\u03c9', 0x1d7bb:'\u03c3', }
+
+def map_table_b3(code):
+    r = b3_exceptions.get(ord(code))
+    if r is not None: return r
+    return code.lower()
+
+
+def map_table_b2(a):
+    al = map_table_b3(a)
+    b = unicodedata.normalize("NFKC", al)
+    bl = "".join([map_table_b3(ch) for ch in b])
+    c = unicodedata.normalize("NFKC", bl)
+    if b != c:
+        return c
+    else:
+        return al
+
+
+def in_table_c11(code):
+    return code == " "
+
+
+def in_table_c12(code):
+    return unicodedata.category(code) == "Zs" and code != " "
+
+def in_table_c11_c12(code):
+    return unicodedata.category(code) == "Zs"
+
+
+def in_table_c21(code):
+    return ord(code) < 128 and unicodedata.category(code) == "Cc"
+
+c22_specials = set([1757, 1807, 6158, 8204, 8205, 8232, 8233, 65279] + list(range(8288,8292)) + list(range(8298,8304)) + list(range(65529,65533)) + list(range(119155,119163)))
+def in_table_c22(code):
+    c = ord(code)
+    if c < 128: return False
+    if unicodedata.category(code) == "Cc": return True
+    return c in c22_specials
+
+def in_table_c21_c22(code):
+    return unicodedata.category(code) == "Cc" or \
+           ord(code) in c22_specials
+
+
+def in_table_c3(code):
+    return unicodedata.category(code) == "Co"
+
+
+def in_table_c4(code):
+    c = ord(code)
+    if c < 0xFDD0: return False
+    if c < 0xFDF0: return True
+    return (ord(code) & 0xFFFF) in (0xFFFE, 0xFFFF)
+
+
+def in_table_c5(code):
+    return unicodedata.category(code) == "Cs"
+
+
+c6_set = set(range(65529,65534))
+def in_table_c6(code):
+    return ord(code) in c6_set
+
+
+c7_set = set(range(12272,12284))
+def in_table_c7(code):
+    return ord(code) in c7_set
+
+
+c8_set = set([832, 833, 8206, 8207] + list(range(8234,8239)) + list(range(8298,8304)))
+def in_table_c8(code):
+    return ord(code) in c8_set
+
+
+c9_set = set([917505] + list(range(917536,917632)))
+def in_table_c9(code):
+    return ord(code) in c9_set
+
+
+def in_table_d1(code):
+    return unicodedata.bidirectional(code) in ("R","AL")
+
+
+def in_table_d2(code):
+    return unicodedata.bidirectional(code) == "L"
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           __all__ = [
+    # Functions
+    'calcsize', 'pack', 'pack_into', 'unpack', 'unpack_from',
+    'iter_unpack',
+
+    # Classes
+    'Struct',
+
+    # Exceptions
+    'error'
+    ]
+
+from _struct import *
+from _struct import _clearcache
+from _struct import __doc__
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               # subprocess - Subprocesses with accessible I/O streams
+#
+# For more information about this module, see PEP 324.
+#
+# Copyright (c) 2003-2005 by Peter Astrand <astrand@lysator.liu.se>
+#
+# Licensed to PSF under a Contributor Agreement.
+
+r"""Subprocesses with accessible I/O streams
+
+This module allows you to spawn processes, connect to their
+input/output/error pipes, and obtain their return codes.
+
+For a complete description of this module see the Python documentation.
+
+Main API
+========
+run(...): Runs a command, waits for it to complete, then returns a
+          CompletedProcess instance.
+Popen(...): A class for flexibly executing a command in a new process
+
+Constants
+---------
+DEVNULL: Special value that indicates that os.devnull should be used
+PIPE:    Special value that indicates a pipe should be created
+STDOUT:  Special value that indicates that stderr should go to stdout
+
+
+Older API
+=========
+call(...): Runs a command, waits for it to complete, then returns
+    the return code.
+check_call(...): Same as call() but raises CalledProcessError()
+    if return code is not 0
+check_output(...): Same as check_call() but returns the contents of
+    stdout instead of a return code
+getoutput(...): Runs a command in the shell, waits for it to complete,
+    then returns the output
+getstatusoutput(...): Runs a command in the shell, waits for it to complete,
+    then returns a (exitcode, output) tuple
+"""
+
+import builtins
+import errno
+import io
+import locale
+import os
+import time
+import signal
+import sys
+import threading
+import warnings
+import contextlib
+from time import monotonic as _time
+import types
+
+try:
+    import fcntl
+except ImportError:
+    fcntl = None
+
+
+__all__ = ["Popen", "PIPE", "STDOUT", "call", "check_call", "getstatusoutput",
+           "getoutput", "check_output", "run", "CalledProcessError", "DEVNULL",
+           "SubprocessError", "TimeoutExpired", "CompletedProcess"]
+           # NOTE: We intentionally exclude list2cmdline as it is
+           # considered an internal implementation detail.  issue10838.
+
+# use presence of msvcrt to detect Windows-like platforms (see bpo-8110)
+try:
+    import msvcrt
+except ModuleNotFoundError:
+    _mswindows = False
+else:
+    _mswindows = True
+
+# some platforms do not support subprocesses
+_can_fork_exec = sys.platform not in {"emscripten", "wasi", "ios", "tvos", "watchos"}
+
+if _mswindows:
+    import _winapi
+    from _winapi import (CREATE_NEW_CONSOLE, CREATE_NEW_PROCESS_GROUP,
+                         STD_INPUT_HANDLE, STD_OUTPUT_HANDLE,
+                         STD_ERROR_HANDLE, SW_HIDE,
+                         STARTF_USESTDHANDLES, STARTF_USESHOWWINDOW,
+                         STARTF_FORCEONFEEDBACK, STARTF_FORCEOFFFEEDBACK,
+                         ABOVE_NORMAL_PRIORITY_CLASS, BELOW_NORMAL_PRIORITY_CLASS,
+                         HIGH_PRIORITY_CLASS, IDLE_PRIORITY_CLASS,
+                         NORMAL_PRIORITY_CLASS, REALTIME_PRIORITY_CLASS,
+                         CREATE_NO_WINDOW, DETACHED_PROCESS,
+                         CREATE_DEFAULT_ERROR_MODE, CREATE_BREAKAWAY_FROM_JOB)
+
+    __all__.extend(["CREATE_NEW_CONSOLE", "CREATE_NEW_PROCESS_GROUP",
+                    "STD_INPUT_HANDLE", "STD_OUTPUT_HANDLE",
+                    "STD_ERROR_HANDLE", "SW_HIDE",
+                    "STARTF_USESTDHANDLES", "STARTF_USESHOWWINDOW",
+                    "STARTF_FORCEONFEEDBACK", "STARTF_FORCEOFFFEEDBACK",
+                    "STARTUPINFO",
+                    "ABOVE_NORMAL_PRIORITY_CLASS", "BELOW_NORMAL_PRIORITY_CLASS",
+                    "HIGH_PRIORITY_CLASS", "IDLE_PRIORITY_CLASS",
+                    "NORMAL_PRIORITY_CLASS", "REALTIME_PRIORITY_CLASS",
+                    "CREATE_NO_WINDOW", "DETACHED_PROCESS",
+                    "CREATE_DEFAULT_ERROR_MODE", "CREATE_BREAKAWAY_FROM_JOB"])
+else:
+    if _can_fork_exec:
+        from _posixsubprocess import fork_exec as _fork_exec
+        # used in methods that are called by __del__
+        class _del_safe:
+            waitpid = os.waitpid
+            waitstatus_to_exitcode = os.waitstatus_to_exitcode
+            WIFSTOPPED = os.WIFSTOPPED
+            WSTOPSIG = os.WSTOPSIG
+            WNOHANG = os.WNOHANG
+            ECHILD = errno.ECHILD
+    else:
+        class _del_safe:
+            waitpid = None
+            waitstatus_to_exitcode = None
+            WIFSTOPPED = None
+            WSTOPSIG = None
+            WNOHANG = None
+            ECHILD = errno.ECHILD
+
+    import select
+    import selectors
+
+
+# Exception classes used by this module.
+class SubprocessError(Exception): pass
+
+
+class CalledProcessError(SubprocessError):
+    """Raised when run() is called with check=True and the process
+    returns a non-zero exit status.
+
+    Attributes:
+      cmd, returncode, stdout, stderr, output
+    """
+    def __init__(self, returncode, cmd, output=None, stderr=None):
+        self.returncode = returncode
+        self.cmd = cmd
+        self.output = output
+        self.stderr = stderr
+
+    def __str__(self):
+        if self.returncode and self.returncode < 0:
+            try:
+                return "Command '%s' died with %r." % (
+                        self.cmd, signal.Signals(-self.returncode))
+            except ValueError:
+                return "Command '%s' died with unknown signal %d." % (
+                        self.cmd, -self.returncode)
+        else:
+            return "Command '%s' returned non-zero exit status %d." % (
+                    self.cmd, self.returncode)
+
+    @property
+    def stdout(self):
+        """Alias for output attribute, to match stderr"""
+        return self.output
+
+    @stdout.setter
+    def stdout(self, value):
+        # There's no obvious reason to set this, but allow it anyway so
+        # .stdout is a transparent alias for .output
+        self.output = value
+
+
+class TimeoutExpired(SubprocessError):
+    """This exception is raised when the timeout expires while waiting for a
+    child process.
+
+    Attributes:
+        cmd, output, stdout, stderr, timeout
+    """
+    def __init__(self, cmd, timeout, output=None, stderr=None):
+        self.cmd = cmd
+        self.timeout = timeout
+        self.output = output
+        self.stderr = stderr
+
+    def __str__(self):
+        return ("Command '%s' timed out after %s seconds" %
+                (self.cmd, self.timeout))
+
+    @property
+    def stdout(self):
+        return self.output
+
+    @stdout.setter
+    def stdout(self, value):
+        # There's no obvious reason to set this, but allow it anyway so
+        # .stdout is a transparent alias for .output
+        self.output = value
+
+
+if _mswindows:
+    class STARTUPINFO:
+        def __init__(self, *, dwFlags=0, hStdInput=None, hStdOutput=None,
+                     hStdError=None, wShowWindow=0, lpAttributeList=None):
+            self.dwFlags = dwFlags
+            self.hStdInput = hStdInput
+            self.hStdOutput = hStdOutput
+            self.hStdError = hStdError
+            self.wShowWindow = wShowWindow
+            self.lpAttributeList = lpAttributeList or {"handle_list": []}
+
+        def copy(self):
+            attr_list = self.lpAttributeList.copy()
+            if 'handle_list' in attr_list:
+                attr_list['handle_list'] = list(attr_list['handle_list'])
+
+            return STARTUPINFO(dwFlags=self.dwFlags,
+                               hStdInput=self.hStdInput,
+                               hStdOutput=self.hStdOutput,
+                               hStdError=self.hStdError,
+                               wShowWindow=self.wShowWindow,
+                               lpAttributeList=attr_list)
+
+
+    class Handle(int):
+        closed = False
+
+        def Close(self, CloseHandle=_winapi.CloseHandle):
+            if not self.closed:
+                self.closed = True
+                CloseHandle(self)
+
+        def Detach(self):
+            if not self.closed:
+                self.closed = True
+                return int(self)
+            raise ValueError("already closed")
+
+        def __repr__(self):
+            return "%s(%d)" % (self.__class__.__name__, int(self))
+
+        __del__ = Close
+else:
+    # When select or poll has indicated that the file is writable,
+    # we can write up to _PIPE_BUF bytes without risk of blocking.
+    # POSIX defines PIPE_BUF as >= 512.
+    _PIPE_BUF = getattr(select, 'PIPE_BUF', 512)
+
+    # poll/select have the advantage of not requiring any extra file
+    # descriptor, contrarily to epoll/kqueue (also, they require a single
+    # syscall).
+    if hasattr(selectors, 'PollSelector'):
+        _PopenSelector = selectors.PollSelector
+    else:
+        _PopenSelector = selectors.SelectSelector
+
+
+if _mswindows:
+    # On Windows we just need to close `Popen._handle` when we no longer need
+    # it, so that the kernel can free it. `Popen._handle` gets closed
+    # implicitly when the `Popen` instance is finalized (see `Handle.__del__`,
+    # which is calling `CloseHandle` as requested in [1]), so there is nothing
+    # for `_cleanup` to do.
+    #
+    # [1] https://docs.microsoft.com/en-us/windows/desktop/ProcThread/
+    # creating-processes
+    _active = None
+
+    def _cleanup():
+        pass
+else:
+    # This lists holds Popen instances for which the underlying process had not
+    # exited at the time its __del__ method got called: those processes are
+    # wait()ed for synchronously from _cleanup() when a new Popen object is
+    # created, to avoid zombie processes.
+    _active = []
+
+    def _cleanup():
+        if _active is None:
+            return
+        for inst in _active[:]:
+            res = inst._internal_poll(_deadstate=sys.maxsize)
+            if res is not None:
+                try:
+                    _active.remove(inst)
+                except ValueError:
+                    # This can happen if two threads create a new Popen instance.
+                    # It's harmless that it was already removed, so ignore.
+                    pass
+
+PIPE = -1
+STDOUT = -2
+DEVNULL = -3
+
+
+# XXX This function is only used by multiprocessing and the test suite,
+# but it's here so that it can be imported when Python is compiled without
+# threads.
+
+def _optim_args_from_interpreter_flags():
+    """Return a list of command-line arguments reproducing the current
+    optimization settings in sys.flags."""
+    args = []
+    value = sys.flags.optimize
+    if value > 0:
+        args.append('-' + 'O' * value)
+    return args
+
+
+def _args_from_interpreter_flags():
+    """Return a list of command-line arguments reproducing the current
+    settings in sys.flags, sys.warnoptions and sys._xoptions."""
+    flag_opt_map = {
+        'debug': 'd',
+        # 'inspect': 'i',
+        # 'interactive': 'i',
+        'dont_write_bytecode': 'B',
+        'no_site': 'S',
+        'verbose': 'v',
+        'bytes_warning': 'b',
+        'quiet': 'q',
+        # -O is handled in _optim_args_from_interpreter_flags()
+    }
+    args = _optim_args_from_interpreter_flags()
+    for flag, opt in flag_opt_map.items():
+        v = getattr(sys.flags, flag)
+        if v > 0:
+            args.append('-' + opt * v)
+
+    if sys.flags.isolated:
+        args.append('-I')
+    else:
+        if sys.flags.ignore_environment:
+            args.append('-E')
+        if sys.flags.no_user_site:
+            args.append('-s')
+        if sys.flags.safe_path:
+            args.append('-P')
+
+    # -W options
+    warnopts = sys.warnoptions[:]
+    xoptions = getattr(sys, '_xoptions', {})
+    bytes_warning = sys.flags.bytes_warning
+    dev_mode = sys.flags.dev_mode
+
+    if bytes_warning > 1:
+        warnopts.remove("error::BytesWarning")
+    elif bytes_warning:
+        warnopts.remove("default::BytesWarning")
+    if dev_mode:
+        warnopts.remove('default')
+    for opt in warnopts:
+        args.append('-W' + opt)
+
+    # -X options
+    if dev_mode:
+        args.extend(('-X', 'dev'))
+    for opt in ('faulthandler', 'tracemalloc', 'importtime',
+                'frozen_modules', 'showrefcount', 'utf8', 'gil'):
+        if opt in xoptions:
+            value = xoptions[opt]
+            if value is True:
+                arg = opt
+            else:
+                arg = '%s=%s' % (opt, value)
+            args.extend(('-X', arg))
+
+    return args
+
+
+def _text_encoding():
+    # Return default text encoding and emit EncodingWarning if
+    # sys.flags.warn_default_encoding is true.
+    if sys.flags.warn_default_encoding:
+        f = sys._getframe()
+        filename = f.f_code.co_filename
+        stacklevel = 2
+        while f := f.f_back:
+            if f.f_code.co_filename != filename:
+                break
+            stacklevel += 1
+        warnings.warn("'encoding' argument not specified.",
+                      EncodingWarning, stacklevel)
+
+    if sys.flags.utf8_mode:
+        return "utf-8"
+    else:
+        return locale.getencoding()
+
+
+def call(*popenargs, timeout=None, **kwargs):
+    """Run command with arguments.  Wait for command to complete or
+    for timeout seconds, then return the returncode attribute.
+
+    The arguments are the same as for the Popen constructor.  Example:
+
+    retcode = call(["ls", "-l"])
+    """
+    with Popen(*popenargs, **kwargs) as p:
+        try:
+            return p.wait(timeout=timeout)
+        except:  # Including KeyboardInterrupt, wait handled that.
+            p.kill()
+            # We don't call p.wait() again as p.__exit__ does that for us.
+            raise
+
+
+def check_call(*popenargs, **kwargs):
+    """Run command with arguments.  Wait for command to complete.  If
+    the exit code was zero then return, otherwise raise
+    CalledProcessError.  The CalledProcessError object will have the
+    return code in the returncode attribute.
+
+    The arguments are the same as for the call function.  Example:
+
+    check_call(["ls", "-l"])
+    """
+    retcode = call(*popenargs, **kwargs)
+    if retcode:
+        cmd = kwargs.get("args")
+        if cmd is None:
+            cmd = popenargs[0]
+        raise CalledProcessError(retcode, cmd)
+    return 0
+
+
+def check_output(*popenargs, timeout=None, **kwargs):
+    r"""Run command with arguments and return its output.
+
+    If the exit code was non-zero it raises a CalledProcessError.  The
+    CalledProcessError object will have the return code in the returncode
+    attribute and output in the output attribute.
+
+    The arguments are the same as for the Popen constructor.  Example:
+
+    >>> check_output(["ls", "-l", "/dev/null"])
+    b'crw-rw-rw- 1 root root 1, 3 Oct 18  2007 /dev/null\n'
+
+    The stdout argument is not allowed as it is used internally.
+    To capture standard error in the result, use stderr=STDOUT.
+
+    >>> check_output(["/bin/sh", "-c",
+    ...               "ls -l non_existent_file ; exit 0"],
+    ...              stderr=STDOUT)
+    b'ls: non_existent_file: No such file or directory\n'
+
+    There is an additional optional argument, "input", allowing you to
+    pass a string to the subprocess's stdin.  If you use this argument
+    you may not also use the Popen constructor's "stdin" argument, as
+    it too will be used internally.  Example:
+
+    >>> check_output(["sed", "-e", "s/foo/bar/"],
+    ...              input=b"when in the course of fooman events\n")
+    b'when in the course of barman events\n'
+
+    By default, all communication is in bytes, and therefore any "input"
+    should be bytes, and the return value will be bytes.  If in text mode,
+    any "input" should be a string, and the return value will be a string
+    decoded according to locale encoding, or by "encoding" if set. Text mode
+    is triggered by setting any of text, encoding, errors or universal_newlines.
+    """
+    for kw in ('stdout', 'check'):
+        if kw in kwargs:
+            raise ValueError(f'{kw} argument not allowed, it will be overridden.')
+
+    if 'input' in kwargs and kwargs['input'] is None:
+        # Explicitly passing input=None was previously equivalent to passing an
+        # empty string. That is maintained here for backwards compatibility.
+        if kwargs.get('universal_newlines') or kwargs.get('text') or kwargs.get('encoding') \
+                or kwargs.get('errors'):
+            empty = ''
+        else:
+            empty = b''
+        kwargs['input'] = empty
+
+    return run(*popenargs, stdout=PIPE, timeout=timeout, check=True,
+               **kwargs).stdout
+
+
+class CompletedProcess(object):
+    """A process that has finished running.
+
+    This is returned by run().
+
+    Attributes:
+      args: The list or str args passed to run().
+      returncode: The exit code of the process, negative for signals.
+      stdout: The standard output (None if not captured).
+      stderr: The standard error (None if not captured).
+    """
+    def __init__(self, args, returncode, stdout=None, stderr=None):
+        self.args = args
+        self.returncode = returncode
+        self.stdout = stdout
+        self.stderr = stderr
+
+    def __repr__(self):
+        args = ['args={!r}'.format(self.args),
+                'returncode={!r}'.format(self.returncode)]
+        if self.stdout is not None:
+            args.append('stdout={!r}'.format(self.stdout))
+        if self.stderr is not None:
+            args.append('stderr={!r}'.format(self.stderr))
+        return "{}({})".format(type(self).__name__, ', '.join(args))
+
+    __class_getitem__ = classmethod(types.GenericAlias)
+
+
+    def check_returncode(self):
+        """Raise CalledProcessError if the exit code is non-zero."""
+        if self.returncode:
+            raise CalledProcessError(self.returncode, self.args, self.stdout,
+                                     self.stderr)
+
+
+def run(*popenargs,
+        input=None, capture_output=False, timeout=None, check=False, **kwargs):
+    """Run command with arguments and return a CompletedProcess instance.
+
+    The returned instance will have attributes args, returncode, stdout and
+    stderr. By default, stdout and stderr are not captured, and those attributes
+    will be None. Pass stdout=PIPE and/or stderr=PIPE in order to capture them,
+    or pass capture_output=True to capture both.
+
+    If check is True and the exit code was non-zero, it raises a
+    CalledProcessError. The CalledProcessError object will have the return code
+    in the returncode attribute, and output & stderr attributes if those streams
+    were captured.
+
+    If timeout (seconds) is given and the process takes too long,
+     a TimeoutExpired exception will be raised.
+
+    There is an optional argument "input", allowing you to
+    pass bytes or a string to the subprocess's stdin.  If you use this argument
+    you may not also use the Popen constructor's "stdin" argument, as
+    it will be used internally.
+
+    By default, all communication is in bytes, and therefore any "input" should
+    be bytes, and the stdout and stderr will be bytes. If in text mode, any
+    "input" should be a string, and stdout and stderr will be strings decoded
+    according to locale encoding, or by "encoding" if set. Text mode is
+    triggered by setting any of text, encoding, errors or universal_newlines.
+
+    The other arguments are the same as for the Popen constructor.
+    """
+    if input is not None:
+        if kwargs.get('stdin') is not None:
+            raise ValueError('stdin and input arguments may not both be used.')
+        kwargs['stdin'] = PIPE
+
+    if capture_output:
+        if kwargs.get('stdout') is not None or kwargs.get('stderr') is not None:
+            raise ValueError('stdout and stderr arguments may not be used '
+                             'with capture_output.')
+        kwargs['stdout'] = PIPE
+        kwargs['stderr'] = PIPE
+
+    with Popen(*popenargs, **kwargs) as process:
+        try:
+            stdout, stderr = process.communicate(input, timeout=timeout)
+        except TimeoutExpired as exc:
+            process.kill()
+            if _mswindows:
+                # Windows accumulates the output in a single blocking
+                # read() call run on child threads, with the timeout
+                # being done in a join() on those threads.  communicate()
+                # _after_ kill() is required to collect that and add it
+                # to the exception.
+                exc.stdout, exc.stderr = process.communicate()
+            else:
+                # POSIX _communicate already populated the output so
+                # far into the TimeoutExpired exception.
+                process.wait()
+            raise
+        except:  # Including KeyboardInterrupt, communicate handled that.
+            process.kill()
+            # We don't call process.wait() as .__exit__ does that for us.
+            raise
+        retcode = process.poll()
+        if check and retcode:
+            raise CalledProcessError(retcode, process.args,
+                                     output=stdout, stderr=stderr)
+    return CompletedProcess(process.args, retcode, stdout, stderr)
+
+
+def list2cmdline(seq):
+    """
+    Translate a sequence of arguments into a command line
+    string, using the same rules as the MS C runtime:
+
+    1) Arguments are delimited by white space, which is either a
+       space or a tab.
+
+    2) A string surrounded by double quotation marks is
+       interpreted as a single argument, regardless of white space
+       contained within.  A quoted string can be embedded in an
+       argument.
+
+    3) A double quotation mark preceded by a backslash is
+       interpreted as a literal double quotation mark.
+
+    4) Backslashes are interpreted literally, unless they
+       immediately precede a double quotation mark.
+
+    5) If backslashes immediately precede a double quotation mark,
+       every pair of backslashes is interpreted as a literal
+       backslash.  If the number of backslashes is odd, the last
+       backslash escapes the next double quotation mark as
+       described in rule 3.
+    """
+
+    # See
+    # http://msdn.microsoft.com/en-us/library/17w5ykft.aspx
+    # or search http://msdn.microsoft.com for
+    # "Parsing C++ Command-Line Arguments"
+    result = []
+    needquote = False
+    for arg in map(os.fsdecode, seq):
+        bs_buf = []
+
+        # Add a space to separate this argument from the others
+        if result:
+            result.append(' ')
+
+        needquote = (" " in arg) or ("\t" in arg) or not arg
+        if needquote:
+            result.append('"')
+
+        for c in arg:
+            if c == '\\':
+                # Don't know if we need to double yet.
+                bs_buf.append(c)
+            elif c == '"':
+                # Double backslashes.
+                result.append('\\' * len(bs_buf)*2)
+                bs_buf = []
+                result.append('\\"')
+            else:
+                # Normal char
+                if bs_buf:
+                    result.extend(bs_buf)
+                    bs_buf = []
+                result.append(c)
+
+        # Add remaining backslashes, if any.
+        if bs_buf:
+            result.extend(bs_buf)
+
+        if needquote:
+            result.extend(bs_buf)
+            result.append('"')
+
+    return ''.join(result)
+
+
+# Various tools for executing commands and looking at their output and status.
+#
+
+def getstatusoutput(cmd, *, encoding=None, errors=None):
+    """Return (exitcode, output) of executing cmd in a shell.
+
+    Execute the string 'cmd' in a shell with 'check_output' and
+    return a 2-tuple (status, output). The locale encoding is used
+    to decode the output and process newlines.
+
+    A trailing newline is stripped from the output.
+    The exit status for the command can be interpreted
+    according to the rules for the function 'wait'. Example:
+
+    >>> import subprocess
+    >>> subprocess.getstatusoutput('ls /bin/ls')
+    (0, '/bin/ls')
+    >>> subprocess.getstatusoutput('cat /bin/junk')
+    (1, 'cat: /bin/junk: No such file or directory')
+    >>> subprocess.getstatusoutput('/bin/junk')
+    (127, 'sh: /bin/junk: not found')
+    >>> subprocess.getstatusoutput('/bin/kill $$')
+    (-15, '')
+    """
+    try:
+        data = check_output(cmd, shell=True, text=True, stderr=STDOUT,
+                            encoding=encoding, errors=errors)
+        exitcode = 0
+    except CalledProcessError as ex:
+        data = ex.output
+        exitcode = ex.returncode
+    if data[-1:] == '\n':
+        data = data[:-1]
+    return exitcode, data
+
+def getoutput(cmd, *, encoding=None, errors=None):
+    """Return output (stdout or stderr) of executing cmd in a shell.
+
+    Like getstatusoutput(), except the exit status is ignored and the return
+    value is a string containing the command's output.  Example:
+
+    >>> import subprocess
+    >>> subprocess.getoutput('ls /bin/ls')
+    '/bin/ls'
+    """
+    return getstatusoutput(cmd, encoding=encoding, errors=errors)[1]
+
+
+
+def _use_posix_spawn():
+    """Check if posix_spawn() can be used for subprocess.
+
+    subprocess requires a posix_spawn() implementation that properly reports
+    errors to the parent process, & sets errno on the following failures:
+
+    * Process attribute actions failed.
+    * File actions failed.
+    * exec() failed.
+
+    Prefer an implementation which can use vfork() in some cases for best
+    performance.
+    """
+    if _mswindows or not hasattr(os, 'posix_spawn'):
+        # os.posix_spawn() is not available
+        return False
+
+    if ((_env := os.environ.get('_PYTHON_SUBPROCESS_USE_POSIX_SPAWN')) in ('0', '1')):
+        return bool(int(_env))
+
+    if sys.platform in ('darwin', 'sunos5'):
+        # posix_spawn() is a syscall on both macOS and Solaris,
+        # and properly reports errors
+        return True
+
+    # Check libc name and runtime libc version
+    try:
+        ver = os.confstr('CS_GNU_LIBC_VERSION')
+        # parse 'glibc 2.28' as ('glibc', (2, 28))
+        parts = ver.split(maxsplit=1)
+        if len(parts) != 2:
+            # reject unknown format
+            raise ValueError
+        libc = parts[0]
+        version = tuple(map(int, parts[1].split('.')))
+
+        if sys.platform == 'linux' and libc == 'glibc' and version >= (2, 24):
+            # glibc 2.24 has a new Linux posix_spawn implementation using vfork
+            # which properly reports errors to the parent process.
+            return True
+        # Note: Don't use the implementation in earlier glibc because it doesn't
+        # use vfork (even if glibc 2.26 added a pipe to properly report errors
+        # to the parent process).
+    except (AttributeError, ValueError, OSError):
+        # os.confstr() or CS_GNU_LIBC_VERSION value not available
+        pass
+
+    # By default, assume that posix_spawn() does not properly report errors.
+    return False
+
+
+# These are primarily fail-safe knobs for negatives. A True value does not
+# guarantee the given libc/syscall API will be used.
+_USE_POSIX_SPAWN = _use_posix_spawn()
+_USE_VFORK = True
+_HAVE_POSIX_SPAWN_CLOSEFROM = hasattr(os, 'POSIX_SPAWN_CLOSEFROM')
+
+
+class Popen:
+    """ Execute a child program in a new process.
+
+    For a complete description of the arguments see the Python documentation.
+
+    Arguments:
+      args: A string, or a sequence of program arguments.
+
+      bufsize: supplied as the buffering argument to the open() function when
+          creating the stdin/stdout/stderr pipe file objects
+
+      executable: A replacement program to execute.
+
+      stdin, stdout and stderr: These specify the executed programs' standard
+          input, standard output and standard error file handles, respectively.
+
+      preexec_fn: (POSIX only) An object to be called in the child process
+          just before the child is executed.
+
+      close_fds: Controls closing or inheriting of file descriptors.
+
+      shell: If true, the command will be executed through the shell.
+
+      cwd: Sets the current directory before the child is executed.
+
+      env: Defines the environment variables for the new process.
+
+      text: If true, decode stdin, stdout and stderr using the given encoding
+          (if set) or the system default otherwise.
+
+      universal_newlines: Alias of text, provided for backwards compatibility.
+
+      startupinfo and creationflags (Windows only)
+
+      restore_signals (POSIX only)
+
+      start_new_session (POSIX only)
+
+      process_group (POSIX only)
+
+      group (POSIX only)
+
+      extra_groups (POSIX only)
+
+      user (POSIX only)
+
+      umask (POSIX only)
+
+      pass_fds (POSIX only)
+
+      encoding and errors: Text mode encoding and error handling to use for
+          file objects stdin, stdout and stderr.
+
+    Attributes:
+        stdin, stdout, stderr, pid, returncode
+    """
+    _child_created = False  # Set here since __del__ checks it
+
+    def __init__(self, args, bufsize=-1, executable=None,
+                 stdin=None, stdout=None, stderr=None,
+                 preexec_fn=None, close_fds=True,
+                 shell=False, cwd=None, env=None, universal_newlines=None,
+                 startupinfo=None, creationflags=0,
+                 restore_signals=True, start_new_session=False,
+                 pass_fds=(), *, user=None, group=None, extra_groups=None,
+                 encoding=None, errors=None, text=None, umask=-1, pipesize=-1,
+                 process_group=None):
+        """Create new Popen instance."""
+        if not _can_fork_exec:
+            raise OSError(
+                errno.ENOTSUP, f"{sys.platform} does not support processes."
+            )
+
+        _cleanup()
+        # Held while anything is calling waitpid before returncode has been
+        # updated to prevent clobbering returncode if wait() or poll() are
+        # called from multiple threads at once.  After acquiring the lock,
+        # code must re-check self.returncode to see if another thread just
+        # finished a waitpid() call.
+        self._waitpid_lock = threading.Lock()
+
+        self._input = None
+        self._communication_started = False
+        if bufsize is None:
+            bufsize = -1  # Restore default
+        if not isinstance(bufsize, int):
+            raise TypeError("bufsize must be an integer")
+
+        if stdout is STDOUT:
+            raise ValueError("STDOUT can only be used for stderr")
+
+        if pipesize is None:
+            pipesize = -1  # Restore default
+        if not isinstance(pipesize, int):
+            raise TypeError("pipesize must be an integer")
+
+        if _mswindows:
+            if preexec_fn is not None:
+                raise ValueError("preexec_fn is not supported on Windows "
+                                 "platforms")
+        else:
+            # POSIX
+            if pass_fds and not close_fds:
+                warnings.warn("pass_fds overriding close_fds.", RuntimeWarning)
+                close_fds = True
+            if startupinfo is not None:
+                raise ValueError("startupinfo is only supported on Windows "
+                                 "platforms")
+            if creationflags != 0:
+                raise ValueError("creationflags is only supported on Windows "
+                                 "platforms")
+
+        self.args = args
+        self.stdin = None
+        self.stdout = None
+        self.stderr = None
+        self.pid = None
+        self.returncode = None
+        self.encoding = encoding
+        self.errors = errors
+        self.pipesize = pipesize
+
+        # Validate the combinations of text and universal_newlines
+        if (text is not None and universal_newlines is not None
+            and bool(universal_newlines) != bool(text)):
+            raise SubprocessError('Cannot disambiguate when both text '
+                                  'and universal_newlines are supplied but '
+                                  'different. Pass one or the other.')
+
+        self.text_mode = encoding or errors or text or universal_newlines
+        if self.text_mode and encoding is None:
+            self.encoding = encoding = _text_encoding()
+
+        # How long to resume waiting on a child after the first ^C.
+        # There is no right value for this.  The purpose is to be polite
+        # yet remain good for interactive users trying to exit a tool.
+        self._sigint_wait_secs = 0.25  # 1/xkcd221.getRandomNumber()
+
+        self._closed_child_pipe_fds = False
+
+        if self.text_mode:
+            if bufsize == 1:
+                line_buffering = True
+                # Use the default buffer size for the underlying binary streams
+                # since they don't support line buffering.
+                bufsize = -1
+            else:
+                line_buffering = False
+
+        if process_group is None:
+            process_group = -1  # The internal APIs are int-only
+
+        gid = None
+        if group is not None:
+            if not hasattr(os, 'setregid'):
+                raise ValueError("The 'group' parameter is not supported on the "
+                                 "current platform")
+
+            elif isinstance(group, str):
+                try:
+                    import grp
+                except ImportError:
+                    raise ValueError("The group parameter cannot be a string "
+                                     "on systems without the grp module")
+
+                gid = grp.getgrnam(group).gr_gid
+            elif isinstance(group, int):
+                gid = group
+            else:
+                raise TypeError("Group must be a string or an integer, not {}"
+                                .format(type(group)))
+
+            if gid < 0:
+                raise ValueError(f"Group ID cannot be negative, got {gid}")
+
+        gids = None
+        if extra_groups is not None:
+            if not hasattr(os, 'setgroups'):
+                raise ValueError("The 'extra_groups' parameter is not "
+                                 "supported on the current platform")
+
+            elif isinstance(extra_groups, str):
+                raise ValueError("Groups must be a list, not a string")
+
+            gids = []
+            for extra_group in extra_groups:
+                if isinstance(extra_group, str):
+                    try:
+                        import grp
+                    except ImportError:
+                        raise ValueError("Items in extra_groups cannot be "
+                                         "strings on systems without the "
+                                         "grp module")
+
+                    gids.append(grp.getgrnam(extra_group).gr_gid)
+                elif isinstance(extra_group, int):
+                    gids.append(extra_group)
+                else:
+                    raise TypeError("Items in extra_groups must be a string "
+                                    "or integer, not {}"
+                                    .format(type(extra_group)))
+
+            # make sure that the gids are all positive here so we can do less
+            # checking in the C code
+            for gid_check in gids:
+                if gid_check < 0:
+                    raise ValueError(f"Group ID cannot be negative, got {gid_check}")
+
+        uid = None
+        if user is not None:
+            if not hasattr(os, 'setreuid'):
+                raise ValueError("The 'user' parameter is not supported on "
+                                 "the current platform")
+
+            elif isinstance(user, str):
+                try:
+                    import pwd
+                except ImportError:
+                    raise ValueError("The user parameter cannot be a string "
+                                     "on systems without the pwd module")
+                uid = pwd.getpwnam(user).pw_uid
+            elif isinstance(user, int):
+                uid = user
+            else:
+                raise TypeError("User must be a string or an integer")
+
+            if uid < 0:
+                raise ValueError(f"User ID cannot be negative, got {uid}")
+
+        # Input and output objects. The general principle is like
+        # this:
+        #
+        # Parent                   Child
+        # ------                   -----
+        # p2cwrite   ---stdin--->  p2cread
+        # c2pread    <--stdout---  c2pwrite
+        # errread    <--stderr---  errwrite
+        #
+        # On POSIX, the child objects are file descriptors.  On
+        # Windows, these are Windows file handles.  The parent objects
+        # are file descriptors on both platforms.  The parent objects
+        # are -1 when not using PIPEs. The child objects are -1
+        # when not redirecting.
+
+        (p2cread, p2cwrite,
+         c2pread, c2pwrite,
+         errread, errwrite) = self._get_handles(stdin, stdout, stderr)
+
+        # From here on, raising exceptions may cause file descriptor leakage
+
+        # We wrap OS handles *before* launching the child, otherwise a
+        # quickly terminating child could make our fds unwrappable
+        # (see #8458).
+
+        if _mswindows:
+            if p2cwrite != -1:
+                p2cwrite = msvcrt.open_osfhandle(p2cwrite.Detach(), 0)
+            if c2pread != -1:
+                c2pread = msvcrt.open_osfhandle(c2pread.Detach(), 0)
+            if errread != -1:
+                errread = msvcrt.open_osfhandle(errread.Detach(), 0)
+
+        try:
+            if p2cwrite != -1:
+                self.stdin = io.open(p2cwrite, 'wb', bufsize)
+                if self.text_mode:
+                    self.stdin = io.TextIOWrapper(self.stdin, write_through=True,
+                            line_buffering=line_buffering,
+                            encoding=encoding, errors=errors)
+            if c2pread != -1:
+                self.stdout = io.open(c2pread, 'rb', bufsize)
+                if self.text_mode:
+                    self.stdout = io.TextIOWrapper(self.stdout,
+                            encoding=encoding, errors=errors)
+            if errread != -1:
+                self.stderr = io.open(errread, 'rb', bufsize)
+                if self.text_mode:
+                    self.stderr = io.TextIOWrapper(self.stderr,
+                            encoding=encoding, errors=errors)
+
+            self._execute_child(args, executable, preexec_fn, close_fds,
+                                pass_fds, cwd, env,
+                                startupinfo, creationflags, shell,
+                                p2cread, p2cwrite,
+                                c2pread, c2pwrite,
+                                errread, errwrite,
+                                restore_signals,
+                                gid, gids, uid, umask,
+                                start_new_session, process_group)
+        except:
+            # Cleanup if the child failed starting.
+            for f in filter(None, (self.stdin, self.stdout, self.stderr)):
+                try:
+                    f.close()
+                except OSError:
+                    pass  # Ignore EBADF or other errors.
+
+            if not self._closed_child_pipe_fds:
+                to_close = []
+                if stdin == PIPE:
+                    to_close.append(p2cread)
+                if stdout == PIPE:
+                    to_close.append(c2pwrite)
+                if stderr == PIPE:
+                    to_close.append(errwrite)
+                if hasattr(self, '_devnull'):
+                    to_close.append(self._devnull)
+                for fd in to_close:
+                    try:
+                        if _mswindows and isinstance(fd, Handle):
+                            fd.Close()
+                        else:
+                            os.close(fd)
+                    except OSError:
+                        pass
+
+            raise
+
+    def __repr__(self):
+        obj_repr = (
+            f"<{self.__class__.__name__}: "
+            f"returncode: {self.returncode} args: {self.args!r}>"
+        )
+        if len(obj_repr) > 80:
+            obj_repr = obj_repr[:76] + "...>"
+        return obj_repr
+
+    __class_getitem__ = classmethod(types.GenericAlias)
+
+    @property
+    def universal_newlines(self):
+        # universal_newlines as retained as an alias of text_mode for API
+        # compatibility. bpo-31756
+        return self.text_mode
+
+    @universal_newlines.setter
+    def universal_newlines(self, universal_newlines):
+        self.text_mode = bool(universal_newlines)
+
+    def _translate_newlines(self, data, encoding, errors):
+        data = data.decode(encoding, errors)
+        return data.replace("\r\n", "\n").replace("\r", "\n")
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, value, traceback):
+        if self.stdout:
+            self.stdout.close()
+        if self.stderr:
+            self.stderr.close()
+        try:  # Flushing a BufferedWriter may raise an error
+            if self.stdin:
+                self.stdin.close()
+        finally:
+            if exc_type == KeyboardInterrupt:
+                # https://bugs.python.org/issue25942
+                # In the case of a KeyboardInterrupt we assume the SIGINT
+                # was also already sent to our child processes.  We can't
+                # block indefinitely as that is not user friendly.
+                # If we have not already waited a brief amount of time in
+                # an interrupted .wait() or .communicate() call, do so here
+                # for consistency.
+                if self._sigint_wait_secs > 0:
+                    try:
+                      

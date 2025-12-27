@@ -1,0 +1,3267 @@
+# help..txt -  GnuPG online help
+# Copyright (C) 2007 Free Software Foundation, Inc.
+#
+# This file is part of GnuPG.
+#
+# GnuPG is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+# 
+# GnuPG is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, see <https://www.gnu.org/licenses/>.
+
+
+.#gpg.edit_ownertrust.value
+# fixme: Please translate and remove the hash mark from the key line.
+It's up to you to assign a value here; this value will never be exported
+to any 3rd party.  We need it to implement the web-of-trust; it has nothing
+to do with the (implicitly created) web-of-certificates.
+.
+
+.#gpg.edit_ownertrust.set_ultimate.okay
+# fixme: Please translate and remove the hash mark from the key line.
+To build the Web-of-Trust, GnuPG needs to know which keys are
+ultimately trusted - those are usually the keys for which you have
+access to the secret key.  Answer "yes" to set this key to
+ultimately trusted
+
+.
+
+.#gpg.untrusted_key.override
+# fixme: Please translate and remove the hash mark from the key line.
+If you want to use this untrusted key anyway, answer "yes".
+.
+
+.#gpg.pklist.user_id.enter
+# fixme: Please translate and remove the hash mark from the key line.
+Enter the user ID of the addressee to whom you want to send the message.
+.
+
+.#gpg.keygen.algo
+# fixme: Please translate and remove the hash mark from the key line.
+Select the algorithm to use.
+
+DSA (aka DSS) is the Digital Signature Algorithm and can only be used
+for signatures.
+
+Elgamal is an encrypt-only algorithm.
+
+RSA may be used for signatures or encryption.
+
+The first (primary) key must always be a key which is capable of signing.
+.
+
+.#gpg.keygen.algo.rsa_se
+# fixme: Please translate and remove the hash mark from the key line.
+In general it is not a good idea to use the same key for signing and
+encryption.  This algorithm should only be used in certain domains.
+Please consult your security expert first.
+.
+
+.#gpg.keygen.size
+# fixme: Please translate and remove the hash mark from the key line.
+Enter the size of the key
+.
+
+.#gpg.keygen.size.huge.okay
+# fixme: Please translate and remove the hash mark from the key line.
+Answer "yes" or "no"
+.
+
+.#gpg.keygen.size.large.okay
+# fixme: Please translate and remove the hash mark from the key line.
+Answer "yes" or "no"
+.
+
+.#gpg.keygen.valid
+# fixme: Please translate and remove the hash mark from the key line.
+Enter the required value as shown in the prompt.
+It is possible to enter a ISO date (YYYY-MM-DD) but you won't
+get a good error response - instead the system tries to interpret
+the given value as an interval.
+.
+
+.#gpg.keygen.valid.okay
+# fixme: Please translate and remove the hash mark from the key line.
+Answer "yes" or "no"
+.
+
+.#gpg.keygen.name
+# fixme: Please translate and remove the hash mark from the key line.
+Enter the name of the key holder
+.
+
+.#gpg.keygen.email
+# fixme: Please translate and remove the hash mark from the key line.
+please enter an optional but highly suggested email address
+.
+
+.#gpg.keygen.comment
+# fixme: Please translate and remove the hash mark from the key line.
+Please enter an optional comment
+.
+
+.#gpg.keygen.userid.cmd
+# fixme: Please translate and remove the hash mark from the key line.
+N  to change the name.
+C  to change the comment.
+E  to change the email address.
+O  to continue with key generation.
+Q  to to quit the key generation.
+.
+
+.#gpg.keygen.sub.okay
+# fixme: Please translate and remove the hash mark from the key line.
+Answer "yes" (or just "y") if it is okay to generate the sub key.
+.
+
+.#gpg.sign_uid.okay
+# fixme: Please translate and remove the hash mark from the key line.
+Answer "yes" or "no"
+.
+
+.#gpg.sign_uid.class
+# fixme: Please translate and remove the hash mark from the key line.
+When you sign a user ID on a key, you should first verify that the key
+belongs to the person named in the user ID.  It is useful for others to
+know how carefully you verified this.
+
+"0" means you make no particular claim as to how carefully you verified the
+    key.
+
+"1" means you believe the key is owned by the person who claims to own it
+    but you could not, or did not verify the key at all.  This is useful for
+    a "persona" verification, where you sign the key of a pseudonymous user.
+
+"2" means you did casual verification of the key.  For example, this could
+    mean that you verified the key fingerprint and checked the user ID on the
+    key against a photo ID.
+
+"3" means you did extensive verification of the key.  For example, this could
+    mean that you verified the key fingerprint with the owner of the key in
+    person, and that you checked, by means of a hard to forge document with a
+    photo ID (such as a passport) that the name of the key owner matches the
+    name in the user ID on the key, and finally that you verified (by exchange
+    of email) that the email address on the key belongs to the key owner.
+
+Note that the examples given above for levels 2 and 3 are *only* examples.
+In the end, it is up to you to decide just what "casual" and "extensive"
+mean to you when you sign other keys.
+
+If you don't know what the right answer is, answer "0".
+.
+
+.#gpg.change_passwd.empty.okay
+# fixme: Please translate and remove the hash mark from the key line.
+Answer "yes" or "no"
+.
+
+.#gpg.keyedit.save.okay
+# fixme: Please translate and remove the hash mark from the key line.
+Answer "yes" or "no"
+.
+
+.#gpg.keyedit.cancel.okay
+# fixme: Please translate and remove the hash mark from the key line.
+Answer "yes" or "no"
+.
+
+.#gpg.keyedit.sign_all.okay
+# fixme: Please translate and remove the hash mark from the key line.
+Answer "yes" if you want to sign ALL the user IDs
+.
+
+.#gpg.keyedit.remove.uid.okay
+# fixme: Please translate and remove the hash mark from the key line.
+Answer "yes" if you really want to delete this user ID.
+All certificates are then also lost!
+.
+
+.#gpg.keyedit.remove.subkey.okay
+# fixme: Please translate and remove the hash mark from the key line.
+Answer "yes" if it is okay to delete the subkey
+.
+
+.#gpg.keyedit.delsig.valid
+# fixme: Please translate and remove the hash mark from the key line.
+This is a valid signature on the key; you normally don't want
+to delete this signature because it may be important to establish a
+trust connection to the key or another key certified by this key.
+.
+
+.#gpg.keyedit.delsig.unknown
+# fixme: Please translate and remove the hash mark from the key line.
+This signature can't be checked because you don't have the
+corresponding key.  You should postpone its deletion until you
+know which key was used because this signing key might establish
+a trust connection through another already certified key.
+.
+
+.#gpg.keyedit.delsig.invalid
+# fixme: Please translate and remove the hash mark from the key line.
+The signature is not valid.  It does make sense to remove it from
+your keyring.
+.
+
+.#gpg.keyedit.delsig.selfsig
+# fixme: Please translate and remove the hash mark from the key line.
+This is a signature which binds the user ID to the key. It is
+usually not a good idea to remove such a signature.  Actually
+GnuPG might not be able to use this key anymore.  So do this
+only if this self-signature is for some reason not valid and
+a second one is available.
+.
+
+.#gpg.keyedit.updpref.okay
+# fixme: Please translate and remove the hash mark from the key line.
+Change the preferences of all user IDs (or just of the selected ones)
+to the current list of preferences.  The timestamp of all affected
+self-signatures will be advanced by one second.
+
+.
+
+.#gpg.passphrase.enter
+# fixme: Please translate and remove the hash mark from the key line.
+Please enter the passphrase; this is a secret sentence
+
+.
+
+.#gpg.passphrase.repeat
+# fixme: Please translate and remove the hash mark from the key line.
+Please repeat the last passphrase, so you are sure what you typed in.
+.
+
+.#gpg.detached_signature.filename
+# fixme: Please translate and remove the hash mark from the key line.
+Give the name of the file to which the signature applies
+.
+
+.#gpg.openfile.overwrite.okay
+# fixme: Please translate and remove the hash mark from the key line.
+Answer "yes" if it is okay to overwrite the file
+.
+
+.#gpg.openfile.askoutname
+# fixme: Please translate and remove the hash mark from the key line.
+Please enter a new filename. If you just hit RETURN the default
+file (which is shown in brackets) will be used.
+.
+
+.#gpg.ask_revocation_reason.code
+# fixme: Please translate and remove the hash mark from the key line.
+You should specify a reason for the certification.  Depending on the
+context you have the ability to choose from this list:
+  "Key has been compromised"
+      Use this if you have a reason to believe that unauthorized persons
+      got access to your secret key.
+  "Key is superseded"
+      Use this if you have replaced this key with a newer one.
+  "Key is no longer used"
+      Use this if you have retired this key.
+  "User ID is no longer valid"
+      Use this to state that the user ID should not longer be used;
+      this is normally used to mark an email address invalid.
+
+.
+
+.#gpg.ask_revocation_reason.text
+# fixme: Please translate and remove the hash mark from the key line.
+If you like, you can enter a text describing why you issue this
+revocation certificate.  Please keep this text concise.
+An empty line ends the text.
+
+.
+
+
+
+# Local variables:
+# mode: fundamental
+# coding: utf-8
+# End:
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   # help..txt -  GnuPG online help
+# Copyright (C) 2007 Free Software Foundation, Inc.
+#
+# This file is part of GnuPG.
+#
+# GnuPG is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+# 
+# GnuPG is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, see <https://www.gnu.org/licenses/>.
+
+
+.#gpg.edit_ownertrust.value
+# fixme: Please translate and remove the hash mark from the key line.
+It's up to you to assign a value here; this value will never be exported
+to any 3rd party.  We need it to implement the web-of-trust; it has nothing
+to do with the (implicitly created) web-of-certificates.
+.
+
+.#gpg.edit_ownertrust.set_ultimate.okay
+# fixme: Please translate and remove the hash mark from the key line.
+To build the Web-of-Trust, GnuPG needs to know which keys are
+ultimately trusted - those are usually the keys for which you have
+access to the secret key.  Answer "yes" to set this key to
+ultimately trusted
+
+.
+
+.#gpg.untrusted_key.override
+# fixme: Please translate and remove the hash mark from the key line.
+If you want to use this untrusted key anyway, answer "yes".
+.
+
+.#gpg.pklist.user_id.enter
+# fixme: Please translate and remove the hash mark from the key line.
+Enter the user ID of the addressee to whom you want to send the message.
+.
+
+.#gpg.keygen.algo
+# fixme: Please translate and remove the hash mark from the key line.
+Select the algorithm to use.
+
+DSA (aka DSS) is the Digital Signature Algorithm and can only be used
+for signatures.
+
+Elgamal is an encrypt-only algorithm.
+
+RSA may be used for signatures or encryption.
+
+The first (primary) key must always be a key which is capable of signing.
+.
+
+.#gpg.keygen.algo.rsa_se
+# fixme: Please translate and remove the hash mark from the key line.
+In general it is not a good idea to use the same key for signing and
+encryption.  This algorithm should only be used in certain domains.
+Please consult your security expert first.
+.
+
+.#gpg.keygen.size
+# fixme: Please translate and remove the hash mark from the key line.
+Enter the size of the key
+.
+
+.#gpg.keygen.size.huge.okay
+# fixme: Please translate and remove the hash mark from the key line.
+Answer "yes" or "no"
+.
+
+.#gpg.keygen.size.large.okay
+# fixme: Please translate and remove the hash mark from the key line.
+Answer "yes" or "no"
+.
+
+.#gpg.keygen.valid
+# fixme: Please translate and remove the hash mark from the key line.
+Enter the required value as shown in the prompt.
+It is possible to enter a ISO date (YYYY-MM-DD) but you won't
+get a good error response - instead the system tries to interpret
+the given value as an interval.
+.
+
+.#gpg.keygen.valid.okay
+# fixme: Please translate and remove the hash mark from the key line.
+Answer "yes" or "no"
+.
+
+.#gpg.keygen.name
+# fixme: Please translate and remove the hash mark from the key line.
+Enter the name of the key holder
+.
+
+.#gpg.keygen.email
+# fixme: Please translate and remove the hash mark from the key line.
+please enter an optional but highly suggested email address
+.
+
+.#gpg.keygen.comment
+# fixme: Please translate and remove the hash mark from the key line.
+Please enter an optional comment
+.
+
+.#gpg.keygen.userid.cmd
+# fixme: Please translate and remove the hash mark from the key line.
+N  to change the name.
+C  to change the comment.
+E  to change the email address.
+O  to continue with key generation.
+Q  to to quit the key generation.
+.
+
+.#gpg.keygen.sub.okay
+# fixme: Please translate and remove the hash mark from the key line.
+Answer "yes" (or just "y") if it is okay to generate the sub key.
+.
+
+.#gpg.sign_uid.okay
+# fixme: Please translate and remove the hash mark from the key line.
+Answer "yes" or "no"
+.
+
+.#gpg.sign_uid.class
+# fixme: Please translate and remove the hash mark from the key line.
+When you sign a user ID on a key, you should first verify that the key
+belongs to the person named in the user ID.  It is useful for others to
+know how carefully you verified this.
+
+"0" means you make no particular claim as to how carefully you verified the
+    key.
+
+"1" means you believe the key is owned by the person who claims to own it
+    but you could not, or did not verify the key at all.  This is useful for
+    a "persona" verification, where you sign the key of a pseudonymous user.
+
+"2" means you did casual verification of the key.  For example, this could
+    mean that you verified the key fingerprint and checked the user ID on the
+    key against a photo ID.
+
+"3" means you did extensive verification of the key.  For example, this could
+    mean that you verified the key fingerprint with the owner of the key in
+    person, and that you checked, by means of a hard to forge document with a
+    photo ID (such as a passport) that the name of the key owner matches the
+    name in the user ID on the key, and finally that you verified (by exchange
+    of email) that the email address on the key belongs to the key owner.
+
+Note that the examples given above for levels 2 and 3 are *only* examples.
+In the end, it is up to you to decide just what "casual" and "extensive"
+mean to you when you sign other keys.
+
+If you don't know what the right answer is, answer "0".
+.
+
+.#gpg.change_passwd.empty.okay
+# fixme: Please translate and remove the hash mark from the key line.
+Answer "yes" or "no"
+.
+
+.#gpg.keyedit.save.okay
+# fixme: Please translate and remove the hash mark from the key line.
+Answer "yes" or "no"
+.
+
+.#gpg.keyedit.cancel.okay
+# fixme: Please translate and remove the hash mark from the key line.
+Answer "yes" or "no"
+.
+
+.#gpg.keyedit.sign_all.okay
+# fixme: Please translate and remove the hash mark from the key line.
+Answer "yes" if you want to sign ALL the user IDs
+.
+
+.#gpg.keyedit.remove.uid.okay
+# fixme: Please translate and remove the hash mark from the key line.
+Answer "yes" if you really want to delete this user ID.
+All certificates are then also lost!
+.
+
+.#gpg.keyedit.remove.subkey.okay
+# fixme: Please translate and remove the hash mark from the key line.
+Answer "yes" if it is okay to delete the subkey
+.
+
+.#gpg.keyedit.delsig.valid
+# fixme: Please translate and remove the hash mark from the key line.
+This is a valid signature on the key; you normally don't want
+to delete this signature because it may be important to establish a
+trust connection to the key or another key certified by this key.
+.
+
+.#gpg.keyedit.delsig.unknown
+# fixme: Please translate and remove the hash mark from the key line.
+This signature can't be checked because you don't have the
+corresponding key.  You should postpone its deletion until you
+know which key was used because this signing key might establish
+a trust connection through another already certified key.
+.
+
+.#gpg.keyedit.delsig.invalid
+# fixme: Please translate and remove the hash mark from the key line.
+The signature is not valid.  It does make sense to remove it from
+your keyring.
+.
+
+.#gpg.keyedit.delsig.selfsig
+# fixme: Please translate and remove the hash mark from the key line.
+This is a signature which binds the user ID to the key. It is
+usually not a good idea to remove such a signature.  Actually
+GnuPG might not be able to use this key anymore.  So do this
+only if this self-signature is for some reason not valid and
+a second one is available.
+.
+
+.#gpg.keyedit.updpref.okay
+# fixme: Please translate and remove the hash mark from the key line.
+Change the preferences of all user IDs (or just of the selected ones)
+to the current list of preferences.  The timestamp of all affected
+self-signatures will be advanced by one second.
+
+.
+
+.#gpg.passphrase.enter
+# fixme: Please translate and remove the hash mark from the key line.
+Please enter the passphrase; this is a secret sentence
+
+.
+
+.#gpg.passphrase.repeat
+# fixme: Please translate and remove the hash mark from the key line.
+Please repeat the last passphrase, so you are sure what you typed in.
+.
+
+.#gpg.detached_signature.filename
+# fixme: Please translate and remove the hash mark from the key line.
+Give the name of the file to which the signature applies
+.
+
+.#gpg.openfile.overwrite.okay
+# fixme: Please translate and remove the hash mark from the key line.
+Answer "yes" if it is okay to overwrite the file
+.
+
+.#gpg.openfile.askoutname
+# fixme: Please translate and remove the hash mark from the key line.
+Please enter a new filename. If you just hit RETURN the default
+file (which is shown in brackets) will be used.
+.
+
+.#gpg.ask_revocation_reason.code
+# fixme: Please translate and remove the hash mark from the key line.
+You should specify a reason for the certification.  Depending on the
+context you have the ability to choose from this list:
+  "Key has been compromised"
+      Use this if you have a reason to believe that unauthorized persons
+      got access to your secret key.
+  "Key is superseded"
+      Use this if you have replaced this key with a newer one.
+  "Key is no longer used"
+      Use this if you have retired this key.
+  "User ID is no longer valid"
+      Use this to state that the user ID should not longer be used;
+      this is normally used to mark an email address invalid.
+
+.
+
+.#gpg.ask_revocation_reason.text
+# fixme: Please translate and remove the hash mark from the key line.
+If you like, you can enter a text describing why you issue this
+revocation certificate.  Please keep this text concise.
+An empty line ends the text.
+
+.
+
+
+
+# Local variables:
+# mode: fundamental
+# coding: utf-8
+# End:
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   # help.de.txt - German GnuPG online help
+# Copyright (C) 2007 Free Software Foundation, Inc.
+#
+# This file is part of GnuPG.
+#
+# GnuPG is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+#
+# GnuPG is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, see <https://www.gnu.org/licenses/>.
+
+
+# Die Datei help.txt beschreibt das verwendete Format.
+# Diese Datei muß UTF-8 kodiert sein.
+
+
+.#pinentry.qualitybar.tooltip
+# Dies ist lediglich eine kommentiertes Beispiel.  Es ist am sinnvolssten
+# einen individuellen Text in /etc/gnupg/help.de.txt zu erstellen.
+Die Qualität der Passphrase, die Sie oben eingegeben haben.  Bitte
+fragen sie Ihren Systembeauftragten nach den Kriterien für die Messung
+der Qualität.
+.
+
+
+
+
+.gpg.edit_ownertrust.value
+Sie müssen selbst entscheiden, welchen Wert Sie hier eintragen; dieser Wert
+wird niemals an eine dritte Seite weitergegeben.  Wir brauchen diesen Wert,
+um das "Netz des Vertrauens" aufzubauen.  Dieses hat nichts mit dem
+(implizit erzeugten) "Netz der Zertifikate" zu tun.
+.
+
+.gpg.edit_ownertrust.set_ultimate.okay
+Um das Web-of-Trust aufzubauen muß GnuPG wissen, welchen Schlüsseln
+ultimativ vertraut wird. Das sind üblicherweise die Schlüssel
+auf deren geheimen Schlüssel Sie Zugruff haben.
+Antworten Sie mit "yes" um diesen Schlüssel ultimativ zu vertrauen
+
+.
+
+.gpg.untrusted_key.override
+Wenn Sie diesen nicht vertrauenswürdigen Schlüssel trotzdem benutzen wollen,
+so antworten Sie mit "ja".
+.
+
+.gpg.pklist.user_id.enter
+Geben Sie die User-ID dessen ein, dem Sie die Botschaft senden wollen.
+.
+
+.gpg.keygen.algo
+Wählen Sie das zu verwendene Verfahren.
+
+DSA (alias DSS) ist der "Digital Signature Algorithm" und kann nur für
+Unterschriften genutzt werden.
+
+Elgamal ist ein Verfahren nur für Verschlüsselung.
+
+RSA kann sowohl für Unterschriften als auch für Verschlüsselung genutzt
+werden.
+
+Der erste Schlüssel (Hauptschlüssel) muß immer ein Schlüssel sein, mit dem
+unterschrieben werden kann.
+.
+
+.gpg.keygen.algo.rsa_se
+Normalerweise ist es nicht gut, denselben Schlüssel zum unterschreiben
+und verschlüsseln zu nutzen.  Dieses Verfahren sollte in speziellen
+Anwendungsgebiten benutzt werden.  Bitte lassen Sie sich zuerst von
+einem Sicherheistexperten beraten.
+.
+
+.gpg.keygen.size
+Wählen Sie die gewünschte Schlüssellänge
+.
+
+.gpg.keygen.size.huge.okay
+Geben Sie "ja" oder "nein" ein
+.
+
+.gpg.keygen.size.large.okay
+Geben Sie "ja" oder "nein" ein
+.
+
+.gpg.keygen.valid
+Geben Sie den benötigten Wert so an, wie er im Prompt erscheint.
+Es ist zwar möglich ein "ISO"-Datum (JJJJ-MM-DD) einzugeben, aber man
+erhält dann ggfs. keine brauchbaren Fehlermeldungen - stattdessen versucht
+der Rechner den Wert als Intervall (von-bis) zu deuten.
+.
+
+.gpg.keygen.valid.okay
+Geben Sie "ja" oder "nein" ein
+.
+
+.gpg.keygen.name
+Geben Sie den Namen des Schlüsselinhabers ein.
+Beispiel: Heinrich Heine.
+.
+
+.gpg.keygen.email
+Geben Sie eine Email-Adresse ein. Dies ist zwar nicht unbedingt notwendig,
+aber sehr empfehlenswert.
+Beispiel: heinrichh@duesseldorf.de
+.
+
+.gpg.keygen.comment
+Geben Sie - bei Bedarf - einen Kommentar ein.
+.
+
+.gpg.keygen.userid.cmd
+N  um den Namen zu ändern.
+K  um den Kommentar zu ändern.
+E  um die Email-Adresse zu ändern.
+F  um mit der Schlüsselerzeugung fortzusetzen.
+B  um die Schlüsselerzeugung abbrechen.
+.
+
+.gpg.keygen.sub.okay
+Geben Sie "ja" (oder nur "j") ein, um den Unterschlüssel zu erzeugen.
+.
+
+.gpg.sign_uid.okay
+Geben Sie "ja" oder "nein" ein
+.
+
+.gpg.sign_uid.class
+Wenn Sie die User-ID eines Schlüssels beglaubigen wollen, sollten Sie zunächst
+sicherstellen, daß der Schlüssel demjenigen gehört, der in der User-ID genannt
+ist. Für Dritte ist es hilfreich zu wissen, wie gut diese Zuordnung überprüft
+wurde.
+
+"0" zeigt, daß Sie keine bestimmte Aussage über die Sorgfalt der
+    Schlüsselzuordnung machen.
+
+"1" Sie glauben, daß der Schlüssel der benannten Person gehört,
+    aber Sie konnten oder nahmen die Überpüfung überhaupt nicht vor.
+    Dies ist hilfreich für eine "persona"-Überprüfung, wobei man den
+    Schlüssel eines Pseudonym-Trägers beglaubigt
+
+"2" Sie nahmen eine flüchtige Überprüfung vor. Das heißt Sie haben z.B.
+    den Schlüsselfingerabdruck kontrolliert und die User-ID des Schlüssels
+    anhand des Fotos geprüft.
+
+"3" Sie haben eine ausführlich Kontrolle des Schlüssels vorgenommen.
+    Das kann z.B. die Kontrolle des Schlüsselfingerabdrucks mit dem
+    Schlüsselinhaber persönlich vorgenommen haben; daß Sie die User-ID des
+    Schlüssel anhand einer schwer zu fälschenden Urkunde mit Foto (wie z.B.
+    einem Paß) abgeglichen haben und schließlich per Email-Verkehr die
+    Email-Adresse als zum Schlüsselbesitzer gehörig erkannt haben.
+
+Beachten Sie, daß diese Beispiele für die Antworten 2 und 3 *nur* Beispiele
+sind.  Schlußendlich ist es Ihre Sache, was Sie unter "flüchtig" oder
+ "ausführlich" verstehen, wenn Sie Schlüssel Dritter beglaubigen.
+
+Wenn Sie nicht wissen, wie Sie antworten sollen, wählen Sie "0".
+.
+
+.gpg.change_passwd.empty.okay
+Geben Sie "ja" oder "nein" ein
+.
+
+.gpg.keyedit.save.okay
+Geben Sie "ja" oder "nein" ein
+.
+
+.gpg.keyedit.cancel.okay
+Geben Sie "ja" oder "nein" ein
+.
+
+.gpg.keyedit.sign_all.okay
+Geben Sie "ja" (oder nur "j") ein, um alle User-IDs zu beglaubigen
+.
+
+.gpg.keyedit.remove.uid.okay
+Geben Sie "ja" (oder nur "j") ein, um diese User-ID zu LÖSCHEN.
+Alle Zertifikate werden dann auch weg sein!
+.
+
+.gpg.keyedit.remove.subkey.okay
+Geben Sie "ja" (oder nur "j") ein, um diesen Unterschlüssel zu löschen
+.
+
+.gpg.keyedit.delsig.valid
+Dies ist eine gültige Beglaubigung für den Schlüssel. Es ist normalerweise
+unnötig sie zu löschen. Sie ist möglicherweise sogar notwendig, um einen
+Trust-Weg zu diesem oder einem durch diesen Schlüssel beglaubigten Schlüssel
+herzustellen.
+.
+
+.gpg.keyedit.delsig.unknown
+Diese Beglaubigung kann nicht geprüft werden, da Sie den passenden Schlüssel
+nicht besitzen. Sie sollten die Löschung der Beglaubigung verschieben, bis
+sie wissen, welcher Schlüssel verwendet wurde. Denn vielleicht würde genau
+diese Beglaubigung den "Trust"-Weg komplettieren.
+.
+
+.gpg.keyedit.delsig.invalid
+Diese Beglaubigung ist ungültig. Es ist sinnvoll sie aus Ihrem
+Schlüsselbund zu entfernen.
+.
+
+.gpg.keyedit.delsig.selfsig
+Diese Beglaubigung bindet die User-ID an den Schlüssel. Normalerweise ist
+es nicht gut, solche Beglaubigungen zu entfernen. Um ehrlich zu sein:
+Es könnte dann sein, daß GnuPG diesen Schlüssel gar nicht mehr benutzen kann.
+Sie sollten diese Eigenbeglaubigung also nur dann entfernen, wenn sie aus
+irgendeinem Grund nicht gültig ist und eine zweite Beglaubigung verfügbar ist.
+.
+
+.gpg.keyedit.updpref.okay
+Ändern der Voreinstellung aller User-IDs (oder nur der ausgewählten)
+auf die aktuelle Liste der Voreinstellung. Die Zeitangaben aller betroffenen
+Eigenbeglaubigungen werden um eine Sekunde vorgestellt.
+
+.
+
+.gpg.passphrase.enter
+Bitte geben Sie die Passphrase ein. Dies ist ein geheimer Satz
+
+.
+
+.gpg.passphrase.repeat
+Um sicher zu gehen, daß Sie sich bei der Eingabe der Passphrase nicht
+vertippt haben, geben Sie diese bitte nochmal ein.  Nur wenn beide Eingaben
+übereinstimmen, wird die Passphrase akzeptiert.
+.
+
+.gpg.detached_signature.filename
+Geben Sie den Namen der Datei an, zu dem die abgetrennte Unterschrift gehört
+.
+
+.gpg.openfile.overwrite.okay
+Geben Sie "ja" ein, wenn Sie die Datei überschreiben möchten
+.
+
+.gpg.openfile.askoutname
+Geben Sie bitte einen neuen Dateinamen ein. Falls Sie nur die
+Eingabetaste betätigen, wird der (in Klammern angezeigte) Standarddateiname
+verwendet.
+.
+
+.gpg.ask_revocation_reason.code
+Sie sollten einen Grund für die Zertifizierung angeben. Je nach
+Zusammenhang können Sie aus dieser Liste auswählen:
+  "Schlüssel wurde kompromitiert"
+      Falls Sie Grund zu der Annahme haben, daß nicht berechtigte Personen
+      Zugriff zu Ihrem geheimen Schlüssel hatten
+  "Schlüssel ist überholt"
+      Falls Sie diesen Schlüssel durch einem neuen ersetzt haben.
+  "Schlüssel wird nicht mehr benutzt"
+      Falls Sie diesen Schlüssel zurückgezogen haben.
+  "User-ID ist nicht mehr gültig"
+      Um bekanntzugeben, daß die User-ID nicht mehr benutzt werden soll.
+      So weist man normalerweise auf eine ungültige Emailadresse hin.
+
+.
+
+.gpg.ask_revocation_reason.text
+Wenn Sie möchten, können Sie hier einen Text eingeben, der darlegt, warum
+Sie diesen Widerruf herausgeben.  Der Text sollte möglichst knapp sein.
+Eine Leerzeile beendet die Eingabe.
+
+.
+
+
+
+# Local variables:
+# mode: default-generic
+# coding: utf-8
+# End:
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           # help..txt -  GnuPG online help
+# Copyright (C) 2007 Free Software Foundation, Inc.
+#
+# This file is part of GnuPG.
+#
+# GnuPG is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+# 
+# GnuPG is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, see <https://www.gnu.org/licenses/>.
+
+
+.#gpg.edit_ownertrust.value
+# fixme: Please translate and remove the hash mark from the key line.
+It's up to you to assign a value here; this value will never be exported
+to any 3rd party.  We need it to implement the web-of-trust; it has nothing
+to do with the (implicitly created) web-of-certificates.
+.
+
+.#gpg.edit_ownertrust.set_ultimate.okay
+# fixme: Please translate and remove the hash mark from the key line.
+To build the Web-of-Trust, GnuPG needs to know which keys are
+ultimately trusted - those are usually the keys for which you have
+access to the secret key.  Answer "yes" to set this key to
+ultimately trusted
+
+.
+
+.#gpg.untrusted_key.override
+# fixme: Please translate and remove the hash mark from the key line.
+If you want to use this untrusted key anyway, answer "yes".
+.
+
+.#gpg.pklist.user_id.enter
+# fixme: Please translate and remove the hash mark from the key line.
+Enter the user ID of the addressee to whom you want to send the message.
+.
+
+.#gpg.keygen.algo
+# fixme: Please translate and remove the hash mark from the key line.
+Select the algorithm to use.
+
+DSA (aka DSS) is the Digital Signature Algorithm and can only be used
+for signatures.
+
+Elgamal is an encrypt-only algorithm.
+
+RSA may be used for signatures or encryption.
+
+The first (primary) key must always be a key which is capable of signing.
+.
+
+.#gpg.keygen.algo.rsa_se
+# fixme: Please translate and remove the hash mark from the key line.
+In general it is not a good idea to use the same key for signing and
+encryption.  This algorithm should only be used in certain domains.
+Please consult your security expert first.
+.
+
+.#gpg.keygen.size
+# fixme: Please translate and remove the hash mark from the key line.
+Enter the size of the key
+.
+
+.#gpg.keygen.size.huge.okay
+# fixme: Please translate and remove the hash mark from the key line.
+Answer "yes" or "no"
+.
+
+.#gpg.keygen.size.large.okay
+# fixme: Please translate and remove the hash mark from the key line.
+Answer "yes" or "no"
+.
+
+.#gpg.keygen.valid
+# fixme: Please translate and remove the hash mark from the key line.
+Enter the required value as shown in the prompt.
+It is possible to enter a ISO date (YYYY-MM-DD) but you won't
+get a good error response - instead the system tries to interpret
+the given value as an interval.
+.
+
+.#gpg.keygen.valid.okay
+# fixme: Please translate and remove the hash mark from the key line.
+Answer "yes" or "no"
+.
+
+.#gpg.keygen.name
+# fixme: Please translate and remove the hash mark from the key line.
+Enter the name of the key holder
+.
+
+.#gpg.keygen.email
+# fixme: Please translate and remove the hash mark from the key line.
+please enter an optional but highly suggested email address
+.
+
+.#gpg.keygen.comment
+# fixme: Please translate and remove the hash mark from the key line.
+Please enter an optional comment
+.
+
+.#gpg.keygen.userid.cmd
+# fixme: Please translate and remove the hash mark from the key line.
+N  to change the name.
+C  to change the comment.
+E  to change the email address.
+O  to continue with key generation.
+Q  to to quit the key generation.
+.
+
+.#gpg.keygen.sub.okay
+# fixme: Please translate and remove the hash mark from the key line.
+Answer "yes" (or just "y") if it is okay to generate the sub key.
+.
+
+.#gpg.sign_uid.okay
+# fixme: Please translate and remove the hash mark from the key line.
+Answer "yes" or "no"
+.
+
+.#gpg.sign_uid.class
+# fixme: Please translate and remove the hash mark from the key line.
+When you sign a user ID on a key, you should first verify that the key
+belongs to the person named in the user ID.  It is useful for others to
+know how carefully you verified this.
+
+"0" means you make no particular claim as to how carefully you verified the
+    key.
+
+"1" means you believe the key is owned by the person who claims to own it
+    but you could not, or did not verify the key at all.  This is useful for
+    a "persona" verification, where you sign the key of a pseudonymous user.
+
+"2" means you did casual verification of the key.  For example, this could
+    mean that you verified the key fingerprint and checked the user ID on the
+    key against a photo ID.
+
+"3" means you did extensive verification of the key.  For example, this could
+    mean that you verified the key fingerprint with the owner of the key in
+    person, and that you checked, by means of a hard to forge document with a
+    photo ID (such as a passport) that the name of the key owner matches the
+    name in the user ID on the key, and finally that you verified (by exchange
+    of email) that the email address on the key belongs to the key owner.
+
+Note that the examples given above for levels 2 and 3 are *only* examples.
+In the end, it is up to you to decide just what "casual" and "extensive"
+mean to you when you sign other keys.
+
+If you don't know what the right answer is, answer "0".
+.
+
+.#gpg.change_passwd.empty.okay
+# fixme: Please translate and remove the hash mark from the key line.
+Answer "yes" or "no"
+.
+
+.#gpg.keyedit.save.okay
+# fixme: Please translate and remove the hash mark from the key line.
+Answer "yes" or "no"
+.
+
+.#gpg.keyedit.cancel.okay
+# fixme: Please translate and remove the hash mark from the key line.
+Answer "yes" or "no"
+.
+
+.#gpg.keyedit.sign_all.okay
+# fixme: Please translate and remove the hash mark from the key line.
+Answer "yes" if you want to sign ALL the user IDs
+.
+
+.#gpg.keyedit.remove.uid.okay
+# fixme: Please translate and remove the hash mark from the key line.
+Answer "yes" if you really want to delete this user ID.
+All certificates are then also lost!
+.
+
+.#gpg.keyedit.remove.subkey.okay
+# fixme: Please translate and remove the hash mark from the key line.
+Answer "yes" if it is okay to delete the subkey
+.
+
+.#gpg.keyedit.delsig.valid
+# fixme: Please translate and remove the hash mark from the key line.
+This is a valid signature on the key; you normally don't want
+to delete this signature because it may be important to establish a
+trust connection to the key or another key certified by this key.
+.
+
+.#gpg.keyedit.delsig.unknown
+# fixme: Please translate and remove the hash mark from the key line.
+This signature can't be checked because you don't have the
+corresponding key.  You should postpone its deletion until you
+know which key was used because this signing key might establish
+a trust connection through another already certified key.
+.
+
+.#gpg.keyedit.delsig.invalid
+# fixme: Please translate and remove the hash mark from the key line.
+The signature is not valid.  It does make sense to remove it from
+your keyring.
+.
+
+.#gpg.keyedit.delsig.selfsig
+# fixme: Please translate and remove the hash mark from the key line.
+This is a signature which binds the user ID to the key. It is
+usually not a good idea to remove such a signature.  Actually
+GnuPG might not be able to use this key anymore.  So do this
+only if this self-signature is for some reason not valid and
+a second one is available.
+.
+
+.#gpg.keyedit.updpref.okay
+# fixme: Please translate and remove the hash mark from the key line.
+Change the preferences of all user IDs (or just of the selected ones)
+to the current list of preferences.  The timestamp of all affected
+self-signatures will be advanced by one second.
+
+.
+
+.#gpg.passphrase.enter
+# fixme: Please translate and remove the hash mark from the key line.
+Please enter the passphrase; this is a secret sentence
+
+.
+
+.#gpg.passphrase.repeat
+# fixme: Please translate and remove the hash mark from the key line.
+Please repeat the last passphrase, so you are sure what you typed in.
+.
+
+.#gpg.detached_signature.filename
+# fixme: Please translate and remove the hash mark from the key line.
+Give the name of the file to which the signature applies
+.
+
+.#gpg.openfile.overwrite.okay
+# fixme: Please translate and remove the hash mark from the key line.
+Answer "yes" if it is okay to overwrite the file
+.
+
+.#gpg.openfile.askoutname
+# fixme: Please translate and remove the hash mark from the key line.
+Please enter a new filename. If you just hit RETURN the default
+file (which is shown in brackets) will be used.
+.
+
+.#gpg.ask_revocation_reason.code
+# fixme: Please translate and remove the hash mark from the key line.
+You should specify a reason for the certification.  Depending on the
+context you have the ability to choose from this list:
+  "Key has been compromised"
+      Use this if you have a reason to believe that unauthorized persons
+      got access to your secret key.
+  "Key is superseded"
+      Use this if you have replaced this key with a newer one.
+  "Key is no longer used"
+      Use this if you have retired this key.
+  "User ID is no longer valid"
+      Use this to state that the user ID should not longer be used;
+      this is normally used to mark an email address invalid.
+
+.
+
+.#gpg.ask_revocation_reason.text
+# fixme: Please translate and remove the hash mark from the key line.
+If you like, you can enter a text describing why you issue this
+revocation certificate.  Please keep this text concise.
+An empty line ends the text.
+
+.
+
+
+
+# Local variables:
+# mode: fundamental
+# coding: utf-8
+# End:
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   # help..txt -  GnuPG online help
+# Copyright (C) 2007 Free Software Foundation, Inc.
+#
+# This file is part of GnuPG.
+#
+# GnuPG is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+# 
+# GnuPG is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, see <https://www.gnu.org/licenses/>.
+
+
+.#gpg.edit_ownertrust.value
+# fixme: Please translate and remove the hash mark from the key line.
+It's up to you to assign a value here; this value will never be exported
+to any 3rd party.  We need it to implement the web-of-trust; it has nothing
+to do with the (implicitly created) web-of-certificates.
+.
+
+.#gpg.edit_ownertrust.set_ultimate.okay
+# fixme: Please translate and remove the hash mark from the key line.
+To build the Web-of-Trust, GnuPG needs to know which keys are
+ultimately trusted - those are usually the keys for which you have
+access to the secret key.  Answer "yes" to set this key to
+ultimately trusted
+
+.
+
+.#gpg.untrusted_key.override
+# fixme: Please translate and remove the hash mark from the key line.
+If you want to use this untrusted key anyway, answer "yes".
+.
+
+.#gpg.pklist.user_id.enter
+# fixme: Please translate and remove the hash mark from the key line.
+Enter the user ID of the addressee to whom you want to send the message.
+.
+
+.#gpg.keygen.algo
+# fixme: Please translate and remove the hash mark from the key line.
+Select the algorithm to use.
+
+DSA (aka DSS) is the Digital Signature Algorithm and can only be used
+for signatures.
+
+Elgamal is an encrypt-only algorithm.
+
+RSA may be used for signatures or encryption.
+
+The first (primary) key must always be a key which is capable of signing.
+.
+
+.#gpg.keygen.algo.rsa_se
+# fixme: Please translate and remove the hash mark from the key line.
+In general it is not a good idea to use the same key for signing and
+encryption.  This algorithm should only be used in certain domains.
+Please consult your security expert first.
+.
+
+.#gpg.keygen.size
+# fixme: Please translate and remove the hash mark from the key line.
+Enter the size of the key
+.
+
+.#gpg.keygen.size.huge.okay
+# fixme: Please translate and remove the hash mark from the key line.
+Answer "yes" or "no"
+.
+
+.#gpg.keygen.size.large.okay
+# fixme: Please translate and remove the hash mark from the key line.
+Answer "yes" or "no"
+.
+
+.#gpg.keygen.valid
+# fixme: Please translate and remove the hash mark from the key line.
+Enter the required value as shown in the prompt.
+It is possible to enter a ISO date (YYYY-MM-DD) but you won't
+get a good error response - instead the system tries to interpret
+the given value as an interval.
+.
+
+.#gpg.keygen.valid.okay
+# fixme: Please translate and remove the hash mark from the key line.
+Answer "yes" or "no"
+.
+
+.#gpg.keygen.name
+# fixme: Please translate and remove the hash mark from the key line.
+Enter the name of the key holder
+.
+
+.#gpg.keygen.email
+# fixme: Please translate and remove the hash mark from the key line.
+please enter an optional but highly suggested email address
+.
+
+.#gpg.keygen.comment
+# fixme: Please translate and remove the hash mark from the key line.
+Please enter an optional comment
+.
+
+.#gpg.keygen.userid.cmd
+# fixme: Please translate and remove the hash mark from the key line.
+N  to change the name.
+C  to change the comment.
+E  to change the email address.
+O  to continue with key generation.
+Q  to to quit the key generation.
+.
+
+.#gpg.keygen.sub.okay
+# fixme: Please translate and remove the hash mark from the key line.
+Answer "yes" (or just "y") if it is okay to generate the sub key.
+.
+
+.#gpg.sign_uid.okay
+# fixme: Please translate and remove the hash mark from the key line.
+Answer "yes" or "no"
+.
+
+.#gpg.sign_uid.class
+# fixme: Please translate and remove the hash mark from the key line.
+When you sign a user ID on a key, you should first verify that the key
+belongs to the person named in the user ID.  It is useful for others to
+know how carefully you verified this.
+
+"0" means you make no particular claim as to how carefully you verified the
+    key.
+
+"1" means you believe the key is owned by the person who claims to own it
+    but you could not, or did not verify the key at all.  This is useful for
+    a "persona" verification, where you sign the key of a pseudonymous user.
+
+"2" means you did casual verification of the key.  For example, this could
+    mean that you verified the key fingerprint and checked the user ID on the
+    key against a photo ID.
+
+"3" means you did extensive verification of the key.  For example, this could
+    mean that you verified the key fingerprint with the owner of the key in
+    person, and that you checked, by means of a hard to forge document with a
+    photo ID (such as a passport) that the name of the key owner matches the
+    name in the user ID on the key, and finally that you verified (by exchange
+    of email) that the email address on the key belongs to the key owner.
+
+Note that the examples given above for levels 2 and 3 are *only* examples.
+In the end, it is up to you to decide just what "casual" and "extensive"
+mean to you when you sign other keys.
+
+If you don't know what the right answer is, answer "0".
+.
+
+.#gpg.change_passwd.empty.okay
+# fixme: Please translate and remove the hash mark from the key line.
+Answer "yes" or "no"
+.
+
+.#gpg.keyedit.save.okay
+# fixme: Please translate and remove the hash mark from the key line.
+Answer "yes" or "no"
+.
+
+.#gpg.keyedit.cancel.okay
+# fixme: Please translate and remove the hash mark from the key line.
+Answer "yes" or "no"
+.
+
+.#gpg.keyedit.sign_all.okay
+# fixme: Please translate and remove the hash mark from the key line.
+Answer "yes" if you want to sign ALL the user IDs
+.
+
+.#gpg.keyedit.remove.uid.okay
+# fixme: Please translate and remove the hash mark from the key line.
+Answer "yes" if you really want to delete this user ID.
+All certificates are then also lost!
+.
+
+.#gpg.keyedit.remove.subkey.okay
+# fixme: Please translate and remove the hash mark from the key line.
+Answer "yes" if it is okay to delete the subkey
+.
+
+.#gpg.keyedit.delsig.valid
+# fixme: Please translate and remove the hash mark from the key line.
+This is a valid signature on the key; you normally don't want
+to delete this signature because it may be important to establish a
+trust connection to the key or another key certified by this key.
+.
+
+.#gpg.keyedit.delsig.unknown
+# fixme: Please translate and remove the hash mark from the key line.
+This signature can't be checked because you don't have the
+corresponding key.  You should postpone its deletion until you
+know which key was used because this signing key might establish
+a trust connection through another already certified key.
+.
+
+.#gpg.keyedit.delsig.invalid
+# fixme: Please translate and remove the hash mark from the key line.
+The signature is not valid.  It does make sense to remove it from
+your keyring.
+.
+
+.#gpg.keyedit.delsig.selfsig
+# fixme: Please translate and remove the hash mark from the key line.
+This is a signature which binds the user ID to the key. It is
+usually not a good idea to remove such a signature.  Actually
+GnuPG might not be able to use this key anymore.  So do this
+only if this self-signature is for some reason not valid and
+a second one is available.
+.
+
+.#gpg.keyedit.updpref.okay
+# fixme: Please translate and remove the hash mark from the key line.
+Change the preferences of all user IDs (or just of the selected ones)
+to the current list of preferences.  The timestamp of all affected
+self-signatures will be advanced by one second.
+
+.
+
+.#gpg.passphrase.enter
+# fixme: Please translate and remove the hash mark from the key line.
+Please enter the passphrase; this is a secret sentence
+
+.
+
+.#gpg.passphrase.repeat
+# fixme: Please translate and remove the hash mark from the key line.
+Please repeat the last passphrase, so you are sure what you typed in.
+.
+
+.#gpg.detached_signature.filename
+# fixme: Please translate and remove the hash mark from the key line.
+Give the name of the file to which the signature applies
+.
+
+.#gpg.openfile.overwrite.okay
+# fixme: Please translate and remove the hash mark from the key line.
+Answer "yes" if it is okay to overwrite the file
+.
+
+.#gpg.openfile.askoutname
+# fixme: Please translate and remove the hash mark from the key line.
+Please enter a new filename. If you just hit RETURN the default
+file (which is shown in brackets) will be used.
+.
+
+.#gpg.ask_revocation_reason.code
+# fixme: Please translate and remove the hash mark from the key line.
+You should specify a reason for the certification.  Depending on the
+context you have the ability to choose from this list:
+  "Key has been compromised"
+      Use this if you have a reason to believe that unauthorized persons
+      got access to your secret key.
+  "Key is superseded"
+      Use this if you have replaced this key with a newer one.
+  "Key is no longer used"
+      Use this if you have retired this key.
+  "User ID is no longer valid"
+      Use this to state that the user ID should not longer be used;
+      this is normally used to mark an email address invalid.
+
+.
+
+.#gpg.ask_revocation_reason.text
+# fixme: Please translate and remove the hash mark from the key line.
+If you like, you can enter a text describing why you issue this
+revocation certificate.  Please keep this text concise.
+An empty line ends the text.
+
+.
+
+
+
+# Local variables:
+# mode: fundamental
+# coding: utf-8
+# End:
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   # help.es.txt - es GnuPG online help
+# Copyright (C) 2007 Free Software Foundation, Inc.
+#
+# This file is part of GnuPG.
+#
+# GnuPG is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+# 
+# GnuPG is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, see <https://www.gnu.org/licenses/>.
+
+
+.gpg.edit_ownertrust.value
+Está en su mano asignar un valor aquí. Dicho valor nunca será exportado a
+terceros. Es necesario para implementar la red de confianza, no tiene nada
+que ver con la red de certificados (implícitamente creada).
+.
+
+.gpg.edit_ownertrust.set_ultimate.okay
+Para construir la Red-de-Confianza, GnuPG necesita saber qué claves
+tienen confianza absoluta - normalmente son las claves para las que usted
+puede acceder a la clave secreta. Conteste "sí" para hacer que esta
+clave se considere como de total confianza
+
+.
+
+.gpg.untrusted_key.override
+Si quiere usar esta clave no fiable de todos modos, conteste "sí".
+.
+
+.gpg.pklist.user_id.enter
+Introduzca el ID de usuario al que quiere enviar el mensaje.
+.
+
+.gpg.keygen.algo
+Seleccione el algoritmo que usar.
+
+DSA (alias DSS) es el Algoritmo de Firma Digital y sólo se usa para firmas.
+
+Elgamal es un algoritmo sólo para cifrar.
+
+RSA sirve tanto para firmar como para cifrar.
+
+La primera clave (clave primaria) debe ser siempre de tipo capaz de firmar.
+.
+
+.gpg.keygen.algo.rsa_se
+En general no es una buena idea usar la misma clave para firmar y
+cifrar. Este algoritmo debéria usarse solo en ciertos contextos.
+Por favor consulte primero a un experto en seguridad.
+.
+
+.gpg.keygen.size
+Introduzca la longitud de la clave
+.
+
+.gpg.keygen.size.huge.okay
+Responda "sí" o "no"
+.
+
+.gpg.keygen.size.large.okay
+Responda "sí" o "no"
+.
+
+.gpg.keygen.valid
+Introduzca el valor requerido conforme se muestra.
+Es posible introducir una fecha ISO (AAAA-MM-DD), pero no se obtendrá una
+buena respuesta a los errores; el sistema intentará interpretar el valor
+introducido como un intervalo.
+.
+
+.gpg.keygen.valid.okay
+Responda "sí" o "no"
+.
+
+.gpg.keygen.name
+Introduzca el nombre del dueño de la clave
+.
+
+.gpg.keygen.email
+Introduzca una dirección de correo electrónico (opcional pero muy
+recomendable)
+.
+
+.gpg.keygen.comment
+Introduzca un comentario opcional
+.
+
+.gpg.keygen.userid.cmd
+N  para cambiar el nombre.
+C  para cambiar el comentario.
+E  para cambiar la dirección.
+O  para continuar con la generación de clave.
+S  para interrumpir la generación de clave.
+.
+
+.gpg.keygen.sub.okay
+Responda "sí" (o sólo "s") para generar la subclave.
+.
+
+.gpg.sign_uid.okay
+Responda "sí" o "no"
+.
+
+.gpg.sign_uid.class
+Cuando firme un ID de usuario en una clave, debería verificar que la clave
+pertenece a la persona que se nombra en el ID de usuario. Es útil para
+otros saber cómo de cuidadosamente lo ha verificado.
+
+"0" significa que no hace ninguna declaración concreta sobre como ha
+      comprobado la validez de la clave.
+
+"1" significa que cree que la clave pertenece a la persona que declara
+      poseerla pero no pudo o no verificó la clave en absoluto. Esto es útil
+      para una verificación en persona cuando firmas la clave de un usuario
+      pseudoanónimo.
+
+"2" significa que hizo una comprobación informal de la clave. Por ejemplo
+      podría querer decir que comprobó la huella dactilar de la clave y
+      comprobó el ID de usuario en la clave con un ID fotográfico.
+
+"3" significa que hizo una comprobación exhaustiva de la clave. Por
+      ejemplo verificando la huella dactilar de la clave con el propietario
+      de la clave, y que comprobó, mediante un documento difícil de falsificar
+      con ID fotográfico (como un pasaporte) que el nombre del poseedor de la
+      clave coincide con el ID de usuario en la clave y finalmente que verificó
+      (intercambiando email) que la dirección de email de la clave pertenece
+      al poseedor de la clave.
+
+Observe que los ejemplos dados en los niveles 2 y 3 son *solo* ejemplos.
+En definitiva, usted decide lo que significa "informal" y "exhaustivo"
+para usted cuando firma las claves de otros.
+
+Si no sabe qué contestar, conteste "0".
+.
+
+.gpg.change_passwd.empty.okay
+Responda "sí" o "no"
+.
+
+.gpg.keyedit.save.okay
+Responda "sí" o "no"
+.
+
+.gpg.keyedit.cancel.okay
+Responda "sí" o "no"
+.
+
+.gpg.keyedit.sign_all.okay
+Responda "sí" si quiere firmar TODOS los IDs de usuario
+.
+
+.gpg.keyedit.remove.uid.okay
+Responda "sí" si realmente quiere borrar este ID de usuario.
+¡También se perderán todos los certificados!
+.
+
+.gpg.keyedit.remove.subkey.okay
+Responda "sí" si quiere borrar esta subclave
+.
+
+.gpg.keyedit.delsig.valid
+Esta es una firma válida de esta clave. Normalmente no será deseable
+borrar esta firma ya que puede ser importante para establecer una conexión
+de confianza con la clave o con otra clave certificada por ésta.
+.
+
+.gpg.keyedit.delsig.unknown
+Esta firma no puede ser comprobada porque no tiene Vd. la clave
+correspondiente. Debería posponer su borrado hasta conocer qué clave
+se usó, ya que dicha clave podría establecer una conexión de confianza
+a través de otra clave certificada.
+.
+
+.gpg.keyedit.delsig.invalid
+Esta firma no es válida. Tiene sentido borrarla de su anillo.
+.
+
+.gpg.keyedit.delsig.selfsig
+Esta es una firma que une el ID de usuario a la clave. No suele ser una
+buena idea borrar dichas firmas. De hecho, GnuPG podría no ser capaz de
+volver a usar esta clave. Así que bórrela tan sólo si esta autofirma no
+es válida por alguna razón y hay otra disponible.
+.
+
+.gpg.keyedit.updpref.okay
+Cambiar las preferencias de todos los IDs de usuario (o sólo los 
+seleccionados) a la lista actual de preferencias. El sello de tiempo
+de todas las autofirmas afectadas se avanzará en un segundo.
+
+.
+
+.gpg.passphrase.enter
+Por favor introduzca la contraseña: una frase secreta 
+
+.
+
+.gpg.passphrase.repeat
+Repita la última frase contraseña para asegurarse de lo que tecleó.
+.
+
+.gpg.detached_signature.filename
+Introduzca el nombre del fichero al que corresponde la firma
+.
+
+.gpg.openfile.overwrite.okay
+Responda "sí" para sobreescribir el fichero
+.
+
+.gpg.openfile.askoutname
+Introduzca un nuevo nombre de fichero. Si pulsa INTRO se usará el fichero
+por omisión (mostrado entre corchetes).
+.
+
+.gpg.ask_revocation_reason.code
+Debería especificar un motivo para la certificación. Dependiendo del
+contexto puede elegir una opción de esta lista:
+  "La clave ha sido comprometida"
+      Use esto si tiene razones para pensar que personas no autorizadas
+      tuvieron acceso a su clave secreta.
+  "La clave ha sido sustituida"
+      Use esto si ha reemplazado la clave por otra más nueva.
+  "La clave ya no está en uso"
+      Use esto si ha dejado de usar esta clave.
+  "La identificación de usuario ya no es válida"
+      Use esto para señalar que la identificación de usuario no debería
+      seguir siendo usada; esto se utiliza normalmente para marcar una
+      dirección de correo-e como inválida.
+
+.
+
+.gpg.ask_revocation_reason.text
+Si lo desea puede introducir un texto explicando por qué emite
+este certificado de revocación. Por favor, que el texto sea breve.
+Una línea vacía pone fin al texto.
+
+.
+
+
+
+# Local variables:
+# mode: fundamental
+# coding: utf-8
+# End:
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                # help..txt -  GnuPG online help
+# Copyright (C) 2007 Free Software Foundation, Inc.
+#
+# This file is part of GnuPG.
+#
+# GnuPG is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+# 
+# GnuPG is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, see <https://www.gnu.org/licenses/>.
+
+
+.#gpg.edit_ownertrust.value
+# fixme: Please translate and remove the hash mark from the key line.
+It's up to you to assign a value here; this value will never be exported
+to any 3rd party.  We need it to implement the web-of-trust; it has nothing
+to do with the (implicitly created) web-of-certificates.
+.
+
+.#gpg.edit_ownertrust.set_ultimate.okay
+# fixme: Please translate and remove the hash mark from the key line.
+To build the Web-of-Trust, GnuPG needs to know which keys are
+ultimately trusted - those are usually the keys for which you have
+access to the secret key.  Answer "yes" to set this key to
+ultimately trusted
+
+.
+
+.#gpg.untrusted_key.override
+# fixme: Please translate and remove the hash mark from the key line.
+If you want to use this untrusted key anyway, answer "yes".
+.
+
+.#gpg.pklist.user_id.enter
+# fixme: Please translate and remove the hash mark from the key line.
+Enter the user ID of the addressee to whom you want to send the message.
+.
+
+.#gpg.keygen.algo
+# fixme: Please translate and remove the hash mark from the key line.
+Select the algorithm to use.
+
+DSA (aka DSS) is the Digital Signature Algorithm and can only be used
+for signatures.
+
+Elgamal is an encrypt-only algorithm.
+
+RSA may be used for signatures or encryption.
+
+The first (primary) key must always be a key which is capable of signing.
+.
+
+.#gpg.keygen.algo.rsa_se
+# fixme: Please translate and remove the hash mark from the key line.
+In general it is not a good idea to use the same key for signing and
+encryption.  This algorithm should only be used in certain domains.
+Please consult your security expert first.
+.
+
+.#gpg.keygen.size
+# fixme: Please translate and remove the hash mark from the key line.
+Enter the size of the key
+.
+
+.#gpg.keygen.size.huge.okay
+# fixme: Please translate and remove the hash mark from the key line.
+Answer "yes" or "no"
+.
+
+.#gpg.keygen.size.large.okay
+# fixme: Please translate and remove the hash mark from the key line.
+Answer "yes" or "no"
+.
+
+.#gpg.keygen.valid
+# fixme: Please translate and remove the hash mark from the key line.
+Enter the required value as shown in the prompt.
+It is possible to enter a ISO date (YYYY-MM-DD) but you won't
+get a good error response - instead the system tries to interpret
+the given value as an interval.
+.
+
+.#gpg.keygen.valid.okay
+# fixme: Please translate and remove the hash mark from the key line.
+Answer "yes" or "no"
+.
+
+.#gpg.keygen.name
+# fixme: Please translate and remove the hash mark from the key line.
+Enter the name of the key holder
+.
+
+.#gpg.keygen.email
+# fixme: Please translate and remove the hash mark from the key line.
+please enter an optional but highly suggested email address
+.
+
+.#gpg.keygen.comment
+# fixme: Please translate and remove the hash mark from the key line.
+Please enter an optional comment
+.
+
+.#gpg.keygen.userid.cmd
+# fixme: Please translate and remove the hash mark from the key line.
+N  to change the name.
+C  to change the comment.
+E  to change the email address.
+O  to continue with key generation.
+Q  to to quit the key generation.
+.
+
+.#gpg.keygen.sub.okay
+# fixme: Please translate and remove the hash mark from the key line.
+Answer "yes" (or just "y") if it is okay to generate the sub key.
+.
+
+.#gpg.sign_uid.okay
+# fixme: Please translate and remove the hash mark from the key line.
+Answer "yes" or "no"
+.
+
+.#gpg.sign_uid.class
+# fixme: Please translate and remove the hash mark from the key line.
+When you sign a user ID on a key, you should first verify that the key
+belongs to the person named in the user ID.  It is useful for others to
+know how carefully you verified this.
+
+"0" means you make no particular claim as to how carefully you verified the
+    key.
+
+"1" means you believe the key is owned by the person who claims to own it
+    but you could not, or did not verify the key at all.  This is useful for
+    a "persona" verification, where you sign the key of a pseudonymous user.
+
+"2" means you did casual verification of the key.  For example, this could
+    mean that you verified the key fingerprint and checked the user ID on the
+    key against a photo ID.
+
+"3" means you did extensive verification of the key.  For example, this could
+    mean that you verified the key fingerprint with the owner of the key in
+    person, and that you checked, by means of a hard to forge document with a
+    photo ID (such as a passport) that the name of the key owner matches the
+    name in the user ID on the key, and finally that you verified (by exchange
+    of email) that the email address on the key belongs to the key owner.
+
+Note that the examples given above for levels 2 and 3 are *only* examples.
+In the end, it is up to you to decide just what "casual" and "extensive"
+mean to you when you sign other keys.
+
+If you don't know what the right answer is, answer "0".
+.
+
+.#gpg.change_passwd.empty.okay
+# fixme: Please translate and remove the hash mark from the key line.
+Answer "yes" or "no"
+.
+
+.#gpg.keyedit.save.okay
+# fixme: Please translate and remove the hash mark from the key line.
+Answer "yes" or "no"
+.
+
+.#gpg.keyedit.cancel.okay
+# fixme: Please translate and remove the hash mark from the key line.
+Answer "yes" or "no"
+.
+
+.#gpg.keyedit.sign_all.okay
+# fixme: Please translate and remove the hash mark from the key line.
+Answer "yes" if you want to sign ALL the user IDs
+.
+
+.#gpg.keyedit.remove.uid.okay
+# fixme: Please translate and remove the hash mark from the key line.
+Answer "yes" if you really want to delete this user ID.
+All certificates are then also lost!
+.
+
+.#gpg.keyedit.remove.subkey.okay
+# fixme: Please translate and remove the hash mark from the key line.
+Answer "yes" if it is okay to delete the subkey
+.
+
+.#gpg.keyedit.delsig.valid
+# fixme: Please translate and remove the hash mark from the key line.
+This is a valid signature on the key; you normally don't want
+to delete this signature because it may be important to establish a
+trust connection to the key or another key certified by this key.
+.
+
+.#gpg.keyedit.delsig.unknown
+# fixme: Please translate and remove the hash mark from the key line.
+This signature can't be checked because you don't have the
+corresponding key.  You should postpone its deletion until you
+know which key was used because this signing key might establish
+a trust connection through another already certified key.
+.
+
+.#gpg.keyedit.delsig.invalid
+# fixme: Please translate and remove the hash mark from the key line.
+The signature is not valid.  It does make sense to remove it from
+your keyring.
+.
+
+.#gpg.keyedit.delsig.selfsig
+# fixme: Please translate and remove the hash mark from the key line.
+This is a signature which binds the user ID to the key. It is
+usually not a good idea to remove such a signature.  Actually
+GnuPG might not be able to use this key anymore.  So do this
+only if this self-signature is for some reason not valid and
+a second one is available.
+.
+
+.#gpg.keyedit.updpref.okay
+# fixme: Please translate and remove the hash mark from the key line.
+Change the preferences of all user IDs (or just of the selected ones)
+to the current list of preferences.  The timestamp of all affected
+self-signatures will be advanced by one second.
+
+.
+
+.#gpg.passphrase.enter
+# fixme: Please translate and remove the hash mark from the key line.
+Please enter the passphrase; this is a secret sentence
+
+.
+
+.#gpg.passphrase.repeat
+# fixme: Please translate and remove the hash mark from the key line.
+Please repeat the last passphrase, so you are sure what you typed in.
+.
+
+.#gpg.detached_signature.filename
+# fixme: Please translate and remove the hash mark from the key line.
+Give the name of the file to which the signature applies
+.
+
+.#gpg.openfile.overwrite.okay
+# fixme: Please translate and remove the hash mark from the key line.
+Answer "yes" if it is okay to overwrite the file
+.
+
+.#gpg.openfile.askoutname
+# fixme: Please translate and remove the hash mark from the key line.
+Please enter a new filename. If you just hit RETURN the default
+file (which is shown in brackets) will be used.
+.
+
+.#gpg.ask_revocation_reason.code
+# fixme: Please translate and remove the hash mark from the key line.
+You should specify a reason for the certification.  Depending on the
+context you have the ability to choose from this list:
+  "Key has been compromised"
+      Use this if you have a reason to believe that unauthorized persons
+      got access to your secret key.
+  "Key is superseded"
+      Use this if you have replaced this key with a newer one.
+  "Key is no longer used"
+      Use this if you have retired this key.
+  "User ID is no longer valid"
+      Use this to state that the user ID should not longer be used;
+      this is normally used to mark an email address invalid.
+
+.
+
+.#gpg.ask_revocation_reason.text
+# fixme: Please translate and remove the hash mark from the key line.
+If you like, you can enter a text describing why you issue this
+revocation certificate.  Please keep this text concise.
+An empty line ends the text.
+
+.
+
+
+
+# Local variables:
+# mode: fundamental
+# coding: utf-8
+# End:
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   # help.fi.txt - fi GnuPG online help
+# Copyright (C) 2007 Free Software Foundation, Inc.
+#
+# This file is part of GnuPG.
+#
+# GnuPG is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+# 
+# GnuPG is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, see <https://www.gnu.org/licenses/>.
+
+
+.gpg.edit_ownertrust.value
+Tämän arvon määrittäminen on sinun tehtäväsi, tätä arvoa ei koskaan 
+kerrota kolmansille osapuolille. Tarvitsemme sitä toteuttamaan 
+luottamusverkko eikä sillä ei ole mitään tekemistä (epäsuorasti luotujen) 
+varmenneverkkojen kanssa.
+.
+
+.gpg.edit_ownertrust.set_ultimate.okay
+Rakentaakseen luottamusverkon, GnuPG:n täytyy tietää mihin avaimiin 
+luotetaan ehdottomasti - nämä ovat tavallisesti ne avaimet, joiden salainen 
+pari on sinulla.  Vastaa "kyllä" luottaaksesi tähän avaimeen ehdoitta
+
+.
+
+.gpg.untrusted_key.override
+Vastaa "kyllä" jos haluat kaikesta huolimatta käyttää tätä epäluotettavaa
+avainta.
+.
+
+.gpg.pklist.user_id.enter
+Syötä vastaanottajan, jolle haluat lähettää viestin, käyttäjätunnus.
+.
+
+.#gpg.keygen.algo
+# fixme: Please translate and remove the hash mark from the key line.
+Select the algorithm to use.
+
+DSA (aka DSS) is the Digital Signature Algorithm and can only be used
+for signatures.
+
+Elgamal is an encrypt-only algorithm.
+
+RSA may be used for signatures or encryption.
+
+The first (primary) key must always be a key which is capable of signing.
+.
+
+.gpg.keygen.algo.rsa_se
+Yleensä ei ole järkevää käyttää samaa avainta allekirjoitukseen
+ja salaamiseen. Tätä algorimiä tulisi käyttää vain määrätyissä ympäristöissä.
+Ole hyvä ja kysy tietoturva-asiantuntijaltasi ensin
+.
+
+.gpg.keygen.size
+Syötä avaimen koko
+.
+
+.gpg.keygen.size.huge.okay
+Vastaa "kyllä" tai " ei"
+.
+
+.gpg.keygen.size.large.okay
+Vastaa "kyllä" tai " ei"
+.
+
+.gpg.keygen.valid
+Syötä pyydetty arvo kuten näkyy kehotteessa.
+On mahdollista syöttää ISO-muotoinen päivä (VVVV-KK-PP),
+mutta sen seurauksena et saa kunnollista virheilmoitusta 
+vaan järjestelmä yrittää tulkita arvon aikajaksona.
+.
+
+.gpg.keygen.valid.okay
+Vastaa "kyllä" tai " ei"
+.
+
+.gpg.keygen.name
+Anna avaimen haltijan nimi
+.
+
+.gpg.keygen.email
+anna vapaaehtoinen, mutta erittäin suositeltava sähköpostiosoite
+.
+
+.gpg.keygen.comment
+Kirjoita vapaaehtoinen huomautus
+.
+
+.gpg.keygen.userid.cmd
+N   muuta nimeä
+C   muuta kommenttia
+E   muuta sähköpostiosoitetta
+O   jatka avaimen luomista
+L   lopeta
+.
+
+.gpg.keygen.sub.okay
+Vastaa "kyllä" (tai vain "k") jos haluat luoda aliavaimen.
+.
+
+.gpg.sign_uid.okay
+Vastaa "kyllä" tai " ei"
+.
+
+.gpg.sign_uid.class
+Allekirjoittaessasi avaimen käyttäjätunnuksen sinun tulisi varmista, että 
+avain todella kuuluu henkilölle, joka mainitaan käyttäjätunnuksessa.  Muiden 
+on hyvä tietää kuinka huolellisesti olet varmistanut tämän. 
+
+"0" tarkoittaa, että et väitä mitään siitä, kuinka huolellisesti olet
+    varmistanut avaimen.
+
+"1" tarkoittaa, että uskot avaimen kuuluvan henkilölle, joka väittää 
+    hallitsevan sitä, mutta et voinut varmistaa tai et varmistanut avainta 
+    lainkaan.  Tämä on hyödyllinen "persoonan" varmistamiseen, jossa 
+    allekirjoitat pseudonyymin käyttäjän avaimen.
+
+"2" tarkoittaa arkista varmistusta.  Esimerkiksi olet varmistanut 
+    avaimen sormenjäljen ja tarkistanut käyttäjätunnuksen ja 
+    valokuvatunnisteen täsmäävän.
+
+"3" tarkoittaa syvällistä henkilöllisyyden varmistamista.  Esimerkiksi 
+    tämä voi tarkoittaa avaimen sormenjäljen tarkistamista avaimen haltijan 
+    kanssa henkilökohtaisesti, ja että tarkistit nimen avaimessa täsmäävän 
+    vaikeasti väärennettävän kuvallisen henkilöllisyystodistuksen (kuten 
+    passi) kanssa, ja lopuksi varmistit (sähköpostin vaihtamisella), että 
+    sähköpostiosoite kuuluu avaimen haltijalle.
+
+Huomaa, että yllä annetut esimerkit tasoille 2 ja 3 ovat todellakin *vain* 
+esimerkkejä.  Lopullisesti se on sinun päätöksesi mitä "arkinen" ja 
+"syvällinen" tarkoittaa allekirjoittaessasi muita avaimia.
+
+Jos et tiedä mikä olisi sopiva vastaus, vastaa "0".
+.
+
+.gpg.change_passwd.empty.okay
+Vastaa "kyllä" tai " ei"
+.
+
+.gpg.keyedit.save.okay
+Vastaa "kyllä" tai " ei"
+.
+
+.gpg.keyedit.cancel.okay
+Vastaa "kyllä" tai " ei"
+.
+
+.#gpg.keyedit.sign_all.okay
+# fixme: Please translate and remove the hash mark from the key line.
+Answer "yes" if you want to sign ALL the user IDs
+.
+
+.gpg.keyedit.remove.uid.okay
+Vastaa "kyllä", jos haluat poistaa tämän käyttäjätunnuksen.
+Menetät samalla kaikki siihen liittyvät varmenteet!
+.
+
+.gpg.keyedit.remove.subkey.okay
+Vastaa "kyllä", jos aliavaimen voi poistaa
+.
+
+.gpg.keyedit.delsig.valid
+Tämä on voimassa oleva allekirjoitus tälle avaimelle, tavallisesti ei 
+kannata poistaa tätä allekirjoitusta koska se saattaa olla tarpeen
+luottamussuhteen luomiseksi avaimeen tai johonkin toiseen tämän avaimen
+varmentamaan avaimeen.
+.
+
+.gpg.keyedit.delsig.unknown
+Allekirjoitusta ei voida tarkistaa koska sinulla ei ole 
+siihen liittyvää avainta. Lykkää sen poistamista kunnes
+ tiedät mitä avainta on käytetty, koska allekirjoitus 
+avain saattaa luoda luottamusketjun toisen, jo ennalta 
+varmennetun avaimen kautta.
+.
+
+.gpg.keyedit.delsig.invalid
+Allekirjoitus ei ole pätevä.  Järkevintä olisi poistaa se 
+avainrenkaastasi.
+.
+
+.gpg.keyedit.delsig.selfsig
+Tämä allekirjoitus takaa avaimen haltijan henkilöllisyyden. 
+Tällaisen allekirjoituksen poistaminen on tavallisesti huono 
+ajatus.  GnuPG ei kenties voi käyttää avainta enää.  Poista 
+allekirjoitus vain, jos se ei ole jostain syystä pätevä, ja 
+avaimella on jo toinen allekirjoitus.
+.
+
+.gpg.keyedit.updpref.okay
+Muuta valinnat kaikille käyttäjätunnuksille (tai vain valituille)
+nykyiseen luetteloon valinnoista.  Kaikkien muutettujen
+oma-allekirjoitusten aikaleima siirretään yhdellä sekunnilla eteenpäin.
+
+.
+
+.gpg.passphrase.enter
+Ole hyvä ja syötä salasana, tämän on salainen lause 
+
+.
+
+.gpg.passphrase.repeat
+Toista edellinen salasanasi varmistuaksesi siitä, mitä kirjoitit.
+.
+
+.gpg.detached_signature.filename
+Anna allekirjoitetun tiedoston nimi
+.
+
+.gpg.openfile.overwrite.okay
+Vastaa "kyllä", jos tiedoston voi ylikirjoittaa
+.
+
+.gpg.openfile.askoutname
+Syötä uusi tiedostonimi. Jos painat vain RETURN, käytetään
+oletustiedostoa (joka näkyy sulkeissa).
+.
+
+.gpg.ask_revocation_reason.code
+Sinun tulisi määrittää syy varmenteelle. Riippuen asiayhteydestä
+voit valita tästä listasta:
+  "Avain on paljastunut"
+      Käytä tätä, jos sinulla on syytä uskoa, että luvattomat henkilöt 
+      ovat saaneet salaisen avaimesi käsiinsä.
+  "Avain on korvattu"
+      Käytä tätä, jos olet korvannut tämän uudemmalla avaimella.
+  "Avain ei ole enää käytössä"
+      Käytä tätä, jost ole lopettanut tämän avaimen käytön.
+  "Käyttäjätunnus ei ole enää voimassa"
+      Käytä tätä ilmoittamaan, että käyttäjätunnusta ei pitäisi käyttää;
+      tätä normaalisti käytetään merkitsemään sähköpostiosoite vanhenneeksi.
+
+.
+
+.gpg.ask_revocation_reason.text
+Halutessasi voit kirjoittaa tähän kuvauksen miksi julkaiset tämän
+mitätöintivarmenteen.  Kirjoita lyhyesti.
+Tyhjä rivi päättää tekstin.
+
+.
+
+
+
+# Local variables:
+# mode: fundamental
+# coding: utf-8
+# End:
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                # help.fr.txt - fr GnuPG online help
+# Copyright (C) 2007 Free Software Foundation, Inc.
+#
+# This file is part of GnuPG.
+#
+# GnuPG is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+# 
+# GnuPG is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, see <https://www.gnu.org/licenses/>.
+
+
+.gpg.edit_ownertrust.value
+C'est à vous d'assigner une valeur ici; cette valeur ne sera jamais
+envoyée à une tierce personne. Nous en avons besoin pour créer le réseau
+de confiance (web-of-trust); cela n'a rien à voir avec le réseau des
+certificats (créé implicitement)
+.
+
+.gpg.edit_ownertrust.set_ultimate.okay
+Pour mettre en place le Réseau de confiance (Web of Trust), GnuPG a
+besoin de savoir en quelles clés votre confiance est ultime - ce sont
+en général les clés dont vous avez accès à la clé secrète. Répondez
+"oui" pour indiquer que votre confiance en cette clé est ultime
+
+.
+
+.gpg.untrusted_key.override
+Si vous voulez utiliser cette clé peu sûre quand-même, répondez «oui».
+.
+
+.gpg.pklist.user_id.enter
+Entrez le nom d'utilisateur de la personne à qui vous voulez envoyer
+le message.
+.
+
+.gpg.keygen.algo
+Sélectionnez l'algorithme à utiliser.
+
+DSA (connu également sous le nom de DSS) est un algorithme de signature
+digitale et ne peut être utilisé que pour des signatures.
+
+Elgamal est un algorithme pour le chiffrement seul.
+
+RSA peut être utilisé pour les signatures et le chiffrement.
+
+La première clé (clé principale) doit toujours être une clé capable
+de signer.
+.
+
+.gpg.keygen.algo.rsa_se
+En général ce n'est pas une bonne idée d'utiliser la même clé pour
+signer et pour chiffrer. Cet algorithme ne doit être utilisé que
+pour certains domaines.
+Consultez votre expert en sécurité d'abord.
+.
+
+.gpg.keygen.size
+Entrez la taille de la clé
+.
+
+.gpg.keygen.size.huge.okay
+Répondez «oui» ou «non»
+.
+
+.gpg.keygen.size.large.okay
+Répondez «oui» ou «non»
+.
+
+.gpg.keygen.valid
+Entrez la valeur demandée comme indiqué dans la ligne de commande.
+On peut entrer une date ISO (AAAA-MM-JJ) mais le résultat d'erreur sera
+mauvais - le système essaierait d'interpréter la valeur donnée comme un
+intervalle.
+.
+
+.gpg.keygen.valid.okay
+Répondez «oui» ou «non»
+.
+
+.gpg.keygen.name
+Entrez le nom du propriétaire de la clé
+.
+
+.gpg.keygen.email
+entrez une adresse e-mail optionnelle mais hautement recommandée
+.
+
+.gpg.keygen.comment
+Entrez un commentaire optionnel
+.
+
+.gpg.keygen.userid.cmd
+N pour changer le nom.
+C pour changer le commentaire.
+E pour changer l'adresse e-mail.
+O pour continuer à générer la clé.
+Q pour arrêter de générer de clé.
+.
+
+.gpg.keygen.sub.okay
+Répondez «oui» (ou simplement «o») pour générer la sous-clé
+.
+
+.gpg.sign_uid.okay
+Répondez «oui» ou «non»
+.
+
+.gpg.sign_uid.class
+Quand vous signez un nom d'utilisateur d'une clé, vous devriez d'abord
+vérifier que la clé appartient à la personne nommée. Il est utile que
+les autres personnes sachent avec quel soin vous l'avez vérifié.
+
+"0" signifie que vous n'avez pas d'opinon.
+
+"1" signifie que vous croyez que la clé appartient à la personne qui
+dit la posséder mais vous n'avez pas pu vérifier du tout la clé.
+C'est utile lorsque vous signez la clé d'un pseudonyme.
+
+"2" signifie que vous avez un peu vérifié la clé. Par exemple, cela
+pourrait être un vérification de l'empreinte et du nom de
+l'utilisateur avec la photo.
+
+"3" signifie que vous avez complètement vérifié la clé. Par exemple,
+cela pourrait être une vérification de l'empreinte, du nom de
+l'utilisateur avec un document difficile à contrefaire (comme un
+passeport) et de son adresse e-mail (vérifié par un échange de
+courrier électronique).
+
+Notez bien que les exemples donnés ci-dessus pour les niveaux 2 et
+3 ne sont *que* des exemples.
+C'est à vous de décider quelle valeur mettre quand vous signez
+les clés des autres personnes.
+
+Si vous ne savez pas quelle réponse est la bonne, répondez "0".
+.
+
+.gpg.change_passwd.empty.okay
+Répondez «oui» ou «non»
+.
+
+.gpg.keyedit.save.okay
+Répondez «oui» ou «non»
+.
+
+.gpg.keyedit.cancel.okay
+Répondez «oui» ou «non»
+.
+
+.gpg.keyedit.sign_all.okay
+Répondez «oui» si vous voulez signer TOUS les noms d'utilisateurs
+.
+
+.gpg.keyedit.remove.uid.okay
+Répondez «oui» si vous voulez vraiment supprimer ce nom
+d'utilisateur. Tous les certificats seront alors perdus en même temps !
+.
+
+.gpg.keyedit.remove.subkey.okay
+Répondez «oui» s'il faut vraiment supprimer la sous-clé
+.
+
+.gpg.keyedit.delsig.valid
+C'est une signature valide dans la clé; vous n'avez pas normalement
+intérêt à supprimer cette signature car elle peut être importante pour
+établir une connection de confiance vers la clé ou une autre clé certifiée
+par celle-là.
+.
+
+.gpg.keyedit.delsig.unknown
+Cette signature ne peut pas être vérifiée parce que vous n'avez pas la
+clé correspondante. Vous devriez remettre sa supression jusqu'à ce que
+vous soyez sûr de quelle clé a été utilisée car cette clé de signature
+peut établir une connection de confiance vers une autre clé déjà certifiée.
+.
+
+.gpg.keyedit.delsig.invalid
+Cette signature n'est pas valide. Vous devriez la supprimer de votre
+porte-clés.
+.
+
+.gpg.keyedit.delsig.selfsig
+Cette signature relie le nom d'utilisateur à la clé. Habituellement
+enlever une telle signature n'est pas une bonne idée. En fait GnuPG peut
+ne plus être capable d'utiliser cette clé. Donc faites ceci uniquement si
+cette auto-signature est invalide pour une certaine raison et si une autre
+est disponible.
+.
+
+.gpg.keyedit.updpref.okay
+Changer les préférences de tous les noms d'utilisateurs (ou juste
+ceux qui sont sélectionnés) vers la liste actuelle. La date de toutes
+les auto-signatures affectées seront avancées d'une seconde.
+
+.
+
+.gpg.passphrase.enter
+Entrez le mot de passe ; c'est une phrase secrète 
+
+.
+
+.gpg.passphrase.repeat
+Répétez la dernière phrase de passe pour être sûr de ce que vous
+avez tapé.
+.
+
+.gpg.detached_signature.filename
+Donnez le nom du fichier auquel la signature se rapporte
+.
+
+.gpg.openfile.overwrite.okay
+Répondez «oui» s'il faut vraiment réécrire le fichier
+.
+
+.gpg.openfile.askoutname
+Entrez le nouveau nom de fichier. Si vous tapez simplement ENTRÉE le
+fichier par défaut (indiqué entre crochets) sera utilisé.
+.
+
+.gpg.ask_revocation_reason.code
+Vous devriez donner une raison pour la certification. Selon le contexte
+vous pouvez choisir dans cette liste:
+  «La clé a été compromise»
+      Utilisez cette option si vous avez une raison de croire que des
+      personnes ont pu accéder à votre clé secrète sans autorisation.
+  «La clé a été remplacée»
+      Utilisez cette option si vous avez remplacé la clé par une nouvelle.
+  «La clé n'est plus utilisée»
+      Utilisez cette option si cette clé n'a plus d'utilité.
+  «Le nom d'utilisateur n'est plus valide»
+      Utilisez cette option si le nom d'utilisateur ne doit plus être
+      utilisé. Cela sert généralement à indiquer qu'une adresse e-mail
+      est invalide.
+
+.
+
+.gpg.ask_revocation_reason.text
+Si vous le désirez, vous pouvez entrer un texte qui explique pourquoi vous
+avez émis ce certificat de révocation. Essayez de garder ce texte concis.
+Une ligne vide délimite la fin du texte.
+
+.
+
+
+
+# Local variables:
+# mode: fundamental
+# coding: utf-8
+# End:
+                                                                                                                                                                                                                                                                                                                                                                                                           # help..txt -  GnuPG online help
+# Copyright (C) 2007 Free Software Foundation, Inc.
+#
+# This file is part of GnuPG.
+#
+# GnuPG is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+# 
+# GnuPG is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, see <https://www.gnu.org/licenses/>.
+
+
+.#gpg.edit_ownertrust.value
+# fixme: Please translate and remove the hash mark from the key line.
+It's up to you to assign a value here; this value will never be exported
+to any 3rd party.  We need it to implement the web-of-trust; it has nothing
+to do with the (implicitly created) web-of-certificates.
+.
+
+.#gpg.edit_ownertrust.set_ultimate.okay
+# fixme: Please translate and remove the hash mark from the key line.
+To build the Web-of-Trust, GnuPG needs to know which keys are
+ultimately trusted - those are usually the keys for which you have
+access to the secret key.  Answer "yes" to set this key to
+ultimately trusted
+
+.
+
+.#gpg.untrusted_key.override
+# fixme: Please translate and remove the hash mark from the key line.
+If you want to use this untrusted key anyway, answer "yes".
+.
+
+.#gpg.pklist.user_id.enter
+# fixme: Please translate and remove the hash mark from the key line.
+Enter the user ID of the addressee to whom you want to send the message.
+.
+
+.#gpg.keygen.algo
+# fixme: Please translate and remove the hash mark from the key line.
+Select the algorithm to use.
+
+DSA (aka DSS) is the Digital Signature Algorithm and can only be used
+for signatures.
+
+Elgamal is an encrypt-only algorithm.
+
+RSA may be used for signatures or encryption.
+
+The first (primary) key must always be a key which is capable of signing.
+.
+
+.#gpg.keygen.algo.rsa_se
+# fixme: Please translate and remove the hash mark from the key line.
+In general it is not a good idea to use the same key for signing and
+encryption.  This algorithm should only be used in certain domains.
+Please consult your security expert first.
+.
+
+.#gpg.keygen.size
+# fixme: Please translate and remove the hash mark from the key line.
+Enter the size of the key
+.
+
+.#gpg.keygen.size.huge.okay
+# fixme: Please translate and remove the hash mark from the key line.
+Answer "yes" or "no"
+.
+
+.#gpg.keygen.size.large.okay
+# fixme: Please translate and remove the hash mark from the key line.
+Answer "yes" or "no"
+.
+
+.#gpg.keygen.valid
+# fixme: Please translate and remove the hash mark from the key line.
+Enter the required value as shown in the prompt.
+It is possible to enter a ISO date (YYYY-MM-DD) but you won't
+get a good error response - instead the system tries to interpret
+the given value as an interval.
+.
+
+.#gpg.keygen.valid.okay
+# fixme: Please translate and remove the hash mark from the key line.
+Answer "yes" or "no"
+.
+
+.#gpg.keygen.name
+# fixme: Please translate and remove the hash mark from the key line.
+Enter the name of the key holder
+.
+
+.#gpg.keygen.email
+# fixme: Please translate and remove the hash mark from the key line.
+please enter an optional but highly suggested email address
+.
+
+.#gpg.keygen.comment
+# fixme: Please translate and remove the hash mark from the key line.
+Please enter an optional comment
+.
+
+.#gpg.keygen.userid.cmd
+# fixme: Please translate and remove the hash mark from the key line.
+N  to change the name.
+C  to change the comment.
+E  to change the email address.
+O  to continue with key generation.
+Q  to to quit the key generation.
+.
+
+.#gpg.keygen.sub.okay
+# fixme: Please translate and remove the hash mark from the key line.
+Answer "yes" (or just "y") if it is okay to generate the sub key.
+.
+
+.#gpg.sign_uid.okay
+# fixme: Please translate and remove the hash mark from the key line.
+Answer "yes" or "no"
+.
+
+.#gpg.sign_uid.class
+# fixme: Please translate and remove the hash mark from the key line.
+When you sign a user ID on a key, you should first verify that the key
+belongs to the person named in the user ID.  It is useful for others to
+know how carefully you verified this.
+
+"0" means you make no particular claim as to how carefully you verified the
+    key.
+
+"1" means you believe the key is owned by the person who claims to own it
+    but you could not, or did not verify the key at all.  This is useful for
+    a "persona" verification, where you sign the key of a pseudonymous user.
+
+"2" means you did casual verification of the key.  For example, this could
+    mean that you verified the key fingerprint and checked the user ID on the
+    key against a photo ID.
+
+"3" means you did extensive verification of the key.  For example, this could
+    mean that you verified the key fingerprint with the owner of the key in
+    person, and that you checked, by means of a hard to forge document with a
+    photo ID (such as a passport) that the name of the key owner matches the
+    name in the user ID on the key, and finally that you verified (by exchange
+    of email) that the email address on the key belongs to the key owner.
+
+Note that the examples given above for levels 2 and 3 are *only* examples.
+In the end, it is up to you to decide just what "casual" and "extensive"
+mean to you when you sign other keys.
+
+If you don't know what the right answer is, answer "0".
+.
+
+.#gpg.change_passwd.empty.okay
+# fixme: Please translate and remove the hash mark from the key line.
+Answer "yes" or "no"
+.
+
+.#gpg.keyedit.save.okay
+# fixme: Please translate and remove the hash mark from the key line.
+Answer "yes" or "no"
+.
+
+.#gpg.keyedit.cancel.okay
+# fixme: Please translate and remove the hash mark from the key line.
+Answer "yes" or "no"
+.
+
+.#gpg.keyedit.sign_all.okay
+# fixme: Please translate and remove the hash mark from the key line.
+Answer "yes" if you want to sign ALL the user IDs
+.
+
+.#gpg.keyedit.remove.uid.okay
+# fixme: Please translate and remove the hash mark from the key line.
+Answer "yes" if you really want to delete this user ID.
+All certificates are then also lost!
+.
+
+.#gpg.keyedit.remove.subkey.okay
+# fixme: Please translate and remove the hash mark from the key line.
+Answer "yes" if it is okay to delete the subkey
+.
+
+.#gpg.keyedit.delsig.valid
+# fixme: Please translate and remove the hash mark from the key line.
+This is a valid signature on the key; you normally don't want
+to delete this signature because it may be important to establish a
+trust connection to the key or another key certified by this key.
+.
+
+.#gpg.keyedit.delsig.unknown
+# fixme: Please translate and remove the hash mark from the key line.
+This signature can't be checked because you don't have the
+corresponding key.  You should postpone its deletion until you
+know which key was used because this signing key might establish
+a trust connection through another already certified key.
+.
+
+.#gpg.keyedit.delsig.invalid
+# fixme: Please translate and remove the hash mark from the key line.
+The signature is not valid.  It does make sense to remove it from
+your keyring.
+.
+
+.#gpg.keyedit.delsig.selfsig
+# fixme: Please translate and remove the hash mark from the key line.
+This is a signature which binds the user ID to the key. It is
+usually not a good idea to remove such a signature.  Actually
+GnuPG might not be able to use this key anymore.  So do this
+only if this self-signature is for some reason not valid and
+a second one is available.
+.
+
+.#gpg.keyedit.updpref.okay
+# fixme: Please translate and remove the hash mark from the key line.
+Change the preferences of all user IDs (or just of the selected ones)
+to the current list of preferences.  The timestamp of all affected
+self-signatures will be advanced by one second.
+
+.
+
+.#gpg.passphrase.enter
+# fixme: Please translate and remove the hash mark from the key line.
+Please enter the passphrase; this is a secret sentence
+
+.
+
+.#gpg.passphrase.repeat
+# fixme: Please translate and remove the hash mark from the key line.
+Please repeat the last passphrase, so you are sure what you typed in.
+.
+
+.#gpg.detached_signature.filename
+# fixme: Please translate and remove the hash mark from the key line.
+Give the name of the file to which the signature applies
+.
+
+.#gpg.openfile.overwrite.okay
+# fixme: Please translate and remove the hash mark from the key line.
+Answer "yes" if it is okay to overwrite the file
+.
+
+.#gpg.openfile.askoutname
+# fixme: Please translate and remove the hash mark from the key line.
+Please enter a new filename. If you just hit RETURN the default
+file (which is shown in brackets) will be used.
+.
+
+.#gpg.ask_revocation_reason.code
+# fixme: Please translate and remove the hash mark from the key line.
+You should specify a reason for the certification.  Depending on the
+context you have the ability to choose from this list:
+  "Key has been compromised"
+      Use this if you have a reason to believe that unauthorized persons
+      got access to your secret key.
+  "Key is superseded"
+      Use this if you have replaced this key with a newer one.
+  "Key is no longer used"
+      Use this if you have retired this key.
+  "User ID is no longer valid"
+      Use this to state that the user ID should not longer be used;
+      this is normally used to mark an email address invalid.
+
+.
+
+.#gpg.ask_revocation_reason.text
+# fixme: Please translate and remove the hash mark from the key line.
+If you like, you can enter a text describing why you issue this
+revocation certificate.  Please keep this text concise.
+An empty line ends the text.
+
+.
+
+
+
+# Local variables:
+# mode: fundamental
+# coding: utf-8
+# End:
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   # help.hu.txt - hu GnuPG online help
+# Copyright (C) 2007 Free Software Foundation, Inc.
+#
+# This file is part of GnuPG.
+#
+# GnuPG is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+# 
+# GnuPG is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, see <https://www.gnu.org/licenses/>.
+
+
+.gpg.edit_ownertrust.value
+Az Ön döntésén múlik, hogy milyen értéket ad meg itt. Ezt az értéket soha
+nem exportáljuk mások részére. Ez a bizalmak hálózatához (web-of-trust)
+szükséges, semmi köze az igazolások hálózatához (web-of-certificates).
+.
+
+.gpg.edit_ownertrust.set_ultimate.okay
+Hogy a bizalmak hálózatát felépítsük, a GnuPG-nek tudnia kell, hogy
+mely kulcsok alapvetően megbízhatóak - általában ezek azok a kulcsok,
+melyek titkos kulcsához hozzáfér. Válaszoljon "igen"-nel, ha kulcsot
+alapvetően megbízhatónak jelöli!
+
+.
+
+.gpg.untrusted_key.override
+Ha mégis használni akarja ezt a kulcsot, melyben nem bízunk,
+válaszoljon "igen"-nel!
+.
+
+.gpg.pklist.user_id.enter
+Adja meg a címzett felhasználói azonosítóját!
+.
+
+.#gpg.keygen.algo
+# fixme: Please translate and remove the hash mark from the key line.
+Select the algorithm to use.
+
+DSA (aka DSS) is the Digital Signature Algorithm and can only be used
+for signatures.
+
+Elgamal is an encrypt-only algorithm.
+
+RSA may be used for signatures or encryption.
+
+The first (primary) key must always be a key which is capable of signing.
+.
+
+.gpg.keygen.algo.rsa_se
+Általában nem jó ötlet ugyanazt a kulcsot használni aláíráshoz és
+titkosításhoz. Ezt az algoritmust csak bizonyos területeken ajánlatos
+használni. Kérem, először konzultáljon a biztonsági szakértőjével!
+.
+
+.gpg.keygen.size
+Adja meg a kulcs méretét!
+.
+
+.gpg.keygen.size.huge.okay
+Kérem, adjon "igen" vagy "nem" választ!
+.
+
+.gpg.keygen.size.large.okay
+Kérem, adjon "igen" vagy "nem" választ!
+.
+
+.gpg.keygen.valid
+Adja meg a szükséges értéket, ahogy a prompt mutatja!
+Lehetséges ISO dátumot is beírni (ÉÉÉÉ-HH-NN), de nem fog rendes
+hibaüzenetet kapni, hanem a rendszer megpróbálja az értéket
+intervallumként értelmezni.
+.
+
+.gpg.keygen.valid.okay
+Kérem, adjon "igen" vagy "nem" választ!
+.
+
+.gpg.keygen.name
+Adja meg a kulcs tulajdonosának a nevét!
+.
+
+.gpg.keygen.email
+Kérem, adjon meg egy opcionális, de nagyon ajánlott e-mail címet!
+.
+
+.gpg.keygen.comment
+Kérem, adjon meg egy opcionális megjegyzést!
+.
+
+.gpg.keygen.userid.cmd
+N  név változtatása
+M  megjegyzés változtatása
+E  e-mail változtatása
+R  kulcsgenerálás folytatása
+Q  kilépés a kulcsgenerálásból
+.
+
+.gpg.keygen.sub.okay
+Válaszoljon "igen"-nel (vagy csak "i"-vel), ha kezdhetjük az alkulcs
+létrehozását!
+.
+
+.gpg.sign_uid.okay
+Kérem, adjon "igen" vagy "nem" választ!
+.
+
+.gpg.sign_uid.class
+Mielőtt aláír egy felhasználói azonosítót egy kulcson, ellenőriznie kell,
+hogy a kulcs a felhasználói azonosítóban megnevezett személyhez tartozik.
+Mások számára hasznos lehet, ha tudják, hogy milyen gondosan ellenőrizte
+Ön ezt.
+
+"0" azt jelenti, hogy nem tesz az ellenőrzés gondosságára vonatkozó
+    kijelentést.
+
+"1" azt jelenti, hogy Ön hiszi, hogy a kulcs annak a személynek a
+    tulajdona, aki azt állítja, hogy az övé, de Ön nem tudta ezt
+    ellenőrizni, vagy egyszerűen nem ellenőrizte ezt. Ez hasznos egy
+    "persona" típusú ellenőrzéshez, mikor Ön egy pszeudonim felhasználó
+    kulcsát írja alá.
+
+"2" azt jelenti, hogy Ön a kulcsot hétköznapi alapossággal ellenőrizte.
+    Például ez azt jelentheti, hogy ellenőrizte a kulcs ujjlenyomatát, és
+    összevetette a kulcson szereplő felhasználóazonosítót egy fényképes
+    igazolvánnyal.
+
+"3" azt jelenti, hogy alaposan ellenőrizte a kulcsot. Például ez azt
+    jelentheti, hogy a kulcs ujjlenyomatát a tulajdonossal személyesen
+    találkozva ellenőrizte, egy nehezen hamisítható, fényképes igazolvánnyal
+    (mint az útlevél) meggyőződött arról, hogy a személy neve egyezik a
+    kulcson levővel, és végül (e-mail váltással) ellenőrizte, hogy a kulcson
+    szereplő e-mail cím a kulcs tulajdonosához tartozik.
+
+A 2-es és 3-as szintekhez adott példák *csak* példák. Végső soron Ön dönti
+el, hogy mit jelentenek Önnek a "hétköznapi" és "alapos" kifejezések,
+amikor mások kulcsát aláírja.
+
+Ha nem tudja, hogy mit válaszoljon, írjon "0"-t!
+.
+
+.gpg.change_passwd.empty.okay
+Kérem, adjon "igen" vagy "nem" választ!
+.
+
+.gpg.keyedit.save.okay
+Kérem, adjon "igen" vagy "nem" választ!
+.
+
+.gpg.keyedit.cancel.okay
+Kérem, adjon "igen" vagy "nem" választ!
+.
+
+.#gpg.keyedit.sign_all.okay
+# fixme: Please translate and remove the hash mark from the key line.
+Answer "yes" if you want to sign ALL the user IDs
+.
+
+.gpg.keyedit.remove.uid.okay
+Válaszoljon "igen"-nel, ha valóban törölni akarja ezt a felhasználóazonosítót!
+Minden igazolás törlődik vele együtt!
+.
+
+.gpg.keyedit.remove.subkey.okay
+Válaszoljon "igen"-nel, ha az alkulcs törölhető.
+.
+
+.gpg.keyedit.delsig.valid
+Ez egy érvényes aláírás a kulcson. Normál esetben nincs értelme
+törölni, mert fontos lehet ahhoz, hogy érvényesítse ezt a kulcsot,
+vagy egy másikat, melyet ezzel a kulccsal igazolnak.
+.
+
+.gpg.keyedit.delsig.unknown
+Ezt az aláírást nem tudom ellenőrizni, mert nincs meg a hozzá tartozó
+kulcs. Ajánlatos lenne elhalasztani a törlést addig, amíg meg nem tudja,
+hogy melyik kulcsot használták, mert ez az aláíró kulcs bizalmi
+kapcsolatot hozhat létre egy már hitelesített kulcson keresztül.
+.
+
+.gpg.keyedit.delsig.invalid
+Ez az aláírás nem érvényes. Értelmetlen eltávolítani a kulcskarikáról.
+.
+
+.gpg.keyedit.delsig.selfsig
+Ez egy olyan aláírás, amely összeköti a felhasználóazonosítót
+a kulccsal. Általában nem jó ötlet egy ilyen aláírást eltávolítani.
+Az is lehetséges, hogy a GnuPG többé nem tudja használni ezt
+a kulcsot. Csak akkor tegye ezt, ha valami okból ez az önaláírás nem
+érvényes, és rendelkezésre áll egy másik!
+.
+
+.gpg.keyedit.updpref.okay
+Lecseréli az összes felhasználóazonosítóhoz (vagy csak a kijelöltekhez)
+tartozó preferenciákat az aktuális preferenciákra. Minden érintett
+önaláírás időpontját egy másodperccel növeli.
+
+.
+
+.gpg.passphrase.enter
+Kérem, adja meg a jelszót! Ezt egy titkos mondat. 
+
+.
+
+.gpg.passphrase.repeat
+Kérem, ismételje meg az előző jelszót ellenőrzésképpen!
+.
+
+.gpg.detached_signature.filename
+Adja meg az állomány nevét, melyhez az aláírás tartozik!
+.
+
+.gpg.openfile.overwrite.okay
+Válaszoljon "igen"-nel, ha felülírható az állomány!
+.
+
+.gpg.openfile.askoutname
+Kérem, adjon meg egy új fájlnevet! Ha RETURN-t/ENTER-t nyom, akkor
+a szögletes zárójelben levő alapértelmezett nevet használom.
+.
+
+.gpg.ask_revocation_reason.code
+Ajánlatos megadni a visszavonás okát. A helyzettől függően válasszon
+a következő listából:
+  "A kulcs kompromittálódott."
+      Használja ezt akkor, ha oka van azt hinni, hogy titkos kulcsa
+      illetéktelen kezekbe került!
+  "A kulcsot lecserélték."
+      Használja ezt akkor, ha a kulcsot lecserélte egy újabbra!
+  "A kulcs már nem használatos."
+      Használja ezt akkor, ha már nem használja a kulcsot!
+  "A felhasználóazonosító már nem érvényes."
+      Használja ezt akkor, ha azt állítja, hogy a felhasználóazonosító
+      már nem használatos! Általában érvénytelen e-mail címet jelent.
+
+.
+
+.gpg.ask_revocation_reason.text
+Ha akarja, megadhat egy szöveget, melyben megindokolja, hogy miért
+adta ki ezt a visszavonó igazolást. Kérem, fogalmazzon tömören!
+Egy üres sor jelzi a szöveg végét.
+
+.
+
+
+
+# Local variables:
+# mode: fundamental
+# coding: utf-8
+# End:
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   # help.id.txt - id GnuPG online help
+# Copyright (C) 2007 Free Software Foundation, Inc.
+#
+# This file is part of GnuPG.
+#
+# GnuPG is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+# 
+# GnuPG is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, see <https://www.gnu.org/licenses/>.
+
+
+.gpg.edit_ownertrust.value
+Terserah anda untuk memberi nilai baru di sini; nilai ini tidak akan diekspor
+ke pihak ketiga. Kami perlu untuk mengimplementasikan web-of-trust; tidak ada
+kaitan dengan (membuat secara implisit) web-of-certificates.
+.
+
+.gpg.edit_ownertrust.set_ultimate.okay
+Untuk membuat Web-of-Trust, GnuPG perlu tahu kunci mana yang
+sangat dipercaya - mereka biasanya adalah kunci yang anda punya
+akses ke kunci rahasia.  Jawab "yes" untuk menset kunci ini ke
+sangat dipercaya
+
+.
+
+.gpg.untrusted_key.override
+Jika anda ingin menggunakan kunci tidak terpercaya ini, jawab "ya".
+.
+
+.gpg.pklist.user_id.enter
+Masukkan ID user penerima pesan.
+.
+
+.#gpg.keygen.algo
+# fixme: Please translate and remove the hash mark from the key line.
+Select the algorithm to use.
+
+DSA (aka DSS) is the Digital Signature Algorithm and can only be used
+for signatures.
+
+Elgamal is an encrypt-only algorithm.
+
+RSA may be used for signatures or encryption.
+
+The first (primary) key must always be a key which is capable of signing.
+.
+
+.gpg.keygen.algo.rsa_se
+Secara umum bukan ide baik untuk menggunakan kunci yang sama untuk menandai dan
+mengenkripsi.  Algoritma ini seharusnya digunakan dalam domain tertentu.
+Silakan berkonsultasi dulu dengan ahli keamanan anda.
+.
+
+.gpg.keygen.size
+Masukkan ukuran kunci
+.
+
+.gpg.keygen.size.huge.okay
+Jawab "ya" atau "tidak"
+.
+
+.gpg.keygen.size.large.okay
+Jawab "ya" atau "tidak"
+.
+
+.gpg.keygen.valid
+Masukkan nilai yang diperlukan seperti pada prompt.
+Dapat digunakan format (YYYY-MM-DD) untuk mengisi tanggal ISO tetapi anda
+tidak akan mendapat respon kesalahan yang baik - sebaiknya sistem akan
+berusaha menginterprestasi nilai yang diberikan sebagai sebuah interval.
+.
+
+.gpg.keygen.valid.okay
+Jawab "ya" atau "tidak"
+.
+
+.gpg.keygen.name
+Masukkan nama pemegang kunci
+.
+
+.gpg.keygen.email
+silakan masukkan alamat email (pilihan namun sangat dianjurkan)
+.
+
+.gpg.keygen.comment
+Silakan masukkan komentar tambahan
+.
+
+.gpg.keygen.userid.cmd
+N  untuk merubah nama.
+K  untuk merubah komentar.
+E  untuk merubah alamat email.
+O  untuk melanjutkan dengan pembuatan kunci.
+K  untuk menghentikan pembuatan kunci.
+.
+
+.gpg.keygen.sub.okay
+Jawab "ya" (atau "y") jika telah siap membuat subkey.
+.
+
+.gpg.sign_uid.okay
+Jawab "ya" atau "tidak"
+.
+
+.gpg.sign_uid.class
+Ketika anda menandai user ID pada kunci, anda perlu memverifikasi bahwa kunci
+milik orang yang disebut dalam user ID.  Ini penting bagi orang lain untuk tahu
+seberapa cermat anda memverifikasi ini.
+
+"0" berarti anda tidak melakukan klaim tentang betapa cermat anda memverifikasi    kunci.
+
+"1" berarti anda percaya bahwa kunci dimiliki oleh orang yang mengklaim memilikinya
+    namun anda tidak dapat, atau tidak memverifikasi kunci sama sekali.  Hal ini bergunabagi
+    verifikasi "persona", yaitu anda menandai kunci user pseudonymous
+
+"2" berarti anda melakukan verifikasi kasual atas kunci.  Sebagai contoh, halini dapat
+    berarti bahwa anda memverifikasi fingerprint kunci dan memeriksa user ID pada kunci
+    dengan photo ID.
+
+"3" berarti anda melakukan verifikasi ekstensif atas kunci.  Sebagai contoh, hal ini
+    dapat berarti anda memverifikasi fingerprint kunci dengan pemilik kunci
+    secara personal, dan anda memeriksa, dengan menggunakan dokumen yang sulit dipalsukan yang memiliki
+    photo ID (seperti paspor) bahwa nama pemilik kunci cocok dengan
+    nama user ID kunci, dan bahwa anda telah memverifikasi (dengan pertukaran
+    email) bahwa alamat email pada kunci milik pemilik kunci.
+
+Contoh-contoh pada level 2 dan 3 hanyalah contoh.
+Pada akhirnya, terserah anda untuk memutuskan apa arti  "kasual" dan "ekstensif"
+bagi anda ketika menandai kunci lain.
+
+Jika anda tidak tahu jawaban yang tepat, jawab "0".
+.
+
+.gpg.change_passwd.empty.okay
+Jawab "ya" atau "tidak"
+.
+
+.gpg.keyedit.save.okay
+Jawab "ya" atau "tidak"
+.
+
+.gpg.keyedit.cancel.okay
+Jawab "ya" atau "tidak"
+.
+
+.#gpg.keyedit.sign_all.okay
+# fixme: Please translate and remove the hash mark from the key line.
+Answer "yes" if you want to sign ALL the user IDs
+.
+
+.gpg.keyedit.remove.uid.okay
+Jawab "ya" jika anda benar-benar ingin menghapus ID user ini.
+Seluruh sertifikat juga akan hilang!
+.
+
+.gpg.keyedit.remove.subkey.okay
+Jawab "ya" jika ingin menghapus subkey
+.
+
+.gpg.keyedit.delsig.valid
+Ini adalah signature valid untuk kunci; anda normalnya tdk ingin menghapus
+signature ini karena mungkin penting membangun koneksi trust ke kunci atau
+ke kunci tersertifikasi lain dengan kunci ini.
+.
+
+.gpg.keyedit.delsig.unknown
+Signature ini tidak dapat diperiksa karena anda tidak memiliki kunci
+korespondennya. Anda perlu menunda penghapusannya hingga anda tahu
+kunci yang digunakan karena kunci penanda ini mungkin membangun suatu
+koneksi trust melalui kunci yang telah tersertifikasi lain.
+.
+
+.gpg.keyedit.delsig.invalid
+Signature tidak valid.  Adalah hal yang masuk akal untuk menghapusnya dari
+keyring anda
+.
+
+.gpg.keyedit.delsig.selfsig
+Ini adalah signature yang menghubungkan ID pemakai ke kunci. Biasanya
+bukan ide yang baik untuk menghapus signature semacam itu. Umumnya
+GnuPG tidak akan dapat menggunakan kunci ini lagi. Sehingga lakukan hal
+ini bila self-signature untuk beberapa alasan tidak valid dan
+tersedia yang kedua.
+.
+
+.gpg.keyedit.updpref.okay
+Rubah preferensi seluruh user ID (atau hanya yang terpilih)
+ke daftar preferensi saat ini.  Timestamp seluruh self-signature
+yang terpengaruh akan bertambah satu detik.
+
+.
+
+.gpg.passphrase.enter
+Silakan masukkan passphrase; ini kalimat rahasia
+
+.
+
+.gpg.passphrase.repeat
+Silakan ulangi passphrase terakhir, sehingga anda yakin yang anda ketikkan.
+.
+
+.gpg.detached_signature.filename
+Beri nama file tempat berlakunya signature
+.
+
+.gpg.openfile.overwrite.okay
+Jawab "ya" jika tidak apa-apa menimpa file
+.
+
+.gpg.openfile.askoutname
+Silakan masukan nama file baru. Jika anda hanya menekan RETURN nama
+file baku (yang diapit tanda kurung) akan dipakai.
+.
+
+.gpg.ask_revocation_reason.code
+Anda harus menspesifikasikan alasan pembatalan. Semua ini tergantung
+konteks, anda dapat memilih dari daftar berikut:
+ "Key has been compromised"
+      Gunakan ini jika anda punya alasan untuk percaya bahwa orang yang tidak berhak
+      memiliki akses ke kunci pribadi anda.
+  "Key is superseded"
+      Gunakan ini bila anda mengganti kunci anda dengan yang baru.
+  "Key is no longer used"
+      Gunakan ini bila anda telah mempensiunkan kunci ini.
+  "User ID is no longer valid"
+      Gunakan ini untuk menyatakan user ID tidak boleh digunakan lagi;
+      normalnya digunakan untuk menandai bahwa alamat email tidak valid lagi.
+
+.
+
+.gpg.ask_revocation_reason.text
+Jika anda suka, anda dapat memasukkan teks menjelaskan mengapa anda
+mengeluarkan sertifikat pembatalan ini. Buatlah ringkas.
+Baris kosong mengakhiri teks.
+
+.
+
+
+
+# Local variables:
+# mode: fundamental
+# coding: utf-8
+# End:
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 

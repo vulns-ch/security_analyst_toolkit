@@ -98,8 +98,24 @@
 
     <div class="top-section">
         <div class="left-section">
-            <h1>File Manager</h1>
-            <p class="welcome-text">Drag and drop files to the input area on the right to upload them. Files are stored as blobs in memory. Use the terminal below to interact with the system.</p>
+          <div class="dashboard-header">
+                <h1>Applications</h1>
+                <input type="text" class="search-box" id="searchBox" placeholder="Search applications...">
+            </div>
+
+            <div class="category" data-category="utilities">
+                <div class="category-title">PDF</div>
+                <div class="app-list">
+                    <div class="app-item" data-app="image-resizer">
+                        <div class="app-info">
+                            <div class="app-title">pdf content analysis</div>
+                            <div class="app-script">scripts/pdf_analyze_all.sh</div>
+                            <div class="app-description">parse pdfs and extract info</div>
+                        </div>
+                        <button class="run-btn">Run</button>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <div class="right-section">

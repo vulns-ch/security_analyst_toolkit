@@ -1,0 +1,2212 @@
+nError. See bpo-45121.
+    if cls.__init__ is not _no_init_or_replace_init:
+        return
+
+    # Initially, `__init__` of a protocol subclass is set to `_no_init_or_replace_init`.
+    # The first instantiation of the subclass will call `_no_init_or_replace_init` which
+    # searches for a proper new `__init__` in the MRO. The new `__init__`
+    # replaces the subclass' old `__init__` (ie `_no_init_or_replace_init`). Subsequent
+    # instantiation of the protocol subclass will thus use the new
+    # `__init__` and no longer call `_no_init_or_replace_init`.
+    for base in cls.__mro__:
+        init = base.__dict__.get('__init__', _no_init_or_replace_init)
+        if init is not _no_init_or_replace_init:
+            cls.__init__ = init
+            break
+    else:
+        # should not happen
+        cls.__init__ = object.__init__
+
+    cls.__init__(self, *args, **kwargs)
+
+
+def _caller(depth=1, default='__main__'):
+    try:
+        return sys._getframemodulename(depth + 1) or default
+    except AttributeError:  # For platforms without _getframemodulename()
+        pass
+    try:
+        return sys._getframe(depth + 1).f_globals.get('__name__', default)
+    except (AttributeError, ValueError):  # For platforms without _getframe()
+        pass
+    return None
+
+def _allow_reckless_class_checks(depth=2):
+    """Allow instance and class checks for special stdlib modules.
+
+    The abc and functools modules indiscriminately call isinstance() and
+    issubclass() on the whole MRO of a user class, which may contain protocols.
+    """
+    return _caller(depth) in {'abc', 'functools', None}
+
+
+_PROTO_ALLOWLIST = {
+    'collections.abc': [
+        'Callable', 'Awaitable', 'Iterable', 'Iterator', 'AsyncIterable',
+        'AsyncIterator', 'Hashable', 'Sized', 'Container', 'Collection',
+        'Reversible', 'Buffer',
+    ],
+    'contextlib': ['AbstractContextManager', 'AbstractAsyncContextManager'],
+}
+
+
+@functools.cache
+def _lazy_load_getattr_static():
+    # Import getattr_static lazily so as not to slow down the import of typing.py
+    # Cache the result so we don't slow down _ProtocolMeta.__instancecheck__ unnecessarily
+    from inspect import getattr_static
+    return getattr_static
+
+
+_cleanups.append(_lazy_load_getattr_static.cache_clear)
+
+def _pickle_psargs(psargs):
+    return ParamSpecArgs, (psargs.__origin__,)
+
+copyreg.pickle(ParamSpecArgs, _pickle_psargs)
+
+def _pickle_pskwargs(pskwargs):
+    return ParamSpecKwargs, (pskwargs.__origin__,)
+
+copyreg.pickle(ParamSpecKwargs, _pickle_pskwargs)
+
+del _pickle_psargs, _pickle_pskwargs
+
+
+# Preload these once, as globals, as a micro-optimisation.
+# This makes a significant difference to the time it takes
+# to do `isinstance()`/`issubclass()` checks
+# against runtime-checkable protocols with only one callable member.
+_abc_instancecheck = ABCMeta.__instancecheck__
+_abc_subclasscheck = ABCMeta.__subclasscheck__
+
+
+def _type_check_issubclass_arg_1(arg):
+    """Raise TypeError if `arg` is not an instance of `type`
+    in `issubclass(arg, <protocol>)`.
+
+    In most cases, this is verified by type.__subclasscheck__.
+    Checking it again unnecessarily would slow down issubclass() checks,
+    so, we don't perform this check unless we absolutely have to.
+
+    For various error paths, however,
+    we want to ensure that *this* error message is shown to the user
+    where relevant, rather than a typing.py-specific error message.
+    """
+    if not isinstance(arg, type):
+        # Same error message as for issubclass(1, int).
+        raise TypeError('issubclass() arg 1 must be a class')
+
+
+class _ProtocolMeta(ABCMeta):
+    # This metaclass is somewhat unfortunate,
+    # but is necessary for several reasons...
+    def __new__(mcls, name, bases, namespace, /, **kwargs):
+        if name == "Protocol" and bases == (Generic,):
+            pass
+        elif Protocol in bases:
+            for base in bases:
+                if not (
+                    base in {object, Generic}
+                    or base.__name__ in _PROTO_ALLOWLIST.get(base.__module__, [])
+                    or (
+                        issubclass(base, Generic)
+                        and getattr(base, "_is_protocol", False)
+                    )
+                ):
+                    raise TypeError(
+                        f"Protocols can only inherit from other protocols, "
+                        f"got {base!r}"
+                    )
+        return super().__new__(mcls, name, bases, namespace, **kwargs)
+
+    def __init__(cls, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if getattr(cls, "_is_protocol", False):
+            cls.__protocol_attrs__ = _get_protocol_attrs(cls)
+
+    def __subclasscheck__(cls, other):
+        if cls is Protocol:
+            return type.__subclasscheck__(cls, other)
+        if (
+            getattr(cls, '_is_protocol', False)
+            and not _allow_reckless_class_checks()
+        ):
+            if not getattr(cls, '_is_runtime_protocol', False):
+                _type_check_issubclass_arg_1(other)
+                raise TypeError(
+                    "Instance and class checks can only be used with "
+                    "@runtime_checkable protocols"
+                )
+            if (
+                # this attribute is set by @runtime_checkable:
+                cls.__non_callable_proto_members__
+                and cls.__dict__.get("__subclasshook__") is _proto_hook
+            ):
+                _type_check_issubclass_arg_1(other)
+                non_method_attrs = sorted(cls.__non_callable_proto_members__)
+                raise TypeError(
+                    "Protocols with non-method members don't support issubclass()."
+                    f" Non-method members: {str(non_method_attrs)[1:-1]}."
+                )
+        return _abc_subclasscheck(cls, other)
+
+    def __instancecheck__(cls, instance):
+        # We need this method for situations where attributes are
+        # assigned in __init__.
+        if cls is Protocol:
+            return type.__instancecheck__(cls, instance)
+        if not getattr(cls, "_is_protocol", False):
+            # i.e., it's a concrete subclass of a protocol
+            return _abc_instancecheck(cls, instance)
+
+        if (
+            not getattr(cls, '_is_runtime_protocol', False) and
+            not _allow_reckless_class_checks()
+        ):
+            raise TypeError("Instance and class checks can only be used with"
+                            " @runtime_checkable protocols")
+
+        if _abc_instancecheck(cls, instance):
+            return True
+
+        getattr_static = _lazy_load_getattr_static()
+        for attr in cls.__protocol_attrs__:
+            try:
+                val = getattr_static(instance, attr)
+            except AttributeError:
+                break
+            # this attribute is set by @runtime_checkable:
+            if val is None and attr not in cls.__non_callable_proto_members__:
+                break
+        else:
+            return True
+
+        return False
+
+
+@classmethod
+def _proto_hook(cls, other):
+    if not cls.__dict__.get('_is_protocol', False):
+        return NotImplemented
+
+    for attr in cls.__protocol_attrs__:
+        for base in other.__mro__:
+            # Check if the members appears in the class dictionary...
+            if attr in base.__dict__:
+                if base.__dict__[attr] is None:
+                    return NotImplemented
+                break
+
+            # ...or in annotations, if it is a sub-protocol.
+            annotations = getattr(base, '__annotations__', {})
+            if (isinstance(annotations, collections.abc.Mapping) and
+                    attr in annotations and
+                    issubclass(other, Generic) and getattr(other, '_is_protocol', False)):
+                break
+        else:
+            return NotImplemented
+    return True
+
+
+class Protocol(Generic, metaclass=_ProtocolMeta):
+    """Base class for protocol classes.
+
+    Protocol classes are defined as::
+
+        class Proto(Protocol):
+            def meth(self) -> int:
+                ...
+
+    Such classes are primarily used with static type checkers that recognize
+    structural subtyping (static duck-typing).
+
+    For example::
+
+        class C:
+            def meth(self) -> int:
+                return 0
+
+        def func(x: Proto) -> int:
+            return x.meth()
+
+        func(C())  # Passes static type check
+
+    See PEP 544 for details. Protocol classes decorated with
+    @typing.runtime_checkable act as simple-minded runtime protocols that check
+    only the presence of given attributes, ignoring their type signatures.
+    Protocol classes can be generic, they are defined as::
+
+        class GenProto[T](Protocol):
+            def meth(self) -> T:
+                ...
+    """
+
+    __slots__ = ()
+    _is_protocol = True
+    _is_runtime_protocol = False
+
+    def __init_subclass__(cls, *args, **kwargs):
+        super().__init_subclass__(*args, **kwargs)
+
+        # Determine if this is a protocol or a concrete subclass.
+        if not cls.__dict__.get('_is_protocol', False):
+            cls._is_protocol = any(b is Protocol for b in cls.__bases__)
+
+        # Set (or override) the protocol subclass hook.
+        if '__subclasshook__' not in cls.__dict__:
+            cls.__subclasshook__ = _proto_hook
+
+        # Prohibit instantiation for protocol classes
+        if cls._is_protocol and cls.__init__ is Protocol.__init__:
+            cls.__init__ = _no_init_or_replace_init
+
+
+class _AnnotatedAlias(_NotIterable, _GenericAlias, _root=True):
+    """Runtime representation of an annotated type.
+
+    At its core 'Annotated[t, dec1, dec2, ...]' is an alias for the type 't'
+    with extra annotations. The alias behaves like a normal typing alias.
+    Instantiating is the same as instantiating the underlying type; binding
+    it to types is also the same.
+
+    The metadata itself is stored in a '__metadata__' attribute as a tuple.
+    """
+
+    def __init__(self, origin, metadata):
+        if isinstance(origin, _AnnotatedAlias):
+            metadata = origin.__metadata__ + metadata
+            origin = origin.__origin__
+        super().__init__(origin, origin, name='Annotated')
+        self.__metadata__ = metadata
+
+    def copy_with(self, params):
+        assert len(params) == 1
+        new_type = params[0]
+        return _AnnotatedAlias(new_type, self.__metadata__)
+
+    def __repr__(self):
+        return "typing.Annotated[{}, {}]".format(
+            _type_repr(self.__origin__),
+            ", ".join(repr(a) for a in self.__metadata__)
+        )
+
+    def __reduce__(self):
+        return operator.getitem, (
+            Annotated, (self.__origin__,) + self.__metadata__
+        )
+
+    def __eq__(self, other):
+        if not isinstance(other, _AnnotatedAlias):
+            return NotImplemented
+        return (self.__origin__ == other.__origin__
+                and self.__metadata__ == other.__metadata__)
+
+    def __hash__(self):
+        return hash((self.__origin__, self.__metadata__))
+
+    def __getattr__(self, attr):
+        if attr in {'__name__', '__qualname__'}:
+            return 'Annotated'
+        return super().__getattr__(attr)
+
+    def __mro_entries__(self, bases):
+        return (self.__origin__,)
+
+
+@_TypedCacheSpecialForm
+@_tp_cache(typed=True)
+def Annotated(self, *params):
+    """Add context-specific metadata to a type.
+
+    Example: Annotated[int, runtime_check.Unsigned] indicates to the
+    hypothetical runtime_check module that this type is an unsigned int.
+    Every other consumer of this type can ignore this metadata and treat
+    this type as int.
+
+    The first argument to Annotated must be a valid type.
+
+    Details:
+
+    - It's an error to call `Annotated` with less than two arguments.
+    - Access the metadata via the ``__metadata__`` attribute::
+
+        assert Annotated[int, '$'].__metadata__ == ('$',)
+
+    - Nested Annotated types are flattened::
+
+        assert Annotated[Annotated[T, Ann1, Ann2], Ann3] == Annotated[T, Ann1, Ann2, Ann3]
+
+    - Instantiating an annotated type is equivalent to instantiating the
+    underlying type::
+
+        assert Annotated[C, Ann1](5) == C(5)
+
+    - Annotated can be used as a generic type alias::
+
+        type Optimized[T] = Annotated[T, runtime.Optimize()]
+        # type checker will treat Optimized[int]
+        # as equivalent to Annotated[int, runtime.Optimize()]
+
+        type OptimizedList[T] = Annotated[list[T], runtime.Optimize()]
+        # type checker will treat OptimizedList[int]
+        # as equivalent to Annotated[list[int], runtime.Optimize()]
+
+    - Annotated cannot be used with an unpacked TypeVarTuple::
+
+        type Variadic[*Ts] = Annotated[*Ts, Ann1]  # NOT valid
+
+      This would be equivalent to::
+
+        Annotated[T1, T2, T3, ..., Ann1]
+
+      where T1, T2 etc. are TypeVars, which would be invalid, because
+      only one type should be passed to Annotated.
+    """
+    if len(params) < 2:
+        raise TypeError("Annotated[...] should be used "
+                        "with at least two arguments (a type and an "
+                        "annotation).")
+    if _is_unpacked_typevartuple(params[0]):
+        raise TypeError("Annotated[...] should not be used with an "
+                        "unpacked TypeVarTuple")
+    msg = "Annotated[t, ...]: t must be a type."
+    origin = _type_check(params[0], msg, allow_special_forms=True)
+    metadata = tuple(params[1:])
+    return _AnnotatedAlias(origin, metadata)
+
+
+def runtime_checkable(cls):
+    """Mark a protocol class as a runtime protocol.
+
+    Such protocol can be used with isinstance() and issubclass().
+    Raise TypeError if applied to a non-protocol class.
+    This allows a simple-minded structural check very similar to
+    one trick ponies in collections.abc such as Iterable.
+
+    For example::
+
+        @runtime_checkable
+        class Closable(Protocol):
+            def close(self): ...
+
+        assert isinstance(open('/some/file'), Closable)
+
+    Warning: this will check only the presence of the required methods,
+    not their type signatures!
+    """
+    if not issubclass(cls, Generic) or not getattr(cls, '_is_protocol', False):
+        raise TypeError('@runtime_checkable can be only applied to protocol classes,'
+                        ' got %r' % cls)
+    cls._is_runtime_protocol = True
+    # PEP 544 prohibits using issubclass()
+    # with protocols that have non-method members.
+    # See gh-113320 for why we compute this attribute here,
+    # rather than in `_ProtocolMeta.__init__`
+    cls.__non_callable_proto_members__ = set()
+    for attr in cls.__protocol_attrs__:
+        try:
+            is_callable = callable(getattr(cls, attr, None))
+        except Exception as e:
+            raise TypeError(
+                f"Failed to determine whether protocol member {attr!r} "
+                "is a method member"
+            ) from e
+        else:
+            if not is_callable:
+                cls.__non_callable_proto_members__.add(attr)
+    return cls
+
+
+def cast(typ, val):
+    """Cast a value to a type.
+
+    This returns the value unchanged.  To the type checker this
+    signals that the return value has the designated type, but at
+    runtime we intentionally don't check anything (we want this
+    to be as fast as possible).
+    """
+    return val
+
+
+def assert_type(val, typ, /):
+    """Ask a static type checker to confirm that the value is of the given type.
+
+    At runtime this does nothing: it returns the first argument unchanged with no
+    checks or side effects, no matter the actual type of the argument.
+
+    When a static type checker encounters a call to assert_type(), it
+    emits an error if the value is not of the specified type::
+
+        def greet(name: str) -> None:
+            assert_type(name, str)  # OK
+            assert_type(name, int)  # type checker error
+    """
+    return val
+
+
+_allowed_types = (types.FunctionType, types.BuiltinFunctionType,
+                  types.MethodType, types.ModuleType,
+                  WrapperDescriptorType, MethodWrapperType, MethodDescriptorType)
+
+
+def get_type_hints(obj, globalns=None, localns=None, include_extras=False):
+    """Return type hints for an object.
+
+    This is often the same as obj.__annotations__, but it handles
+    forward references encoded as string literals and recursively replaces all
+    'Annotated[T, ...]' with 'T' (unless 'include_extras=True').
+
+    The argument may be a module, class, method, or function. The annotations
+    are returned as a dictionary. For classes, annotations include also
+    inherited members.
+
+    TypeError is raised if the argument is not of a type that can contain
+    annotations, and an empty dictionary is returned if no annotations are
+    present.
+
+    BEWARE -- the behavior of globalns and localns is counterintuitive
+    (unless you are familiar with how eval() and exec() work).  The
+    search order is locals first, then globals.
+
+    - If no dict arguments are passed, an attempt is made to use the
+      globals from obj (or the respective module's globals for classes),
+      and these are also used as the locals.  If the object does not appear
+      to have globals, an empty dictionary is used.  For classes, the search
+      order is globals first then locals.
+
+    - If one dict argument is passed, it is used for both globals and
+      locals.
+
+    - If two dict arguments are passed, they specify globals and
+      locals, respectively.
+    """
+    if getattr(obj, '__no_type_check__', None):
+        return {}
+    # Classes require a special treatment.
+    if isinstance(obj, type):
+        hints = {}
+        for base in reversed(obj.__mro__):
+            if globalns is None:
+                base_globals = getattr(sys.modules.get(base.__module__, None), '__dict__', {})
+            else:
+                base_globals = globalns
+            ann = base.__dict__.get('__annotations__', {})
+            if isinstance(ann, types.GetSetDescriptorType):
+                ann = {}
+            base_locals = dict(vars(base)) if localns is None else localns
+            if localns is None and globalns is None:
+                # This is surprising, but required.  Before Python 3.10,
+                # get_type_hints only evaluated the globalns of
+                # a class.  To maintain backwards compatibility, we reverse
+                # the globalns and localns order so that eval() looks into
+                # *base_globals* first rather than *base_locals*.
+                # This only affects ForwardRefs.
+                base_globals, base_locals = base_locals, base_globals
+            for name, value in ann.items():
+                if value is None:
+                    value = type(None)
+                if isinstance(value, str):
+                    value = ForwardRef(value, is_argument=False, is_class=True)
+                value = _eval_type(value, base_globals, base_locals, base.__type_params__)
+                hints[name] = value
+        return hints if include_extras else {k: _strip_annotations(t) for k, t in hints.items()}
+
+    if globalns is None:
+        if isinstance(obj, types.ModuleType):
+            globalns = obj.__dict__
+        else:
+            nsobj = obj
+            # Find globalns for the unwrapped object.
+            while hasattr(nsobj, '__wrapped__'):
+                nsobj = nsobj.__wrapped__
+            globalns = getattr(nsobj, '__globals__', {})
+        if localns is None:
+            localns = globalns
+    elif localns is None:
+        localns = globalns
+    hints = getattr(obj, '__annotations__', None)
+    if hints is None:
+        # Return empty annotations for something that _could_ have them.
+        if isinstance(obj, _allowed_types):
+            return {}
+        else:
+            raise TypeError('{!r} is not a module, class, method, '
+                            'or function.'.format(obj))
+    hints = dict(hints)
+    type_params = getattr(obj, "__type_params__", ())
+    for name, value in hints.items():
+        if value is None:
+            value = type(None)
+        if isinstance(value, str):
+            # class-level forward refs were handled above, this must be either
+            # a module-level annotation or a function argument annotation
+            value = ForwardRef(
+                value,
+                is_argument=not isinstance(obj, types.ModuleType),
+                is_class=False,
+            )
+        hints[name] = _eval_type(value, globalns, localns, type_params)
+    return hints if include_extras else {k: _strip_annotations(t) for k, t in hints.items()}
+
+
+def _strip_annotations(t):
+    """Strip the annotations from a given type."""
+    if isinstance(t, _AnnotatedAlias):
+        return _strip_annotations(t.__origin__)
+    if hasattr(t, "__origin__") and t.__origin__ in (Required, NotRequired, ReadOnly):
+        return _strip_annotations(t.__args__[0])
+    if isinstance(t, _GenericAlias):
+        stripped_args = tuple(_strip_annotations(a) for a in t.__args__)
+        if stripped_args == t.__args__:
+            return t
+        return t.copy_with(stripped_args)
+    if isinstance(t, GenericAlias):
+        stripped_args = tuple(_strip_annotations(a) for a in t.__args__)
+        if stripped_args == t.__args__:
+            return t
+        return GenericAlias(t.__origin__, stripped_args)
+    if isinstance(t, types.UnionType):
+        stripped_args = tuple(_strip_annotations(a) for a in t.__args__)
+        if stripped_args == t.__args__:
+            return t
+        return functools.reduce(operator.or_, stripped_args)
+
+    return t
+
+
+def get_origin(tp):
+    """Get the unsubscripted version of a type.
+
+    This supports generic types, Callable, Tuple, Union, Literal, Final, ClassVar,
+    Annotated, and others. Return None for unsupported types.
+
+    Examples::
+
+        >>> P = ParamSpec('P')
+        >>> assert get_origin(Literal[42]) is Literal
+        >>> assert get_origin(int) is None
+        >>> assert get_origin(ClassVar[int]) is ClassVar
+        >>> assert get_origin(Generic) is Generic
+        >>> assert get_origin(Generic[T]) is Generic
+        >>> assert get_origin(Union[T, int]) is Union
+        >>> assert get_origin(List[Tuple[T, T]][int]) is list
+        >>> assert get_origin(P.args) is P
+    """
+    if isinstance(tp, _AnnotatedAlias):
+        return Annotated
+    if isinstance(tp, (_BaseGenericAlias, GenericAlias,
+                       ParamSpecArgs, ParamSpecKwargs)):
+        return tp.__origin__
+    if tp is Generic:
+        return Generic
+    if isinstance(tp, types.UnionType):
+        return types.UnionType
+    return None
+
+
+def get_args(tp):
+    """Get type arguments with all substitutions performed.
+
+    For unions, basic simplifications used by Union constructor are performed.
+
+    Examples::
+
+        >>> T = TypeVar('T')
+        >>> assert get_args(Dict[str, int]) == (str, int)
+        >>> assert get_args(int) == ()
+        >>> assert get_args(Union[int, Union[T, int], str][int]) == (int, str)
+        >>> assert get_args(Union[int, Tuple[T, int]][str]) == (int, Tuple[str, int])
+        >>> assert get_args(Callable[[], T][int]) == ([], int)
+    """
+    if isinstance(tp, _AnnotatedAlias):
+        return (tp.__origin__,) + tp.__metadata__
+    if isinstance(tp, (_GenericAlias, GenericAlias)):
+        res = tp.__args__
+        if _should_unflatten_callable_args(tp, res):
+            res = (list(res[:-1]), res[-1])
+        return res
+    if isinstance(tp, types.UnionType):
+        return tp.__args__
+    return ()
+
+
+def is_typeddict(tp):
+    """Check if an annotation is a TypedDict class.
+
+    For example::
+
+        >>> from typing import TypedDict
+        >>> class Film(TypedDict):
+        ...     title: str
+        ...     year: int
+        ...
+        >>> is_typeddict(Film)
+        True
+        >>> is_typeddict(dict)
+        False
+    """
+    return isinstance(tp, _TypedDictMeta)
+
+
+_ASSERT_NEVER_REPR_MAX_LENGTH = 100
+
+
+def assert_never(arg: Never, /) -> Never:
+    """Statically assert that a line of code is unreachable.
+
+    Example::
+
+        def int_or_str(arg: int | str) -> None:
+            match arg:
+                case int():
+                    print("It's an int")
+                case str():
+                    print("It's a str")
+                case _:
+                    assert_never(arg)
+
+    If a type checker finds that a call to assert_never() is
+    reachable, it will emit an error.
+
+    At runtime, this throws an exception when called.
+    """
+    value = repr(arg)
+    if len(value) > _ASSERT_NEVER_REPR_MAX_LENGTH:
+        value = value[:_ASSERT_NEVER_REPR_MAX_LENGTH] + '...'
+    raise AssertionError(f"Expected code to be unreachable, but got: {value}")
+
+
+def no_type_check(arg):
+    """Decorator to indicate that annotations are not type hints.
+
+    The argument must be a class or function; if it is a class, it
+    applies recursively to all methods and classes defined in that class
+    (but not to methods defined in its superclasses or subclasses).
+
+    This mutates the function(s) or class(es) in place.
+    """
+    if isinstance(arg, type):
+        for key in dir(arg):
+            obj = getattr(arg, key)
+            if (
+                not hasattr(obj, '__qualname__')
+                or obj.__qualname__ != f'{arg.__qualname__}.{obj.__name__}'
+                or getattr(obj, '__module__', None) != arg.__module__
+            ):
+                # We only modify objects that are defined in this type directly.
+                # If classes / methods are nested in multiple layers,
+                # we will modify them when processing their direct holders.
+                continue
+            # Instance, class, and static methods:
+            if isinstance(obj, types.FunctionType):
+                obj.__no_type_check__ = True
+            if isinstance(obj, types.MethodType):
+                obj.__func__.__no_type_check__ = True
+            # Nested types:
+            if isinstance(obj, type):
+                no_type_check(obj)
+    try:
+        arg.__no_type_check__ = True
+    except TypeError:  # built-in classes
+        pass
+    return arg
+
+
+def no_type_check_decorator(decorator):
+    """Decorator to give another decorator the @no_type_check effect.
+
+    This wraps the decorator with something that wraps the decorated
+    function in @no_type_check.
+    """
+    import warnings
+    warnings._deprecated("typing.no_type_check_decorator", remove=(3, 15))
+    @functools.wraps(decorator)
+    def wrapped_decorator(*args, **kwds):
+        func = decorator(*args, **kwds)
+        func = no_type_check(func)
+        return func
+
+    return wrapped_decorator
+
+
+def _overload_dummy(*args, **kwds):
+    """Helper for @overload to raise when called."""
+    raise NotImplementedError(
+        "You should not call an overloaded function. "
+        "A series of @overload-decorated functions "
+        "outside a stub module should always be followed "
+        "by an implementation that is not @overload-ed.")
+
+
+# {module: {qualname: {firstlineno: func}}}
+_overload_registry = defaultdict(functools.partial(defaultdict, dict))
+
+
+def overload(func):
+    """Decorator for overloaded functions/methods.
+
+    In a stub file, place two or more stub definitions for the same
+    function in a row, each decorated with @overload.
+
+    For example::
+
+        @overload
+        def utf8(value: None) -> None: ...
+        @overload
+        def utf8(value: bytes) -> bytes: ...
+        @overload
+        def utf8(value: str) -> bytes: ...
+
+    In a non-stub file (i.e. a regular .py file), do the same but
+    follow it with an implementation.  The implementation should *not*
+    be decorated with @overload::
+
+        @overload
+        def utf8(value: None) -> None: ...
+        @overload
+        def utf8(value: bytes) -> bytes: ...
+        @overload
+        def utf8(value: str) -> bytes: ...
+        def utf8(value):
+            ...  # implementation goes here
+
+    The overloads for a function can be retrieved at runtime using the
+    get_overloads() function.
+    """
+    # classmethod and staticmethod
+    f = getattr(func, "__func__", func)
+    try:
+        _overload_registry[f.__module__][f.__qualname__][f.__code__.co_firstlineno] = func
+    except AttributeError:
+        # Not a normal function; ignore.
+        pass
+    return _overload_dummy
+
+
+def get_overloads(func):
+    """Return all defined overloads for *func* as a sequence."""
+    # classmethod and staticmethod
+    f = getattr(func, "__func__", func)
+    if f.__module__ not in _overload_registry:
+        return []
+    mod_dict = _overload_registry[f.__module__]
+    if f.__qualname__ not in mod_dict:
+        return []
+    return list(mod_dict[f.__qualname__].values())
+
+
+def clear_overloads():
+    """Clear all overloads in the registry."""
+    _overload_registry.clear()
+
+
+def final(f):
+    """Decorator to indicate final methods and final classes.
+
+    Use this decorator to indicate to type checkers that the decorated
+    method cannot be overridden, and decorated class cannot be subclassed.
+
+    For example::
+
+        class Base:
+            @final
+            def done(self) -> None:
+                ...
+        class Sub(Base):
+            def done(self) -> None:  # Error reported by type checker
+                ...
+
+        @final
+        class Leaf:
+            ...
+        class Other(Leaf):  # Error reported by type checker
+            ...
+
+    There is no runtime checking of these properties. The decorator
+    attempts to set the ``__final__`` attribute to ``True`` on the decorated
+    object to allow runtime introspection.
+    """
+    try:
+        f.__final__ = True
+    except (AttributeError, TypeError):
+        # Skip the attribute silently if it is not writable.
+        # AttributeError happens if the object has __slots__ or a
+        # read-only property, TypeError if it's a builtin class.
+        pass
+    return f
+
+
+# Some unconstrained type variables.  These were initially used by the container types.
+# They were never meant for export and are now unused, but we keep them around to
+# avoid breaking compatibility with users who import them.
+T = TypeVar('T')  # Any type.
+KT = TypeVar('KT')  # Key type.
+VT = TypeVar('VT')  # Value type.
+T_co = TypeVar('T_co', covariant=True)  # Any type covariant containers.
+V_co = TypeVar('V_co', covariant=True)  # Any type covariant containers.
+VT_co = TypeVar('VT_co', covariant=True)  # Value type covariant containers.
+T_contra = TypeVar('T_contra', contravariant=True)  # Ditto contravariant.
+# Internal type variable used for Type[].
+CT_co = TypeVar('CT_co', covariant=True, bound=type)
+
+
+# A useful type variable with constraints.  This represents string types.
+# (This one *is* for export!)
+AnyStr = TypeVar('AnyStr', bytes, str)
+
+
+# Various ABCs mimicking those in collections.abc.
+_alias = _SpecialGenericAlias
+
+Hashable = _alias(collections.abc.Hashable, 0)  # Not generic.
+Awaitable = _alias(collections.abc.Awaitable, 1)
+Coroutine = _alias(collections.abc.Coroutine, 3)
+AsyncIterable = _alias(collections.abc.AsyncIterable, 1)
+AsyncIterator = _alias(collections.abc.AsyncIterator, 1)
+Iterable = _alias(collections.abc.Iterable, 1)
+Iterator = _alias(collections.abc.Iterator, 1)
+Reversible = _alias(collections.abc.Reversible, 1)
+Sized = _alias(collections.abc.Sized, 0)  # Not generic.
+Container = _alias(collections.abc.Container, 1)
+Collection = _alias(collections.abc.Collection, 1)
+Callable = _CallableType(collections.abc.Callable, 2)
+Callable.__doc__ = \
+    """Deprecated alias to collections.abc.Callable.
+
+    Callable[[int], str] signifies a function that takes a single
+    parameter of type int and returns a str.
+
+    The subscription syntax must always be used with exactly two
+    values: the argument list and the return type.
+    The argument list must be a list of types, a ParamSpec,
+    Concatenate or ellipsis. The return type must be a single type.
+
+    There is no syntax to indicate optional or keyword arguments;
+    such function types are rarely used as callback types.
+    """
+AbstractSet = _alias(collections.abc.Set, 1, name='AbstractSet')
+MutableSet = _alias(collections.abc.MutableSet, 1)
+# NOTE: Mapping is only covariant in the value type.
+Mapping = _alias(collections.abc.Mapping, 2)
+MutableMapping = _alias(collections.abc.MutableMapping, 2)
+Sequence = _alias(collections.abc.Sequence, 1)
+MutableSequence = _alias(collections.abc.MutableSequence, 1)
+ByteString = _DeprecatedGenericAlias(
+    collections.abc.ByteString, 0, removal_version=(3, 14)  # Not generic.
+)
+# Tuple accepts variable number of parameters.
+Tuple = _TupleType(tuple, -1, inst=False, name='Tuple')
+Tuple.__doc__ = \
+    """Deprecated alias to builtins.tuple.
+
+    Tuple[X, Y] is the cross-product type of X and Y.
+
+    Example: Tuple[T1, T2] is a tuple of two elements corresponding
+    to type variables T1 and T2.  Tuple[int, float, str] is a tuple
+    of an int, a float and a string.
+
+    To specify a variable-length tuple of homogeneous type, use Tuple[T, ...].
+    """
+List = _alias(list, 1, inst=False, name='List')
+Deque = _alias(collections.deque, 1, name='Deque')
+Set = _alias(set, 1, inst=False, name='Set')
+FrozenSet = _alias(frozenset, 1, inst=False, name='FrozenSet')
+MappingView = _alias(collections.abc.MappingView, 1)
+KeysView = _alias(collections.abc.KeysView, 1)
+ItemsView = _alias(collections.abc.ItemsView, 2)
+ValuesView = _alias(collections.abc.ValuesView, 1)
+Dict = _alias(dict, 2, inst=False, name='Dict')
+DefaultDict = _alias(collections.defaultdict, 2, name='DefaultDict')
+OrderedDict = _alias(collections.OrderedDict, 2)
+Counter = _alias(collections.Counter, 1)
+ChainMap = _alias(collections.ChainMap, 2)
+Generator = _alias(collections.abc.Generator, 3, defaults=(types.NoneType, types.NoneType))
+AsyncGenerator = _alias(collections.abc.AsyncGenerator, 2, defaults=(types.NoneType,))
+Type = _alias(type, 1, inst=False, name='Type')
+Type.__doc__ = \
+    """Deprecated alias to builtins.type.
+
+    builtins.type or typing.Type can be used to annotate class objects.
+    For example, suppose we have the following classes::
+
+        class User: ...  # Abstract base for User classes
+        class BasicUser(User): ...
+        class ProUser(User): ...
+        class TeamUser(User): ...
+
+    And a function that takes a class argument that's a subclass of
+    User and returns an instance of the corresponding class::
+
+        def new_user[U](user_class: Type[U]) -> U:
+            user = user_class()
+            # (Here we could write the user object to a database)
+            return user
+
+        joe = new_user(BasicUser)
+
+    At this point the type checker knows that joe has type BasicUser.
+    """
+
+
+@runtime_checkable
+class SupportsInt(Protocol):
+    """An ABC with one abstract method __int__."""
+
+    __slots__ = ()
+
+    @abstractmethod
+    def __int__(self) -> int:
+        pass
+
+
+@runtime_checkable
+class SupportsFloat(Protocol):
+    """An ABC with one abstract method __float__."""
+
+    __slots__ = ()
+
+    @abstractmethod
+    def __float__(self) -> float:
+        pass
+
+
+@runtime_checkable
+class SupportsComplex(Protocol):
+    """An ABC with one abstract method __complex__."""
+
+    __slots__ = ()
+
+    @abstractmethod
+    def __complex__(self) -> complex:
+        pass
+
+
+@runtime_checkable
+class SupportsBytes(Protocol):
+    """An ABC with one abstract method __bytes__."""
+
+    __slots__ = ()
+
+    @abstractmethod
+    def __bytes__(self) -> bytes:
+        pass
+
+
+@runtime_checkable
+class SupportsIndex(Protocol):
+    """An ABC with one abstract method __index__."""
+
+    __slots__ = ()
+
+    @abstractmethod
+    def __index__(self) -> int:
+        pass
+
+
+@runtime_checkable
+class SupportsAbs[T](Protocol):
+    """An ABC with one abstract method __abs__ that is covariant in its return type."""
+
+    __slots__ = ()
+
+    @abstractmethod
+    def __abs__(self) -> T:
+        pass
+
+
+@runtime_checkable
+class SupportsRound[T](Protocol):
+    """An ABC with one abstract method __round__ that is covariant in its return type."""
+
+    __slots__ = ()
+
+    @abstractmethod
+    def __round__(self, ndigits: int = 0) -> T:
+        pass
+
+
+def _make_nmtuple(name, types, module, defaults = ()):
+    fields = [n for n, t in types]
+    types = {n: _type_check(t, f"field {n} annotation must be a type")
+             for n, t in types}
+    nm_tpl = collections.namedtuple(name, fields,
+                                    defaults=defaults, module=module)
+    nm_tpl.__annotations__ = nm_tpl.__new__.__annotations__ = types
+    return nm_tpl
+
+
+# attributes prohibited to set in NamedTuple class syntax
+_prohibited = frozenset({'__new__', '__init__', '__slots__', '__getnewargs__',
+                         '_fields', '_field_defaults',
+                         '_make', '_replace', '_asdict', '_source'})
+
+_special = frozenset({'__module__', '__name__', '__annotations__'})
+
+
+class NamedTupleMeta(type):
+    def __new__(cls, typename, bases, ns):
+        assert _NamedTuple in bases
+        for base in bases:
+            if base is not _NamedTuple and base is not Generic:
+                raise TypeError(
+                    'can only inherit from a NamedTuple type and Generic')
+        bases = tuple(tuple if base is _NamedTuple else base for base in bases)
+        types = ns.get('__annotations__', {})
+        default_names = []
+        for field_name in types:
+            if field_name in ns:
+                default_names.append(field_name)
+            elif default_names:
+                raise TypeError(f"Non-default namedtuple field {field_name} "
+                                f"cannot follow default field"
+                                f"{'s' if len(default_names) > 1 else ''} "
+                                f"{', '.join(default_names)}")
+        nm_tpl = _make_nmtuple(typename, types.items(),
+                               defaults=[ns[n] for n in default_names],
+                               module=ns['__module__'])
+        nm_tpl.__bases__ = bases
+        if Generic in bases:
+            class_getitem = _generic_class_getitem
+            nm_tpl.__class_getitem__ = classmethod(class_getitem)
+        # update from user namespace without overriding special namedtuple attributes
+        for key, val in ns.items():
+            if key in _prohibited:
+                raise AttributeError("Cannot overwrite NamedTuple attribute " + key)
+            elif key not in _special:
+                if key not in nm_tpl._fields:
+                    setattr(nm_tpl, key, val)
+                try:
+                    set_name = type(val).__set_name__
+                except AttributeError:
+                    pass
+                else:
+                    try:
+                        set_name(val, nm_tpl, key)
+                    except BaseException as e:
+                        e.add_note(
+                            f"Error calling __set_name__ on {type(val).__name__!r} "
+                            f"instance {key!r} in {typename!r}"
+                        )
+                        raise
+
+        if Generic in bases:
+            nm_tpl.__init_subclass__()
+        return nm_tpl
+
+
+def NamedTuple(typename, fields=_sentinel, /, **kwargs):
+    """Typed version of namedtuple.
+
+    Usage::
+
+        class Employee(NamedTuple):
+            name: str
+            id: int
+
+    This is equivalent to::
+
+        Employee = collections.namedtuple('Employee', ['name', 'id'])
+
+    The resulting class has an extra __annotations__ attribute, giving a
+    dict that maps field names to types.  (The field names are also in
+    the _fields attribute, which is part of the namedtuple API.)
+    An alternative equivalent functional syntax is also accepted::
+
+        Employee = NamedTuple('Employee', [('name', str), ('id', int)])
+    """
+    if fields is _sentinel:
+        if kwargs:
+            deprecated_thing = "Creating NamedTuple classes using keyword arguments"
+            deprecation_msg = (
+                "{name} is deprecated and will be disallowed in Python {remove}. "
+                "Use the class-based or functional syntax instead."
+            )
+        else:
+            deprecated_thing = "Failing to pass a value for the 'fields' parameter"
+            example = f"`{typename} = NamedTuple({typename!r}, [])`"
+            deprecation_msg = (
+                "{name} is deprecated and will be disallowed in Python {remove}. "
+                "To create a NamedTuple class with 0 fields "
+                "using the functional syntax, "
+                "pass an empty list, e.g. "
+            ) + example + "."
+    elif fields is None:
+        if kwargs:
+            raise TypeError(
+                "Cannot pass `None` as the 'fields' parameter "
+                "and also specify fields using keyword arguments"
+            )
+        else:
+            deprecated_thing = "Passing `None` as the 'fields' parameter"
+            example = f"`{typename} = NamedTuple({typename!r}, [])`"
+            deprecation_msg = (
+                "{name} is deprecated and will be disallowed in Python {remove}. "
+                "To create a NamedTuple class with 0 fields "
+                "using the functional syntax, "
+                "pass an empty list, e.g. "
+            ) + example + "."
+    elif kwargs:
+        raise TypeError("Either list of fields or keywords"
+                        " can be provided to NamedTuple, not both")
+    if fields is _sentinel or fields is None:
+        import warnings
+        warnings._deprecated(deprecated_thing, message=deprecation_msg, remove=(3, 15))
+        fields = kwargs.items()
+    nt = _make_nmtuple(typename, fields, module=_caller())
+    nt.__orig_bases__ = (NamedTuple,)
+    return nt
+
+_NamedTuple = type.__new__(NamedTupleMeta, 'NamedTuple', (), {})
+
+def _namedtuple_mro_entries(bases):
+    assert NamedTuple in bases
+    return (_NamedTuple,)
+
+NamedTuple.__mro_entries__ = _namedtuple_mro_entries
+
+
+def _get_typeddict_qualifiers(annotation_type):
+    while True:
+        annotation_origin = get_origin(annotation_type)
+        if annotation_origin is Annotated:
+            annotation_args = get_args(annotation_type)
+            if annotation_args:
+                annotation_type = annotation_args[0]
+            else:
+                break
+        elif annotation_origin is Required:
+            yield Required
+            (annotation_type,) = get_args(annotation_type)
+        elif annotation_origin is NotRequired:
+            yield NotRequired
+            (annotation_type,) = get_args(annotation_type)
+        elif annotation_origin is ReadOnly:
+            yield ReadOnly
+            (annotation_type,) = get_args(annotation_type)
+        else:
+            break
+
+
+class _TypedDictMeta(type):
+    def __new__(cls, name, bases, ns, total=True):
+        """Create a new typed dict class object.
+
+        This method is called when TypedDict is subclassed,
+        or when TypedDict is instantiated. This way
+        TypedDict supports all three syntax forms described in its docstring.
+        Subclasses and instances of TypedDict return actual dictionaries.
+        """
+        for base in bases:
+            if type(base) is not _TypedDictMeta and base is not Generic:
+                raise TypeError('cannot inherit from both a TypedDict type '
+                                'and a non-TypedDict base class')
+
+        if any(issubclass(b, Generic) for b in bases):
+            generic_base = (Generic,)
+        else:
+            generic_base = ()
+
+        tp_dict = type.__new__(_TypedDictMeta, name, (*generic_base, dict), ns)
+
+        if not hasattr(tp_dict, '__orig_bases__'):
+            tp_dict.__orig_bases__ = bases
+
+        annotations = {}
+        own_annotations = ns.get('__annotations__', {})
+        msg = "TypedDict('Name', {f0: t0, f1: t1, ...}); each t must be a type"
+        own_annotations = {
+            n: _type_check(tp, msg, module=tp_dict.__module__)
+            for n, tp in own_annotations.items()
+        }
+        required_keys = set()
+        optional_keys = set()
+        readonly_keys = set()
+        mutable_keys = set()
+
+        for base in bases:
+            annotations.update(base.__dict__.get('__annotations__', {}))
+
+            base_required = base.__dict__.get('__required_keys__', set())
+            required_keys |= base_required
+            optional_keys -= base_required
+
+            base_optional = base.__dict__.get('__optional_keys__', set())
+            required_keys -= base_optional
+            optional_keys |= base_optional
+
+            readonly_keys.update(base.__dict__.get('__readonly_keys__', ()))
+            mutable_keys.update(base.__dict__.get('__mutable_keys__', ()))
+
+        annotations.update(own_annotations)
+        for annotation_key, annotation_type in own_annotations.items():
+            qualifiers = set(_get_typeddict_qualifiers(annotation_type))
+            if Required in qualifiers:
+                is_required = True
+            elif NotRequired in qualifiers:
+                is_required = False
+            else:
+                is_required = total
+
+            if is_required:
+                required_keys.add(annotation_key)
+                optional_keys.discard(annotation_key)
+            else:
+                optional_keys.add(annotation_key)
+                required_keys.discard(annotation_key)
+
+            if ReadOnly in qualifiers:
+                if annotation_key in mutable_keys:
+                    raise TypeError(
+                        f"Cannot override mutable key {annotation_key!r}"
+                        " with read-only key"
+                    )
+                readonly_keys.add(annotation_key)
+            else:
+                mutable_keys.add(annotation_key)
+                readonly_keys.discard(annotation_key)
+
+        assert required_keys.isdisjoint(optional_keys), (
+            f"Required keys overlap with optional keys in {name}:"
+            f" {required_keys=}, {optional_keys=}"
+        )
+        tp_dict.__annotations__ = annotations
+        tp_dict.__required_keys__ = frozenset(required_keys)
+        tp_dict.__optional_keys__ = frozenset(optional_keys)
+        tp_dict.__readonly_keys__ = frozenset(readonly_keys)
+        tp_dict.__mutable_keys__ = frozenset(mutable_keys)
+        tp_dict.__total__ = total
+        return tp_dict
+
+    __call__ = dict  # static method
+
+    def __subclasscheck__(cls, other):
+        # Typed dicts are only for static structural subtyping.
+        raise TypeError('TypedDict does not support instance and class checks')
+
+    __instancecheck__ = __subclasscheck__
+
+
+def TypedDict(typename, fields=_sentinel, /, *, total=True):
+    """A simple typed namespace. At runtime it is equivalent to a plain dict.
+
+    TypedDict creates a dictionary type such that a type checker will expect all
+    instances to have a certain set of keys, where each key is
+    associated with a value of a consistent type. This expectation
+    is not checked at runtime.
+
+    Usage::
+
+        >>> class Point2D(TypedDict):
+        ...     x: int
+        ...     y: int
+        ...     label: str
+        ...
+        >>> a: Point2D = {'x': 1, 'y': 2, 'label': 'good'}  # OK
+        >>> b: Point2D = {'z': 3, 'label': 'bad'}           # Fails type check
+        >>> Point2D(x=1, y=2, label='first') == dict(x=1, y=2, label='first')
+        True
+
+    The type info can be accessed via the Point2D.__annotations__ dict, and
+    the Point2D.__required_keys__ and Point2D.__optional_keys__ frozensets.
+    TypedDict supports an additional equivalent form::
+
+        Point2D = TypedDict('Point2D', {'x': int, 'y': int, 'label': str})
+
+    By default, all keys must be present in a TypedDict. It is possible
+    to override this by specifying totality::
+
+        class Point2D(TypedDict, total=False):
+            x: int
+            y: int
+
+    This means that a Point2D TypedDict can have any of the keys omitted. A type
+    checker is only expected to support a literal False or True as the value of
+    the total argument. True is the default, and makes all items defined in the
+    class body be required.
+
+    The Required and NotRequired special forms can also be used to mark
+    individual keys as being required or not required::
+
+        class Point2D(TypedDict):
+            x: int               # the "x" key must always be present (Required is the default)
+            y: NotRequired[int]  # the "y" key can be omitted
+
+    See PEP 655 for more details on Required and NotRequired.
+
+    The ReadOnly special form can be used
+    to mark individual keys as immutable for type checkers::
+
+        class DatabaseUser(TypedDict):
+            id: ReadOnly[int]  # the "id" key must not be modified
+            username: str      # the "username" key can be changed
+
+    """
+    if fields is _sentinel or fields is None:
+        import warnings
+
+        if fields is _sentinel:
+            deprecated_thing = "Failing to pass a value for the 'fields' parameter"
+        else:
+            deprecated_thing = "Passing `None` as the 'fields' parameter"
+
+        example = f"`{typename} = TypedDict({typename!r}, {{{{}}}})`"
+        deprecation_msg = (
+            "{name} is deprecated and will be disallowed in Python {remove}. "
+            "To create a TypedDict class with 0 fields "
+            "using the functional syntax, "
+            "pass an empty dictionary, e.g. "
+        ) + example + "."
+        warnings._deprecated(deprecated_thing, message=deprecation_msg, remove=(3, 15))
+        fields = {}
+
+    ns = {'__annotations__': dict(fields)}
+    module = _caller()
+    if module is not None:
+        # Setting correct module is necessary to make typed dict classes pickleable.
+        ns['__module__'] = module
+
+    td = _TypedDictMeta(typename, (), ns, total=total)
+    td.__orig_bases__ = (TypedDict,)
+    return td
+
+_TypedDict = type.__new__(_TypedDictMeta, 'TypedDict', (), {})
+TypedDict.__mro_entries__ = lambda bases: (_TypedDict,)
+
+
+@_SpecialForm
+def Required(self, parameters):
+    """Special typing construct to mark a TypedDict key as required.
+
+    This is mainly useful for total=False TypedDicts.
+
+    For example::
+
+        class Movie(TypedDict, total=False):
+            title: Required[str]
+            year: int
+
+        m = Movie(
+            title='The Matrix',  # typechecker error if key is omitted
+            year=1999,
+        )
+
+    There is no runtime checking that a required key is actually provided
+    when instantiating a related TypedDict.
+    """
+    item = _type_check(parameters, f'{self._name} accepts only a single type.')
+    return _GenericAlias(self, (item,))
+
+
+@_SpecialForm
+def NotRequired(self, parameters):
+    """Special typing construct to mark a TypedDict key as potentially missing.
+
+    For example::
+
+        class Movie(TypedDict):
+            title: str
+            year: NotRequired[int]
+
+        m = Movie(
+            title='The Matrix',  # typechecker error if key is omitted
+            year=1999,
+        )
+    """
+    item = _type_check(parameters, f'{self._name} accepts only a single type.')
+    return _GenericAlias(self, (item,))
+
+
+@_SpecialForm
+def ReadOnly(self, parameters):
+    """A special typing construct to mark an item of a TypedDict as read-only.
+
+    For example::
+
+        class Movie(TypedDict):
+            title: ReadOnly[str]
+            year: int
+
+        def mutate_movie(m: Movie) -> None:
+            m["year"] = 1992  # allowed
+            m["title"] = "The Matrix"  # typechecker error
+
+    There is no runtime checking for this property.
+    """
+    item = _type_check(parameters, f'{self._name} accepts only a single type.')
+    return _GenericAlias(self, (item,))
+
+
+class NewType:
+    """NewType creates simple unique types with almost zero runtime overhead.
+
+    NewType(name, tp) is considered a subtype of tp
+    by static type checkers. At runtime, NewType(name, tp) returns
+    a dummy callable that simply returns its argument.
+
+    Usage::
+
+        UserId = NewType('UserId', int)
+
+        def name_by_id(user_id: UserId) -> str:
+            ...
+
+        UserId('user')          # Fails type check
+
+        name_by_id(42)          # Fails type check
+        name_by_id(UserId(42))  # OK
+
+        num = UserId(5) + 1     # type: int
+    """
+
+    __call__ = _idfunc
+
+    def __init__(self, name, tp):
+        self.__qualname__ = name
+        if '.' in name:
+            name = name.rpartition('.')[-1]
+        self.__name__ = name
+        self.__supertype__ = tp
+        def_mod = _caller()
+        if def_mod != 'typing':
+            self.__module__ = def_mod
+
+    def __mro_entries__(self, bases):
+        # We defined __mro_entries__ to get a better error message
+        # if a user attempts to subclass a NewType instance. bpo-46170
+        superclass_name = self.__name__
+
+        class Dummy:
+            def __init_subclass__(cls):
+                subclass_name = cls.__name__
+                raise TypeError(
+                    f"Cannot subclass an instance of NewType. Perhaps you were looking for: "
+                    f"`{subclass_name} = NewType({subclass_name!r}, {superclass_name})`"
+                )
+
+        return (Dummy,)
+
+    def __repr__(self):
+        return f'{self.__module__}.{self.__qualname__}'
+
+    def __reduce__(self):
+        return self.__qualname__
+
+    def __or__(self, other):
+        return Union[self, other]
+
+    def __ror__(self, other):
+        return Union[other, self]
+
+
+# Python-version-specific alias (Python 2: unicode; Python 3: str)
+Text = str
+
+
+# Constant that's True when type checking, but False here.
+TYPE_CHECKING = False
+
+
+class IO(Generic[AnyStr]):
+    """Generic base class for TextIO and BinaryIO.
+
+    This is an abstract, generic version of the return of open().
+
+    NOTE: This does not distinguish between the different possible
+    classes (text vs. binary, read vs. write vs. read/write,
+    append-only, unbuffered).  The TextIO and BinaryIO subclasses
+    below capture the distinctions between text vs. binary, which is
+    pervasive in the interface; however we currently do not offer a
+    way to track the other distinctions in the type system.
+    """
+
+    __slots__ = ()
+
+    @property
+    @abstractmethod
+    def mode(self) -> str:
+        pass
+
+    @property
+    @abstractmethod
+    def name(self) -> str:
+        pass
+
+    @abstractmethod
+    def close(self) -> None:
+        pass
+
+    @property
+    @abstractmethod
+    def closed(self) -> bool:
+        pass
+
+    @abstractmethod
+    def fileno(self) -> int:
+        pass
+
+    @abstractmethod
+    def flush(self) -> None:
+        pass
+
+    @abstractmethod
+    def isatty(self) -> bool:
+        pass
+
+    @abstractmethod
+    def read(self, n: int = -1) -> AnyStr:
+        pass
+
+    @abstractmethod
+    def readable(self) -> bool:
+        pass
+
+    @abstractmethod
+    def readline(self, limit: int = -1) -> AnyStr:
+        pass
+
+    @abstractmethod
+    def readlines(self, hint: int = -1) -> List[AnyStr]:
+        pass
+
+    @abstractmethod
+    def seek(self, offset: int, whence: int = 0) -> int:
+        pass
+
+    @abstractmethod
+    def seekable(self) -> bool:
+        pass
+
+    @abstractmethod
+    def tell(self) -> int:
+        pass
+
+    @abstractmethod
+    def truncate(self, size: int = None) -> int:
+        pass
+
+    @abstractmethod
+    def writable(self) -> bool:
+        pass
+
+    @abstractmethod
+    def write(self, s: AnyStr) -> int:
+        pass
+
+    @abstractmethod
+    def writelines(self, lines: List[AnyStr]) -> None:
+        pass
+
+    @abstractmethod
+    def __enter__(self) -> 'IO[AnyStr]':
+        pass
+
+    @abstractmethod
+    def __exit__(self, type, value, traceback) -> None:
+        pass
+
+
+class BinaryIO(IO[bytes]):
+    """Typed version of the return of open() in binary mode."""
+
+    __slots__ = ()
+
+    @abstractmethod
+    def write(self, s: Union[bytes, bytearray]) -> int:
+        pass
+
+    @abstractmethod
+    def __enter__(self) -> 'BinaryIO':
+        pass
+
+
+class TextIO(IO[str]):
+    """Typed version of the return of open() in text mode."""
+
+    __slots__ = ()
+
+    @property
+    @abstractmethod
+    def buffer(self) -> BinaryIO:
+        pass
+
+    @property
+    @abstractmethod
+    def encoding(self) -> str:
+        pass
+
+    @property
+    @abstractmethod
+    def errors(self) -> Optional[str]:
+        pass
+
+    @property
+    @abstractmethod
+    def line_buffering(self) -> bool:
+        pass
+
+    @property
+    @abstractmethod
+    def newlines(self) -> Any:
+        pass
+
+    @abstractmethod
+    def __enter__(self) -> 'TextIO':
+        pass
+
+
+def reveal_type[T](obj: T, /) -> T:
+    """Ask a static type checker to reveal the inferred type of an expression.
+
+    When a static type checker encounters a call to ``reveal_type()``,
+    it will emit the inferred type of the argument::
+
+        x: int = 1
+        reveal_type(x)
+
+    Running a static type checker (e.g., mypy) on this example
+    will produce output similar to 'Revealed type is "builtins.int"'.
+
+    At runtime, the function prints the runtime type of the
+    argument and returns the argument unchanged.
+    """
+    print(f"Runtime type is {type(obj).__name__!r}", file=sys.stderr)
+    return obj
+
+
+class _IdentityCallable(Protocol):
+    def __call__[T](self, arg: T, /) -> T:
+        ...
+
+
+def dataclass_transform(
+    *,
+    eq_default: bool = True,
+    order_default: bool = False,
+    kw_only_default: bool = False,
+    frozen_default: bool = False,
+    field_specifiers: tuple[type[Any] | Callable[..., Any], ...] = (),
+    **kwargs: Any,
+) -> _IdentityCallable:
+    """Decorator to mark an object as providing dataclass-like behaviour.
+
+    The decorator can be applied to a function, class, or metaclass.
+
+    Example usage with a decorator function::
+
+        @dataclass_transform()
+        def create_model[T](cls: type[T]) -> type[T]:
+            ...
+            return cls
+
+        @create_model
+        class CustomerModel:
+            id: int
+            name: str
+
+    On a base class::
+
+        @dataclass_transform()
+        class ModelBase: ...
+
+        class CustomerModel(ModelBase):
+            id: int
+            name: str
+
+    On a metaclass::
+
+        @dataclass_transform()
+        class ModelMeta(type): ...
+
+        class ModelBase(metaclass=ModelMeta): ...
+
+        class CustomerModel(ModelBase):
+            id: int
+            name: str
+
+    The ``CustomerModel`` classes defined above will
+    be treated by type checkers similarly to classes created with
+    ``@dataclasses.dataclass``.
+    For example, type checkers will assume these classes have
+    ``__init__`` methods that accept ``id`` and ``name``.
+
+    The arguments to this decorator can be used to customize this behavior:
+    - ``eq_default`` indicates whether the ``eq`` parameter is assumed to be
+        ``True`` or ``False`` if it is omitted by the caller.
+    - ``order_default`` indicates whether the ``order`` parameter is
+        assumed to be True or False if it is omitted by the caller.
+    - ``kw_only_default`` indicates whether the ``kw_only`` parameter is
+        assumed to be True or False if it is omitted by the caller.
+    - ``frozen_default`` indicates whether the ``frozen`` parameter is
+        assumed to be True or False if it is omitted by the caller.
+    - ``field_specifiers`` specifies a static list of supported classes
+        or functions that describe fields, similar to ``dataclasses.field()``.
+    - Arbitrary other keyword arguments are accepted in order to allow for
+        possible future extensions.
+
+    At runtime, this decorator records its arguments in the
+    ``__dataclass_transform__`` attribute on the decorated object.
+    It has no other runtime effect.
+
+    See PEP 681 for more details.
+    """
+    def decorator(cls_or_fn):
+        cls_or_fn.__dataclass_transform__ = {
+            "eq_default": eq_default,
+            "order_default": order_default,
+            "kw_only_default": kw_only_default,
+            "frozen_default": frozen_default,
+            "field_specifiers": field_specifiers,
+            "kwargs": kwargs,
+        }
+        return cls_or_fn
+    return decorator
+
+
+type _Func = Callable[..., Any]
+
+
+def override[F: _Func](method: F, /) -> F:
+    """Indicate that a method is intended to override a method in a base class.
+
+    Usage::
+
+        class Base:
+            def method(self) -> None:
+                pass
+
+        class Child(Base):
+            @override
+            def method(self) -> None:
+                super().method()
+
+    When this decorator is applied to a method, the type checker will
+    validate that it overrides a method or attribute with the same name on a
+    base class.  This helps prevent bugs that may occur when a base class is
+    changed without an equivalent change to a child class.
+
+    There is no runtime checking of this property. The decorator attempts to
+    set the ``__override__`` attribute to ``True`` on the decorated object to
+    allow runtime introspection.
+
+    See PEP 698 for details.
+    """
+    try:
+        method.__override__ = True
+    except (AttributeError, TypeError):
+        # Skip the attribute silently if it is not writable.
+        # AttributeError happens if the object has __slots__ or a
+        # read-only property, TypeError if it's a builtin class.
+        pass
+    return method
+
+
+def is_protocol(tp: type, /) -> bool:
+    """Return True if the given type is a Protocol.
+
+    Example::
+
+        >>> from typing import Protocol, is_protocol
+        >>> class P(Protocol):
+        ...     def a(self) -> str: ...
+        ...     b: int
+        >>> is_protocol(P)
+        True
+        >>> is_protocol(int)
+        False
+    """
+    return (
+        isinstance(tp, type)
+        and getattr(tp, '_is_protocol', False)
+        and tp != Protocol
+    )
+
+
+def get_protocol_members(tp: type, /) -> frozenset[str]:
+    """Return the set of members defined in a Protocol.
+
+    Example::
+
+        >>> from typing import Protocol, get_protocol_members
+        >>> class P(Protocol):
+        ...     def a(self) -> str: ...
+        ...     b: int
+        >>> get_protocol_members(P) == frozenset({'a', 'b'})
+        True
+
+    Raise a TypeError for arguments that are not Protocols.
+    """
+    if not is_protocol(tp):
+        raise TypeError(f'{tp!r} is not a Protocol')
+    return frozenset(tp.__protocol_attrs__)
+
+
+def __getattr__(attr):
+    """Improve the import time of the typing module.
+
+    Soft-deprecated objects which are costly to create
+    are only created on-demand here.
+    """
+    if attr in {"Pattern", "Match"}:
+        import re
+        obj = _alias(getattr(re, attr), 1)
+    elif attr in {"ContextManager", "AsyncContextManager"}:
+        import contextlib
+        obj = _alias(getattr(contextlib, f"Abstract{attr}"), 2, name=attr, defaults=(bool | None,))
+    elif attr == "_collect_parameters":
+        import warnings
+
+        depr_message = (
+            "The private _collect_parameters function is deprecated and will be"
+            " removed in a future version of Python. Any use of private functions"
+            " is discouraged and may break in the future."
+        )
+        warnings.warn(depr_message, category=DeprecationWarning, stacklevel=2)
+        obj = _collect_type_parameters
+    else:
+        raise AttributeError(f"module {__name__!r} has no attribute {attr!r}")
+    globals()[attr] = obj
+    return obj
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      .   ú   ..  ¡   __init__.py ¢   __main__.py £   __pycache__ ±   _log.py ²   async_case.py   ³   case.py ´   	loader.py   µ   main.py ¶   mock.py ·   	result.py   ¸   	runner.py   ¹   
+signals.py  º   suite.py»  ôutil.py                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     """
+Python unit testing framework, based on Erich Gamma's JUnit and Kent Beck's
+Smalltalk testing framework (used with permission).
+
+This module contains the core framework classes that form the basis of
+specific test cases and suites (TestCase, TestSuite etc.), and also a
+text-based utility class for running the tests and reporting the results
+ (TextTestRunner).
+
+Simple usage:
+
+    import unittest
+
+    class IntegerArithmeticTestCase(unittest.TestCase):
+        def testAdd(self):  # test method names begin with 'test'
+            self.assertEqual((1 + 2), 3)
+            self.assertEqual(0 + 1, 1)
+        def testMultiply(self):
+            self.assertEqual((0 * 10), 0)
+            self.assertEqual((5 * 8), 40)
+
+    if __name__ == '__main__':
+        unittest.main()
+
+Further information is available in the bundled documentation, and from
+
+  http://docs.python.org/library/unittest.html
+
+Copyright (c) 1999-2003 Steve Purcell
+Copyright (c) 2003-2010 Python Software Foundation
+This module is free software, and you may redistribute it and/or modify
+it under the same terms as Python itself, so long as this copyright message
+and disclaimer are retained in their original form.
+
+IN NO EVENT SHALL THE AUTHOR BE LIABLE TO ANY PARTY FOR DIRECT, INDIRECT,
+SPECIAL, INCIDENTAL, OR CONSEQUENTIAL DAMAGES ARISING OUT OF THE USE OF
+THIS CODE, EVEN IF THE AUTHOR HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH
+DAMAGE.
+
+THE AUTHOR SPECIFICALLY DISCLAIMS ANY WARRANTIES, INCLUDING, BUT NOT
+LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+PARTICULAR PURPOSE.  THE CODE PROVIDED HEREUNDER IS ON AN "AS IS" BASIS,
+AND THERE IS NO OBLIGATION WHATSOEVER TO PROVIDE MAINTENANCE,
+SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
+"""
+
+__all__ = ['TestResult', 'TestCase', 'IsolatedAsyncioTestCase', 'TestSuite',
+           'TextTestRunner', 'TestLoader', 'FunctionTestCase', 'main',
+           'defaultTestLoader', 'SkipTest', 'skip', 'skipIf', 'skipUnless',
+           'expectedFailure', 'TextTestResult', 'installHandler',
+           'registerResult', 'removeResult', 'removeHandler',
+           'addModuleCleanup', 'doModuleCleanups', 'enterModuleContext']
+
+__unittest = True
+
+from .result import TestResult
+from .case import (addModuleCleanup, TestCase, FunctionTestCase, SkipTest, skip,
+                   skipIf, skipUnless, expectedFailure, doModuleCleanups,
+                   enterModuleContext)
+from .suite import BaseTestSuite, TestSuite
+from .loader import TestLoader, defaultTestLoader
+from .main import TestProgram, main
+from .runner import TextTestRunner, TextTestResult
+from .signals import installHandler, registerResult, removeResult, removeHandler
+# IsolatedAsyncioTestCase will be imported lazily.
+
+
+# Lazy import of IsolatedAsyncioTestCase from .async_case
+# It imports asyncio, which is relatively heavy, but most tests
+# do not need it.
+
+def __dir__():
+    return globals().keys() | {'IsolatedAsyncioTestCase'}
+
+def __getattr__(name):
+    if name == 'IsolatedAsyncioTestCase':
+        global IsolatedAsyncioTestCase
+        from .async_case import IsolatedAsyncioTestCase
+        return IsolatedAsyncioTestCase
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         """Main entry point"""
+
+import sys
+if sys.argv[0].endswith("__main__.py"):
+    import os.path
+    # We change sys.argv[0] to make help message more useful
+    # use executable without path, unquoted
+    # (it's just a hint anyway)
+    # (if you have spaces in your executable you get what you deserve!)
+    executable = os.path.basename(sys.executable)
+    sys.argv[0] = executable + " -m unittest"
+    del os
+
+__unittest = True
+
+from .main import main
+
+main(module=None)
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        £   .       ..  ¤    __init__.cpython-313.pyc¥    __main__.cpython-313.pyc¦   _log.cpython-313.pyc§  $ async_case.cpython-313.pyc  ¨   case.cpython-313.pyc©    loader.cpython-313.pyc  ª   main.cpython-313.pyc«   mock.cpython-313.pyc¬    result.cpython-313.pyc  ­    runner.cpython-313.pyc  ®    signals.cpython-313.pyc ¯    suite.cpython-313.pyc   °  tutil.cpython-313.pyc                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        ó
+    F\h—  ã                   ó´   • S r / SQrSrSSKJr  SSKJrJrJrJ	r	J
+r
+JrJrJrJrJr  SSKJrJr  SSKJrJr  SSKJrJr  SS	KJrJr  SS
+KJrJrJrJr  S r S r!g)aÍ  
+Python unit testing framework, based on Erich Gamma's JUnit and Kent Beck's
+Smalltalk testing framework (used with permission).
+
+This module contains the core framework classes that form the basis of
+specific test cases and suites (TestCase, TestSuite etc.), and also a
+text-based utility class for running the tests and reporting the results
+ (TextTestRunner).
+
+Simple usage:
+
+    import unittest
+
+    class IntegerArithmeticTestCase(unittest.TestCase):
+        def testAdd(self):  # test method names begin with 'test'
+            self.assertEqual((1 + 2), 3)
+            self.assertEqual(0 + 1, 1)
+        def testMultiply(self):
+            self.assertEqual((0 * 10), 0)
+            self.assertEqual((5 * 8), 40)
+
+    if __name__ == '__main__':
+        unittest.main()
+
+Further information is available in the bundled documentation, and from
+
+  http://docs.python.org/library/unittest.html
+
+Copyright (c) 1999-2003 Steve Purcell
+Copyright (c) 2003-2010 Python Software Foundation
+This module is free software, and you may redistribute it and/or modify
+it under the same terms as Python itself, so long as this copyright message
+and disclaimer are retained in their original form.
+
+IN NO EVENT SHALL THE AUTHOR BE LIABLE TO ANY PARTY FOR DIRECT, INDIRECT,
+SPECIAL, INCIDENTAL, OR CONSEQUENTIAL DAMAGES ARISING OUT OF THE USE OF
+THIS CODE, EVEN IF THE AUTHOR HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH
+DAMAGE.
+
+THE AUTHOR SPECIFICALLY DISCLAIMS ANY WARRANTIES, INCLUDING, BUT NOT
+LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+PARTICULAR PURPOSE.  THE CODE PROVIDED HEREUNDER IS ON AN "AS IS" BASIS,
+AND THERE IS NO OBLIGATION WHATSOEVER TO PROVIDE MAINTENANCE,
+SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
+)Ú
+TestResultÚTestCaseÚIsolatedAsyncioTestCaseÚ	TestSuiteÚTextTestRunnerÚ
+TestLoaderÚFunctionTestCaseÚmainÚdefaultTestLoaderÚSkipTestÚskipÚskipIfÚ
+skipUnlessÚexpectedFailureÚTextTestResultÚinstallHandlerÚregisterResultÚremoveResultÚremoveHandlerÚaddModuleCleanupÚdoModuleCleanupsÚenterModuleContextTé   )r   )
+r   r   r   r   r   r   r   r   r   r   )ÚBaseTestSuiter   )r   r
+   )ÚTestProgramr	   )r   r   )r   r   r   r   c                  ó:   • [        5       R                  5       S1-  $ )Nr   )ÚglobalsÚkeys© ó    Ú(/usr/lib/python3.13/unittest/__init__.pyÚ__dir__r!   H   s   € Ü‹9>‰>ÓĞ8Ğ9Ñ9Ğ9r   c                 óT   • U S:X  a  SSK Jq  [        $ [        S[        < SU < 35      e)Nr   r   )r   zmodule z has no attribute )Ú
+async_caser   ÚAttributeErrorÚ__name__)Únames    r    Ú__getattr__r'   K   s-   € ØĞ(Ó(å7Ü&Ğ&Ü
+˜7¤8¡,Ğ.@ÀÁĞIÓ
+JĞJr   N)"Ú__doc__Ú__all__Ú
+__unittestÚresultr   Úcaser   r   r   r   r   r   r   r   r   r   Úsuiter   r   Úloaderr   r
+   r	   r   Úrunnerr   r   Úsignalsr   r   r   r   r!   r'   r   r   r    Ú<module>r1      sK   ğñ,ò\I€ğ €
+å ÷'÷ '÷ '÷ ,ß 1ß #ß 2ß PÓ Pò:óKr                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        ó
+    F\hØ  ã                   óê   • S r SSKr\R                  S   R                  S5      (       a<  SSKr\R                  R                  \R                  5      r\S-   \R                  S'   CSr	SSK
+J
+r
+  \
+" SS9  g)	zMain entry pointé    Nz__main__.pyz -m unittestTé   )Úmain)Úmodule)Ú__doc__ÚsysÚargvÚendswithÚos.pathÚosÚpathÚbasenameÚ
+executableÚ
+__unittestr   © ó    Ú(/usr/lib/python3.13/unittest/__main__.pyÚ<module>r      sf   ğÙ ã 
+Ø‡88ˆA;×Ñ˜×&Ñ&Ûğ
+ —‘×!Ñ! #§.¡.Ó1€JØ˜~Ñ-€C‡HHˆQKØ
+à€
+å á ˆDÓ r                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    ó
+    F\hº
+  ã                   óŠ   • S SK r S SKrSSKJr  \R                  " SSS/5      r " S S\ R                  5      r " S	 S
+\5      rg)é    Né   )Ú_BaseTestCaseContextÚ_LoggingWatcherÚrecordsÚoutputc                   ó*   • \ rS rSrSrS rS rS rSrg)Ú_CapturingHandleré
+   zE
+A logging handler capturing all (raw and formatted) logging output.
+c                 ód   • [         R                  R                  U 5        [        / / 5      U l        g ©N)ÚloggingÚHandlerÚ__init__r   Úwatcher©Úselfs    Ú$/usr/lib/python3.13/unittest/_log.pyr   Ú_CapturingHandler.__init__   s"   € Ü‰× Ñ  Ô&Ü& r¨2Ó.ˆó    c                 ó   • g r   © r   s    r   ÚflushÚ_CapturingHandler.flush   s   € Ør   c                 óº   • U R                   R                  R                  U5        U R                  U5      nU R                   R                  R                  U5        g r   )r   r   ÚappendÚformatr   )r   ÚrecordÚmsgs      r   ÚemitÚ_CapturingHandler.emit   s@   € Ø‰×Ñ×#Ñ# FÔ+Øk‰k˜&Ó!ˆØ‰×Ñ×"Ñ" 3Õ'r   )r   N)	Ú__name__Ú
+__module__Ú__qualname__Ú__firstlineno__Ú__doc__r   r   r   Ú__static_attributes__r   r   r   r	   r	   
+   s   † ñò/òõ(r   r	   c                   ó.   • \ rS rSrSrSrS rS rS rSr	g)	Ú_AssertLogsContexté   z6A context manager for assertLogs() and assertNoLogs() z"%(levelname)s:%(name)s:%(message)sc                 óØ   • [         R                  " X5        X l        U(       a%  [        R                  R                  X35      U l        O[        R                  U l        S U l        X@l	        g r   )
+r   r   Úlogger_namer   Ú_nameToLevelÚgetÚlevelÚINFOr   Úno_logs)r   Ú	test_caser+   r.   r0   s        r   r   Ú_AssertLogsContext.__init__!   sH   € Ü×%Ò% dÔ6Ø&ÔŞÜ ×-Ñ-×1Ñ1°%Ó?ˆDJä Ÿ™ˆDŒJØˆŒØr   c                 ó  • [        U R                  [        R                  5      (       a  U R                  =ol        O&[        R
+                  " U R                  5      =ol        [        R                  " U R                  5      n[        5       nUR                  U R                  5        UR                  U5        UR                  U l        UR                  S S  U l        UR                  U l        UR                   U l        U/Ul        UR                  U R                  5        SUl        U R$                  (       a  g UR                  $ )NF)Ú
+isinstancer+   r   ÚLoggerÚloggerÚ	getLoggerÚ	FormatterÚLOGGING_FORMATr	   ÚsetLevelr.   ÚsetFormatterr   ÚhandlersÚold_handlersÚ	old_levelÚ	propagateÚold_propagater0   )r   r6   Ú	formatterÚhandlers       r   Ú	__enter__Ú_AssertLogsContext.__enter__+   sì   € Üd×&Ñ&¬¯©×7Ñ7Ø#'×#3Ñ#3Ğ3ˆF•[ä#*×#4Ò#4°T×5EÑ5EÓ#FĞFˆF”[Ü×%Ò% d×&9Ñ&9Ó:ˆ	Ü#Ó%ˆØ×Ñ˜Ÿ™Ô$Ø×Ñ˜YÔ'Ø—‘ˆŒØ"ŸO™O©AĞ.ˆÔØŸ™ˆŒØ#×-Ñ-ˆÔØ"˜)ˆŒØ‰˜Ÿ
+™
+Ô#Ø ˆÔØ<<ØØ‰Ğr   c                 ó„  • U R                   U R                  l        U R                  U R                  l        U R                  R                  U R                  5        Ub  gU R                  (       aY  [        U R                  R                  5      S:”  a5  U R                  SR                  U R                  R                  5      5        g g [        U R                  R                  5      S:X  aT  U R                  SR                  [        R                  " U R                   5      U R                  R"                  5      5        g g )NFr   zUnexpected logs found: {!r}z-no logs of level {} or higher triggered on {})r=   r6   r<   r@   r?   r:   r>   r0   Úlenr   r   Ú_raiseFailurer   r   r   ÚgetLevelNamer.   Úname)r   Úexc_typeÚ	exc_valueÚtbs       r   Ú__exit__Ú_AssertLogsContext.__exit__?   sæ   € Ø#×0Ñ0ˆ‰ÔØ $× 2Ñ 2ˆ‰ÔØ‰×Ñ˜TŸ^™^Ô,àÑàà<<ä4—<‘<×'Ñ'Ó(¨1Ó,Ø×"Ñ"Ø1×8Ñ8ØŸ™×+Ñ+óõğ -ô 4—<‘<×'Ñ'Ó(¨AÓ-Ø×"Ñ"ØCß‘VœG×0Ò0°·±Ó<¸d¿k¹k×>NÑ>NÓOõQğ .r   )	r.   r6   r+   r   r0   r=   r>   r@   r   N)
+r!   r"   r#   r$   r%   r9   r   rC   rM   r&   r   r   r   r(   r(      s   † Ù@à9€Nòòõ(Qr   r(   )	r   ÚcollectionsÚcaser   Ú
+namedtupler   r   r	   r(   r   r   r   Ú<module>rR      sK   ğÛ Û å &ğ ×(Ò(Ğ):Ø*3°XĞ)>ó@€ô(˜Ÿ™ô (ô$:QĞ-õ :Qr                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      ó
+    F\hş  ã                   óJ   • S SK r S SKrS SKrS SKrSSKJr  Sr " S S\5      rg)é    Né   )ÚTestCaseTc                   óš   ^ • \ rS rSrSrSU 4S jjrS rS rS rS r	S r
+S	 rS
+ rS rS rS rS rS rSU 4S jjrU 4S jrS rSrU =r$ )ÚIsolatedAsyncioTestCaseé
+   Nc                 óf   >• [         TU ]  U5        S U l        [        R                  " 5       U l        g ©N)ÚsuperÚ__init__Ú_asyncioRunnerÚcontextvarsÚcopy_contextÚ_asyncioTestContext)ÚselfÚ
+methodNameÚ	__class__s     €Ú*/usr/lib/python3.13/unittest/async_case.pyr   Ú IsolatedAsyncioTestCase.__init__'   s)   ø€ Ü‰Ñ˜Ô$Ø"ˆÔÜ#.×#;Ò#;Ó#=ˆÕ ó    c              ƒ   ó   #   • g 7fr	   © ©r   s    r   Ú
+asyncSetUpÚ"IsolatedAsyncioTestCase.asyncSetUp,   ó   é € Øùó   ‚c              ƒ   ó   #   • g 7fr	   r   r   s    r   ÚasyncTearDownÚ%IsolatedAsyncioTestCase.asyncTearDown/   r   r   c                ó0   • U R                   " U/UQ70 UD6  g r	   )Ú
+addCleanup©r   ÚfuncÚargsÚkwargss       r   ÚaddAsyncCleanupÚ'IsolatedAsyncioTestCase.addAsyncCleanup2   s   € ğ 	Š˜$˜ ™Ğ1¨&Ó1r   c              ƒ   ó  #   • [        U5      n UR                  nUR                  nU" U5      I Sh  v•N nU R                  XASSS5        U$ ! [         a(    [	        SUR
+                   SUR                   S35      Sef = f NO7f)z¨Enters the supplied asynchronous context manager.
+
+If successful, also adds its __aexit__ method as a cleanup
+function and returns the result of the __aenter__ method.
+Ú'Ú.zC' object does not support the asynchronous context manager protocolN)ÚtypeÚ
+__aenter__Ú	__aexit__ÚAttributeErrorÚ	TypeErrorÚ
+__module__Ú__qualname__r&   )r   ÚcmÚclsÚenterÚexitÚresults         r   ÚenterAsyncContextÚ)IsolatedAsyncioTestCase.enterAsyncContextA   s˜   é € ô 2‹hˆğ	'Ø—N‘NˆEØ—=‘=ˆDñ
+ ˜R“y—ˆØ×Ñ˜T t¨T°4Ô8Øˆøô ó 	'Ü˜a §¡Ğ/¨q°×1AÑ1AĞ0Bğ CTğ Uó à"&ğ'ğ	'úñ !ùs%   ‚BA §B²B³BÁ2A?Á?Bc                 ó¸   • U R                   R                  5         U R                  R                  U R                  5        U R                  U R                  5        g r	   )r   Úget_loopr   ÚrunÚsetUpÚ
+_callAsyncr   r   s    r   Ú
+_callSetUpÚ"IsolatedAsyncioTestCase._callSetUpU   s>   € ğ 	×Ñ×$Ñ$Ô&Ø× Ñ ×$Ñ$ T§Z¡ZÔ0Ø‰˜Ÿ™Õ(r   c                 óf   • U R                  U5      b  [        R                  " SU S3[        SS9  g g )NzFIt is deprecated to return a value that is not None from a test case (Ú)é   )Ú
+stacklevel)Ú_callMaybeAsyncÚwarningsÚwarnÚDeprecationWarning)r   Úmethods     r   Ú_callTestMethodÚ'IsolatedAsyncioTestCase._callTestMethod]   s<   € Ø×Ñ Ó'Ñ3ÜMŠMğ (Ø(. x¨qğ2Ü3EĞRSóUğ 4r   c                 ó„   • U R                  U R                  5        U R                  R                  U R                  5        g r	   )r=   r   r   r;   ÚtearDownr   s    r   Ú_callTearDownÚ%IsolatedAsyncioTestCase._callTearDownb   s,   € Ø‰˜×*Ñ*Ô+Ø× Ñ ×$Ñ$ T§]¡]Õ3r   c                 ó0   • U R                   " U/UQ70 UD6  g r	   )rD   )r   Úfunctionr$   r%   s       r   Ú_callCleanupÚ$IsolatedAsyncioTestCase._callCleanupf   s   € Ø×Ò˜XĞ7¨Ò7°Ó7r   c                óÊ   • U R                   c   S5       e[        R                  " U5      (       d   U< S35       eU R                   R                  U" U0 UD6U R                  S9$ )Nú!asyncio runner is not initializedz is not an async function©Úcontext©r   ÚinspectÚiscoroutinefunctionr;   r   r"   s       r   r=   Ú"IsolatedAsyncioTestCase._callAsynci   sr   € Ø×"Ñ"Ñ.ĞSĞ0SÓSĞ.Ü×*Ò*¨4×0Ñ0ĞV°T±HĞ<UĞ2VÓVĞ0Ø×"Ñ"×&Ñ&Ù$Ğ!˜&Ñ!Ø×,Ñ,ğ 'ğ 
+ğ 	
+r   c                óô   • U R                   c   S5       e[        R                  " U5      (       a*  U R                   R                  U" U0 UD6U R                  S9$ U R                  R                  " U/UQ70 UD6$ )NrT   rU   rW   r"   s       r   rD   Ú'IsolatedAsyncioTestCase._callMaybeAsyncq   s‚   € Ø×"Ñ"Ñ.ĞSĞ0SÓSĞ.Ü×&Ò& t×,Ñ,Ø×&Ñ&×*Ñ*ÙdĞ%˜fÑ%Ø×0Ñ0ğ +ğ ğ ğ
+ ×+Ñ+×/Ò/°ĞF°tÒF¸vÑFĞFr   c                 óv   • U R                   b   S5       e[        R                  " SU R                  S9nXl         g )Nz%asyncio runner is already initializedT)ÚdebugÚloop_factory)r   ÚasyncioÚRunnerr_   ©r   Úrunners     r   Ú_setupAsyncioRunnerÚ+IsolatedAsyncioTestCase._setupAsyncioRunner{   s6   € Ø×"Ñ"Ñ*ĞSĞ,SÓSĞ*Ü—’ d¸×9JÑ9JÑKˆØ$Õr   c                 ó<   • U R                   nUR                  5         g r	   )r   Úcloserb   s     r   Ú_tearDownAsyncioRunnerÚ.IsolatedAsyncioTestCase._tearDownAsyncioRunner€   s   € Ø×$Ñ$ˆØ‰r   c                 ó   >• U R                  5          [        TU ]	  U5      U R                  5         $ ! U R                  5         f = fr	   )rd   r
+   r;   rh   )r   r6   r   s     €r   r;   ÚIsolatedAsyncioTestCase.run„   s9   ø€ Ø× Ñ Ô"ğ	*Ü‘7‘;˜vÓ&à×'Ñ'Õ)øˆD×'Ñ'Õ)ús	   “2 ²Ac                 ób   >• U R                  5         [        TU ]	  5         U R                  5         g r	   )rd   r
+   r^   rh   )r   r   s    €r   r^   ÚIsolatedAsyncioTestCase.debug‹   s$   ø€ Ø× Ñ Ô"Ü‰‰ŒØ×#Ñ#Õ%r   c                 ó@   • U R                   b  U R                  5         g g r	   )r   rh   r   s    r   Ú__del__ÚIsolatedAsyncioTestCase.__del__   s   € Ø×ÑÑ*Ø×'Ñ'Õ)ğ +r   )r   r   )ÚrunTestr	   )Ú__name__r0   r1   Ú__firstlineno__r_   r   r   r   r&   r7   r>   rI   rM   rQ   r=   rD   rd   rh   r;   r^   ro   Ú__static_attributes__Ú__classcell__)r   s   @r   r   r   
+   sa   ø† ğ6 €L÷>ò
+òò2òò()òUò
+4ò8ò
+òGò%ò
+÷*õ&÷
+*ğ *r   r   )r`   r   rX   rE   Úcaser   Ú
+__unittestr   r   r   r   Ú<module>rx      s'   ğÛ Û Û Û å à€
+ôH*˜hõ H*r                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    ó
+    F\hûã  ã                   ó  • S r SSKrSSKrSSKrSSKrSSKrSSKrSSKrSSKrSSK	r	SSK
+r
+SSKrSSKJr  SSKJrJrJrJrJr  Sr\" 5       rSr " S S	\5      r " S
+ S\5      r " S S\5      r " S S\5      rS rS rS rS r / r!S r"S r#S r$S r%S r&S r'S r(S r) " S S5      r* " S S\*5      r+ " S  S!\+5      r, " S" S#\+5      r- " S$ S%\-5      r. " S& S'\R^                  5      r0 " S( S)\5      r1 " S* S+\15      r2 " S, S-\15      r3g).zTest case implementationé    Né   )Úresult)ÚstrclassÚ	safe_reprÚ_count_diff_all_purposeÚ_count_diff_hashableÚ_common_shorten_reprTz@
+Diff is %s characters long. Set self.maxDiff to None to see it.c                   ó   • \ rS rSrSrSrg)ÚSkipTesté   z™
+Raise this exception in a test to skip it.
+
+Usually you can use TestCase.skipTest() or one of the skipping decorators
+instead of raising this directly.
+© N©Ú__name__Ú
+__module__Ú__qualname__Ú__firstlineno__Ú__doc__Ú__static_attributes__r   ó    Ú$/usr/lib/python3.13/unittest/case.pyr   r      s   † ôr   r   c                   ó   • \ rS rSrSrSrg)Ú_ShouldStopé"   z
+The test should stop.
+r   Nr   r   r   r   r   r   "   ó   † ôr   r   c                   ó   • \ rS rSrSrSrg)Ú_UnexpectedSuccessé'   z/
+The test was supposed to fail, but it didn't!
+r   Nr   r   r   r   r   r   '   r   r   r   c                   óF   • \ rS rSrSS jr\R                  SS j5       rSrg)Ú_Outcomeé-   Nc                 ó\   • SU l         Xl        [        US5      U l        SU l        S U l        g )NFÚ
+addSubTestT)Úexpecting_failurer   ÚhasattrÚresult_supports_subtestsÚsuccessÚexpectedFailure)Úselfr   s     r   Ú__init__Ú_Outcome.__init__.   s-   € Ø!&ˆÔØŒÜ(/°¸Ó(EˆÔ%ØˆŒØ#ˆÕr   c              #   óÊ  #   • U R                   nSU l          S v •  U(       a8  U R                   (       a'  U R                  R                  UR                  US 5        U R                   =(       a    UU l         g ! [         a    e [
+         a1  nSU l         [        U R                  U[        U5      5         S nAN[S nAf[         a     Nj  [        R                  " 5       nU R                  (       a  XPl        OKSU l         U(       a'  U R                  R                  UR                  X5        O[        U R                  X5        S n Nç= f! U R                   =(       a    UU l         f = f7f)NTF)r&   r   r"   Ú	test_caseÚKeyboardInterruptr   Ú_addSkipÚstrr   ÚsysÚexc_infor#   r'   Ú	_addError)r(   r,   ÚsubTestÚold_successÚer1   s         r   ÚtestPartExecutorÚ_Outcome.testPartExecutor5   sÿ   é € à—l‘lˆØˆŒğ	8Ûö, ˜4Ÿ<Ÿ<Ø—‘×&Ñ& y×':Ñ':¸IÀtÔLàŸ<™<×7¨KˆDLøô1 !ó 	ØÜó 	5Ø ˆDŒLÜT—[‘[ )¬S°«V×4Ñ4ûÜó 	Ùğ	Ü—|’|“~ˆHØ×%×%Ø'/Õ$à$”ŞØ—K‘K×*Ñ*¨9×+>Ñ+>À	ÕTä˜dŸk™k¨9Ô?ğ ŠHûğ
+  Ÿ<™<×7¨KˆDLüsL   ‚E#—A5 ›?E ÁE#Á5EÂ	'B5Â0E Â5EÃE ÃA;EÄ?E ÅE Å E#)r'   r#   r   r%   r&   ©N)F)	r   r   r   r   r)   Ú
+contextlibÚcontextmanagerr6   r   r   r   r   r   r   -   s!   † ô$ğ ×Ñó8ó ó8r   r   c                 ó’   • [        U SS 5      nUb	  U" X5        g [        R                  " S[        S5        U R                  " U5        g )NÚaddSkipz4TestResult has no addSkip method, skips not reportedé   )ÚgetattrÚwarningsÚwarnÚRuntimeWarningÚ
+addSuccess)r   r,   Úreasonr<   s       r   r.   r.   V   s@   € Üf˜i¨Ó.€GØÑÙ	Õ"äŠĞLÜ$ aô	)à×Ò˜)Õ$r   c                 óš   • U bH  UbD  [        US   UR                  5      (       a  U R                  " X5        g U R                  " X5        g g g )Nr   )Ú
+issubclassÚfailureExceptionÚ
+addFailureÚaddError)r   Útestr1   s      r   r2   r2   _   sF   € ØÑ˜hÑ2Üh˜q‘k 4×#8Ñ#8×9Ñ9Ø×Ò˜dÕ-àOŠO˜DÕ+ğ	 3Ğr   c                 ó   • U $ r8   r   )Úobjs    r   Ú_idrL   f   s   € Ø€Jr   c                 óŞ   • [        U 5      n UR                  nUR                  nU" U 5      nU" X@S S S 5        U$ ! [         a(    [	        SUR
+                   SUR                   S35      S ef = f)NÚ'Ú.z6' object does not support the context manager protocol)ÚtypeÚ	__enter__Ú__exit__ÚAttributeErrorÚ	TypeErrorr   r   )ÚcmÚ
+addcleanupÚclsÚenterÚexitr   s         r   Ú_enter_contextrZ   j   sŒ   € ô ˆr‹(€CğOØ—‘ˆØ|‰|ˆñ 2‹Y€FÙˆt˜˜t TÔ*Ø€Møô ó OÜ˜!˜CŸN™NĞ+¨1¨S×-=Ñ-=Ğ,>ğ ?Cğ Dó EØJNğ	OğOús	   : º2A,c                ó2   • [         R                  XU45        g)zjSame as addCleanup, except the cleanup items are called even if
+setUpModule fails (unlike tearDownModule).N)Ú_module_cleanupsÚappend)ÚfunctionÚargsÚkwargss      r   ÚaddModuleCleanupra   z   s   € ô ×Ñ˜X¨VĞ4Õ5r   c                 ó"   • [        U [        5      $ )z&Same as enterContext, but module-wide.)rZ   ra   )rU   s    r   ÚenterModuleContextrc      s   € ä˜"Ô.Ó/Ğ/r   c                  óà   • / n [         (       a-  [         R                  5       u  pn U" U0 UD6  [         (       a  M-  U (       a  U S   eg! [         a  nU R                  U5         SnAN:SnAff = f)zSExecute all module cleanup functions. Normally called for you after
+tearDownModule.Nr   )r\   ÚpopÚ	Exceptionr]   )Ú
+exceptionsr^   r_   r`   Úexcs        r   ÚdoModuleCleanupsri   „   su   € ğ €Jß
+Ò
+Ü!1×!5Ñ!5Ó!7Ñˆ˜ğ	#ÙdĞ%˜fÒ%÷ Ô
+ö ğ ˜‰mĞğ øô ó 	#Ø×Ñ˜c×"Ñ"ûğ	#ús   ¦A Á
+A-ÁA(Á(A-c                 ój   ^ • U 4S jn[        T [        R                  5      (       a  T nSm U" U5      $ U$ )z
+Unconditionally skip a test.
+c                 ó   >• [        U [        5      (       d!  [        R                  " U 5      U4S j5       nUn SU l        TU l        U $ )Nc                  ó   >• [        T5      er8   ©r   )r_   r`   rC   s     €r   Úskip_wrapperÚ-skip.<locals>.decorator.<locals>.skip_wrapperš   s   ø€ ä˜vÓ&Ğ&r   T)Ú
+isinstancerP   Ú	functoolsÚwrapsÚ__unittest_skip__Ú__unittest_skip_why__)Ú	test_itemrn   rC   s     €r   Ú	decoratorÚskip.<locals>.decorator˜   sF   ø€ Ü˜)¤T×*Ñ*Ü_Š_˜YÓ'ô'ó (ğ'à$ˆIà&*ˆ	Ô#Ø*0ˆ	Ô'ØĞr   Ú )rp   ÚtypesÚFunctionType)rC   rv   ru   s   `  r   Úskipr{   ”   s8   ø€ õ	ô &œ%×,Ñ,×-Ñ-Øˆ	ØˆÙ˜Ó#Ğ#ØĞr   c                 ó2   • U (       a  [        U5      $ [        $ )z'
+Skip a test if the condition is true.
+©r{   rL   ©Ú	conditionrC   s     r   ÚskipIfr€   ¨   s   € ö ÜF‹|ĞÜ€Jr   c                 ó2   • U (       d  [        U5      $ [        $ )z+
+Skip a test unless the condition is true.
+r}   r~   s     r   Ú
+skipUnlessr‚   °   s   € ö ÜF‹|ĞÜ€Jr   c                 ó   • SU l         U $ )NT)Ú__unittest_expecting_failure__)ru   s    r   r'   r'   ¸   s   € Ø/3€IÔ,ØĞr   c                 ó   ^• [        U [        5      (       a  [        U4S jU  5       5      $ [        U [        5      =(       a    [	        U T5      $ )Nc              3   ó<   >#   • U  H  n[        UT5      v •  M     g 7fr8   )Ú_is_subtype)Ú.0r5   Úbasetypes     €r   Ú	<genexpr>Ú_is_subtype.<locals>.<genexpr>¾   s   øé € Ğ>²X°”;˜q (×+Ğ+²Xùs   ƒ)rp   ÚtupleÚallrP   rE   )Úexpectedr‰   s    `r   r‡   r‡   ¼   s:   ø€ Ü(œE×"Ñ"ÜÔ>±XÓ>Ó>Ğ>Üh¤Ó%×H¬*°X¸xÓ*HĞHr   c                   ó    • \ rS rSrS rS rSrg)Ú_BaseTestCaseContextéÁ   c                 ó   • Xl         g r8   ©r,   )r(   r,   s     r   r)   Ú_BaseTestCaseContext.__init__Ã   s   € Ø"r   c                 ó„   • U R                   R                  U R                  U5      nU R                   R                  U5      er8   )r,   Ú_formatMessageÚmsgrF   )r(   ÚstandardMsgr—   s      r   Ú_raiseFailureÚ"_BaseTestCaseContext._raiseFailureÆ   s1   € Øn‰n×+Ñ+¨D¯H©H°kÓBˆØn‰n×-Ñ-¨cÓ2Ğ2r   r“   N)r   r   r   r   r)   r™   r   r   r   r   r   r   Á   s   † ò#õ3r   r   c                   ó$   • \ rS rSrSS jrS rSrg)Ú_AssertRaisesBaseContextéÊ   Nc                 ó    • [         R                  X5        Xl        X l        Ub  [        R
+                  " U5      nX0l        S U l        S U l        g r8   )	r   r)   r   r,   ÚreÚcompileÚexpected_regexÚobj_namer—   )r(   r   r,   r¡   s       r   r)   Ú!_AssertRaisesBaseContext.__init__Ì   sB   € Ü×%Ñ% dÔ6Ø ŒØ"ŒØÑ%ÜŸZšZ¨Ó7ˆNØ,ÔØˆŒØˆr   c                 óà  •  [        U R                  U R                  5      (       d  [        U< SU R                  < 35      eU(       dC  UR                  SS5      U l        U(       a!  [        [        [        U5      5      < S35      eU Sn $ UtpB UR                  U l
+        U    U" U0 UD6  SSS5        Sn g! [         a    [        U5      U l
+         N2f = f! , (       d  f       N1= f! Sn f = f)zÆ
+If args is empty, assertRaises/Warns is being used as a
+context manager, so check for a 'msg' kwarg and return self.
+If args is not empty, call a callable passing positional and keyword
+arguments.
+z() arg 1 must be r—   Nz1 is an invalid keyword argument for this function)r‡   r   Ú
+_base_typerT   Ú_base_type_strre   r—   ÚnextÚiterr   r¢   rS   r/   )r(   Únamer_   r`   Úcallable_objs        r   ÚhandleÚ_AssertRaisesBaseContext.handleÖ   sá   € ğ	Ü˜tŸ}™}¨d¯o©o×>Ñ>ÜÛ!% t×':Ó':ğ!<ó =ğ =æØ!Ÿ:™: e¨TÓ2”ŞÜ#Ü7;¼DÀ»LÖ7Iğ%Ló Mğ Màğ ‰Dğ #'ĞˆLğ2Ø ,× 5Ñ 5”ò Ù˜dĞ- fÒ-÷ ğ ‰Døô "ó 2Ü # LÓ 1–ğ2úç•ûğ ‰DúsN   ‚BC) ÂC) ÂB8 Â"C) Â$	CÂ-C) Â8CÃC) ÃCÃC) Ã
+C&Ã"C) Ã)C-)r   r¡   r—   r¢   r,   r8   )r   r   r   r   r)   r«   r   r   r   r   rœ   rœ   Ê   s   † ôõr   rœ   c                   óP   • \ rS rSrSr\rSrS rS r	\
+" \R                  5      rSrg)Ú_AssertRaisesContextéô   zCA context manager used to implement TestCase.assertRaises* methods.z-an exception type or tuple of exception typesc                 ó   • U $ r8   r   ©r(   s    r   rQ   Ú_AssertRaisesContext.__enter__ú   s   € Øˆr   c                 ó¨  • Ucu   U R                   R                  nU R                  (       a,  U R                  SR                  UU R                  5      5        O7U R                  SR                  U5      5        O[        R                  " U5        [        XR                   5      (       d  gUR                  S 5      U l        U R                  c  gU R                  nUR                  [        U5      5      (       d4  U R                  SR                  UR                  [        U5      5      5        g! [         a    [        U R                   5      n GN5f = f)Nz{} not raised by {}z{} not raisedFTú"{}" does not match "{}")r   r   rS   r/   r¢   r™   ÚformatÚ	tracebackÚclear_framesrE   Úwith_tracebackÚ	exceptionr¡   ÚsearchÚpattern)r(   Úexc_typeÚ	exc_valueÚtbÚexc_namer¡   s         r   rR   Ú_AssertRaisesContext.__exit__ı   s  € ØÑğ.ØŸ=™=×1Ñ1ğ }}Ø×"Ñ"Ğ#8×#?Ñ#?ÀØ@DÇÁó$Oõ Pğ ×"Ñ" ?×#9Ñ#9¸(Ó#CÕDä×"Ò" 2Ô&Ü˜(§M¡M×2Ñ2àà"×1Ñ1°$Ó7ˆŒØ×ÑÑ&Øà×,Ñ,ˆØ×$Ñ$¤S¨£^×4Ñ4Ø×ÑĞ9×@Ñ@Ø#×+Ñ+¬S°«^ó =ô >àøô+ "ó .Ü˜tŸ}™}Ó-“ğ.ús   …D. Ä.EÅE)r¹   N)r   r   r   r   r   ÚBaseExceptionr¥   r¦   rQ   rR   Úclassmethodry   ÚGenericAliasÚ__class_getitem__r   r   r   r   r®   r®   ô   s,   † ÙMà€JØD€Nòòñ6 $ E×$6Ñ$6Ó7Ór   r®   c                   ó,   • \ rS rSrSr\rSrS rS r	Sr
+g)Ú_AssertWarnsContexti  zBA context manager used to implement TestCase.assertWarns* methods.z(a warning type or tuple of warning typesc                 óJ  • [        [        R                  R                  5       5       H  n[	        USS 5      (       d  M  0 Ul        M      [        R                  " SS9U l        U R                  R                  5       U l        [        R                  " SU R                  5        U $ )NÚ__warningregistry__T)ÚrecordÚalways)Úlistr0   ÚmodulesÚvaluesr>   rÈ   r?   Úcatch_warningsÚwarnings_managerrQ   Úsimplefilterr   )r(   Úvs     r   rQ   Ú_AssertWarnsContext.__enter__!  s|   € ô ”c—k‘k×(Ñ(Ó*Ö+ˆAÜqĞ/°×6Ó6Ø(*Ö%ñ ,ô !)× 7Ò 7¸tÑ DˆÔØ×-Ñ-×7Ñ7Ó9ˆŒÜ×Ò˜h¨¯©Ô6Øˆr   c                 ó>  • U R                   R                  XU5        Ub  g  U R                  R                  nS nU R                   H  nUR                  n[        XpR                  5      (       d  M+  Uc  UnU R                  b+  U R                  R                  [        U5      5      (       d  Mh  Xpl        UR                  U l        UR                  U l          g    Ub>  U R                  SR                  U R                  R                   [        U5      5      5        U R"                  (       a,  U R                  SR                  UU R"                  5      5        g U R                  SR                  U5      5        g ! [         a    [        U R                  5      n GNcf = f)Nr´   z{} not triggered by {}z{} not triggered)rÏ   rR   r   r   rS   r/   r?   Úmessagerp   r¡   rº   ÚwarningÚfilenameÚlinenor™   rµ   r»   r¢   )r(   r¼   r½   r¾   r¿   Úfirst_matchingÚmÚws           r   rR   Ú_AssertWarnsContext.__exit__,  s]  € Ø×Ñ×&Ñ& x¸BÔ?ØÑàğ	*Ø—}‘}×-Ñ-ˆHğ ˆØ—”ˆAØ—	‘	ˆAÜ˜a§¡×/Ñ/ÙØÑ%Ø!"Ø×#Ñ#Ñ/Ø×'Ñ'×.Ñ.¬s°1«v×6Ñ6ÙàŒLØŸJ™JˆDŒMØŸ(™(ˆDŒKÙñ ğ Ñ%Ø×ÑĞ9×@Ñ@Ø×(Ñ(×0Ñ0´#°nÓ2Eó Gô Hà==Ø×ÑĞ7×>Ñ>¸xØ?C¿}¹}ó Nõ Oğ ×ÑĞ1×8Ñ8¸ÓBÕCøô3 ó 	*Ü˜4Ÿ=™=Ó)‹Hğ	*ús   ¢E9 Å9FÆF)rÖ   r×   rÕ   r?   rÏ   N)r   r   r   r   r   ÚWarningr¥   r¦   rQ   rR   r   r   r   r   rÆ   rÆ     s   † ÙLà€JØ?€Nò	õ Dr   rÆ   c                   ó   • \ rS rSrS rSrg)Ú_AssertNotWarnsContextiO  c                 óZ  • U R                   R                  XU5        Ub  g  U R                  R                  nU R                   H?  nUR                  n[        X`R                  5      (       d  M+  U R                  U S35        MA     g ! [         a    [        U R                  5      n Nqf = f)Nz
+ triggered)
+rÏ   rR   r   r   rS   r/   r?   rÔ   rp   r™   )r(   r¼   r½   r¾   r¿   rÙ   rÚ   s          r   rR   Ú_AssertNotWarnsContext.__exit__Q  s‘   € Ø×Ñ×&Ñ& x¸BÔ?ØÑàğ	*Ø—}‘}×-Ñ-ˆHğ —”ˆAØ—	‘	ˆAÜ˜!Ÿ]™]×+Ó+Ø×"Ñ" h Z¨zĞ#:Ö;ò øô ó 	*Ü˜4Ÿ=™=Ó)ŠHğ	*ús   ¢B ÂB*Â)B*r   N)r   r   r   r   rR   r   r   r   r   rŞ   rŞ   O  s   † õ<r   rŞ   c                   ó   • \ rS rSrS rSrg)Ú_OrderedChainMapi`  c              #   ó   #   • [        5       nU R                   H(  nU H  nX1;  d  M
+  UR                  U5        Uv •  M!     M*     g 7fr8   )ÚsetÚmapsÚadd)r(   ÚseenÚmappingÚks       r   Ú__iter__Ú_OrderedChainMap.__iter__a  s9   é € Ü‹uˆØ—y”yˆGÛØ•=Ø—H‘H˜Q”KØ”Gó ò !ùs
+   ‚"A¨Ar   N)r   r   r   r   rê   r   r   r   r   râ   râ   `  s   † õr   râ   c                   óÈ  ^ • \ rS rSrSr\rSrSrSr	U 4S jr
+SOS jrS rS	 rS
+ r\S 5       r\S 5       rS rS r\S 5       r\S 5       rS rS rS rS rS rS rS rS r\R>                  \ 4S j5       r!S r"S r#S r$S r%S r&S r'S  r(SPS! jr)S" r*\S# 5       r+S$ r,S% r-S& r.SPS' jr/SPS( jr0SPS) jr1S* r2S+ r3S, r4S- r5SQS. jr6SQS/ jr7S0 r8SPS1 jr9SPS2 jr:SPS3 jr;  SRS4 jr<  SRS5 jr=SQS6 jr>S7 r?SPS8 jr@SPS9 jrASPS: jrBSPS; jrCSPS< jrDSPS= jrESPS> jrFSPS? jrGSPS@ jrHSPSA jrISPSB jrJSPSC jrKSPSD jrLSPSE jrMSPSF jrNSPSG jrOSPSH jrPSPSI jrQSJ rRSK rSSPSL jrTSPSM jrUSNrVU =rW$ )SÚTestCaseij  aó  A class whose instances are single test cases.
+
+By default, the test code itself should be placed in a method named
+'runTest'.
+
+If the fixture may be used for many test cases, create as
+many test methods as are needed. When instantiating such a TestCase
+subclass, specify in the constructor arguments the name of the test method
+that the instance is to execute.
+
+Test authors should subclass TestCase for their own tests. Construction
+and deconstruction of the test's environment ('fixture') can be
+implemented by overriding the 'setUp' and 'tearDown' methods respectively.
+
+If it is necessary to override the __init__ method, the base class
+__init__ method must always be called. It is important that subclasses
+should not change the signature of their __init__ method, since instances
+of the classes are instantiated automatically by parts of the framework
+in order to be run.
+
+When subclassing TestCase, you can set these attributes:
+* failureException: determines which exception will be raised when
+    the instance's assertion methods fail; test methods raising this
+    exception will be deemed to have 'failed' rather than 'errored'.
+* longMessage: determines whether long messages (including repr of
+    objects used in assert methods) will be printed on failure in *addition*
+    to any explicit message passed.
+* maxDiff: sets the maximum length of a diff in failure messages
+    by assert methods using difflib. It is looked up as an instance
+    attribute so can be configured by individual tests if required.
+Ti€  i   c                 óB   >• SU l         / U l        [        TU ]  " U0 UD6  g )NF)Ú_classSetupFailedÚ_class_cleanupsÚsuperÚ__init_subclass__)rW   r_   r`   Ú	__class__s      €r   rò   ÚTestCase.__init_subclass__•  s%   ø€ à %ˆÔØ ˆÔÜ‰Ò! 4Ğ2¨6Ó2r   c                 óş  • Xl         SU l        SU l         [        X5      nUR                  U l        / U l        SU l	        0 U l
+        U R                  [        S5        U R                  [        S5        U R                  [        S5        U R                  [        S	5        U R                  [         S	5        U R                  ["        S
+5        g! [
+         a&    US:w  a  [        SU R                  < SU< 35      e NÉf = f)z§Create an instance of the class that will use the named test
+method when executed. Raises a ValueError if the instance does
+not have a method with the specified name.
+NzNo testÚrunTestzno such test method in ú: ÚassertDictEqualÚassertListEqualÚassertTupleEqualÚassertSetEqualÚassertMultiLineEqual)Ú_testMethodNameÚ_outcomeÚ_testMethodDocr>   r   rS   Ú
+ValueErrorró   Ú	_cleanupsÚ_subtestÚ_type_equality_funcsÚaddTypeEqualityFuncÚdictrË   rŒ   rä   Ú	frozensetr/   )r(   Ú
+methodNameÚ
+testMethods      r   r)   ÚTestCase.__init__›  sñ   € ğ
+  *ÔØˆŒØ'ˆÔğ		5Ü  Ó2ˆJğ #-×"4Ñ"4ˆDÔØˆŒØˆŒğ
+ %'ˆÔ!Ø× Ñ ¤Ğ'8Ô9Ø× Ñ ¤Ğ'8Ô9Ø× Ñ ¤Ğ(:Ô;Ø× Ñ ¤Ğ&6Ô7Ø× Ñ ¤Ğ,<Ô=Ø× Ñ ¤Ğ&<Õ=øô) ó 	4Ø˜YÓ&õ !Ø—~”~¢zğ"3ó 4ğ 4ñ 'ğ	4ús   –C Ã-C<Ã;C<c                 ó    • X R                   U'   g)a  Add a type specific assertEqual style function to compare a type.
+
+This method is for use by TestCase subclasses that need to register
+their own type equality functions to provide nicer error messages.
+
+Args:
+    typeobj: The data type to call this function on when both values
+            are of the same type in assertEqual().
+    function: The callable taking two arguments and an optional
+            msg= argument that raises self.failureException with a
+            useful error message when the two arguments are not equal.
+N)r  )r(   Útypeobjr^   s      r   r  ÚTestCase.addTypeEqualityFunc»  s   € ğ .6×!Ñ! 'Ò*r   c                ó>   • U R                   R                  XU45        g)zîAdd a function, with arguments, to be called when the test is
+completed. Functions added are called on a LIFO basis and are
+called after tearDown on test failure or success.
+
+Cleanup items are called even if setUp fails (unlike tearDown).N)r  r]   ©r(   r^   r_   r`   s       r   Ú
+addCleanupÚTestCase.addCleanupÊ  s   € ğ 	‰×Ñ˜x¨vĞ6Õ7r   c                 ó,   • [        XR                  5      $ )z™Enters the supplied context manager.
+
+If successful, also adds its __exit__ method as a cleanup
+function and returns the result of the __enter__ method.
+)rZ   r  )r(   rU   s     r   ÚenterContextÚTestCase.enterContextÒ  s   € ô ˜b§/¡/Ó2Ğ2r   c                ó>   • U R                   R                  XU45        g)zhSame as addCleanup, except the cleanup items are called even if
+setUpClass fails (unlike tearDownClass).N)rğ   r]   ©rW   r^   r_   r`   s       r   ÚaddClassCleanupÚTestCase.addClassCleanupÚ  s   € ğ 	×Ñ×"Ñ" H°FĞ#;Õ<r   c                 ó,   • [        XR                  5      $ )z%Same as enterContext, but class-wide.)rZ   r  )rW   rU   s     r   ÚenterClassContextÚTestCase.enterClassContextà  s   € ô ˜b×"5Ñ"5Ó6Ğ6r   c                 ó   • g)zAHook method for setting up the test fixture before exercising it.Nr   r±   s    r   ÚsetUpÚTestCase.setUpå  ó   € àr   c                 ó   • g)zAHook method for deconstructing the test fixture after testing it.Nr   r±   s    r   ÚtearDownÚTestCase.tearDowné  r  r   c                 ó   • g)zKHook method for setting up class fixture before running tests in the class.Nr   ©rW   s    r   Ú
+setUpClassÚTestCase.setUpClassí  ó    r   c                 ó   • g)zVHook method for deconstructing the class fixture after running all tests in the class.Nr   r#  s    r   ÚtearDownClassÚTestCase.tearDownClassñ  r&  r   c                 ó   • g)Nr   r   r±   s    r   ÚcountTestCasesÚTestCase.countTestCasesõ  s   € Ør   c                 ó,   • [         R                  " 5       $ r8   )r   Ú
+TestResultr±   s    r   ÚdefaultTestResultÚTestCase.defaultTestResultø  s   € Ü× Ò Ó"Ğ"r   c                 óŒ   • U R                   nU(       a0  UR                  5       R                  S5      S   R                  5       $ S$ )zÅReturns a one-line description of the test, or None if no
+description has been provided.
+
+The default implementation of this method returns the first line of
+the specified test method's docstring.
+Ú
+r   N)rÿ   ÚstripÚsplit©r(   Údocs     r   ÚshortDescriptionÚTestCase.shortDescriptionû  s;   € ğ ×!Ñ!ˆŞ58ˆsy‰y‹{× Ñ  Ó& qÑ)×/Ñ/Ó1ĞB¸dĞBr   c                 óN   • [        U R                  5      < SU R                  < 3$ )NrO   ©r   ró   rı   r±   s    r   ÚidÚTestCase.id  s   € Ü" 4§>¡>Ö2°D×4HÓ4HĞIĞIr   c                 ón   • [        U 5      [        U5      La  [        $ U R                  UR                  :H  $ r8   )rP   ÚNotImplementedrı   ©r(   Úothers     r   Ú__eq__ÚTestCase.__eq__	  s/   € Ü‹:œT %›[Ò(Ü!Ğ!à×#Ñ# u×'<Ñ'<Ñ<Ğ<r   c                 óB   • [        [        U 5      U R           

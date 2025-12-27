@@ -1,0 +1,1951 @@
+"""Weak reference support for Python.
+
+This module is an implementation of PEP 205:
+
+https://peps.python.org/pep-0205/
+"""
+
+# Naming convention: Variables named "wr" are weak reference objects;
+# they are called this instead of "ref" to avoid name collisions with
+# the module-global ref() function imported from _weakref.
+
+from _weakref import (
+     getweakrefcount,
+     getweakrefs,
+     ref,
+     proxy,
+     CallableProxyType,
+     ProxyType,
+     ReferenceType,
+     _remove_dead_weakref)
+
+from _weakrefset import WeakSet, _IterationGuard
+
+import _collections_abc  # Import after _weakref to avoid circular import.
+import sys
+import itertools
+
+ProxyTypes = (ProxyType, CallableProxyType)
+
+__all__ = ["ref", "proxy", "getweakrefcount", "getweakrefs",
+           "WeakKeyDictionary", "ReferenceType", "ProxyType",
+           "CallableProxyType", "ProxyTypes", "WeakValueDictionary",
+           "WeakSet", "WeakMethod", "finalize"]
+
+
+_collections_abc.MutableSet.register(WeakSet)
+
+class WeakMethod(ref):
+    """
+    A custom `weakref.ref` subclass which simulates a weak reference to
+    a bound method, working around the lifetime problem of bound methods.
+    """
+
+    __slots__ = "_func_ref", "_meth_type", "_alive", "__weakref__"
+
+    def __new__(cls, meth, callback=None):
+        try:
+            obj = meth.__self__
+            func = meth.__func__
+        except AttributeError:
+            raise TypeError("argument should be a bound method, not {}"
+                            .format(type(meth))) from None
+        def _cb(arg):
+            # The self-weakref trick is needed to avoid creating a reference
+            # cycle.
+            self = self_wr()
+            if self._alive:
+                self._alive = False
+                if callback is not None:
+                    callback(self)
+        self = ref.__new__(cls, obj, _cb)
+        self._func_ref = ref(func, _cb)
+        self._meth_type = type(meth)
+        self._alive = True
+        self_wr = ref(self)
+        return self
+
+    def __call__(self):
+        obj = super().__call__()
+        func = self._func_ref()
+        if obj is None or func is None:
+            return None
+        return self._meth_type(func, obj)
+
+    def __eq__(self, other):
+        if isinstance(other, WeakMethod):
+            if not self._alive or not other._alive:
+                return self is other
+            return ref.__eq__(self, other) and self._func_ref == other._func_ref
+        return NotImplemented
+
+    def __ne__(self, other):
+        if isinstance(other, WeakMethod):
+            if not self._alive or not other._alive:
+                return self is not other
+            return ref.__ne__(self, other) or self._func_ref != other._func_ref
+        return NotImplemented
+
+    __hash__ = ref.__hash__
+
+
+class WeakValueDictionary(_collections_abc.MutableMapping):
+    """Mapping class that references values weakly.
+
+    Entries in the dictionary will be discarded when no strong
+    reference to the value exists anymore
+    """
+    # We inherit the constructor without worrying about the input
+    # dictionary; since it uses our .update() method, we get the right
+    # checks (if the other dictionary is a WeakValueDictionary,
+    # objects are unwrapped on the way out, and we always wrap on the
+    # way in).
+
+    def __init__(self, other=(), /, **kw):
+        def remove(wr, selfref=ref(self), _atomic_removal=_remove_dead_weakref):
+            self = selfref()
+            if self is not None:
+                if self._iterating:
+                    self._pending_removals.append(wr.key)
+                else:
+                    # Atomic removal is necessary since this function
+                    # can be called asynchronously by the GC
+                    _atomic_removal(self.data, wr.key)
+        self._remove = remove
+        # A list of keys to be removed
+        self._pending_removals = []
+        self._iterating = set()
+        self.data = {}
+        self.update(other, **kw)
+
+    def _commit_removals(self, _atomic_removal=_remove_dead_weakref):
+        pop = self._pending_removals.pop
+        d = self.data
+        # We shouldn't encounter any KeyError, because this method should
+        # always be called *before* mutating the dict.
+        while True:
+            try:
+                key = pop()
+            except IndexError:
+                return
+            _atomic_removal(d, key)
+
+    def __getitem__(self, key):
+        if self._pending_removals:
+            self._commit_removals()
+        o = self.data[key]()
+        if o is None:
+            raise KeyError(key)
+        else:
+            return o
+
+    def __delitem__(self, key):
+        if self._pending_removals:
+            self._commit_removals()
+        del self.data[key]
+
+    def __len__(self):
+        if self._pending_removals:
+            self._commit_removals()
+        return len(self.data)
+
+    def __contains__(self, key):
+        if self._pending_removals:
+            self._commit_removals()
+        try:
+            o = self.data[key]()
+        except KeyError:
+            return False
+        return o is not None
+
+    def __repr__(self):
+        return "<%s at %#x>" % (self.__class__.__name__, id(self))
+
+    def __setitem__(self, key, value):
+        if self._pending_removals:
+            self._commit_removals()
+        self.data[key] = KeyedRef(value, self._remove, key)
+
+    def copy(self):
+        if self._pending_removals:
+            self._commit_removals()
+        new = WeakValueDictionary()
+        with _IterationGuard(self):
+            for key, wr in self.data.items():
+                o = wr()
+                if o is not None:
+                    new[key] = o
+        return new
+
+    __copy__ = copy
+
+    def __deepcopy__(self, memo):
+        from copy import deepcopy
+        if self._pending_removals:
+            self._commit_removals()
+        new = self.__class__()
+        with _IterationGuard(self):
+            for key, wr in self.data.items():
+                o = wr()
+                if o is not None:
+                    new[deepcopy(key, memo)] = o
+        return new
+
+    def get(self, key, default=None):
+        if self._pending_removals:
+            self._commit_removals()
+        try:
+            wr = self.data[key]
+        except KeyError:
+            return default
+        else:
+            o = wr()
+            if o is None:
+                # This should only happen
+                return default
+            else:
+                return o
+
+    def items(self):
+        if self._pending_removals:
+            self._commit_removals()
+        with _IterationGuard(self):
+            for k, wr in self.data.items():
+                v = wr()
+                if v is not None:
+                    yield k, v
+
+    def keys(self):
+        if self._pending_removals:
+            self._commit_removals()
+        with _IterationGuard(self):
+            for k, wr in self.data.items():
+                if wr() is not None:
+                    yield k
+
+    __iter__ = keys
+
+    def itervaluerefs(self):
+        """Return an iterator that yields the weak references to the values.
+
+        The references are not guaranteed to be 'live' at the time
+        they are used, so the result of calling the references needs
+        to be checked before being used.  This can be used to avoid
+        creating references that will cause the garbage collector to
+        keep the values around longer than needed.
+
+        """
+        if self._pending_removals:
+            self._commit_removals()
+        with _IterationGuard(self):
+            yield from self.data.values()
+
+    def values(self):
+        if self._pending_removals:
+            self._commit_removals()
+        with _IterationGuard(self):
+            for wr in self.data.values():
+                obj = wr()
+                if obj is not None:
+                    yield obj
+
+    def popitem(self):
+        if self._pending_removals:
+            self._commit_removals()
+        while True:
+            key, wr = self.data.popitem()
+            o = wr()
+            if o is not None:
+                return key, o
+
+    def pop(self, key, *args):
+        if self._pending_removals:
+            self._commit_removals()
+        try:
+            o = self.data.pop(key)()
+        except KeyError:
+            o = None
+        if o is None:
+            if args:
+                return args[0]
+            else:
+                raise KeyError(key)
+        else:
+            return o
+
+    def setdefault(self, key, default=None):
+        try:
+            o = self.data[key]()
+        except KeyError:
+            o = None
+        if o is None:
+            if self._pending_removals:
+                self._commit_removals()
+            self.data[key] = KeyedRef(default, self._remove, key)
+            return default
+        else:
+            return o
+
+    def update(self, other=None, /, **kwargs):
+        if self._pending_removals:
+            self._commit_removals()
+        d = self.data
+        if other is not None:
+            if not hasattr(other, "items"):
+                other = dict(other)
+            for key, o in other.items():
+                d[key] = KeyedRef(o, self._remove, key)
+        for key, o in kwargs.items():
+            d[key] = KeyedRef(o, self._remove, key)
+
+    def valuerefs(self):
+        """Return a list of weak references to the values.
+
+        The references are not guaranteed to be 'live' at the time
+        they are used, so the result of calling the references needs
+        to be checked before being used.  This can be used to avoid
+        creating references that will cause the garbage collector to
+        keep the values around longer than needed.
+
+        """
+        if self._pending_removals:
+            self._commit_removals()
+        return list(self.data.values())
+
+    def __ior__(self, other):
+        self.update(other)
+        return self
+
+    def __or__(self, other):
+        if isinstance(other, _collections_abc.Mapping):
+            c = self.copy()
+            c.update(other)
+            return c
+        return NotImplemented
+
+    def __ror__(self, other):
+        if isinstance(other, _collections_abc.Mapping):
+            c = self.__class__()
+            c.update(other)
+            c.update(self)
+            return c
+        return NotImplemented
+
+
+class KeyedRef(ref):
+    """Specialized reference that includes a key corresponding to the value.
+
+    This is used in the WeakValueDictionary to avoid having to create
+    a function object for each key stored in the mapping.  A shared
+    callback object can use the 'key' attribute of a KeyedRef instead
+    of getting a reference to the key from an enclosing scope.
+
+    """
+
+    __slots__ = "key",
+
+    def __new__(type, ob, callback, key):
+        self = ref.__new__(type, ob, callback)
+        self.key = key
+        return self
+
+    def __init__(self, ob, callback, key):
+        super().__init__(ob, callback)
+
+
+class WeakKeyDictionary(_collections_abc.MutableMapping):
+    """ Mapping class that references keys weakly.
+
+    Entries in the dictionary will be discarded when there is no
+    longer a strong reference to the key. This can be used to
+    associate additional data with an object owned by other parts of
+    an application without adding attributes to those objects. This
+    can be especially useful with objects that override attribute
+    accesses.
+    """
+
+    def __init__(self, dict=None):
+        self.data = {}
+        def remove(k, selfref=ref(self)):
+            self = selfref()
+            if self is not None:
+                if self._iterating:
+                    self._pending_removals.append(k)
+                else:
+                    try:
+                        del self.data[k]
+                    except KeyError:
+                        pass
+        self._remove = remove
+        # A list of dead weakrefs (keys to be removed)
+        self._pending_removals = []
+        self._iterating = set()
+        self._dirty_len = False
+        if dict is not None:
+            self.update(dict)
+
+    def _commit_removals(self):
+        # NOTE: We don't need to call this method before mutating the dict,
+        # because a dead weakref never compares equal to a live weakref,
+        # even if they happened to refer to equal objects.
+        # However, it means keys may already have been removed.
+        pop = self._pending_removals.pop
+        d = self.data
+        while True:
+            try:
+                key = pop()
+            except IndexError:
+                return
+
+            try:
+                del d[key]
+            except KeyError:
+                pass
+
+    def _scrub_removals(self):
+        d = self.data
+        self._pending_removals = [k for k in self._pending_removals if k in d]
+        self._dirty_len = False
+
+    def __delitem__(self, key):
+        self._dirty_len = True
+        del self.data[ref(key)]
+
+    def __getitem__(self, key):
+        return self.data[ref(key)]
+
+    def __len__(self):
+        if self._dirty_len and self._pending_removals:
+            # self._pending_removals may still contain keys which were
+            # explicitly removed, we have to scrub them (see issue #21173).
+            self._scrub_removals()
+        return len(self.data) - len(self._pending_removals)
+
+    def __repr__(self):
+        return "<%s at %#x>" % (self.__class__.__name__, id(self))
+
+    def __setitem__(self, key, value):
+        self.data[ref(key, self._remove)] = value
+
+    def copy(self):
+        new = WeakKeyDictionary()
+        with _IterationGuard(self):
+            for key, value in self.data.items():
+                o = key()
+                if o is not None:
+                    new[o] = value
+        return new
+
+    __copy__ = copy
+
+    def __deepcopy__(self, memo):
+        from copy import deepcopy
+        new = self.__class__()
+        with _IterationGuard(self):
+            for key, value in self.data.items():
+                o = key()
+                if o is not None:
+                    new[o] = deepcopy(value, memo)
+        return new
+
+    def get(self, key, default=None):
+        return self.data.get(ref(key),default)
+
+    def __contains__(self, key):
+        try:
+            wr = ref(key)
+        except TypeError:
+            return False
+        return wr in self.data
+
+    def items(self):
+        with _IterationGuard(self):
+            for wr, value in self.data.items():
+                key = wr()
+                if key is not None:
+                    yield key, value
+
+    def keys(self):
+        with _IterationGuard(self):
+            for wr in self.data:
+                obj = wr()
+                if obj is not None:
+                    yield obj
+
+    __iter__ = keys
+
+    def values(self):
+        with _IterationGuard(self):
+            for wr, value in self.data.items():
+                if wr() is not None:
+                    yield value
+
+    def keyrefs(self):
+        """Return a list of weak references to the keys.
+
+        The references are not guaranteed to be 'live' at the time
+        they are used, so the result of calling the references needs
+        to be checked before being used.  This can be used to avoid
+        creating references that will cause the garbage collector to
+        keep the keys around longer than needed.
+
+        """
+        return list(self.data)
+
+    def popitem(self):
+        self._dirty_len = True
+        while True:
+            key, value = self.data.popitem()
+            o = key()
+            if o is not None:
+                return o, value
+
+    def pop(self, key, *args):
+        self._dirty_len = True
+        return self.data.pop(ref(key), *args)
+
+    def setdefault(self, key, default=None):
+        return self.data.setdefault(ref(key, self._remove),default)
+
+    def update(self, dict=None, /, **kwargs):
+        d = self.data
+        if dict is not None:
+            if not hasattr(dict, "items"):
+                dict = type({})(dict)
+            for key, value in dict.items():
+                d[ref(key, self._remove)] = value
+        if len(kwargs):
+            self.update(kwargs)
+
+    def __ior__(self, other):
+        self.update(other)
+        return self
+
+    def __or__(self, other):
+        if isinstance(other, _collections_abc.Mapping):
+            c = self.copy()
+            c.update(other)
+            return c
+        return NotImplemented
+
+    def __ror__(self, other):
+        if isinstance(other, _collections_abc.Mapping):
+            c = self.__class__()
+            c.update(other)
+            c.update(self)
+            return c
+        return NotImplemented
+
+
+class finalize:
+    """Class for finalization of weakrefable objects
+
+    finalize(obj, func, *args, **kwargs) returns a callable finalizer
+    object which will be called when obj is garbage collected. The
+    first time the finalizer is called it evaluates func(*arg, **kwargs)
+    and returns the result. After this the finalizer is dead, and
+    calling it just returns None.
+
+    When the program exits any remaining finalizers for which the
+    atexit attribute is true will be run in reverse order of creation.
+    By default atexit is true.
+    """
+
+    # Finalizer objects don't have any state of their own.  They are
+    # just used as keys to lookup _Info objects in the registry.  This
+    # ensures that they cannot be part of a ref-cycle.
+
+    __slots__ = ()
+    _registry = {}
+    _shutdown = False
+    _index_iter = itertools.count()
+    _dirty = False
+    _registered_with_atexit = False
+
+    class _Info:
+        __slots__ = ("weakref", "func", "args", "kwargs", "atexit", "index")
+
+    def __init__(self, obj, func, /, *args, **kwargs):
+        if not self._registered_with_atexit:
+            # We may register the exit function more than once because
+            # of a thread race, but that is harmless
+            import atexit
+            atexit.register(self._exitfunc)
+            finalize._registered_with_atexit = True
+        info = self._Info()
+        info.weakref = ref(obj, self)
+        info.func = func
+        info.args = args
+        info.kwargs = kwargs or None
+        info.atexit = True
+        info.index = next(self._index_iter)
+        self._registry[self] = info
+        finalize._dirty = True
+
+    def __call__(self, _=None):
+        """If alive then mark as dead and return func(*args, **kwargs);
+        otherwise return None"""
+        info = self._registry.pop(self, None)
+        if info and not self._shutdown:
+            return info.func(*info.args, **(info.kwargs or {}))
+
+    def detach(self):
+        """If alive then mark as dead and return (obj, func, args, kwargs);
+        otherwise return None"""
+        info = self._registry.get(self)
+        obj = info and info.weakref()
+        if obj is not None and self._registry.pop(self, None):
+            return (obj, info.func, info.args, info.kwargs or {})
+
+    def peek(self):
+        """If alive then return (obj, func, args, kwargs);
+        otherwise return None"""
+        info = self._registry.get(self)
+        obj = info and info.weakref()
+        if obj is not None:
+            return (obj, info.func, info.args, info.kwargs or {})
+
+    @property
+    def alive(self):
+        """Whether finalizer is alive"""
+        return self in self._registry
+
+    @property
+    def atexit(self):
+        """Whether finalizer should be called at exit"""
+        info = self._registry.get(self)
+        return bool(info) and info.atexit
+
+    @atexit.setter
+    def atexit(self, value):
+        info = self._registry.get(self)
+        if info:
+            info.atexit = bool(value)
+
+    def __repr__(self):
+        info = self._registry.get(self)
+        obj = info and info.weakref()
+        if obj is None:
+            return '<%s object at %#x; dead>' % (type(self).__name__, id(self))
+        else:
+            return '<%s object at %#x; for %r at %#x>' % \
+                (type(self).__name__, id(self), type(obj).__name__, id(obj))
+
+    @classmethod
+    def _select_for_exit(cls):
+        # Return live finalizers marked for exit, oldest first
+        L = [(f,i) for (f,i) in cls._registry.items() if i.atexit]
+        L.sort(key=lambda item:item[1].index)
+        return [f for (f,i) in L]
+
+    @classmethod
+    def _exitfunc(cls):
+        # At shutdown invoke finalizers for which atexit is true.
+        # This is called once all other non-daemonic threads have been
+        # joined.
+        reenable_gc = False
+        try:
+            if cls._registry:
+                import gc
+                if gc.isenabled():
+                    reenable_gc = True
+                    gc.disable()
+                pending = None
+                while True:
+                    if pending is None or finalize._dirty:
+                        pending = cls._select_for_exit()
+                        finalize._dirty = False
+                    if not pending:
+                        break
+                    f = pending.pop()
+                    try:
+                        # gc is disabled, so (assuming no daemonic
+                        # threads) the following is the only line in
+                        # this function which might trigger creation
+                        # of a new finalizer
+                        f()
+                    except Exception:
+                        sys.excepthook(*sys.exc_info())
+                    assert f not in cls._registry
+        finally:
+            # prevent any more finalizers from executing during shutdown
+            finalize._shutdown = True
+            if reenable_gc:
+                gc.enable()
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       #! /usr/bin/python3.13
+"""Interfaces for launching and remotely controlling web browsers."""
+# Maintained by Georg Brandl.
+
+import os
+import shlex
+import shutil
+import sys
+import subprocess
+import threading
+
+__all__ = ["Error", "open", "open_new", "open_new_tab", "get", "register"]
+
+
+class Error(Exception):
+    pass
+
+
+_lock = threading.RLock()
+_browsers = {}                  # Dictionary of available browser controllers
+_tryorder = None                # Preference order of available browsers
+_os_preferred_browser = None    # The preferred browser
+
+
+def register(name, klass, instance=None, *, preferred=False):
+    """Register a browser connector."""
+    with _lock:
+        if _tryorder is None:
+            register_standard_browsers()
+        _browsers[name.lower()] = [klass, instance]
+
+        # Preferred browsers go to the front of the list.
+        # Need to match to the default browser returned by xdg-settings, which
+        # may be of the form e.g. "firefox.desktop".
+        if preferred or (_os_preferred_browser and f'{name}.desktop' == _os_preferred_browser):
+            _tryorder.insert(0, name)
+        else:
+            _tryorder.append(name)
+
+
+def get(using=None):
+    """Return a browser launcher instance appropriate for the environment."""
+    if _tryorder is None:
+        with _lock:
+            if _tryorder is None:
+                register_standard_browsers()
+    if using is not None:
+        alternatives = [using]
+    else:
+        alternatives = _tryorder
+    for browser in alternatives:
+        if '%s' in browser:
+            # User gave us a command line, split it into name and args
+            browser = shlex.split(browser)
+            if browser[-1] == '&':
+                return BackgroundBrowser(browser[:-1])
+            else:
+                return GenericBrowser(browser)
+        else:
+            # User gave us a browser name or path.
+            try:
+                command = _browsers[browser.lower()]
+            except KeyError:
+                command = _synthesize(browser)
+            if command[1] is not None:
+                return command[1]
+            elif command[0] is not None:
+                return command[0]()
+    raise Error("could not locate runnable browser")
+
+
+# Please note: the following definition hides a builtin function.
+# It is recommended one does "import webbrowser" and uses webbrowser.open(url)
+# instead of "from webbrowser import *".
+
+def open(url, new=0, autoraise=True):
+    """Display url using the default browser.
+
+    If possible, open url in a location determined by new.
+    - 0: the same browser window (the default).
+    - 1: a new browser window.
+    - 2: a new browser page ("tab").
+    If possible, autoraise raises the window (the default) or not.
+
+    If opening the browser succeeds, return True.
+    If there is a problem, return False.
+    """
+    if _tryorder is None:
+        with _lock:
+            if _tryorder is None:
+                register_standard_browsers()
+    for name in _tryorder:
+        browser = get(name)
+        if browser.open(url, new, autoraise):
+            return True
+    return False
+
+
+def open_new(url):
+    """Open url in a new window of the default browser.
+
+    If not possible, then open url in the only browser window.
+    """
+    return open(url, 1)
+
+
+def open_new_tab(url):
+    """Open url in a new page ("tab") of the default browser.
+
+    If not possible, then the behavior becomes equivalent to open_new().
+    """
+    return open(url, 2)
+
+
+def _synthesize(browser, *, preferred=False):
+    """Attempt to synthesize a controller based on existing controllers.
+
+    This is useful to create a controller when a user specifies a path to
+    an entry in the BROWSER environment variable -- we can copy a general
+    controller to operate using a specific installation of the desired
+    browser in this way.
+
+    If we can't create a controller in this way, or if there is no
+    executable for the requested browser, return [None, None].
+
+    """
+    cmd = browser.split()[0]
+    if not shutil.which(cmd):
+        return [None, None]
+    name = os.path.basename(cmd)
+    try:
+        command = _browsers[name.lower()]
+    except KeyError:
+        return [None, None]
+    # now attempt to clone to fit the new name:
+    controller = command[1]
+    if controller and name.lower() == controller.basename:
+        import copy
+        controller = copy.copy(controller)
+        controller.name = browser
+        controller.basename = os.path.basename(browser)
+        register(browser, None, instance=controller, preferred=preferred)
+        return [None, controller]
+    return [None, None]
+
+
+# General parent classes
+
+class BaseBrowser:
+    """Parent class for all browsers. Do not use directly."""
+
+    args = ['%s']
+
+    def __init__(self, name=""):
+        self.name = name
+        self.basename = name
+
+    def open(self, url, new=0, autoraise=True):
+        raise NotImplementedError
+
+    def open_new(self, url):
+        return self.open(url, 1)
+
+    def open_new_tab(self, url):
+        return self.open(url, 2)
+
+
+class GenericBrowser(BaseBrowser):
+    """Class for all browsers started with a command
+       and without remote functionality."""
+
+    def __init__(self, name):
+        if isinstance(name, str):
+            self.name = name
+            self.args = ["%s"]
+        else:
+            # name should be a list with arguments
+            self.name = name[0]
+            self.args = name[1:]
+        self.basename = os.path.basename(self.name)
+
+    def open(self, url, new=0, autoraise=True):
+        sys.audit("webbrowser.open", url)
+        cmdline = [self.name] + [arg.replace("%s", url)
+                                 for arg in self.args]
+        try:
+            if sys.platform[:3] == 'win':
+                p = subprocess.Popen(cmdline)
+            else:
+                p = subprocess.Popen(cmdline, close_fds=True)
+            return not p.wait()
+        except OSError:
+            return False
+
+
+class BackgroundBrowser(GenericBrowser):
+    """Class for all browsers which are to be started in the
+       background."""
+
+    def open(self, url, new=0, autoraise=True):
+        cmdline = [self.name] + [arg.replace("%s", url)
+                                 for arg in self.args]
+        sys.audit("webbrowser.open", url)
+        try:
+            if sys.platform[:3] == 'win':
+                p = subprocess.Popen(cmdline)
+            else:
+                p = subprocess.Popen(cmdline, close_fds=True,
+                                     start_new_session=True)
+            return p.poll() is None
+        except OSError:
+            return False
+
+
+class UnixBrowser(BaseBrowser):
+    """Parent class for all Unix browsers with remote functionality."""
+
+    raise_opts = None
+    background = False
+    redirect_stdout = True
+    # In remote_args, %s will be replaced with the requested URL.  %action will
+    # be replaced depending on the value of 'new' passed to open.
+    # remote_action is used for new=0 (open).  If newwin is not None, it is
+    # used for new=1 (open_new).  If newtab is not None, it is used for
+    # new=3 (open_new_tab).  After both substitutions are made, any empty
+    # strings in the transformed remote_args list will be removed.
+    remote_args = ['%action', '%s']
+    remote_action = None
+    remote_action_newwin = None
+    remote_action_newtab = None
+
+    def _invoke(self, args, remote, autoraise, url=None):
+        raise_opt = []
+        if remote and self.raise_opts:
+            # use autoraise argument only for remote invocation
+            autoraise = int(autoraise)
+            opt = self.raise_opts[autoraise]
+            if opt:
+                raise_opt = [opt]
+
+        cmdline = [self.name] + raise_opt + args
+
+        if remote or self.background:
+            inout = subprocess.DEVNULL
+        else:
+            # for TTY browsers, we need stdin/out
+            inout = None
+        p = subprocess.Popen(cmdline, close_fds=True, stdin=inout,
+                             stdout=(self.redirect_stdout and inout or None),
+                             stderr=inout, start_new_session=True)
+        if remote:
+            # wait at most five seconds. If the subprocess is not finished, the
+            # remote invocation has (hopefully) started a new instance.
+            try:
+                rc = p.wait(5)
+                # if remote call failed, open() will try direct invocation
+                return not rc
+            except subprocess.TimeoutExpired:
+                return True
+        elif self.background:
+            if p.poll() is None:
+                return True
+            else:
+                return False
+        else:
+            return not p.wait()
+
+    def open(self, url, new=0, autoraise=True):
+        sys.audit("webbrowser.open", url)
+        if new == 0:
+            action = self.remote_action
+        elif new == 1:
+            action = self.remote_action_newwin
+        elif new == 2:
+            if self.remote_action_newtab is None:
+                action = self.remote_action_newwin
+            else:
+                action = self.remote_action_newtab
+        else:
+            raise Error("Bad 'new' parameter to open(); "
+                        f"expected 0, 1, or 2, got {new}")
+
+        args = [arg.replace("%s", url).replace("%action", action)
+                for arg in self.remote_args]
+        args = [arg for arg in args if arg]
+        success = self._invoke(args, True, autoraise, url)
+        if not success:
+            # remote invocation failed, try straight way
+            args = [arg.replace("%s", url) for arg in self.args]
+            return self._invoke(args, False, False)
+        else:
+            return True
+
+
+class Mozilla(UnixBrowser):
+    """Launcher class for Mozilla browsers."""
+
+    remote_args = ['%action', '%s']
+    remote_action = ""
+    remote_action_newwin = "-new-window"
+    remote_action_newtab = "-new-tab"
+    background = True
+
+
+class Epiphany(UnixBrowser):
+    """Launcher class for Epiphany browser."""
+
+    raise_opts = ["-noraise", ""]
+    remote_args = ['%action', '%s']
+    remote_action = "-n"
+    remote_action_newwin = "-w"
+    background = True
+
+
+class Chrome(UnixBrowser):
+    """Launcher class for Google Chrome browser."""
+
+    remote_args = ['%action', '%s']
+    remote_action = ""
+    remote_action_newwin = "--new-window"
+    remote_action_newtab = ""
+    background = True
+
+
+Chromium = Chrome
+
+
+class Opera(UnixBrowser):
+    """Launcher class for Opera browser."""
+
+    remote_args = ['%action', '%s']
+    remote_action = ""
+    remote_action_newwin = "--new-window"
+    remote_action_newtab = ""
+    background = True
+
+
+class Elinks(UnixBrowser):
+    """Launcher class for Elinks browsers."""
+
+    remote_args = ['-remote', 'openURL(%s%action)']
+    remote_action = ""
+    remote_action_newwin = ",new-window"
+    remote_action_newtab = ",new-tab"
+    background = False
+
+    # elinks doesn't like its stdout to be redirected -
+    # it uses redirected stdout as a signal to do -dump
+    redirect_stdout = False
+
+
+class Konqueror(BaseBrowser):
+    """Controller for the KDE File Manager (kfm, or Konqueror).
+
+    See the output of ``kfmclient --commands``
+    for more information on the Konqueror remote-control interface.
+    """
+
+    def open(self, url, new=0, autoraise=True):
+        sys.audit("webbrowser.open", url)
+        # XXX Currently I know no way to prevent KFM from opening a new win.
+        if new == 2:
+            action = "newTab"
+        else:
+            action = "openURL"
+
+        devnull = subprocess.DEVNULL
+
+        try:
+            p = subprocess.Popen(["kfmclient", action, url],
+                                 close_fds=True, stdin=devnull,
+                                 stdout=devnull, stderr=devnull)
+        except OSError:
+            # fall through to next variant
+            pass
+        else:
+            p.wait()
+            # kfmclient's return code unfortunately has no meaning as it seems
+            return True
+
+        try:
+            p = subprocess.Popen(["konqueror", "--silent", url],
+                                 close_fds=True, stdin=devnull,
+                                 stdout=devnull, stderr=devnull,
+                                 start_new_session=True)
+        except OSError:
+            # fall through to next variant
+            pass
+        else:
+            if p.poll() is None:
+                # Should be running now.
+                return True
+
+        try:
+            p = subprocess.Popen(["kfm", "-d", url],
+                                 close_fds=True, stdin=devnull,
+                                 stdout=devnull, stderr=devnull,
+                                 start_new_session=True)
+        except OSError:
+            return False
+        else:
+            return p.poll() is None
+
+
+class Edge(UnixBrowser):
+    """Launcher class for Microsoft Edge browser."""
+
+    remote_args = ['%action', '%s']
+    remote_action = ""
+    remote_action_newwin = "--new-window"
+    remote_action_newtab = ""
+    background = True
+
+
+#
+# Platform support for Unix
+#
+
+# These are the right tests because all these Unix browsers require either
+# a console terminal or an X display to run.
+
+def register_X_browsers():
+
+    # use xdg-open if around
+    if shutil.which("xdg-open"):
+        register("xdg-open", None, BackgroundBrowser("xdg-open"))
+
+    # Opens an appropriate browser for the URL scheme according to
+    # freedesktop.org settings (GNOME, KDE, XFCE, etc.)
+    if shutil.which("gio"):
+        register("gio", None, BackgroundBrowser(["gio", "open", "--", "%s"]))
+
+    xdg_desktop = os.getenv("XDG_CURRENT_DESKTOP", "").split(":")
+
+    # The default GNOME3 browser
+    if (("GNOME" in xdg_desktop or
+         "GNOME_DESKTOP_SESSION_ID" in os.environ) and
+            shutil.which("gvfs-open")):
+        register("gvfs-open", None, BackgroundBrowser("gvfs-open"))
+
+    # The default KDE browser
+    if (("KDE" in xdg_desktop or
+         "KDE_FULL_SESSION" in os.environ) and
+            shutil.which("kfmclient")):
+        register("kfmclient", Konqueror, Konqueror("kfmclient"))
+
+    # Common symbolic link for the default X11 browser
+    if shutil.which("x-www-browser"):
+        register("x-www-browser", None, BackgroundBrowser("x-www-browser"))
+
+    # The Mozilla browsers
+    for browser in ("firefox", "iceweasel", "seamonkey", "mozilla-firefox",
+                    "mozilla"):
+        if shutil.which(browser):
+            register(browser, None, Mozilla(browser))
+
+    # Konqueror/kfm, the KDE browser.
+    if shutil.which("kfm"):
+        register("kfm", Konqueror, Konqueror("kfm"))
+    elif shutil.which("konqueror"):
+        register("konqueror", Konqueror, Konqueror("konqueror"))
+
+    # Gnome's Epiphany
+    if shutil.which("epiphany"):
+        register("epiphany", None, Epiphany("epiphany"))
+
+    # Google Chrome/Chromium browsers
+    for browser in ("google-chrome", "chrome", "chromium", "chromium-browser"):
+        if shutil.which(browser):
+            register(browser, None, Chrome(browser))
+
+    # Opera, quite popular
+    if shutil.which("opera"):
+        register("opera", None, Opera("opera"))
+
+    if shutil.which("microsoft-edge"):
+        register("microsoft-edge", None, Edge("microsoft-edge"))
+
+
+def register_standard_browsers():
+    global _tryorder
+    _tryorder = []
+
+    if sys.platform == 'darwin':
+        register("MacOSX", None, MacOSXOSAScript('default'))
+        register("chrome", None, MacOSXOSAScript('chrome'))
+        register("firefox", None, MacOSXOSAScript('firefox'))
+        register("safari", None, MacOSXOSAScript('safari'))
+        # OS X can use below Unix support (but we prefer using the OS X
+        # specific stuff)
+
+    if sys.platform == "ios":
+        register("iosbrowser", None, IOSBrowser(), preferred=True)
+
+    if sys.platform == "serenityos":
+        # SerenityOS webbrowser, simply called "Browser".
+        register("Browser", None, BackgroundBrowser("Browser"))
+
+    if sys.platform[:3] == "win":
+        # First try to use the default Windows browser
+        register("windows-default", WindowsDefault)
+
+        # Detect some common Windows browsers, fallback to Microsoft Edge
+        # location in 64-bit Windows
+        edge64 = os.path.join(os.environ.get("PROGRAMFILES(x86)", "C:\\Program Files (x86)"),
+                              "Microsoft\\Edge\\Application\\msedge.exe")
+        # location in 32-bit Windows
+        edge32 = os.path.join(os.environ.get("PROGRAMFILES", "C:\\Program Files"),
+                              "Microsoft\\Edge\\Application\\msedge.exe")
+        for browser in ("firefox", "seamonkey", "mozilla", "chrome",
+                        "opera", edge64, edge32):
+            if shutil.which(browser):
+                register(browser, None, BackgroundBrowser(browser))
+        if shutil.which("MicrosoftEdge.exe"):
+            register("microsoft-edge", None, Edge("MicrosoftEdge.exe"))
+    else:
+        # Prefer X browsers if present
+        #
+        # NOTE: Do not check for X11 browser on macOS,
+        # XQuartz installation sets a DISPLAY environment variable and will
+        # autostart when someone tries to access the display. Mac users in
+        # general don't need an X11 browser.
+        if sys.platform != "darwin" and (os.environ.get("DISPLAY") or os.environ.get("WAYLAND_DISPLAY")):
+            try:
+                cmd = "xdg-settings get default-web-browser".split()
+                raw_result = subprocess.check_output(cmd, stderr=subprocess.DEVNULL)
+                result = raw_result.decode().strip()
+            except (FileNotFoundError, subprocess.CalledProcessError,
+                    PermissionError, NotADirectoryError):
+                pass
+            else:
+                global _os_preferred_browser
+                _os_preferred_browser = result
+
+            register_X_browsers()
+
+        # Also try console browsers
+        if os.environ.get("TERM"):
+            # Common symbolic link for the default text-based browser
+            if shutil.which("www-browser"):
+                register("www-browser", None, GenericBrowser("www-browser"))
+            # The Links/elinks browsers <http://links.twibright.com/>
+            if shutil.which("links"):
+                register("links", None, GenericBrowser("links"))
+            if shutil.which("elinks"):
+                register("elinks", None, Elinks("elinks"))
+            # The Lynx browser <https://lynx.invisible-island.net/>, <http://lynx.browser.org/>
+            if shutil.which("lynx"):
+                register("lynx", None, GenericBrowser("lynx"))
+            # The w3m browser <http://w3m.sourceforge.net/>
+            if shutil.which("w3m"):
+                register("w3m", None, GenericBrowser("w3m"))
+
+    # OK, now that we know what the default preference orders for each
+    # platform are, allow user to override them with the BROWSER variable.
+    if "BROWSER" in os.environ:
+        userchoices = os.environ["BROWSER"].split(os.pathsep)
+        userchoices.reverse()
+
+        # Treat choices in same way as if passed into get() but do register
+        # and prepend to _tryorder
+        for cmdline in userchoices:
+            if cmdline != '':
+                cmd = _synthesize(cmdline, preferred=True)
+                if cmd[1] is None:
+                    register(cmdline, None, GenericBrowser(cmdline), preferred=True)
+
+    # what to do if _tryorder is now empty?
+
+
+#
+# Platform support for Windows
+#
+
+if sys.platform[:3] == "win":
+    class WindowsDefault(BaseBrowser):
+        def open(self, url, new=0, autoraise=True):
+            sys.audit("webbrowser.open", url)
+            try:
+                os.startfile(url)
+            except OSError:
+                # [Error 22] No application is associated with the specified
+                # file for this operation: '<URL>'
+                return False
+            else:
+                return True
+
+#
+# Platform support for macOS
+#
+
+if sys.platform == 'darwin':
+    class MacOSXOSAScript(BaseBrowser):
+        def __init__(self, name='default'):
+            super().__init__(name)
+
+        def open(self, url, new=0, autoraise=True):
+            sys.audit("webbrowser.open", url)
+            url = url.replace('"', '%22')
+            if self.name == 'default':
+                script = f'open location "{url}"'  # opens in default browser
+            else:
+                script = f'''
+                   tell application "{self.name}"
+                       activate
+                       open location "{url}"
+                   end
+                   '''
+
+            osapipe = os.popen("osascript", "w")
+            if osapipe is None:
+                return False
+
+            osapipe.write(script)
+            rc = osapipe.close()
+            return not rc
+
+#
+# Platform support for iOS
+#
+if sys.platform == "ios":
+    from _ios_support import objc
+    if objc:
+        # If objc exists, we know ctypes is also importable.
+        from ctypes import c_void_p, c_char_p, c_ulong
+
+    class IOSBrowser(BaseBrowser):
+        def open(self, url, new=0, autoraise=True):
+            sys.audit("webbrowser.open", url)
+            # If ctypes isn't available, we can't open a browser
+            if objc is None:
+                return False
+
+            # All the messages in this call return object references.
+            objc.objc_msgSend.restype = c_void_p
+
+            # This is the equivalent of:
+            #    NSString url_string =
+            #        [NSString stringWithCString:url.encode("utf-8")
+            #                           encoding:NSUTF8StringEncoding];
+            NSString = objc.objc_getClass(b"NSString")
+            constructor = objc.sel_registerName(b"stringWithCString:encoding:")
+            objc.objc_msgSend.argtypes = [c_void_p, c_void_p, c_char_p, c_ulong]
+            url_string = objc.objc_msgSend(
+                NSString,
+                constructor,
+                url.encode("utf-8"),
+                4,  # NSUTF8StringEncoding = 4
+            )
+
+            # Create an NSURL object representing the URL
+            # This is the equivalent of:
+            #   NSURL *nsurl = [NSURL URLWithString:url];
+            NSURL = objc.objc_getClass(b"NSURL")
+            urlWithString_ = objc.sel_registerName(b"URLWithString:")
+            objc.objc_msgSend.argtypes = [c_void_p, c_void_p, c_void_p]
+            ns_url = objc.objc_msgSend(NSURL, urlWithString_, url_string)
+
+            # Get the shared UIApplication instance
+            # This code is the equivalent of:
+            # UIApplication shared_app = [UIApplication sharedApplication]
+            UIApplication = objc.objc_getClass(b"UIApplication")
+            sharedApplication = objc.sel_registerName(b"sharedApplication")
+            objc.objc_msgSend.argtypes = [c_void_p, c_void_p]
+            shared_app = objc.objc_msgSend(UIApplication, sharedApplication)
+
+            # Open the URL on the shared application
+            # This code is the equivalent of:
+            #   [shared_app openURL:ns_url
+            #               options:NIL
+            #     completionHandler:NIL];
+            openURL_ = objc.sel_registerName(b"openURL:options:completionHandler:")
+            objc.objc_msgSend.argtypes = [
+                c_void_p, c_void_p, c_void_p, c_void_p, c_void_p
+            ]
+            # Method returns void
+            objc.objc_msgSend.restype = None
+            objc.objc_msgSend(shared_app, openURL_, ns_url, None, None)
+
+            return True
+
+
+def parse_args(arg_list: list[str] | None):
+    import argparse
+    parser = argparse.ArgumentParser(description="Open URL in a web browser.")
+    parser.add_argument("url", help="URL to open")
+
+    group = parser.add_mutually_exclusive_group()
+    group.add_argument("-n", "--new-window", action="store_const",
+                       const=1, default=0, dest="new_win",
+                       help="open new window")
+    group.add_argument("-t", "--new-tab", action="store_const",
+                       const=2, default=0, dest="new_win",
+                       help="open new tab")
+
+    args = parser.parse_args(arg_list)
+
+    return args
+
+
+def main(arg_list: list[str] | None = None):
+    args = parse_args(arg_list)
+
+    open(args.url, args.new_win)
+
+    print("\a")
+
+
+if __name__ == "__main__":
+    main()
+                                                                                                                                                                                                                                                                                                    ‹   .   ˙   ..  ›   __init__.py ﬁ   __pycache__ Ê   handlers.py Á   
+headers.py  Ë   simple_server.pyÈ   types.pyÍ   util.py Î  `validate.py                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             """wsgiref -- a WSGI (PEP 3333) Reference Library
+
+Current Contents:
+
+* util -- Miscellaneous useful functions and wrappers
+
+* headers -- Manage response headers
+
+* handlers -- base classes for server/gateway implementations
+
+* simple_server -- a simple BaseHTTPServer that supports WSGI
+
+* validate -- validation wrapper that sits between an app and a server
+  to detect errors in either
+
+* types -- collection of WSGI-related types for static type checking
+
+To-Do:
+
+* cgi_gateway -- Run WSGI apps under CGI (pending a deployment standard)
+
+* cgi_wrapper -- Run CGI apps under WSGI
+
+* router -- a simple middleware component that handles URL traversal
+"""
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               ﬁ   .   ‹   ..  ﬂ    __init__.cpython-313.pyc‡    handlers.cpython-313.pyc·    headers.cpython-313.pyc ‚  ( simple_server.cpython-313.pyc   „    types.cpython-313.pyc   ‰   util.cpython-313.pycÂ  $validate.cpython-313.pyc                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    Û
+    F\hë  „                   Û   ï S r g)aä  wsgiref -- a WSGI (PEP 3333) Reference Library
+
+Current Contents:
+
+* util -- Miscellaneous useful functions and wrappers
+
+* headers -- Manage response headers
+
+* handlers -- base classes for server/gateway implementations
+
+* simple_server -- a simple BaseHTTPServer that supports WSGI
+
+* validate -- validation wrapper that sits between an app and a server
+  to detect errors in either
+
+* types -- collection of WSGI-related types for static type checking
+
+To-Do:
+
+* cgi_gateway -- Run WSGI apps under CGI (pending a deployment standard)
+
+* cgi_wrapper -- Run CGI apps under WSGI
+
+* router -- a simple middleware component that handles URL traversal
+N)⁄__doc__© Û    ⁄'/usr/lib/python3.13/wsgiref/__init__.py⁄<module>r      s
+   Úr                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             Û
+    F\h†T  „                   ÛÚ   ï S r SSKJrJrJr  SSKJr  SSKrSSKrSSK	r	/ SQr
+/ SQr/ SQrS	 r1 S
+kR                  rS rS r " S S5      r " S S\5      r " S S\5      r " S S\5      r " S S\5      rg)z/Base classes for server/gateway implementationsÈ   )⁄FileWrapper⁄guess_scheme⁄is_hop_by_hop)⁄HeadersÈ    N)⁄BaseHandler⁄SimpleHandler⁄BaseCGIHandler⁄
+CGIHandler⁄IISCGIHandler⁄read_environ)⁄Mon⁄Tue⁄Wed⁄Thu⁄Fri⁄Sat⁄Sun)N⁄Jan⁄Feb⁄Mar⁄Apr⁄May⁄Jun⁄Jul⁄Aug⁄Sep⁄Oct⁄Nov⁄Decc           	      Ûj   ï [         R                  " U 5      u	  pp4pVpxn	S[        U   U[        U   XXV4-  $ )Nz#%s, %02d %3s %4d %02d:%02d:%02d GMT)⁄time⁄gmtime⁄_weekdayname⁄
+_monthname)
+⁄	timestamp⁄year⁄month⁄day⁄hh⁄mm⁄ss⁄wd⁄y⁄zs
+             ⁄'/usr/lib/python3.13/wsgiref/handlers.py⁄format_date_timer1      sB   Ä ‹-1Ø[™[∏”-C—*ÄDêò"†"®ÿ0‹êR—ò#úz®%—0∞$∏B4Ò  Û    >
+   ⁄HTTPS⁄	AUTH_TYPE⁄	PATH_INFO⁄REMOTE_USER⁄SCRIPT_NAME⁄CONTENT_TYPE⁄QUERY_STRING⁄REMOTE_IDENT⁄CONTENT_LENGTH⁄REQUEST_METHODc                 Û“   ï [        U 5      =(       dV    U R                  S5      =(       d>    U R                  S5      =(       d&    U R                  S5      =(       a    [        U SS  5      $ )N⁄HTTP_⁄SSL_⁄	REDIRECT_È	   )⁄_is_request⁄
+startswith⁄_needs_transcode)⁄ks    r0   rD   rD      sT   Ä ‹êqã>˜ CòQü\ô\®'”2˜ C∞a∑l±l¿6”6J˜ CÿèLâLò”%◊A‘*:∏1∏Q∏R∏5”*ACr2   c                  Û  ï [         R                  " 5       n Sn SR                  SU5        0 n[        R
+                  R                  5        GH*  u  p4[        U5      (       Ga  [         R                  S:X  a€  [        R
+                  R                  SS5      R                  5       nUR                  S5      (       a!  UR                  S5      R                  S5      nOñUR                  S	5      (       a  OUR                  S
+5      (       a'  SU;   a!  UR                  S5      R                  S5      nOBUR                  U S5      R                  S5      nO UR                  X5      R                  S5      nXBU'   GM-     U$ ! [         a    Sn GN`f = f)z'Read environment, fixing HTTP variables⁄surrogateescape⁄ zutf-8⁄replace⁄win32⁄SERVER_SOFTWAREzmicrosoft-iis/˙
+iso-8859-1zapache/zsimplehttp/zpython/3)⁄sys⁄getfilesystemencoding⁄encode⁄LookupError⁄os⁄environ⁄itemsrD   ⁄platform⁄get⁄lowerrC   ⁄decode)⁄enc⁄escrR   rE   ⁄v⁄softwares         r0   r   r   "   sW  Ä ‰
+◊
+#“
+#”
+%ÄCÿ
+ÄCÿ
+è	â	ê'ò3‘ ÄGÙ
+ ó
+ë
+◊ — ◊"âà‹òA◊“Ù è|â|òw”&‹ü:ô:ü>ô>–*;∏R”@◊F—F”Hê ◊&—&–'7◊8—8ÿüô†”)◊0—0∞”>ëA ◊(—(®◊3—3ÿ ◊'—'®◊6—6ÿ"†h”.‡üô†”)◊0—0∞”>ëA üô††i”0◊7—7∏”EëA
+ óHëHòS”&◊-—-®l”;ê‡êå
+ÒW #X ÄN¯Ùg Û ÿã˙s   ôE< ≈<F∆Fc                   Û
+  ï \ rS rSrSrSrSrSrSrSr	Sr
+Sr\" 5       r\r\rSrSrS	/rS
+rS=rrSrSrSrS rS rS rS rS rS r S&S jr!S r"S r#S r$S r%S r&S r'S r(S r)S r*S r+S r,S r-S r.S  r/S! r0S" r1S# r2S$ r3S%r4g)'r   È^   z+Manage the invocation of a WSGI application)r   r   TFz1.0Nz500 Internal Server Error)zContent-Typez
+text/plains;   A server error occurred.  Please contact the administrator.r   c                 Û  ï  U R                  5         U" U R                  U R                  5      U l        U R	                  5         g! [
+        [        [        4 a     g   U R                  5          g!   U R                  5         e = f= f)zInvoke the applicationN)
+⁄setup_environrR   ⁄start_response⁄result⁄finish_response⁄ConnectionAbortedError⁄BrokenPipeError⁄ConnectionResetError⁄handle_error⁄close)⁄self⁄applications     r0   ⁄run⁄BaseHandler.runÄ   sv   Ä 	ÿ◊—‘ Ÿ%†dßl°l∞D◊4G—4G”HàDåKÿ◊ — ’"¯‹&¨‘9M–NÛ 	Ò 	ÿ◊!—!÷#¯‡ó
+ë
+îÿ˝s$   ÇAA ¡B¡B¡A0¡0B¬Bc                 Û  ï U R                   R                  5       =ol        U R                  5         U R	                  5       US'   U R                  5       US'   U R                  US'   U R                  US'   U R                  5       US'   U R                  US'   U R                  US'   U R                  b  U R                  US	'   U R                  (       a/  U R                  (       a  UR                  S
+U R                  5        ggg)z&Set up the environment for one requestz
+wsgi.inputzwsgi.errorszwsgi.versionzwsgi.run_oncezwsgi.url_schemezwsgi.multithreadzwsgi.multiprocessNzwsgi.file_wrapperrK   )⁄
+os_environ⁄copyrR   ⁄add_cgi_vars⁄	get_stdin⁄
+get_stderr⁄wsgi_version⁄wsgi_run_once⁄
+get_scheme⁄wsgi_multithread⁄wsgi_multiprocess⁄wsgi_file_wrapper⁄origin_server⁄server_software⁄
+setdefault)rh   ⁄envs     r0   r_   ⁄BaseHandler.setup_environò   sË   Ä  "ü_ô_◊1—1”3–3àålÿ◊—‘‡#'ß>°>”#3ààL—ÿ#'ß?°?”#4ààM—ÿ#'◊#4—#4ààN—ÿ#'◊#5—#5ààO—ÿ#'ß?°?”#4à–—ÿ#'◊#8—#8à–—ÿ#'◊#9—#9à–— ‡◊!—!—-ÿ'+◊'=—'=àC–#—$‡◊◊†$◊"6◊"6ÿèNâN–,®T◊-A—-A’B #7–r2   c                 ÛX  ï  U R                  5       (       a  U R                  5       (       d4  U R                   H  nU R                  U5        M     U R	                  5         U R                  5         g!   [        U R                  S5      (       a  U R                  R                  5         e = f)a  Send any iterable data, then close self and the iterable
+
+Subclasses intended for use in asynchronous servers will
+want to redefine this method, such that it sets up callbacks
+in the event loop to iterate over the data, and to call
+'self.close()' once the response is finished.
+rg   N)⁄result_is_file⁄sendfilera   ⁄write⁄finish_contentrg   ⁄hasattr©rh   ⁄datas     r0   rb   ⁄BaseHandler.finish_response≠   s~   Ä 	ÿ◊&—&◊(—(∞∑±∑±ÿ üKúKêDÿóJëJòt÷$Ò (‡◊#—#‘% èJâJçL¯	Ù êtó{ë{†G◊,—,ÿóë◊!—!‘#ÿ˙s   ÇAA1 ¡18B)c                 Û,   ï [        U R                  5      $ )z Return the URL scheme being used)r   rR   ©rh   s    r0   rt   ⁄BaseHandler.get_scheme«   s   Ä ‰òDüLôL”)–)r2   c                 Û∏   ï  [        U R                  5      nUS:X  a#  [        U R                  5      U R                  S'   gg! [
+        [        [        4 a     gf = f)z@Compute Content-Length or switch to chunked encoding if possibler   ˙Content-LengthN)⁄lenra   ⁄str⁄
+bytes_sent⁄headers⁄	TypeError⁄AttributeError⁄NotImplementedError)rh   ⁄blockss     r0   ⁄set_content_length⁄BaseHandler.set_content_lengthÃ   sZ   Ä 	‹òüô”%àF êqãy‹14∞T∑_±_”1Eêóë–-—.ÿ ¯Ù ú.‘)<–=Û 	Ÿ	˙s   ÇA ¡A¡Ac                 ÛF   ï SU R                   ;  a  U R                  5         gg)zaMake any necessary header changes or defaults
+
+Subclasses can extend this to add other defaults.
+rä   N)ré   rì   rá   s    r0   ⁄cleanup_headers⁄BaseHandler.cleanup_headersŸ   s!   Ä 
+ †4ß<°<”/ÿ◊#—#’% 0r2   c                 ÛÆ  ï U(       a   U R                   (       a  e  SnOU R                  b  [        S5      eXl        U R	                  U5      U l        U R                  US5      nU R                  U5         U HG  u  pEU R                  US5      nU R                  US5      n[        U5      (       d  M;   SU SU S35       e   U R                  $ ! Snf = f)	z4'start_response()' callable as specified by PEP 3333NzHeaders already set!⁄StatuszHeader namezHeader valuezHop-by-hop header, 'z: z', not allowed)	⁄headers_sentré   ⁄AssertionError⁄status⁄headers_class⁄_convert_string_type⁄_validate_statusr   rÄ   )rh   rú   ré   ⁄exc_info⁄name⁄vals         r0   r`   ⁄BaseHandler.start_response·   sÂ   Ä ˆ  ÿ◊$◊$ÿ %  ëÿè\â\—%‹ –!7”8–8‡åÿ◊)—)®'”2àåÿ◊*—*®6∞8”<àÿ◊—òf‘%‡€$ë	êÿ◊0—0∞∞}”Eêÿ◊/—/∞∞^”Dê‹(®◊.”. Jÿ-®d®V∞2∞c∞U∏.–IÛJ–.Ò % èzâz–¯!  ë˙s   âC √Cc                 Û¶   ï [        U5      S:  a  [        S5      eUS S R                  5       (       d  [        S5      eUS   S:w  a  [        S5      eg )NÈ   z$Status must be at least 4 charactersÈ   z(Status message must begin w/3-digit code⁄ z+Status message must have a space after code)rã   rõ   ⁄isdigit)rh   rú   s     r0   rü   ⁄BaseHandler._validate_status˚   sW   Ä ‹àvã;òã?‹ –!G”H–Hÿêbêqàz◊!—!◊#—#‹ –!K”L–Lÿê!â9ò”‹ –!N”O–O r2   c                 Ûr   ï [        U5      [        L a  U$ [        SR                  U[	        U5      5      5      e)zConvert/check value type.z!{0} must be of type str (got {1}))⁄typerå   rõ   ⁄format⁄repr)rh   ⁄value⁄titles      r0   rû   ⁄ BaseHandler._convert_string_type  s4   Ä ‰êã;ú#“ÿàL‹ÿ/◊6—6∞uºd¿5ªk”JÛ
+ 	
+r2   c                 Ûf  ï U R                   (       aÛ  U R                  5       (       a›  U R                  SU R                  < SU R                  < S3R                  S5      5        SU R                  ;  a?  U R                  S[        [        R                  " 5       5      -  R                  S5      5        U R                  (       a?  SU R                  ;  a.  U R                  SU R                  -  R                  S5      5        g
+g
+g
+g
+U R                  S	U R                  -  R                  S5      5        g
+)z6Transmit version/status/date/server, via self._write()zHTTP/rß   z
+rL   ⁄Datez
+Date: %s
+⁄ServerzServer: %s
+zStatus: %s
+N)
+rx   ⁄client_is_modern⁄_write⁄http_versionrú   rO   ré   r1   r"   ry   rá   s    r0   ⁄send_preamble⁄BaseHandler.send_preamble  s‰   Ä ‡◊◊ÿ◊$—$◊&—&ÿóí∞◊1B‘1B¿4«;ƒ;–O◊W—W–Xd”e‘fÿ†ß°”-ÿóKëKÿ'‘*:º4ø9∫9ª;”*G—G◊O—O–P\”]Ù ◊'◊'®H∏DøLπL”,HÿóKëK–!1∞D◊4H—4H—!H◊ P— P–Q]” ^’_ -I–' ' èKâK–)®DØK©K—7◊?—?¿”M’Nr2   c                 ÛP  ï [        U5      [        L d   S5       eU R                  (       d  [        S5      eU R                  (       d!  [        U5      U l        U R                  5         OU =R                  [        U5      -  sl        U R                  U5        U R                  5         g)z+'write()' callable as specified by PEP 3333z)write() argument must be a bytes instancezwrite() before start_response()N)
+r´   ⁄bytesrú   rõ   rö   rã   rç   ⁄send_headersrµ   ⁄_flushrÉ   s     r0   rÄ   ⁄BaseHandler.write  s~   Ä Ù êDãzúU“" 	8ÿ7Û	8–" è{è{‹ –!B”C–C‡◊"◊"‰!†$õiàDåOÿ◊—’‡èOäOús†4õy—(çO 	èâêD‘ÿèâçr2   c                 Û   ï g)a´  Platform-specific file transmission
+
+Override this method in subclasses to support platform-specific
+file transmission.  It is only called if the application's
+return iterable ('self.result') is an instance of
+'self.wsgi_file_wrapper'.
+
+This method should return a true value if it was able to actually
+transmit the wrapped file-like object using a platform-specific
+approach.  It should return a false value if normal iteration
+should be used instead.  An exception can be raised to indicate
+that transmission was attempted, but failed.
+
+NOTE: this method should call 'self.send_headers()' if
+'self.headers_sent' is false and it is going to attempt direct
+transmission of the file.
+F© rá   s    r0   r   ⁄BaseHandler.sendfile.  s   Ä $ r2   c                 ÛÄ   ï U R                   (       d-  U R                  R                  SS5        U R                  5         gg)z.Ensure headers and content have both been senträ   ⁄0N)rö   ré   rz   rª   rá   s    r0   rÅ   ⁄BaseHandler.finish_contentC  s1   Ä ‡◊ ◊  èLâL◊#—#–$4∞c‘:ÿ◊—’‡r2   c                 Û"  ï  [        U R                  S5      (       a  U R                  R                  5         S=U l        =U l        =U l        U l        SU l        SU l        g! S=U l        =U l        =U l        U l        SU l        SU l        f = f)ztClose the iterable (if needed) and reset all instance vars
+
+Subclasses may want to also drop the client connection.
+rg   Nr   F)rÇ   ra   rg   ré   rú   rR   rç   rö   rá   s    r0   rg   ⁄BaseHandler.closeM  sÇ   Ä 
+	;‹êtó{ë{†7◊+—+ÿóë◊!—!‘#‡FJ–JàDåK–Jò$ú,–J®¨∞t¥|ÿàDåO∞U†’!2¯ GK–JàDåK–Jò$ú,–J®¨∞t¥|ÿàDåO∞U†’!2˙s   Ç5A" ¡",Bc                 ÛË   ï U R                  5         SU l        U R                  (       a  U R                  5       (       a5  U R	                  5         U R                  [        U R                  5      5        gg)z1Transmit headers to the client, via self._write()TN)rñ   rö   rx   r¥   r∑   rµ   r∫   ré   rá   s    r0   rª   ⁄BaseHandler.send_headersZ  sS   Ä ‡◊—‘ÿ à‘ÿ◊!◊!†T◊%:—%:◊%<—%<ÿ◊—‘ ÿèKâKúòdülôl”+’, &=r2   c                 Û\   ï U R                   nUSL=(       a    [        U R                  U5      $ )z@True if 'self.result' is an instance of 'self.wsgi_file_wrapper'N)rw   ⁄
+isinstancera   )rh   ⁄wrappers     r0   r~   ⁄BaseHandler.result_is_filec  s(   Ä ‡◊(—(àÿòd–"◊F§z∞$∑+±+∏g”'F–Fr2   c                 ÛB   ï U R                   S   R                  5       S:g  $ )z,True if client can accept status and headers⁄SERVER_PROTOCOLzHTTP/0.9)rR   ⁄upperrá   s    r0   r¥   ⁄BaseHandler.client_is_moderni  s    Ä ‡è|â|–-—.◊4—4”6∏*—D–Dr2   c                 Û¢   ï  SSK Jn  U R                  5       nU" US   US   US   U R                  U5        UR	                  5         Sng! Snf = f)zqLog the 'exc_info' tuple in the server log
+
+Subclasses may override to retarget the output or change its format.
+r   )⁄print_exceptionr   È   N)⁄	tracebackr—   rq   ⁄traceback_limit⁄flush)rh   r†   r—   ⁄stderrs       r0   ⁄log_exception⁄BaseHandler.log_exceptionn  sR   Ä 
+		›1ÿó_ë_”&àFŸÿòëòX†aô[®(∞1©+ÿ◊$—$†fÙ èLâLåN‡âH¯êtâH˙s   ÇAA
+ ¡
+Ac                 ÛÊ   ï U R                  [        R                  " 5       5        U R                  (       d<  U R	                  U R
+                  U R                  5      U l        U R                  5         gg)z>Log current error, and send error output to client if possibleN)	r◊   rM   r†   rö   ⁄error_outputrR   r`   ra   rb   rá   s    r0   rf   ⁄BaseHandler.handle_error~  sN   Ä ‡◊—ú3ü<ö<õ>‘*ÿ◊ ◊ ÿ◊+—+®DØL©L∏$◊:M—:M”NàDåKÿ◊ — ’" !r2   c                 ÛÑ   ï U" U R                   U R                  SS [        R                  " 5       5        U R                  /$ )a  WSGI mini-app to create error output
+
+By default, this just uses the 'error_status', 'error_headers',
+and 'error_body' attributes to generate an output page.  It can
+be overridden in a subclass to dynamically generate diagnostics,
+choose an appropriate message for the user's preferred language, etc.
+
+Note, however, that it's not recommended from a security perspective to
+spit out diagnostics to any old user; ideally, you should have to do
+something special to enable diagnostic output, which is why we don't
+include any here!
+N)⁄error_status⁄error_headersrM   r†   ⁄
+error_body)rh   rR   r`   s      r0   r⁄   ⁄BaseHandler.error_outputÜ  s4   Ä Ò 	êt◊(—(®◊);—);πA–)>ºsø|∫|ª~‘Nÿóë– – r2   c                 Û   ï [         e)z˜Override in subclass to buffer data for send to client
+
+It's okay if this method actually transmits the data; BaseHandler
+just separates write and flush operations for greater efficiency
+when the underlying system actually has such a distinction.
+©rë   rÉ   s     r0   rµ   ⁄BaseHandler._writeô  s
+   Ä Ù "–!r2   c                 Û   ï [         e)zîOverride in subclass to force sending of recent '_write()' calls
+
+It's okay if this method is a no-op (i.e., if '_write()' actually
+sends the data.
+r‚   rá   s    r0   rº   ⁄BaseHandler._flush¢  s
+   Ä Ù "–!r2   c                 Û   ï [         e)z4Override in subclass to return suitable 'wsgi.input'r‚   rá   s    r0   rp   ⁄BaseHandler.get_stdin™  Û   Ä ‰!–!r2   c                 Û   ï [         e)z5Override in subclass to return suitable 'wsgi.errors'r‚   rá   s    r0   rq   ⁄BaseHandler.get_stderrÆ  rË   r2   c                 Û   ï [         e)z>Override in subclass to insert CGI variables in 'self.environ'r‚   rá   s    r0   ro   ⁄BaseHandler.add_cgi_vars≤  rË   r2   )rç   rR   ré   rö   ra   rú   ©N)5⁄__name__⁄
+__module__⁄__qualname__⁄__firstlineno__⁄__doc__rr   ru   rv   rs   rx   r∂   ry   r   rm   r   rw   r   rù   r‘   r›   rﬁ   rﬂ   rú   ra   rö   ré   rç   rj   r_   rb   rt   rì   rñ   r`   rü   rû   r∑   rÄ   r   rÅ   rg   rª   r~   r¥   r◊   rf   r⁄   rµ   rº   rp   rq   ro   ⁄__static_attributes__rø   r2   r0   r   r   ^   s¯   Ü Ÿ5 ÄLÿ–ÿ–ÿÄM‡ÄMÿÄLÿÄOÒ
+ ìÄJ $–ÿÄM ÄOÿ.ÄLÿ2–3ÄMÿOÄJ –ÄFàVÿÄLÿÄGÿÄJÚÚ0CÚ*Ú4*Ú
+	Ú&ÙÚ4PÚ
+ÚOÚÚ*Ú*Ú
+;Ú-ÚGÚEÚ
+Ú #Ú!Ú&"Ú"Ú"Ú"ı"r2   r   c                   ÛB   ï \ rS rSrSr SS jrS rS rS rS r	S r
+S	rg
+)r	   i∑  aU  Handler that's just initialized with streams, environment, etc.
+
+This handler subclass is intended for synchronous HTTP/1.0 origin servers,
+and handles sending the entire response output, given the correct inputs.
+
+Usage::
+
+    handler = SimpleHandler(
+        inp,out,err,env, multithread=False, multiprocess=True
+    )
+    handler.run(app)c                 ÛL   ï Xl         X l        X0l        X@l        XPl        X`l        g rÌ   )⁄stdin⁄stdoutr÷   ⁄base_envru   rv   )rh   rˆ   r˜   r÷   rR   ⁄multithread⁄multiprocesss          r0   ⁄__init__⁄SimpleHandler.__init__ƒ  s$   Ä  å
+ÿåÿåÿåÿ +‘ÿ!-’r2   c                 Û   ï U R                   $ rÌ   )rˆ   rá   s    r0   rp   ⁄SimpleHandler.get_stdinŒ  s   Ä ÿèzâz–r2   c                 Û   ï U R                   $ rÌ   )r÷   rá   s    r0   rq   ⁄SimpleHandler.get_stderr—  s   Ä ÿè{â{–r2   c                 ÛN   ï U R                   R                  U R                  5        g rÌ   )rR   ⁄updater¯   rá   s    r0   ro   ⁄SimpleHandler.add_cgi_vars‘  s   Ä ÿèâ◊—òDüMôM’*r2   c                 ÛÓ   ï U R                   R                  U5      nUb  U[        U5      :X  a  g SSKJn  U" S[
+        5        XS  =n(       a)  U R                   R                  U5      nXS  =n(       a  M(  g g )Nr   )⁄warnz9SimpleHandler.stdout.write() should not do partial writes)r˜   rÄ   rã   ⁄warningsr  ⁄DeprecationWarning)rh   rÑ   ra   r  s       r0   rµ   ⁄SimpleHandler._write◊  sq   Ä ÿóë◊"—"†4”(àÿâ>òV§s®4£y”0ÿ›!Ÿ–H‹Ù	 ‡ò7êm–#àd’#ÿó[ë[◊&—&†t”,àF ò7êm–#àd◊#—#r2   c                 Ûn   ï U R                   R                  5         U R                   R                  U l        g rÌ   )r˜   r’   rº   rá   s    r0   rº   ⁄SimpleHandler._flush·  s#   Ä ÿèâ◊—‘ÿókëk◊'—'àçr2   )rº   r¯   r÷   rˆ   r˜   rv   ru   N)TF)rÓ   rÔ   r   rÒ   rÚ   r˚   rp   rq   ro   rµ   rº   rÛ   rø   r2   r0   r	   r	   ∑  s*   Ü Ò
+ (-Ù.ÚÚÚ+Ú-ı(r2   r	   c                   Û   ï \ rS rSrSrSrSrg)r
+   iÊ  a¶  CGI-like systems using input/output/error streams and environ mapping
+
+Usage::
+
+    handler = BaseCGIHandler(inp,out,err,env)
+    handler.run(app)
+
+This handler class is useful for gateway protocols like ReadyExec and
+FastCGI, that have usable input/output/error streams and an environment
+mapping.  It's also the base class for CGIHandler, which just uses
+sys.stdin, os.environ, and so on.
+
+The constructor also takes keyword arguments 'multithread' and
+'multiprocess' (defaulting to 'True' and 'False' respectively) to control
+the configuration sent to the application.  It sets 'origin_server' to
+False (to enable CGI-like output), and assumes that 'wsgi.run_once' is
+False.
+Frø   N)rÓ   rÔ   r   rÒ   rÚ   rx   rÛ   rø   r2   r0   r
+   r
+   Ê  s   Ü Ò& ÉMr2   r
+   c                   Û&   ï \ rS rSrSrSr0 rS rSrg)r   i˛  a≈  CGI-based invocation via sys.stdin/stdout/stderr and os.environ
+
+Usage::
+
+    CGIHandler().run(app)
+
+The difference between this class and BaseCGIHandler is that it always
+uses 'wsgi.run_once' of 'True', 'wsgi.multithread' of 'False', and
+'wsgi.multiprocess' of 'True'.  It does not take any initialization
+parameters, but always uses 'sys.stdin', 'os.environ', and friends.
+
+If you need to override any of these parameters, use BaseCGIHandler
+instead.
+Tc           
+      Û¬   ï [         R                  U [        R                  R                  [        R
+                  R                  [        R                  [        5       SSS9  g )NFT©r˘   r˙   )r
+   r˚   rM   rˆ   ⁄bufferr˜   r÷   r   rá   s    r0   r˚   ⁄CGIHandler.__init__  s?   Ä ‹◊—ÿî#ó)ë)◊"—"§CßJ°J◊$5—$5¥s∑z±z‹ãN®∏D 	 Ú 	
+r2   rø   N©	rÓ   rÔ   r   rÒ   rÚ   rs   rm   r˚   rÛ   rø   r2   r0   r   r   ˛  s   Ü Ò ÄM ÄJı
+r2   r   c                   Û&   ï \ rS rSrSrSr0 rS rSrg)r   i  zˇCGI-based invocation with workaround for IIS path bug
+
+This handler should be used in preference to CGIHandler when deploying on
+Microsoft IIS without having set the config allowPathInfo option (IIS>=7)
+or metabase allowPathInfoForScriptMappings (IIS<7).
+Tc           
+      Ûh  ï [        5       nUR                  SS5      nUR                  SS5      nUS-   R                  US-   5      (       a  U[        U5      S  US'   [        R                  U [        R                  R                  [        R                  R                  [        R                  USSS9  g )Nr5   rH   r7   ⁄/FTr  )r   rU   rC   rã   r
+   r˚   rM   rˆ   r  r˜   r÷   )rh   rR   ⁄path⁄scripts       r0   r˚   ⁄IISCGIHandler.__init__4  sí   Ä ‹ìàÿè{â{ò;®”+àÿóëò]®B”/àÿêâH◊ — †®°◊,—,ÿ#'¨®F´®–#5àGêK— ‹◊—ÿî#ó)ë)◊"—"§CßJ°J◊$5—$5¥s∑z±zÿ†∞T 	 Ú 	
+r2   rø   Nr  rø   r2   r0   r   r     s   Ü Ò ÄMÿÄJı 	
+r2   r   )rÚ   ⁄utilr   r   r   ré   r   rM   rQ   r"   ⁄__all__r$   r%   r1   ⁄__contains__rB   rD   r   r   r	   r
+   r   r   rø   r2   r0   ⁄<module>r     sç   Ÿ 5Á :— :› Á ” ÚÄÚ AÄÚ8Ä
+ÚÚ˜ Å, Ú
+CÚ9˜xV"Ò V"Ùr
+,(êKÙ ,(Ù^ê]Ù Ù0
+êÙ 
+Ù<!
+êNı !
+r2                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              Û
+    F\hn  „                   ÛR   ï S r SSKr\R                  " S5      rSS jr " S S5      rg)z”Manage HTTP Response Headers
+
+Much of this module is red-handedly pilfered from email.message in the stdlib,
+so portions are Copyright (C) 2001,2002 Python Software Foundation, and were
+written by Barry Warsaw.
+È    Nz[ \(\)<>@,;:\\"/\[\]\?=]c                 Û÷   ï Ube  [        U5      S:î  aV  U(       d  [        R                  U5      (       a,  UR                  SS5      R                  SS5      nU < SU< S3$ U < SU< 3$ U $ )zvConvenience function to format and return a key=value pair.
+
+This will quote the value if needed or if quote is true.
+r   ⁄\z\\⁄"z\"z="⁄=)⁄len⁄	tspecials⁄search⁄replace)⁄param⁄value⁄quotes      ⁄&/usr/lib/python3.13/wsgiref/headers.py⁄_formatparamr      s_   Ä 
+ —úS†õZ®!õ^ﬁîI◊$—$†U◊+—+ÿóMëM†$®”/◊7—7∏∏U”CàE€ %£u–-–-„#¢U–+–+‡àÛ    c                   ÛÜ   ï \ rS rSrSrSS jrS rS rS rS r	S	 r
+S
+ rS rSS jrS rS rS rS rS rS rS rS rSrg)⁄HeadersÈ   z,Manage a collection of HTTP response headersNc                 Û¥   ï Ub  UO/ n[        U5      [        La  [        S5      eXl         U H'  u  p#U R	                  U5        U R	                  U5        M)     g )Nz+Headers must be a list of name/value tuples)⁄type⁄list⁄	TypeError⁄_headers⁄_convert_string_type)⁄self⁄headers⁄k⁄vs       r   ⁄__init__⁄Headers.__init__   sV   Ä ÿ$—0ë'∞bà‹êã=§“$‹–I”J–Jÿåÿ€ëêÿ◊)—)®!‘,ÿ◊)—)®!÷,Ú  r   c                 Ûp   ï [        U5      [        L a  U$ [        SR                  [	        U5      5      5      e)zConvert/check value type.z1Header names/values must be of type str (got {0}))r   ⁄str⁄AssertionError⁄format⁄repr)r   r   s     r   r   ⁄Headers._convert_string_type)   s3   Ä ‰êã;ú#“ÿàL‹ %ﬂ%+°V¨D∞´K”%8Û: 	:r   c                 Û,   ï [        U R                  5      $ )z9Return the total number of headers, including duplicates.)r   r   ©r   s    r   ⁄__len__⁄Headers.__len__0   s   Ä ‰ê4ó=ë=”!–!r   c                 Û~   ï X	 U R                   R                  U R                  U5      U R                  U5      45        g)zSet the value of a header.N)r   ⁄appendr   )r   ⁄name⁄vals      r   ⁄__setitem__⁄Headers.__setitem__4   s8   Ä ‡àJÿèâ◊—ÿ◊&—&†t”,®d◊.G—.G»”.L–Mı	Or   c                 Û–   ï U R                  UR                  5       5      nU R                   Vs/ s H  o"S   R                  5       U:w  d  M  UPM     snU R                  SS& gs  snf )ziDelete all occurrences of a header, if present.
+
+Does *not* raise an exception if the header is missing.
+r   N©r   ⁄lowerr   ©r   r,   ⁄kvs      r   ⁄__delitem__⁄Headers.__delitem__:   sM   Ä 
+ ◊(—(®Ø©´”6àÿ)-Ø™”P™†2∏Qπ%ø+π+ª-»4—:OüB©—Pàèâëa—˘“Ps   ÆA#¡A#c                 Û$   ï U R                  U5      $ )a   Get the first header value for 'name'
+
+Return None if the header is missing instead of raising an exception.
+
+Note that if the header appeared multiple times, the first exactly which
+occurrence gets returned is undefined.  Use getall() to get all
+the values matching a header field name.
+©⁄get©r   r,   s     r   ⁄__getitem__⁄Headers.__getitem__B   s   Ä  èxâxòã~–r   c                 Û(   ï U R                  U5      SL$ )z/Return true if the message contains the header.Nr8   r:   s     r   ⁄__contains__⁄Headers.__contains__M   s   Ä ‡èxâxòã~†T–)–)r   c                 Û∫   ï U R                  UR                  5       5      nU R                   Vs/ s H   o"S   R                  5       U:X  d  M  US   PM"     sn$ s  snf )aI  Return a list of all the values for the named field.
+
+These will be sorted in the order they appeared in the original header
+list or were added to this instance, and may contain duplicates.  Any
+fields deleted and re-inserted are always appended to the header list.
+If no fields exist with the given name, returns an empty list.
+r   È   r1   r3   s      r   ⁄get_all⁄Headers.get_allR   sK   Ä  ◊(—(®Ø©´”6àÿ $ß¢”E¢ò"∞A±∑±≥¿—1Dìêê1î°—E–E˘“Es   ÆA¡	Ac                 Ûû   ï U R                  UR                  5       5      nU R                   H  u  p4UR                  5       U:X  d  M  Us  $    U$ )z:Get the first header value for 'name', or return 'default'r1   )r   r,   ⁄defaultr   r   s        r   r9   ⁄Headers.get^   sA   Ä ‡◊(—(®Ø©´”6àÿó=î=âCàAÿèwâwãyò$çÿíÒ ! àr   c                 ÛP   ï U R                    VVs/ s H  u  pUPM	     snn$ s  snnf )a  Return a list of all the header field names.
+
+These will be sorted in the order they appeared in the original header
+list, or were added to this instance, and may contain duplicates.
+Any fields deleted and re-inserted are always appended to the header
+list.
+©r   ©r   r   r   s      r   ⁄keys⁄Headers.keysg   Û"   Ä  #ümöm‘,ömëdêaìôm“,–,˘”,Û   ê"c                 ÛP   ï U R                    VVs/ s H  u  pUPM	     snn$ s  snnf )z˘Return a list of all header values.
+
+These will be sorted in the order they appeared in the original header
+list, or were added to this instance, and may contain duplicates.
+Any fields deleted and re-inserted are always appended to the header
+list.
+rH   rI   s      r   ⁄values⁄Headers.valuesq   rL   rM   c                 Û    ï U R                   SS $ )z˜Get all the header fields and values.
+
+These will be sorted in the order they were in the original header
+list, or were added to this instance, and may contain duplicates.
+Any fields deleted and re-inserted are always appended to the header
+list.
+NrH   r'   s    r   ⁄items⁄Headers.items{   s   Ä  è}â}ôQ––r   c                 ÛR   ï U R                   R                  < SU R                  < S3$ )N⁄(⁄))⁄	__class__⁄__name__r   r'   s    r   ⁄__repr__⁄Headers.__repr__Ö   s   Ä ÿü>ô>◊2‘2∞D∑M¥M–B–Br   c                 Ût   ï SR                  U R                   Vs/ s H  nSU-  PM
+     snSS/-   5      $ s  snf )zcstr() returns the formatted headers, complete with end line,
+suitable for direct HTTP transmission.z
+z%s: %s⁄ )⁄joinr   )r   r4   s     r   ⁄__str__⁄Headers.__str__à   s6   Ä  è{â{∞D∑M≤M”B≤M®bòH†rúM±M—B¿B¿r¿7—J”K–K˘“Bs   ö5c                 Û6   ï [        U 5      R                  S5      $ )Nz
+iso-8859-1)r!   ⁄encoder'   s    r   ⁄	__bytes__⁄Headers.__bytes__ç   s   Ä ‹ê4ãy◊—†”-–-r   c                 Û®   ï U R                  U5      nUc=  U R                  R                  U R                  U5      U R                  U5      45        U$ U$ )zìReturn first matching header value for 'name', or 'value'
+
+If there is no header named 'name', add a new header with name 'name'
+and value 'value'.)r9   r   r+   r   )r   r,   r   ⁄results       r   ⁄
+setdefault⁄Headers.setdefaultê   sR   Ä 
+ óëò$ìàÿâ>ÿèMâM◊ — †$◊";—";∏D”"Aÿ◊)—)®%”0"2Ù 3‡àL‡àMr   c           	      Û‡  ï / nUb"  U R                  U5      nUR                  U5        UR                  5        Hx  u  pVU R                  U5      nUc#  UR                  UR                  SS5      5        M<  U R                  U5      nUR                  [	        UR                  SS5      U5      5        Mz     U R
+                  R                  U R                  U5      SR                  U5      45        g)a  Extended header setting.
+
+_name is the header field to add.  keyword arguments can be used to set
+additional parameters for the header field, with underscores converted
+to dashes.  Normally the parameter will be added as key="value" unless
+value is None, in which case only the key will be added.
+
+Example:
+
+h.add_header('content-disposition', 'attachment', filename='bud.gif')
+
+Note that unlike the corresponding 'email.message' method, this does
+*not* handle '(charset, language, value)' tuples: all values must be
+strings or None.
+N⁄_⁄-z; )r   r+   rR   r
+   r   r   r]   )r   ⁄_name⁄_value⁄_params⁄partsr   r   s          r   ⁄
+add_header⁄Headers.add_headerù   sƒ   Ä   àÿ—ÿ◊.—.®v”6àFÿèLâLò‘ ÿóMëMñOâDàAÿ◊)—)®!”,àAÿâyÿóëòQüYôY†s®C”0÷1‡◊-—-®a”0êÿóëú\®!Ø)©)∞C∏”*=∏q”A÷BÒ $ 	èâ◊—òd◊7—7∏”>¿«	¡	»%”@P–Q’Rr   rH   )N)rX   ⁄
+__module__⁄__qualname__⁄__firstlineno__⁄__doc__r   r   r(   r.   r5   r;   r>   rB   r9   rJ   rO   rR   rY   r^   rb   rf   ro   ⁄__static_attributes__© r   r   r   r      s`   Ü Ÿ6Ù-Ú:Ú"ÚOÚQÚ	Ú*Ú
+	FÙÚ-Ú-Ú ÚCÚLÚ
+.ÚıSr   r   )NrA   )rt   ⁄re⁄compiler   r   r   rv   r   r   ⁄<module>ry      s1   ÒÛ 
+ÿèJäJ–2”3Ä	Ù˜\SÚ \Sr                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         Û
+    F\hº  „                   Û  ï S r SSKJrJr  SSKrSSKrSSKJr  SSK	J
+r
+  Sr/ SQrS\-   r\
+" 5       S	-   \R                  R                  5       S   -   r\S
+-   \-   r " S S\5      r " S S\5      r " S S\5      rS r\\4S jr\S:X  af  \" SS\5       r\R2                  R5                  5       r\" S\S   S\S   S5        SSKr\R<                  " S5        \R?                  5         SSS5        gg! , (       d  f       g= f)a!  BaseHTTPServer that implements the Python WSGI protocol (PEP 3333)
+
+This is both an example of how WSGI can be implemented, and a basis for running
+simple web applications on a local machine, such as might be done when testing
+or debugging an application.  It has not been reviewed for security issues,
+however, and we strongly recommend that you use a "real" web server for
+production use.
+
+For example usage, see the 'if __name__=="__main__"' block at the end of the
+module.  See also the BaseHTTPServer module docs for other API information.
+È    )⁄BaseHTTPRequestHandler⁄
+HTTPServerN)⁄SimpleHandler)⁄python_implementationz0.2)⁄
+WSGIServer⁄WSGIRequestHandler⁄demo_app⁄make_server˙WSGIServer/⁄/⁄ c                   Û   ï \ rS rSr\rS rSrg)⁄ServerHandlerÈ   c                 ÛÓ   ï  U R                   R                  U R                  R                  SS5      S   U R                  5        [
+        R                  " U 5        g ! [
+        R                  " U 5        f = f)Nr   È   r   )⁄request_handler⁄log_request⁄status⁄split⁄
+bytes_sentr   ⁄close©⁄selfs    ⁄,/usr/lib/python3.13/wsgiref/simple_server.pyr   ⁄ServerHandler.close    sY   Ä 	&ÿ◊ — ◊,—,ÿóë◊!—!†#†a”(®—+®TØ_©_ÙÙ ◊“†’%¯åM◊“†’%˙s   ÇAA ¡A4© N)⁄__name__⁄
+__module__⁄__qualname__⁄__firstlineno__⁄software_version⁄server_softwarer   ⁄__static_attributes__r   Û    r   r   r      s   Ü ‡&ÄOı&r%   r   c                   Û4   ï \ rS rSrSrSrS rS rS rS r	Sr
+g)	r   È*   z7BaseHTTPServer that implements the Python WSGI protocolNc                 ÛP   ï [         R                  " U 5        U R                  5         g)z.Override server_bind to store the server name.N)r   ⁄server_bind⁄setup_environr   s    r   r)   ⁄WSGIServer.server_bind0   s   Ä ‰◊“òt‘$ÿ◊—’r%   c                 Ûä   ï 0 =ol         U R                  US'   SUS'   [        U R                  5      US'   SUS'   SUS'   SUS'   g )	N⁄SERVER_NAMEzCGI/1.1⁄GATEWAY_INTERFACE⁄SERVER_PORT⁄ ⁄REMOTE_HOST⁄CONTENT_LENGTH⁄SCRIPT_NAME)⁄base_environ⁄server_name⁄str⁄server_port)r   ⁄envs     r   r*   ⁄WSGIServer.setup_environ5   s\   Ä ‡"$–$à‘ÿ!◊-—-ààM—ÿ#,à–— ‹ †◊!1—!1”2ààM—ÿààM—ÿ à–—ÿààM“r%   c                 Û   ï U R                   $ ©N©⁄applicationr   s    r   ⁄get_app⁄WSGIServer.get_app?   s   Ä ÿ◊—–r%   c                 Û   ï Xl         g r;   r<   )r   r=   s     r   ⁄set_app⁄WSGIServer.set_appB   s   Ä ÿ&’r%   )r=   r4   )r   r   r    r!   ⁄__doc__r=   r)   r*   r>   rA   r$   r   r%   r   r   r   *   s   Ü ·A‡ÄKÚÚ
+ Ú ı'r%   r   c                   Û0   ï \ rS rSrS\-   rS rS rS rSr	g)r   ÈG   r   c                 Ûr  ï U R                   R                  R                  5       nU R                  US'   U R                  US'   U R
+                  US'   SU R                  ;   a  U R                  R                  SS5      u  p#OU R                  Sp2[        R                  R                  US5      US'   X1S	'   U R                  S
+   US'   U R                  R                  S5      c  U R                  R                  5       US'   OU R                  S   US'   U R                  R                  S5      nU(       a  XAS'   U R                  R                  5        H`  u  pVUR!                  SS5      R#                  5       oVR%                  5       nXQ;   a  M;  SU-   U;   a  USU-   ==   SU-   -  ss'   MY  XaSU-   '   Mb     U$ )N⁄SERVER_PROTOCOL⁄SERVER_SOFTWARE⁄REQUEST_METHOD⁄?r   r0   z
+iso-8859-1⁄	PATH_INFO⁄QUERY_STRINGr   ⁄REMOTE_ADDRzcontent-type⁄CONTENT_TYPEzcontent-lengthr2   ⁄-⁄_⁄HTTP_⁄,)⁄serverr4   ⁄copy⁄request_version⁄server_version⁄command⁄pathr   ⁄urllib⁄parse⁄unquote⁄client_address⁄headers⁄get⁄get_content_type⁄items⁄replace⁄upper⁄strip)r   r8   rX   ⁄query⁄length⁄k⁄vs          r   ⁄get_environ⁄WSGIRequestHandler.get_environK   sà  Ä ÿèkâk◊&—&◊+—+”-àÿ!%◊!5—!5à–—ÿ!%◊!4—!4à–—ÿ $ß°à–—ÿê$ó)ë)”ÿüôüô®®Q”/âJàDê‡üô†2ê‰!ü<ô<◊/—/∞∞l”CààK—ÿ#àN—ÿ!◊0—0∞—3ààM—‡è<â<◊—òN”+—3ÿ"&ß,°,◊"?—"?”"AàCê“‡"&ß,°,®~—">àCê—‡óë◊!—!–"2”3àﬁÿ$*– —!‡óLëL◊&—&÷(âDàAÿèiâiòòC” ◊&—&”(àAØG©G´I®!ÿãxŸÿêqâyòC”ÿêGòAëIì†#†a°%—'ï‡!"êGòAëIìÒ ) à
+r%   c                 Û"   ï [         R                  $ r;   )⁄sys⁄stderrr   s    r   ⁄
+get_stderr⁄WSGIRequestHandler.get_stderrl   s   Ä ‹èzâz–r%   c                 Û»  ï U R                   R                  S5      U l        [        U R                  5      S:î  a'  SU l        SU l        SU l        U R                  S5        gU R                  5       (       d  g[        U R                   U R                  U R                  5       U R                  5       SS9nXl        UR                  U R                  R!                  5       5        g)zHandle a single HTTP requesti  i   r0   iû  NF)⁄multithread)⁄rfile⁄readline⁄raw_requestline⁄len⁄requestlinerU   rW   ⁄
+send_error⁄parse_requestr   ⁄wfilerm   rh   r   ⁄runrS   r>   )r   ⁄handlers     r   ⁄handle⁄WSGIRequestHandler.handleo   sµ   Ä   $üzôz◊2—2∞5”9à‘‹àt◊#—#”$†u”,ÿ!àD‘ÿ#%àD‘ ÿàDåLÿèOâOòC‘ ÿ‡◊!—!◊#—#ÿ‰ÿèJâJòü
+ô
+†DßO°O”$5∞t◊7G—7G”7IÿÒ
+à #'‘ÿèâêDóKëK◊'—'”)’*r%   )rW   rs   rU   ru   N)
+r   r   r    r!   ⁄__version__rV   rh   rm   r{   r$   r   r%   r   r   r   G   s   Ü ‡"†[—0ÄNÚÚBı+r%   r   c                 Û  ï SSK Jn  U" 5       n[        SUS9  [        US9  [        U R	                  5       5      nU H  u  pV[        US[        U5      US9  M     U" SS/5        UR                  5       R                  S5      /$ )	Nr   )⁄StringIOzHello world!)⁄file⁄=z200 OK)zContent-Typeztext/plain; charset=utf-8zutf-8)⁄ior   ⁄print⁄sortedr`   ⁄repr⁄getvalue⁄encode)⁄environ⁄start_responser   ⁄stdout⁄hrf   rg   s          r   r	   r	   Ü   su   Ä ›ŸãZÄF‹	à.òv“&‹	àv“‹àwè}â}ã”ÄA€âà‹àaêîDòìG†&‘)Ò ·ê8–J–K‘LÿèOâO”◊$—$†W”-–.–.r%   c                 Û<   ï U" X4U5      nUR                  U5        U$ )zACreate a new WSGI server listening on `host` and `port` for `app`)rA   )⁄host⁄port⁄app⁄server_class⁄handler_classrS   s         r   r
+   r
+   í   s#   Ä Ò ò4ò,®”6ÄFÿ
+áNÅNê3‘ÿÄMr%   ⁄__main__r0   i@  zServing HTTP onré   r   z...zhttp://localhost:8000/xyz?abc) rC   ⁄http.serverr   r   rk   ⁄urllib.parserY   ⁄wsgiref.handlersr   ⁄platformr   r}   ⁄__all__rV   ⁄versionr   ⁄sys_versionr"   r   r   r   r	   r
+   r   ⁄httpd⁄socket⁄getsockname⁄sarÉ   ⁄
+webbrowser⁄open⁄handle_requestr   r%   r   ⁄<module>r°      s  Ò
+˜ ;€ 
+€ › *› *‡Ä⁄
+IÄ †—,ÄŸ#”%®—+®cØk©k◊.?—.?”.A¿!—.D—DÄÿ!†C—'®+—5– Ù
+&êMÙ 
+&Ù'êÙ 'Ù:;+–/Ù ;+Ú~	/ #-–<NÙ àz”Ÿ	êRòòx‘	(®Eÿè\â\◊%—%”'àŸ–††A°®∞∞1±∞u‘=€ÿèä–7‘8ÿ◊—‘˜ 
+)–	( ﬂ	(’	(˙s   ¬AC2√2
+D                                                      Û
+    F\hµ  „                   Û(  ï % S r SSKJrJrJr  SSKJr  SSKJrJ	r	J
+r
+  / SQr\\\   \\4   r\
+\S'   \\S   -  r\
+\S'    " S	 S
+\	5      r\\\4   r\
+\S'   \\\/\\   4   r\
+\S'    " S S\	5      r " S S\	5      r " S S\	5      r " S S\	5      rg)z+WSGI-related types for static type checkingÈ    )⁄Callable⁄Iterable⁄Iterator)⁄TracebackType)⁄Any⁄Protocol⁄	TypeAlias)⁄StartResponse⁄WSGIEnvironment⁄WSGIApplication⁄InputStream⁄ErrorStream⁄FileWrapper⁄_ExcInfo)NNN⁄_OptExcInfoc                   ÛZ   ï \ rS rSrSr S
+S\S\\\\4      S\S-  S\	\
+/\4   4S jjrS	rg)r
+   È   z0start_response() callable as defined in PEP 3333⁄status⁄headers⁄exc_infoN⁄returnc                Û   ï g ©N© )⁄selfr   r   r   s       ⁄$/usr/lib/python3.13/wsgiref/types.py⁄__call__⁄StartResponse.__call__   s   Ä  %(Û    r   ©.)⁄__name__⁄
+__module__⁄__qualname__⁄__firstlineno__⁄__doc__⁄str⁄list⁄tupler   r   ⁄bytes⁄objectr   ⁄__static_attributes__r   r   r   r
+   r
+      sW   Ü Ÿ:
+ (+Ò	(‡( êeòC†òHëo—&( †—$	( 
+ê5ê'ò6ê/—	"˜( (r   r
+   r   r   c                   Ût   ï \ rS rSrSrSS\S\4S jjrSS\S\4S jjrSS\S\	\   4S jjr
+S\\   4S	 jrS
+rg)r   È!   z(WSGI input stream as defined in PEP 3333⁄sizer   c                Û   ï g r   r   ©r   r.   s     r   ⁄read⁄InputStream.read#   Û   Ä ∞r   c                Û   ï g r   r   r0   s     r   ⁄readline⁄InputStream.readline$   s   Ä ∞Sr   ⁄hintc                Û   ï g r   r   )r   r7   s     r   ⁄	readlines⁄InputStream.readlines%   s   Ä ∏Cr   c                 Û   ï g r   r   ©r   s    r   ⁄__iter__⁄InputStream.__iter__&   s   Ä ®3r   r   Nr    )r!   r"   r#   r$   r%   ⁄intr)   r1   r5   r'   r9   r   r=   r+   r   r   r   r   r   !   s<   Ü Ÿ2Ÿ4ò–4®%’4Ÿ8òS–8®e’8Ÿ?òc–?®t∞E©{’?ÿ.ò(†5ô/◊.r   r   c                   ÛP   ï \ rS rSrSrS\4S jrS\S\4S jrS\	\   S\4S jr
+S	rg
+)r   È(   z(WSGI error stream as defined in PEP 3333r   c                 Û   ï g r   r   r<   s    r   ⁄flush⁄ErrorStream.flush*   s   Ä òsr   ⁄sc                Û   ï g r   r   )r   rE   s     r   ⁄write⁄ErrorStream.write+   s   Ä ®#r   ⁄seqc                Û   ï g r   r   )r   rI   s     r   ⁄
+writelines⁄ErrorStream.writelines,   s   Ä ∞sr   r   N)r!   r"   r#   r$   r%   r*   rC   r&   rG   r'   rK   r+   r   r   r   r   r   (   s+   Ü Ÿ2ÿ"êv‘"ÿ-ês–-†&‘-ÿ:òd†3ôi–:®v◊:r   r   c                   Û*   ï \ rS rSrSS\S\4S jjrSrg)⁄	_ReadableÈ.   r.   r   c                Û   ï g r   r   r0   s     r   r1   ⁄_Readable.read/   r3   r   r   Nr    )r!   r"   r#   r$   r?   r)   r1   r+   r   r   r   rN   rN   .   s   Ü Ÿ4ò–4®%◊4–4r   rN   c                   Û:   ï \ rS rSrSr S	S\S\S\\   4S jjr	Sr
+g)
+r   È2   z(WSGI file wrapper as defined in PEP 3333⁄file⁄
+block_sizer   c                Û   ï g r   r   )r   rT   rU   s      r   r   ⁄FileWrapper.__call__4   s   Ä ‡r   r   Nr    )r!   r"   r#   r$   r%   rN   r?   r   r)   r   r+   r   r   r   r   r   2   s.   Ü Ÿ2‡14Òÿÿ+.‡	ê%â˜ r   r   N)r%   ⁄collections.abcr   r   r   ⁄typesr   ⁄typingr   r   r	   ⁄__all__r(   ⁄type⁄BaseExceptionr   ⁄__annotations__r   r
+   ⁄dictr&   r   r)   r   r   r   rN   r   r   r   r   ⁄<module>r`      sƒ   ⁄ 1Á 8— 8› ﬂ +— +ÚÄ òD†—/∞¿–M—NÄà)” Nÿ!†E–*:—$;—;ÄàY” ;Ù(êHÙ ( "†#†s†(ô^Äê” +ÿ%†∏–&FÿàUÅO'Ò ÄêÛ Ù/ê(Ù /Ù;ê(Ù ;Ù5êÙ 5Ùê(ı r                                                                                                                                                                                                       Û
+    F\hq  „                   Ûp   ï S r SSKr/ SQr " S S5      rS rS rSS jrS	 rS
+ r1 SkR                  r
+S rg)z$Miscellaneous WSGI-related UtilitiesÈ    N)⁄FileWrapper⁄guess_scheme⁄application_uri⁄request_uri⁄shift_path_info⁄setup_testing_defaults⁄is_hop_by_hopc                   Û.   ï \ rS rSrSrSS jrS rS rSrg)	r   È   z1Wrapper to convert file-like objects to iterablesc                 Ûb   ï Xl         X l        [        US5      (       a  UR                  U l        g g )N⁄close)⁄filelike⁄blksize⁄hasattrr   )⁄selfr   r   s      ⁄#/usr/lib/python3.13/wsgiref/util.py⁄__init__⁄FileWrapper.__init__   s)   Ä ÿ åÿå‹ê8òG◊$—$ÿ!üôàDçJ %Û    c                 Û   ï U $ ©N© )r   s    r   ⁄__iter__⁄FileWrapper.__iter__   s   Ä ÿàr   c                 Ûj   ï U R                   R                  U R                  5      nU(       a  U$ [        er   )r   ⁄readr   ⁄StopIteration)r   ⁄datas     r   ⁄__next__⁄FileWrapper.__next__   s(   Ä ÿè}â}◊!—!†$ß,°,”/àﬁÿàK‹–r   )r   r   r   N)i    )	⁄__name__⁄
+__module__⁄__qualname__⁄__firstlineno__⁄__doc__r   r   r   ⁄__static_attributes__r   r   r   r   r      s   Ü Ÿ;Ù(Úır   r   c                 Û0   ï U R                  S5      S;   a  gg)zMReturn a guess for whether 'wsgi.url_scheme' should be 'http' or 'https'
+    ⁄HTTPS)⁄yes⁄on⁄1⁄https⁄http)⁄get)⁄environs    r   r   r      s   Ä  á{Å{ê7”–/”/ÿ‡r   c                 Û  ï U S   S-   nSSK Jn  U R                  S5      (       a  XS   -  nO9XS   -  nU S   S:X  a  U S   S	:w  a  US
+U S   -   -  nOU S   S:w  a  US
+U S   -   -  nX" U R                  S5      =(       d    SSS9-  nU$ )z@Return the application's base URI (no PATH_INFO or QUERY_STRING)˙wsgi.url_schemez://r   ©⁄quote⁄	HTTP_HOST⁄SERVER_NAMEr,   ⁄SERVER_PORT⁄443⁄:⁄80⁄SCRIPT_NAME⁄/⁄latin1)⁄encoding)⁄urllib.parser3   r.   )r/   ⁄urlr3   s      r   r   r   %   s≥   Ä ‡
+–#—
+$†U—
+*ÄC›"‡á{Å{ê;◊—ÿê{—#—#â‡ê}—%—%à‡–$—%®”0ÿê}—%®”.ÿêsòW†]—3—3—3ê¯‡ê}—%®”-ÿêsòW†]—3—3—3ê‡à5êóëò]”+◊2®s∏X—F—FÄCÿÄJr   c                 ÛÏ   ï [        U 5      nSSKJn  U" U R                  SS5      SSS9nU R                  S5      (       d  X$S	S
+ -  nOX$-  nU(       a!  U R                  S5      (       a  USU S   -   -  nU$ )zBReturn the full request URI, optionally including the query stringr   r2   ⁄	PATH_INFO⁄ z/;=,r<   )⁄safer=   r:   È   N⁄QUERY_STRING⁄?)r   r>   r3   r.   )r/   ⁄include_queryr?   r3   ⁄	path_infos        r   r   r   9   sw   Ä ‰
+ò'”
+"ÄC›"Ÿêgókëk†+®b”1∏»—RÄIÿè;â;ê}◊%—%ÿòòà}—â‡—àﬁòüô†^◊4—4ÿàsêWò^—,—,—,àÿÄJr   c                 Ûﬁ  ï U R                  SS5      nU(       d  gUR                  S5      nUSS  Vs/ s H  o3(       d  M  US:w  d  M  UPM     snUSS& US   nUS	 U R                  SS5      n[        R                  " US-   U-   5      nUR	                  S5      (       a  USS nU(       d  UR	                  S5      (       d  US-  nXPS'   SR                  U5      U S'   US:X  a  SnU$ s  snf )	a6  Shift a name from PATH_INFO to SCRIPT_NAME, returning it
+
+If there are no remaining path segments in PATH_INFO, return None.
+Note: 'environ' is modified in-place; use a copy if you need to keep
+the original PATH_INFO or SCRIPT_NAME.
+
+Note: when PATH_INFO is just a '/', this returns '' and appends a trailing
+'/' to SCRIPT_NAME, even though empty path segments are normally ignored,
+and SCRIPT_NAME doesn't normally end in a '/'.  This is intentional
+behavior, to ensure that an application can tell the difference between
+'/x' and '/x/' when traversing to objects.
+rA   rB   Nr;   rD   Èˇˇˇˇ⁄.r:   )r.   ⁄split⁄	posixpath⁄normpath⁄endswith⁄join)r/   rH   ⁄
+path_parts⁄p⁄name⁄script_names         r   r   r   F   s˝   Ä  óëòK®”+ÄIﬁÿ‡óë†”%ÄJÿ#-®a∞—#3”F“#3òa≥qõ∏Q¿#πXü—#3—FÄJàqê–ÿêaâ=ÄDÿê1à‡ó+ë+òm®B”/ÄK‹◊$“$†[∞°_∞T—%9”:ÄKÿ◊—òC◊ — ÿ!†#†2–&àﬁò◊,—,®S◊1—1ÿês—à‡(àM—ÿ üXôX†j”1ÄGàK— àSÉyÿàÿÄK˘Ú+ Gs   ≥
+C*¡C*¡	C*c                 Ûú  ï U R                  SS5        U R                  SS5        U R                  SU S   5        U R                  SS5        SU ;  a*  S	U ;  a$  U R                  SS
+5        U R                  S	S5        U R                  SS5        U R                  SS5        U R                  SS5        U R                  SS5        SSKJnJn  U R                  SU" 5       5        U R                  SU" 5       5        U R                  S[	        U 5      5        U S   S:X  a  U R                  SS5        gU S   S:X  a  U R                  SS5        gg)a  Update 'environ' with trivial defaults for testing purposes
+
+This adds various parameters required for WSGI, including HTTP_HOST,
+SERVER_NAME, SERVER_PORT, REQUEST_METHOD, SCRIPT_NAME, PATH_INFO,
+and all of the wsgi.* variables.  It only supplies default values,
+and does not replace any existing settings for these variables.
+
+This routine is intended to make it easier for unit tests of WSGI
+servers and applications to set up dummy environments.  It should *not*
+be used by actual WSGI servers or applications, since the data is fake!
+r5   z	127.0.0.1⁄SERVER_PROTOCOLzHTTP/1.0r4   ⁄REQUEST_METHOD⁄GETr:   rA   rB   r;   zwsgi.version)rD   r   zwsgi.run_oncer   zwsgi.multithreadzwsgi.multiprocess)⁄StringIO⁄BytesIOz
+wsgi.inputzwsgi.errorsr1   r-   r6   r9   r,   r7   N)⁄
+setdefault⁄iorY   rZ   r   )r/   rY   rZ   s      r   r   r   o   s:  Ä  ◊—ê}†[‘1ÿ◊—–(®‘4‡◊—ê{†7®=—#9‘:ÿ◊—–'®‘.‡òG”#®∏7”(Bÿ◊—ò=®‘,ÿ◊—ò;†s‘+‡◊—ê~†u‘-ÿ◊—ê®‘*ÿ◊—–)®1‘-ÿ◊—–*®A‘.Á$ÿ◊—ê|°W£Y‘/ÿ◊—ê}°h£j‘1ÿ◊—–(¨∞g”)>‘?‡– —!†6”)ÿ◊—ò=®$’/ÿ	–"—	#†W”	,ÿ◊—ò=®%’0 
+-r   >   ⁄te⁄upgrade⁄trailers⁄
+connection˙
+keep-alive˙transfer-encoding˙proxy-authenticate˙proxy-authorizationc                 Û4   ï [        U R                  5       5      $ )z?Return true if 'header_name' is an HTTP/1.1 "Hop-by-Hop" header)⁄_hoppish⁄lower)⁄header_names    r   r	   r	   ù   s   Ä ‰êK◊%—%”'”(–(r   )T)r%   rM   ⁄__all__r   r   r   r   r   r   ⁄__contains__rf   r	   r   r   r   ⁄<module>rk      sM   Ÿ *„ ÚÄ˜Ò Ú$ÚÙ(Ú'ÚR$1ÚP˜ Å,	 	Û)r                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       Û
+    F\hº:  „                   Û*  ï S r S/rSSKrSSKrSSKr\R
+                  " S5      r\R
+                  " S5      r " S S\5      r	S r
+S	 rS
+ r " S S5      r " S S5      r " S S5      r " S S5      r " S S5      rS rS rS rS rS rS rS rS rg)a&  
+Middleware to check for obedience to the WSGI specification.
+
+Some of the things this checks:
+
+* Signature of the application and start_response (including that
+  keyword arguments are not used).
+
+* Environment checks:
+
+  - Environment is a dictionary (and not a subclass).
+
+  - That all the required keys are in the environment: REQUEST_METHOD,
+    SERVER_NAME, SERVER_PORT, wsgi.version, wsgi.input, wsgi.errors,
+    wsgi.multithread, wsgi.multiprocess, wsgi.run_once
+
+  - That HTTP_CONTENT_TYPE and HTTP_CONTENT_LENGTH are not in the
+    environment (these headers should appear as CONTENT_LENGTH and
+    CONTENT_TYPE).
+
+  - Warns if QUERY_STRING is missing, as the cgi module acts
+    unpredictably in that case.
+
+  - That CGI-style variables (that don't contain a .) have
+    (non-unicode) string values
+
+  - That wsgi.version is a tuple
+
+  - That wsgi.url_scheme is 'http' or 'https' (@@: is this too
+    restrictive?)
+
+  - Warns if the REQUEST_METHOD is not known (@@: probably too
+    restrictive).
+
+  - That SCRIPT_NAME and PATH_INFO are empty or start with /
+
+  - That at least one of SCRIPT_NAME or PATH_INFO are set.
+
+  - That CONTENT_LENGTH is a positive integer.
+
+  - That SCRIPT_NAME is not '/' (it should be '', and PATH_INFO should
+    be '/').
+
+  - That wsgi.input has the methods read, readline, readlines, and
+    __iter__
+
+  - That wsgi.errors has the methods flush, write, writelines
+
+* The status is a string, contains a space, starts with an integer,
+  and that integer is in range (> 100).
+
+* That the headers is a list (not a subclass, not another kind of
+  sequence).
+
+* That the items of the headers are tuples of strings.
+
+* That there is no 'status' header (that is used in CGI, but not in
+  WSGI).
+
+* That the headers don't contain newlines or colons, end in _ or -, or
+  contain characters codes below 037.
+
+* That Content-Type is given if there is content (CGI often has a
+  default content type, but WSGI does not).
+
+* That no Content-Type is given when there is no content (@@: is this
+  too restrictive?)
+
+* That the exc_info argument to start_response is a tuple or None.
+
+* That all calls to the writer are with strings, and no other methods
+  on the writer are accessed.
+
+* That wsgi.input is used properly:
+
+  - .read() is called with exactly one argument
+
+  - That it returns a string
+
+  - That readline, readlines, and __iter__ return strings
+
+  - That .close() is not called
+
+  - No other methods are provided
+
+* That wsgi.errors is used properly:
+
+  - .write() and .writelines() is called with a string
+
+  - That .close() is not called, and no other methods are provided.
+
+* The response iterator:
+
+  - That it is not a string (it should be a list of a single string; a
+    string will work, but perform horribly).
+
+  - That .__next__() returns a string
+
+  - That the iterator is not iterated over until start_response has
+    been called (that can signal either a server or application
+    error).
+
+  - That .close() is called (doesn't raise exception, only prints to
+    sys.stderr, because we only know it isn't called when the object
+    is garbage collected).
+⁄	validatorÈ    Nz^[a-zA-Z][a-zA-Z0-9\-_]*$z[\000-\037]c                   Û   ï \ rS rSrSrSrg)⁄WSGIWarningÈy   z2
+Raised in response to WSGI-spec-related warnings
+© N)⁄__name__⁄
+__module__⁄__qualname__⁄__firstlineno__⁄__doc__⁄__static_attributes__r   Û    ⁄'/usr/lib/python3.13/wsgiref/validate.pyr   r   y   s   Ü Ùr   r   c                 Û"   ï U (       d  [        U6 eg ©N)⁄AssertionError)⁄cond⁄argss     r   ⁄assert_r   ~   s   Ä ﬁ‹òd–#–# r   c                 Ûr   ï [        U 5      [        L a  U $ [        SR                  U[	        U 5      5      5      e)Nz!{0} must be of type str (got {1}))⁄type⁄strr   ⁄format⁄repr)⁄value⁄titles     r   ⁄check_string_typer   Ç   s6   Ä ‹àUÉ|îs“ÿà‹
+ÿ+◊2—2∞5º$∏uª+”FÛH Hr   c                 Û   ^ ï U 4S jnU$ )aé  
+When applied between a WSGI server and a WSGI application, this
+middleware will check for WSGI compliance on a number of levels.
+This middleware does not modify the request or response in any
+way, but will raise an AssertionError if anything seems off
+(except for a failure to close the application iterator, which
+will be printed to stderr -- there's no way to raise an exception
+at that point).
+c                  ÛB  >^^ï [        [        U 5      S:H  S5        [        U(       + S5        U u  nm[        U5        / mUU4S jn[        US   5      US'   [	        US   5      US'   T" X#5      n[        US L=(       a    US:g  S5        [        U5        [        UT5      $ )	NÈ   zTwo arguments required˙No keyword arguments allowedc                  Û`  >ï [        [        U 5      S:H  =(       d    [        U 5      S:H  SU < 35        [        U(       + S5        U S   nU S   n[        U 5      S:X  a  U S   nOS n[        U5        [        U5        [	        X#5        [        U5        TR                  S 5        [        T" U 6 5      $ )Nr    È   zInvalid number of arguments: r!   r   È   )r   ⁄len⁄check_status⁄check_headers⁄check_content_type⁄check_exc_info⁄append⁄WriteWrapper)r   ⁄kw⁄status⁄headers⁄exc_info⁄start_response⁄start_response_starteds        ÄÄr   ⁄start_response_wrapper⁄;validator.<locals>.lint_app.<locals>.start_response_wrapperü   sü   ¯Ä ‹îCòìI†ëN◊4§c®$£i∞1°n¯⁄59–;Ù>‰òîF–:‘;ÿò!ëWàFÿò1ëgàG‹ê4ãyòAã~ÿ†ô7ë‡ê‰ò‘ ‹ò'‘"‹òv‘/‹ò8‘$‡"◊)—)®$‘/‹°∞– 5”6–6r   ˙
+wsgi.input˙wsgi.errorsFz>The application must return an iterator, if only an empty list)r   r%   ⁄check_environ⁄InputWrapper⁄ErrorWrapper⁄check_iterator⁄IteratorWrapper)r   r,   ⁄environr2   ⁄iteratorr0   r1   ⁄applications        @@Är   ⁄lint_app⁄validator.<locals>.lint_appî   s´   ˙Ä ‹îêDì	òQë– 8‘9‹êBî–6‘7ÿ"&—àê‰êg‘ "$–ˆ	7Ù& !-®W∞\—-B” Càê—‹!-®g∞m—.D”!Eàê—·òw”?à‹ê†–$◊:®∞U—):ÿLÙ	NÙ 	êx‘ ‰òx–)?”@–@r   r   )r=   r>   s   ` r   r   r   à   s   ¯Ä ı'AR ÄOr   c                   Û8   ï \ rS rSrS rS rS rS rS rS r	Sr
+g	)
+r7   Èø   c                 Û   ï Xl         g r   ©⁄input)⁄self⁄
+wsgi_inputs     r   ⁄__init__⁄InputWrapper.__init__¡   s   Ä ÿç
+r   c                 Ûö   ï [        [        U5      S:H  5        U R                  R                  " U6 n[        [	        U5      [
+        L 5        U$ ©Nr$   )r   r%   rD   ⁄readr   ⁄bytes©rE   r   ⁄vs      r   rK   ⁄InputWrapper.readƒ   s:   Ä ‹îêDì	òQë‘ÿèJâJèOäOòT–"à‹îêQìú5– ‘!ÿàr   c                 Ûö   ï [        [        U5      S:*  5        U R                  R                  " U6 n[        [	        U5      [
+        L 5        U$ rJ   )r   r%   rD   ⁄readliner   rL   rM   s      r   rQ   ⁄InputWrapper.readline    s<   Ä ‹îêDì	òQë‘ÿèJâJ◊“†–&à‹îêQìú5– ‘!ÿàr   c                 Û‡   ï [        [        U5      S:*  5        U R                  R                  " U6 n[        [	        U5      [
+        L 5        U H  n[        [	        U5      [        L 5        M     U$ rJ   )r   r%   rD   ⁄	readlinesr   ⁄listrL   )rE   r   ⁄lines⁄lines       r   rT   ⁄InputWrapper.readlines–   sW   Ä ‹îêDì	òQë‘ÿó
+ë
+◊$“$†d–+à‹îêUìút–#‘$€àD‹îDòìJ§%–'÷(Ò ‡àr   c              #   Ûv   #   ï U R                  5       =n(       a  Uv ï  U R                  5       =n(       a  M  g g 7fr   )rQ   )rE   rW   s     r   ⁄__iter__⁄InputWrap

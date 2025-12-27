@@ -1,0 +1,3141 @@
+s               |                       |
++--------------------------------+----------------------------------+-----------------------+
+| "s.insert(i, x)"               | inserts *x* into *s* at the      |                       |
+|                                | index given by *i* (same as      |                       |
+|                                | "s[i:i] = [x]")                  |                       |
++--------------------------------+----------------------------------+-----------------------+
+| "s.pop()" or "s.pop(i)"        | retrieves the item at *i* and    | (2)                   |
+|                                | also removes it from *s*         |                       |
++--------------------------------+----------------------------------+-----------------------+
+| "s.remove(x)"                  | removes the first item from *s*  | (3)                   |
+|                                | where "s[i]" is equal to *x*     |                       |
++--------------------------------+----------------------------------+-----------------------+
+| "s.reverse()"                  | reverses the items of *s* in     | (4)                   |
+|                                | place                            |                       |
++--------------------------------+----------------------------------+-----------------------+
+
+Notes:
+
+1. If *k* is not equal to "1", *t* must have the same length as the
+   slice it is replacing.
+
+2. The optional argument *i* defaults to "-1", so that by default the
+   last item is removed and returned.
+
+3. "remove()" raises "ValueError" when *x* is not found in *s*.
+
+4. The "reverse()" method modifies the sequence in place for economy
+   of space when reversing a large sequence.  To remind users that it
+   operates by side effect, it does not return the reversed sequence.
+
+5. "clear()" and "copy()" are included for consistency with the
+   interfaces of mutable containers that don‚Äôt support slicing
+   operations (such as "dict" and "set"). "copy()" is not part of the
+   "collections.abc.MutableSequence" ABC, but most concrete mutable
+   sequence classes provide it.
+
+   Added in version 3.3: "clear()" and "copy()" methods.
+
+6. The value *n* is an integer, or an object implementing
+   "__index__()".  Zero and negative values of *n* clear the sequence.
+   Items in the sequence are not copied; they are referenced multiple
+   times, as explained for "s * n" under Common Sequence Operations.
+
+
+Lists
+=====
+
+Lists are mutable sequences, typically used to store collections of
+homogeneous items (where the precise degree of similarity will vary by
+application).
+
+class list([iterable])
+
+   Lists may be constructed in several ways:
+
+   * Using a pair of square brackets to denote the empty list: "[]"
+
+   * Using square brackets, separating items with commas: "[a]", "[a,
+     b, c]"
+
+   * Using a list comprehension: "[x for x in iterable]"
+
+   * Using the type constructor: "list()" or "list(iterable)"
+
+   The constructor builds a list whose items are the same and in the
+   same order as *iterable*‚Äôs items.  *iterable* may be either a
+   sequence, a container that supports iteration, or an iterator
+   object.  If *iterable* is already a list, a copy is made and
+   returned, similar to "iterable[:]". For example, "list('abc')"
+   returns "['a', 'b', 'c']" and "list( (1, 2, 3) )" returns "[1, 2,
+   3]". If no argument is given, the constructor creates a new empty
+   list, "[]".
+
+   Many other operations also produce lists, including the "sorted()"
+   built-in.
+
+   Lists implement all of the common and mutable sequence operations.
+   Lists also provide the following additional method:
+
+   sort(*, key=None, reverse=False)
+
+      This method sorts the list in place, using only "<" comparisons
+      between items. Exceptions are not suppressed - if any comparison
+      operations fail, the entire sort operation will fail (and the
+      list will likely be left in a partially modified state).
+
+      "sort()" accepts two arguments that can only be passed by
+      keyword (keyword-only arguments):
+
+      *key* specifies a function of one argument that is used to
+      extract a comparison key from each list element (for example,
+      "key=str.lower"). The key corresponding to each item in the list
+      is calculated once and then used for the entire sorting process.
+      The default value of "None" means that list items are sorted
+      directly without calculating a separate key value.
+
+      The "functools.cmp_to_key()" utility is available to convert a
+      2.x style *cmp* function to a *key* function.
+
+      *reverse* is a boolean value.  If set to "True", then the list
+      elements are sorted as if each comparison were reversed.
+
+      This method modifies the sequence in place for economy of space
+      when sorting a large sequence.  To remind users that it operates
+      by side effect, it does not return the sorted sequence (use
+      "sorted()" to explicitly request a new sorted list instance).
+
+      The "sort()" method is guaranteed to be stable.  A sort is
+      stable if it guarantees not to change the relative order of
+      elements that compare equal ‚Äî this is helpful for sorting in
+      multiple passes (for example, sort by department, then by salary
+      grade).
+
+      For sorting examples and a brief sorting tutorial, see Sorting
+      Techniques.
+
+      **CPython implementation detail:** While a list is being sorted,
+      the effect of attempting to mutate, or even inspect, the list is
+      undefined.  The C implementation of Python makes the list appear
+      empty for the duration, and raises "ValueError" if it can detect
+      that the list has been mutated during a sort.
+
+
+Tuples
+======
+
+Tuples are immutable sequences, typically used to store collections of
+heterogeneous data (such as the 2-tuples produced by the "enumerate()"
+built-in). Tuples are also used for cases where an immutable sequence
+of homogeneous data is needed (such as allowing storage in a "set" or
+"dict" instance).
+
+class tuple([iterable])
+
+   Tuples may be constructed in a number of ways:
+
+   * Using a pair of parentheses to denote the empty tuple: "()"
+
+   * Using a trailing comma for a singleton tuple: "a," or "(a,)"
+
+   * Separating items with commas: "a, b, c" or "(a, b, c)"
+
+   * Using the "tuple()" built-in: "tuple()" or "tuple(iterable)"
+
+   The constructor builds a tuple whose items are the same and in the
+   same order as *iterable*‚Äôs items.  *iterable* may be either a
+   sequence, a container that supports iteration, or an iterator
+   object.  If *iterable* is already a tuple, it is returned
+   unchanged. For example, "tuple('abc')" returns "('a', 'b', 'c')"
+   and "tuple( [1, 2, 3] )" returns "(1, 2, 3)". If no argument is
+   given, the constructor creates a new empty tuple, "()".
+
+   Note that it is actually the comma which makes a tuple, not the
+   parentheses. The parentheses are optional, except in the empty
+   tuple case, or when they are needed to avoid syntactic ambiguity.
+   For example, "f(a, b, c)" is a function call with three arguments,
+   while "f((a, b, c))" is a function call with a 3-tuple as the sole
+   argument.
+
+   Tuples implement all of the common sequence operations.
+
+For heterogeneous collections of data where access by name is clearer
+than access by index, "collections.namedtuple()" may be a more
+appropriate choice than a simple tuple object.
+
+
+Ranges
+======
+
+The "range" type represents an immutable sequence of numbers and is
+commonly used for looping a specific number of times in "for" loops.
+
+class range(stop)
+class range(start, stop[, step])
+
+   The arguments to the range constructor must be integers (either
+   built-in "int" or any object that implements the "__index__()"
+   special method).  If the *step* argument is omitted, it defaults to
+   "1". If the *start* argument is omitted, it defaults to "0". If
+   *step* is zero, "ValueError" is raised.
+
+   For a positive *step*, the contents of a range "r" are determined
+   by the formula "r[i] = start + step*i" where "i >= 0" and "r[i] <
+   stop".
+
+   For a negative *step*, the contents of the range are still
+   determined by the formula "r[i] = start + step*i", but the
+   constraints are "i >= 0" and "r[i] > stop".
+
+   A range object will be empty if "r[0]" does not meet the value
+   constraint. Ranges do support negative indices, but these are
+   interpreted as indexing from the end of the sequence determined by
+   the positive indices.
+
+   Ranges containing absolute values larger than "sys.maxsize" are
+   permitted but some features (such as "len()") may raise
+   "OverflowError".
+
+   Range examples:
+
+      >>> list(range(10))
+      [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+      >>> list(range(1, 11))
+      [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+      >>> list(range(0, 30, 5))
+      [0, 5, 10, 15, 20, 25]
+      >>> list(range(0, 10, 3))
+      [0, 3, 6, 9]
+      >>> list(range(0, -10, -1))
+      [0, -1, -2, -3, -4, -5, -6, -7, -8, -9]
+      >>> list(range(0))
+      []
+      >>> list(range(1, 0))
+      []
+
+   Ranges implement all of the common sequence operations except
+   concatenation and repetition (due to the fact that range objects
+   can only represent sequences that follow a strict pattern and
+   repetition and concatenation will usually violate that pattern).
+
+   start
+
+      The value of the *start* parameter (or "0" if the parameter was
+      not supplied)
+
+   stop
+
+      The value of the *stop* parameter
+
+   step
+
+      The value of the *step* parameter (or "1" if the parameter was
+      not supplied)
+
+The advantage of the "range" type over a regular "list" or "tuple" is
+that a "range" object will always take the same (small) amount of
+memory, no matter the size of the range it represents (as it only
+stores the "start", "stop" and "step" values, calculating individual
+items and subranges as needed).
+
+Range objects implement the "collections.abc.Sequence" ABC, and
+provide features such as containment tests, element index lookup,
+slicing and support for negative indices (see Sequence Types ‚Äî list,
+tuple, range):
+
+>>> r = range(0, 20, 2)
+>>> r
+range(0, 20, 2)
+>>> 11 in r
+False
+>>> 10 in r
+True
+>>> r.index(10)
+5
+>>> r[5]
+10
+>>> r[:5]
+range(0, 10, 2)
+>>> r[-1]
+18
+
+Testing range objects for equality with "==" and "!=" compares them as
+sequences.  That is, two range objects are considered equal if they
+represent the same sequence of values.  (Note that two range objects
+that compare equal might have different "start", "stop" and "step"
+attributes, for example "range(0) == range(2, 1, 3)" or "range(0, 3,
+2) == range(0, 4, 2)".)
+
+Changed in version 3.2: Implement the Sequence ABC. Support slicing
+and negative indices. Test "int" objects for membership in constant
+time instead of iterating through all items.
+
+Changed in version 3.3: Define ‚Äò==‚Äô and ‚Äò!=‚Äô to compare range objects
+based on the sequence of values they define (instead of comparing
+based on object identity).Added the "start", "stop" and "step"
+attributes.
+
+See also:
+
+  * The linspace recipe shows how to implement a lazy version of range
+    suitable for floating-point applications.
+u–  Mutable Sequence Types
+**********************
+
+The operations in the following table are defined on mutable sequence
+types. The "collections.abc.MutableSequence" ABC is provided to make
+it easier to correctly implement these operations on custom sequence
+types.
+
+In the table *s* is an instance of a mutable sequence type, *t* is any
+iterable object and *x* is an arbitrary object that meets any type and
+value restrictions imposed by *s* (for example, "bytearray" only
+accepts integers that meet the value restriction "0 <= x <= 255").
+
++--------------------------------+----------------------------------+-----------------------+
+| Operation                      | Result                           | Notes                 |
+|================================|==================================|=======================|
+| "s[i] = x"                     | item *i* of *s* is replaced by   |                       |
+|                                | *x*                              |                       |
++--------------------------------+----------------------------------+-----------------------+
+| "del s[i]"                     | removes item *i* of *s*          |                       |
++--------------------------------+----------------------------------+-----------------------+
+| "s[i:j] = t"                   | slice of *s* from *i* to *j* is  |                       |
+|                                | replaced by the contents of the  |                       |
+|                                | iterable *t*                     |                       |
++--------------------------------+----------------------------------+-----------------------+
+| "del s[i:j]"                   | same as "s[i:j] = []"            |                       |
++--------------------------------+----------------------------------+-----------------------+
+| "s[i:j:k] = t"                 | the elements of "s[i:j:k]" are   | (1)                   |
+|                                | replaced by those of *t*         |                       |
++--------------------------------+----------------------------------+-----------------------+
+| "del s[i:j:k]"                 | removes the elements of          |                       |
+|                                | "s[i:j:k]" from the list         |                       |
++--------------------------------+----------------------------------+-----------------------+
+| "s.append(x)"                  | appends *x* to the end of the    |                       |
+|                                | sequence (same as                |                       |
+|                                | "s[len(s):len(s)] = [x]")        |                       |
++--------------------------------+----------------------------------+-----------------------+
+| "s.clear()"                    | removes all items from *s* (same | (5)                   |
+|                                | as "del s[:]")                   |                       |
++--------------------------------+----------------------------------+-----------------------+
+| "s.copy()"                     | creates a shallow copy of *s*    | (5)                   |
+|                                | (same as "s[:]")                 |                       |
++--------------------------------+----------------------------------+-----------------------+
+| "s.extend(t)" or "s += t"      | extends *s* with the contents of |                       |
+|                                | *t* (for the most part the same  |                       |
+|                                | as "s[len(s):len(s)] = t")       |                       |
++--------------------------------+----------------------------------+-----------------------+
+| "s *= n"                       | updates *s* with its contents    | (6)                   |
+|                                | repeated *n* times               |                       |
++--------------------------------+----------------------------------+-----------------------+
+| "s.insert(i, x)"               | inserts *x* into *s* at the      |                       |
+|                                | index given by *i* (same as      |                       |
+|                                | "s[i:i] = [x]")                  |                       |
++--------------------------------+----------------------------------+-----------------------+
+| "s.pop()" or "s.pop(i)"        | retrieves the item at *i* and    | (2)                   |
+|                                | also removes it from *s*         |                       |
++--------------------------------+----------------------------------+-----------------------+
+| "s.remove(x)"                  | removes the first item from *s*  | (3)                   |
+|                                | where "s[i]" is equal to *x*     |                       |
++--------------------------------+----------------------------------+-----------------------+
+| "s.reverse()"                  | reverses the items of *s* in     | (4)                   |
+|                                | place                            |                       |
++--------------------------------+----------------------------------+-----------------------+
+
+Notes:
+
+1. If *k* is not equal to "1", *t* must have the same length as the
+   slice it is replacing.
+
+2. The optional argument *i* defaults to "-1", so that by default the
+   last item is removed and returned.
+
+3. "remove()" raises "ValueError" when *x* is not found in *s*.
+
+4. The "reverse()" method modifies the sequence in place for economy
+   of space when reversing a large sequence.  To remind users that it
+   operates by side effect, it does not return the reversed sequence.
+
+5. "clear()" and "copy()" are included for consistency with the
+   interfaces of mutable containers that don‚Äôt support slicing
+   operations (such as "dict" and "set"). "copy()" is not part of the
+   "collections.abc.MutableSequence" ABC, but most concrete mutable
+   sequence classes provide it.
+
+   Added in version 3.3: "clear()" and "copy()" methods.
+
+6. The value *n* is an integer, or an object implementing
+   "__index__()".  Zero and negative values of *n* clear the sequence.
+   Items in the sequence are not copied; they are referenced multiple
+   times, as explained for "s * n" under Common Sequence Operations.
+aM  Unary arithmetic and bitwise operations
+***************************************
+
+All unary arithmetic and bitwise operations have the same priority:
+
+   u_expr ::= power | "-" u_expr | "+" u_expr | "~" u_expr
+
+The unary "-" (minus) operator yields the negation of its numeric
+argument; the operation can be overridden with the "__neg__()" special
+method.
+
+The unary "+" (plus) operator yields its numeric argument unchanged;
+the operation can be overridden with the "__pos__()" special method.
+
+The unary "~" (invert) operator yields the bitwise inversion of its
+integer argument.  The bitwise inversion of "x" is defined as
+"-(x+1)".  It only applies to integral numbers or to custom objects
+that override the "__invert__()" special method.
+
+In all three cases, if the argument does not have the proper type, a
+"TypeError" exception is raised.
+uº  The "while" statement
+*********************
+
+The "while" statement is used for repeated execution as long as an
+expression is true:
+
+   while_stmt ::= "while" assignment_expression ":" suite
+                  ["else" ":" suite]
+
+This repeatedly tests the expression and, if it is true, executes the
+first suite; if the expression is false (which may be the first time
+it is tested) the suite of the "else" clause, if present, is executed
+and the loop terminates.
+
+A "break" statement executed in the first suite terminates the loop
+without executing the "else" clause‚Äôs suite.  A "continue" statement
+executed in the first suite skips the rest of the suite and goes back
+to testing the expression.
+uÿ  The "with" statement
+********************
+
+The "with" statement is used to wrap the execution of a block with
+methods defined by a context manager (see section With Statement
+Context Managers). This allows common "try"‚Ä¶"except"‚Ä¶"finally" usage
+patterns to be encapsulated for convenient reuse.
+
+   with_stmt          ::= "with" ( "(" with_stmt_contents ","? ")" | with_stmt_contents ) ":" suite
+   with_stmt_contents ::= with_item ("," with_item)*
+   with_item          ::= expression ["as" target]
+
+The execution of the "with" statement with one ‚Äúitem‚Äù proceeds as
+follows:
+
+1. The context expression (the expression given in the "with_item") is
+   evaluated to obtain a context manager.
+
+2. The context manager‚Äôs "__enter__()" is loaded for later use.
+
+3. The context manager‚Äôs "__exit__()" is loaded for later use.
+
+4. The context manager‚Äôs "__enter__()" method is invoked.
+
+5. If a target was included in the "with" statement, the return value
+   from "__enter__()" is assigned to it.
+
+   Note:
+
+     The "with" statement guarantees that if the "__enter__()" method
+     returns without an error, then "__exit__()" will always be
+     called. Thus, if an error occurs during the assignment to the
+     target list, it will be treated the same as an error occurring
+     within the suite would be. See step 7 below.
+
+6. The suite is executed.
+
+7. The context manager‚Äôs "__exit__()" method is invoked.  If an
+   exception caused the suite to be exited, its type, value, and
+   traceback are passed as arguments to "__exit__()". Otherwise, three
+   "None" arguments are supplied.
+
+   If the suite was exited due to an exception, and the return value
+   from the "__exit__()" method was false, the exception is reraised.
+   If the return value was true, the exception is suppressed, and
+   execution continues with the statement following the "with"
+   statement.
+
+   If the suite was exited for any reason other than an exception, the
+   return value from "__exit__()" is ignored, and execution proceeds
+   at the normal location for the kind of exit that was taken.
+
+The following code:
+
+   with EXPRESSION as TARGET:
+       SUITE
+
+is semantically equivalent to:
+
+   manager = (EXPRESSION)
+   enter = type(manager).__enter__
+   exit = type(manager).__exit__
+   value = enter(manager)
+   hit_except = False
+
+   try:
+       TARGET = value
+       SUITE
+   except:
+       hit_except = True
+       if not exit(manager, *sys.exc_info()):
+           raise
+   finally:
+       if not hit_except:
+           exit(manager, None, None, None)
+
+With more than one item, the context managers are processed as if
+multiple "with" statements were nested:
+
+   with A() as a, B() as b:
+       SUITE
+
+is semantically equivalent to:
+
+   with A() as a:
+       with B() as b:
+           SUITE
+
+You can also write multi-item context managers in multiple lines if
+the items are surrounded by parentheses. For example:
+
+   with (
+       A() as a,
+       B() as b,
+   ):
+       SUITE
+
+Changed in version 3.1: Support for multiple context expressions.
+
+Changed in version 3.10: Support for using grouping parentheses to
+break the statement in multiple lines.
+
+See also:
+
+  **PEP 343** - The ‚Äúwith‚Äù statement
+     The specification, background, and examples for the Python "with"
+     statement.
+a0  The "yield" statement
+*********************
+
+   yield_stmt ::= yield_expression
+
+A "yield" statement is semantically equivalent to a yield expression.
+The "yield" statement can be used to omit the parentheses that would
+otherwise be required in the equivalent yield expression statement.
+For example, the yield statements
+
+   yield <expr>
+   yield from <expr>
+
+are equivalent to the yield expression statements
+
+   (yield <expr>)
+   (yield from <expr>)
+
+Yield expressions and statements are only used when defining a
+*generator* function, and are only used in the body of the generator
+function.  Using "yield" in a function definition is sufficient to
+cause that definition to create a generator function instead of a
+normal function.
+
+For full details of "yield" semantics, refer to the Yield expressions
+section.
+)⁄try⁄types⁄typesfunctions⁄typesmapping⁄typesmethods⁄typesmodules⁄typesseqztypesseq-mutable⁄unary⁄while⁄with⁄yieldN)⁄topics© Û    ⁄(/usr/lib/python3.13/pydoc_data/topics.py⁄<module>rD      s‹  `F
+ÿ `F
+@  {A`F
+x  y`F
+r	  ts	`F
+\  5]`F
+H  I`F
+p  Jq`F
+F  G`F
+p  )q`F
+D  	E`F
+X  UY`F
+D  E`F
+n  o`F
+R   	S `F
+f   	g `F
+z   	{ `F
+N!  !ÒO!`F
+R"  S"`F
+x"  	y"`F
+L#  XM#`F
+~'  W'`F
+n*  po*`F
+P2  |Q2`F
+Jh  ,Kh`F
+di  ei`F
+~i  i`F
+dj  tej`F
+Nt  FOt`F
+\J 
+ ]J`F
+PK  ,QK`F
+jL  kL`F
+RM  SM`F
+rM  1sM`F
+VO  ]ÚWO`F
+RZ  SZ`F
+R[  S[`F
+F\ 
+ *G\`F
+\]  V]]`F
+Jn  _Kn`F
+Js  Ks`F
+xs  *ys`F
+Nu  KOu`F
+fy 	 gy`F
+Fz  Gz`F
+dz  Hez`F
+v@ 	 #w@`F
+~A  $A`F
+HC  IC`F
+jC  kC`F
+HD  QID`F
+lL  ÚmL`F
+bM  cM`F
+zM  R{M`F
+`R  ZaR`F
+VU  nWU`F
+tX  uX`F
+NY  OY`F
+JZ  eKZ`F
+V]  W]`F
+N^  YO^`F
+Bc  Cc`F
+jc  "kc`F
+pd  #qd`F
+xe  Eye`F
+DX  BEX`F
+Jn  tKn`F
+ts  8us`F
+fu  Ògu`F
+VvUlcH)DJ'P.~~Zv,&kXÚKL`F
+ÅrB                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          /*
+    CSS file for pydoc.
+
+    Contents of this file are subject to change without notice.
+
+*/
+
+body {
+    background-color: #f0f0f8;
+}
+
+table.heading tr {
+    background-color: #7799ee;
+}
+
+.decor {
+    color: #ffffff;
+}
+
+.title-decor {
+    background-color: #ffc8d8;
+    color: #000000;
+}
+
+.pkg-content-decor {
+    background-color: #aa55cc;
+}
+
+.index-decor {
+    background-color: #ee77aa;
+}
+
+.functions-decor {
+    background-color: #eeaa77;
+}
+
+.data-decor {
+    background-color: #55aa55;
+}
+
+.author-decor {
+    background-color: #7799ee;
+}
+
+.credits-decor {
+    background-color: #7799ee;
+}
+
+.error-decor {
+    background-color: #bb0000;
+}
+
+.grey {
+    color: #909090;
+}
+
+.white {
+    color: #ffffff;
+}
+
+.repr {
+    color: #c040c0;
+}
+
+table.heading tr td.title {
+    vertical-align: bottom;
+}
+
+table.heading tr td.extra {
+    vertical-align: bottom;
+    text-align: right;
+}
+
+.heading-text {
+    font-family: helvetica, arial;
+}
+
+.bigsection {
+    font-size: larger;
+}
+
+.title {
+    font-size: x-large;
+}
+
+.code {
+    font-family: monospace;
+}
+
+table {
+    width: 100%;
+    border-spacing : 0;
+    border-collapse : collapse;
+    border: 0;
+}
+
+td {
+    padding: 2;
+}
+
+td.section-title {
+    vertical-align: bottom;
+}
+
+td.multicolumn {
+    width: 25%;
+    vertical-align: bottom;
+}
+
+td.singlecolumn {
+    width: 100%;
+}
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   # Autogenerated by Sphinx on Wed Jun 11 17:36:53 2025
+# as part of the release process.
+
+topics = {
+    'assert': r'''The "assert" statement
+**********************
+
+Assert statements are a convenient way to insert debugging assertions
+into a program:
+
+   assert_stmt ::= "assert" expression ["," expression]
+
+The simple form, "assert expression", is equivalent to
+
+   if __debug__:
+       if not expression: raise AssertionError
+
+The extended form, "assert expression1, expression2", is equivalent to
+
+   if __debug__:
+       if not expression1: raise AssertionError(expression2)
+
+These equivalences assume that "__debug__" and "AssertionError" refer
+to the built-in variables with those names.  In the current
+implementation, the built-in variable "__debug__" is "True" under
+normal circumstances, "False" when optimization is requested (command
+line option "-O").  The current code generator emits no code for an
+"assert" statement when optimization is requested at compile time.
+Note that it is unnecessary to include the source code for the
+expression that failed in the error message; it will be displayed as
+part of the stack trace.
+
+Assignments to "__debug__" are illegal.  The value for the built-in
+variable is determined when the interpreter starts.
+''',
+    'assignment': r'''Assignment statements
+*********************
+
+Assignment statements are used to (re)bind names to values and to
+modify attributes or items of mutable objects:
+
+   assignment_stmt ::= (target_list "=")+ (starred_expression | yield_expression)
+   target_list     ::= target ("," target)* [","]
+   target          ::= identifier
+                       | "(" [target_list] ")"
+                       | "[" [target_list] "]"
+                       | attributeref
+                       | subscription
+                       | slicing
+                       | "*" target
+
+(See section Primaries for the syntax definitions for *attributeref*,
+*subscription*, and *slicing*.)
+
+An assignment statement evaluates the expression list (remember that
+this can be a single expression or a comma-separated list, the latter
+yielding a tuple) and assigns the single resulting object to each of
+the target lists, from left to right.
+
+Assignment is defined recursively depending on the form of the target
+(list). When a target is part of a mutable object (an attribute
+reference, subscription or slicing), the mutable object must
+ultimately perform the assignment and decide about its validity, and
+may raise an exception if the assignment is unacceptable.  The rules
+observed by various types and the exceptions raised are given with the
+definition of the object types (see section The standard type
+hierarchy).
+
+Assignment of an object to a target list, optionally enclosed in
+parentheses or square brackets, is recursively defined as follows.
+
+* If the target list is a single target with no trailing comma,
+  optionally in parentheses, the object is assigned to that target.
+
+* Else:
+
+  * If the target list contains one target prefixed with an asterisk,
+    called a ‚Äústarred‚Äù target: The object must be an iterable with at
+    least as many items as there are targets in the target list, minus
+    one.  The first items of the iterable are assigned, from left to
+    right, to the targets before the starred target.  The final items
+    of the iterable are assigned to the targets after the starred
+    target.  A list of the remaining items in the iterable is then
+    assigned to the starred target (the list can be empty).
+
+  * Else: The object must be an iterable with the same number of items
+    as there are targets in the target list, and the items are
+    assigned, from left to right, to the corresponding targets.
+
+Assignment of an object to a single target is recursively defined as
+follows.
+
+* If the target is an identifier (name):
+
+  * If the name does not occur in a "global" or "nonlocal" statement
+    in the current code block: the name is bound to the object in the
+    current local namespace.
+
+  * Otherwise: the name is bound to the object in the global namespace
+    or the outer namespace determined by "nonlocal", respectively.
+
+  The name is rebound if it was already bound.  This may cause the
+  reference count for the object previously bound to the name to reach
+  zero, causing the object to be deallocated and its destructor (if it
+  has one) to be called.
+
+* If the target is an attribute reference: The primary expression in
+  the reference is evaluated.  It should yield an object with
+  assignable attributes; if this is not the case, "TypeError" is
+  raised.  That object is then asked to assign the assigned object to
+  the given attribute; if it cannot perform the assignment, it raises
+  an exception (usually but not necessarily "AttributeError").
+
+  Note: If the object is a class instance and the attribute reference
+  occurs on both sides of the assignment operator, the right-hand side
+  expression, "a.x" can access either an instance attribute or (if no
+  instance attribute exists) a class attribute.  The left-hand side
+  target "a.x" is always set as an instance attribute, creating it if
+  necessary.  Thus, the two occurrences of "a.x" do not necessarily
+  refer to the same attribute: if the right-hand side expression
+  refers to a class attribute, the left-hand side creates a new
+  instance attribute as the target of the assignment:
+
+     class Cls:
+         x = 3             # class variable
+     inst = Cls()
+     inst.x = inst.x + 1   # writes inst.x as 4 leaving Cls.x as 3
+
+  This description does not necessarily apply to descriptor
+  attributes, such as properties created with "property()".
+
+* If the target is a subscription: The primary expression in the
+  reference is evaluated.  It should yield either a mutable sequence
+  object (such as a list) or a mapping object (such as a dictionary).
+  Next, the subscript expression is evaluated.
+
+  If the primary is a mutable sequence object (such as a list), the
+  subscript must yield an integer.  If it is negative, the sequence‚Äôs
+  length is added to it.  The resulting value must be a nonnegative
+  integer less than the sequence‚Äôs length, and the sequence is asked
+  to assign the assigned object to its item with that index.  If the
+  index is out of range, "IndexError" is raised (assignment to a
+  subscripted sequence cannot add new items to a list).
+
+  If the primary is a mapping object (such as a dictionary), the
+  subscript must have a type compatible with the mapping‚Äôs key type,
+  and the mapping is then asked to create a key/value pair which maps
+  the subscript to the assigned object.  This can either replace an
+  existing key/value pair with the same key value, or insert a new
+  key/value pair (if no key with the same value existed).
+
+  For user-defined objects, the "__setitem__()" method is called with
+  appropriate arguments.
+
+* If the target is a slicing: The primary expression in the reference
+  is evaluated.  It should yield a mutable sequence object (such as a
+  list).  The assigned object should be a sequence object of the same
+  type.  Next, the lower and upper bound expressions are evaluated,
+  insofar they are present; defaults are zero and the sequence‚Äôs
+  length.  The bounds should evaluate to integers. If either bound is
+  negative, the sequence‚Äôs length is added to it.  The resulting
+  bounds are clipped to lie between zero and the sequence‚Äôs length,
+  inclusive.  Finally, the sequence object is asked to replace the
+  slice with the items of the assigned sequence.  The length of the
+  slice may be different from the length of the assigned sequence,
+  thus changing the length of the target sequence, if the target
+  sequence allows it.
+
+**CPython implementation detail:** In the current implementation, the
+syntax for targets is taken to be the same as for expressions, and
+invalid syntax is rejected during the code generation phase, causing
+less detailed error messages.
+
+Although the definition of assignment implies that overlaps between
+the left-hand side and the right-hand side are ‚Äòsimultaneous‚Äô (for
+example "a, b = b, a" swaps two variables), overlaps *within* the
+collection of assigned-to variables occur left-to-right, sometimes
+resulting in confusion.  For instance, the following program prints
+"[0, 2]":
+
+   x = [0, 1]
+   i = 0
+   i, x[i] = 1, 2         # i is updated, then x[i] is updated
+   print(x)
+
+See also:
+
+  **PEP 3132** - Extended Iterable Unpacking
+     The specification for the "*target" feature.
+
+
+Augmented assignment statements
+===============================
+
+Augmented assignment is the combination, in a single statement, of a
+binary operation and an assignment statement:
+
+   augmented_assignment_stmt ::= augtarget augop (expression_list | yield_expression)
+   augtarget                 ::= identifier | attributeref | subscription | slicing
+   augop                     ::= "+=" | "-=" | "*=" | "@=" | "/=" | "//=" | "%=" | "**="
+                                 | ">>=" | "<<=" | "&=" | "^=" | "|="
+
+(See section Primaries for the syntax definitions of the last three
+symbols.)
+
+An augmented assignment evaluates the target (which, unlike normal
+assignment statements, cannot be an unpacking) and the expression
+list, performs the binary operation specific to the type of assignment
+on the two operands, and assigns the result to the original target.
+The target is only evaluated once.
+
+An augmented assignment statement like "x += 1" can be rewritten as "x
+= x + 1" to achieve a similar, but not exactly equal effect. In the
+augmented version, "x" is only evaluated once. Also, when possible,
+the actual operation is performed *in-place*, meaning that rather than
+creating a new object and assigning that to the target, the old object
+is modified instead.
+
+Unlike normal assignments, augmented assignments evaluate the left-
+hand side *before* evaluating the right-hand side.  For example, "a[i]
++= f(x)" first looks-up "a[i]", then it evaluates "f(x)" and performs
+the addition, and lastly, it writes the result back to "a[i]".
+
+With the exception of assigning to tuples and multiple targets in a
+single statement, the assignment done by augmented assignment
+statements is handled the same way as normal assignments. Similarly,
+with the exception of the possible *in-place* behavior, the binary
+operation performed by augmented assignment is the same as the normal
+binary operations.
+
+For targets which are attribute references, the same caveat about
+class and instance attributes applies as for regular assignments.
+
+
+Annotated assignment statements
+===============================
+
+*Annotation* assignment is the combination, in a single statement, of
+a variable or attribute annotation and an optional assignment
+statement:
+
+   annotated_assignment_stmt ::= augtarget ":" expression
+                                 ["=" (starred_expression | yield_expression)]
+
+The difference from normal Assignment statements is that only a single
+target is allowed.
+
+The assignment target is considered ‚Äúsimple‚Äù if it consists of a
+single name that is not enclosed in parentheses. For simple assignment
+targets, if in class or module scope, the annotations are evaluated
+and stored in a special class or module attribute "__annotations__"
+that is a dictionary mapping from variable names (mangled if private)
+to evaluated annotations. This attribute is writable and is
+automatically created at the start of class or module body execution,
+if annotations are found statically.
+
+If the assignment target is not simple (an attribute, subscript node,
+or parenthesized name), the annotation is evaluated if in class or
+module scope, but not stored.
+
+If a name is annotated in a function scope, then this name is local
+for that scope. Annotations are never evaluated and stored in function
+scopes.
+
+If the right hand side is present, an annotated assignment performs
+the actual assignment before evaluating annotations (where
+applicable). If the right hand side is not present for an expression
+target, then the interpreter evaluates the target except for the last
+"__setitem__()" or "__setattr__()" call.
+
+See also:
+
+  **PEP 526** - Syntax for Variable Annotations
+     The proposal that added syntax for annotating the types of
+     variables (including class variables and instance variables),
+     instead of expressing them through comments.
+
+  **PEP 484** - Type hints
+     The proposal that added the "typing" module to provide a standard
+     syntax for type annotations that can be used in static analysis
+     tools and IDEs.
+
+Changed in version 3.8: Now annotated assignments allow the same
+expressions in the right hand side as regular assignments. Previously,
+some expressions (like un-parenthesized tuple expressions) caused a
+syntax error.
+''',
+    'assignment-expressions': r'''Assignment expressions
+**********************
+
+   assignment_expression ::= [identifier ":="] expression
+
+An assignment expression (sometimes also called a ‚Äúnamed expression‚Äù
+or ‚Äúwalrus‚Äù) assigns an "expression" to an "identifier", while also
+returning the value of the "expression".
+
+One common use case is when handling matched regular expressions:
+
+   if matching := pattern.search(data):
+       do_something(matching)
+
+Or, when processing a file stream in chunks:
+
+   while chunk := file.read(9000):
+       process(chunk)
+
+Assignment expressions must be surrounded by parentheses when used as
+expression statements and when used as sub-expressions in slicing,
+conditional, lambda, keyword-argument, and comprehension-if
+expressions and in "assert", "with", and "assignment" statements. In
+all other places where they can be used, parentheses are not required,
+including in "if" and "while" statements.
+
+Added in version 3.8: See **PEP 572** for more details about
+assignment expressions.
+''',
+    'async': r'''Coroutines
+**********
+
+Added in version 3.5.
+
+
+Coroutine function definition
+=============================
+
+   async_funcdef ::= [decorators] "async" "def" funcname "(" [parameter_list] ")"
+                     ["->" expression] ":" suite
+
+Execution of Python coroutines can be suspended and resumed at many
+points (see *coroutine*). "await" expressions, "async for" and "async
+with" can only be used in the body of a coroutine function.
+
+Functions defined with "async def" syntax are always coroutine
+functions, even if they do not contain "await" or "async" keywords.
+
+It is a "SyntaxError" to use a "yield from" expression inside the body
+of a coroutine function.
+
+An example of a coroutine function:
+
+   async def func(param1, param2):
+       do_stuff()
+       await some_coroutine()
+
+Changed in version 3.7: "await" and "async" are now keywords;
+previously they were only treated as such inside the body of a
+coroutine function.
+
+
+The "async for" statement
+=========================
+
+   async_for_stmt ::= "async" for_stmt
+
+An *asynchronous iterable* provides an "__aiter__" method that
+directly returns an *asynchronous iterator*, which can call
+asynchronous code in its "__anext__" method.
+
+The "async for" statement allows convenient iteration over
+asynchronous iterables.
+
+The following code:
+
+   async for TARGET in ITER:
+       SUITE
+   else:
+       SUITE2
+
+Is semantically equivalent to:
+
+   iter = (ITER)
+   iter = type(iter).__aiter__(iter)
+   running = True
+
+   while running:
+       try:
+           TARGET = await type(iter).__anext__(iter)
+       except StopAsyncIteration:
+           running = False
+       else:
+           SUITE
+   else:
+       SUITE2
+
+See also "__aiter__()" and "__anext__()" for details.
+
+It is a "SyntaxError" to use an "async for" statement outside the body
+of a coroutine function.
+
+
+The "async with" statement
+==========================
+
+   async_with_stmt ::= "async" with_stmt
+
+An *asynchronous context manager* is a *context manager* that is able
+to suspend execution in its *enter* and *exit* methods.
+
+The following code:
+
+   async with EXPRESSION as TARGET:
+       SUITE
+
+is semantically equivalent to:
+
+   manager = (EXPRESSION)
+   aenter = type(manager).__aenter__
+   aexit = type(manager).__aexit__
+   value = await aenter(manager)
+   hit_except = False
+
+   try:
+       TARGET = value
+       SUITE
+   except:
+       hit_except = True
+       if not await aexit(manager, *sys.exc_info()):
+           raise
+   finally:
+       if not hit_except:
+           await aexit(manager, None, None, None)
+
+See also "__aenter__()" and "__aexit__()" for details.
+
+It is a "SyntaxError" to use an "async with" statement outside the
+body of a coroutine function.
+
+See also:
+
+  **PEP 492** - Coroutines with async and await syntax
+     The proposal that made coroutines a proper standalone concept in
+     Python, and added supporting syntax.
+''',
+    'atom-identifiers': r'''Identifiers (Names)
+*******************
+
+An identifier occurring as an atom is a name.  See section Identifiers
+and keywords for lexical definition and section Naming and binding for
+documentation of naming and binding.
+
+When the name is bound to an object, evaluation of the atom yields
+that object. When a name is not bound, an attempt to evaluate it
+raises a "NameError" exception.
+
+
+Private name mangling
+=====================
+
+When an identifier that textually occurs in a class definition begins
+with two or more underscore characters and does not end in two or more
+underscores, it is considered a *private name* of that class.
+
+See also: The class specifications.
+
+More precisely, private names are transformed to a longer form before
+code is generated for them.  If the transformed name is longer than
+255 characters, implementation-defined truncation may happen.
+
+The transformation is independent of the syntactical context in which
+the identifier is used but only the following private identifiers are
+mangled:
+
+* Any name used as the name of a variable that is assigned or read or
+  any name of an attribute being accessed.
+
+  The "__name__" attribute of nested functions, classes, and type
+  aliases is however not mangled.
+
+* The name of imported modules, e.g., "__spam" in "import __spam". If
+  the module is part of a package (i.e., its name contains a dot), the
+  name is *not* mangled, e.g., the "__foo" in "import __foo.bar" is
+  not mangled.
+
+* The name of an imported member, e.g., "__f" in "from spam import
+  __f".
+
+The transformation rule is defined as follows:
+
+* The class name, with leading underscores removed and a single
+  leading underscore inserted, is inserted in front of the identifier,
+  e.g., the identifier "__spam" occurring in a class named "Foo",
+  "_Foo" or "__Foo" is transformed to "_Foo__spam".
+
+* If the class name consists only of underscores, the transformation
+  is the identity, e.g., the identifier "__spam" occurring in a class
+  named "_" or "__" is left as is.
+''',
+    'atom-literals': r'''Literals
+********
+
+Python supports string and bytes literals and various numeric
+literals:
+
+   literal ::= stringliteral | bytesliteral
+               | integer | floatnumber | imagnumber
+
+Evaluation of a literal yields an object of the given type (string,
+bytes, integer, floating-point number, complex number) with the given
+value.  The value may be approximated in the case of floating-point
+and imaginary (complex) literals.  See section Literals for details.
+
+All literals correspond to immutable data types, and hence the
+object‚Äôs identity is less important than its value.  Multiple
+evaluations of literals with the same value (either the same
+occurrence in the program text or a different occurrence) may obtain
+the same object or a different object with the same value.
+''',
+    'attribute-access': r'''Customizing attribute access
+****************************
+
+The following methods can be defined to customize the meaning of
+attribute access (use of, assignment to, or deletion of "x.name") for
+class instances.
+
+object.__getattr__(self, name)
+
+   Called when the default attribute access fails with an
+   "AttributeError" (either "__getattribute__()" raises an
+   "AttributeError" because *name* is not an instance attribute or an
+   attribute in the class tree for "self"; or "__get__()" of a *name*
+   property raises "AttributeError").  This method should either
+   return the (computed) attribute value or raise an "AttributeError"
+   exception. The "object" class itself does not provide this method.
+
+   Note that if the attribute is found through the normal mechanism,
+   "__getattr__()" is not called.  (This is an intentional asymmetry
+   between "__getattr__()" and "__setattr__()".) This is done both for
+   efficiency reasons and because otherwise "__getattr__()" would have
+   no way to access other attributes of the instance.  Note that at
+   least for instance variables, you can take total control by not
+   inserting any values in the instance attribute dictionary (but
+   instead inserting them in another object).  See the
+   "__getattribute__()" method below for a way to actually get total
+   control over attribute access.
+
+object.__getattribute__(self, name)
+
+   Called unconditionally to implement attribute accesses for
+   instances of the class. If the class also defines "__getattr__()",
+   the latter will not be called unless "__getattribute__()" either
+   calls it explicitly or raises an "AttributeError". This method
+   should return the (computed) attribute value or raise an
+   "AttributeError" exception. In order to avoid infinite recursion in
+   this method, its implementation should always call the base class
+   method with the same name to access any attributes it needs, for
+   example, "object.__getattribute__(self, name)".
+
+   Note:
+
+     This method may still be bypassed when looking up special methods
+     as the result of implicit invocation via language syntax or
+     built-in functions. See Special method lookup.
+
+   For certain sensitive attribute accesses, raises an auditing event
+   "object.__getattr__" with arguments "obj" and "name".
+
+object.__setattr__(self, name, value)
+
+   Called when an attribute assignment is attempted.  This is called
+   instead of the normal mechanism (i.e. store the value in the
+   instance dictionary). *name* is the attribute name, *value* is the
+   value to be assigned to it.
+
+   If "__setattr__()" wants to assign to an instance attribute, it
+   should call the base class method with the same name, for example,
+   "object.__setattr__(self, name, value)".
+
+   For certain sensitive attribute assignments, raises an auditing
+   event "object.__setattr__" with arguments "obj", "name", "value".
+
+object.__delattr__(self, name)
+
+   Like "__setattr__()" but for attribute deletion instead of
+   assignment.  This should only be implemented if "del obj.name" is
+   meaningful for the object.
+
+   For certain sensitive attribute deletions, raises an auditing event
+   "object.__delattr__" with arguments "obj" and "name".
+
+object.__dir__(self)
+
+   Called when "dir()" is called on the object. An iterable must be
+   returned. "dir()" converts the returned iterable to a list and
+   sorts it.
+
+
+Customizing module attribute access
+===================================
+
+Special names "__getattr__" and "__dir__" can be also used to
+customize access to module attributes. The "__getattr__" function at
+the module level should accept one argument which is the name of an
+attribute and return the computed value or raise an "AttributeError".
+If an attribute is not found on a module object through the normal
+lookup, i.e. "object.__getattribute__()", then "__getattr__" is
+searched in the module "__dict__" before raising an "AttributeError".
+If found, it is called with the attribute name and the result is
+returned.
+
+The "__dir__" function should accept no arguments, and return an
+iterable of strings that represents the names accessible on module. If
+present, this function overrides the standard "dir()" search on a
+module.
+
+For a more fine grained customization of the module behavior (setting
+attributes, properties, etc.), one can set the "__class__" attribute
+of a module object to a subclass of "types.ModuleType". For example:
+
+   import sys
+   from types import ModuleType
+
+   class VerboseModule(ModuleType):
+       def __repr__(self):
+           return f'Verbose {self.__name__}'
+
+       def __setattr__(self, attr, value):
+           print(f'Setting {attr}...')
+           super().__setattr__(attr, value)
+
+   sys.modules[__name__].__class__ = VerboseModule
+
+Note:
+
+  Defining module "__getattr__" and setting module "__class__" only
+  affect lookups made using the attribute access syntax ‚Äì directly
+  accessing the module globals (whether by code within the module, or
+  via a reference to the module‚Äôs globals dictionary) is unaffected.
+
+Changed in version 3.5: "__class__" module attribute is now writable.
+
+Added in version 3.7: "__getattr__" and "__dir__" module attributes.
+
+See also:
+
+  **PEP 562** - Module __getattr__ and __dir__
+     Describes the "__getattr__" and "__dir__" functions on modules.
+
+
+Implementing Descriptors
+========================
+
+The following methods only apply when an instance of the class
+containing the method (a so-called *descriptor* class) appears in an
+*owner* class (the descriptor must be in either the owner‚Äôs class
+dictionary or in the class dictionary for one of its parents).  In the
+examples below, ‚Äúthe attribute‚Äù refers to the attribute whose name is
+the key of the property in the owner class‚Äô "__dict__".  The "object"
+class itself does not implement any of these protocols.
+
+object.__get__(self, instance, owner=None)
+
+   Called to get the attribute of the owner class (class attribute
+   access) or of an instance of that class (instance attribute
+   access). The optional *owner* argument is the owner class, while
+   *instance* is the instance that the attribute was accessed through,
+   or "None" when the attribute is accessed through the *owner*.
+
+   This method should return the computed attribute value or raise an
+   "AttributeError" exception.
+
+   **PEP 252** specifies that "__get__()" is callable with one or two
+   arguments.  Python‚Äôs own built-in descriptors support this
+   specification; however, it is likely that some third-party tools
+   have descriptors that require both arguments.  Python‚Äôs own
+   "__getattribute__()" implementation always passes in both arguments
+   whether they are required or not.
+
+object.__set__(self, instance, value)
+
+   Called to set the attribute on an instance *instance* of the owner
+   class to a new value, *value*.
+
+   Note, adding "__set__()" or "__delete__()" changes the kind of
+   descriptor to a ‚Äúdata descriptor‚Äù.  See Invoking Descriptors for
+   more details.
+
+object.__delete__(self, instance)
+
+   Called to delete the attribute on an instance *instance* of the
+   owner class.
+
+Instances of descriptors may also have the "__objclass__" attribute
+present:
+
+object.__objclass__
+
+   The attribute "__objclass__" is interpreted by the "inspect" module
+   as specifying the class where this object was defined (setting this
+   appropriately can assist in runtime introspection of dynamic class
+   attributes). For callables, it may indicate that an instance of the
+   given type (or a subclass) is expected or required as the first
+   positional argument (for example, CPython sets this attribute for
+   unbound methods that are implemented in C).
+
+
+Invoking Descriptors
+====================
+
+In general, a descriptor is an object attribute with ‚Äúbinding
+behavior‚Äù, one whose attribute access has been overridden by methods
+in the descriptor protocol:  "__get__()", "__set__()", and
+"__delete__()". If any of those methods are defined for an object, it
+is said to be a descriptor.
+
+The default behavior for attribute access is to get, set, or delete
+the attribute from an object‚Äôs dictionary. For instance, "a.x" has a
+lookup chain starting with "a.__dict__['x']", then
+"type(a).__dict__['x']", and continuing through the base classes of
+"type(a)" excluding metaclasses.
+
+However, if the looked-up value is an object defining one of the
+descriptor methods, then Python may override the default behavior and
+invoke the descriptor method instead.  Where this occurs in the
+precedence chain depends on which descriptor methods were defined and
+how they were called.
+
+The starting point for descriptor invocation is a binding, "a.x". How
+the arguments are assembled depends on "a":
+
+Direct Call
+   The simplest and least common call is when user code directly
+   invokes a descriptor method:    "x.__get__(a)".
+
+Instance Binding
+   If binding to an object instance, "a.x" is transformed into the
+   call: "type(a).__dict__['x'].__get__(a, type(a))".
+
+Class Binding
+   If binding to a class, "A.x" is transformed into the call:
+   "A.__dict__['x'].__get__(None, A)".
+
+Super Binding
+   A dotted lookup such as "super(A, a).x" searches
+   "a.__class__.__mro__" for a base class "B" following "A" and then
+   returns "B.__dict__['x'].__get__(a, A)".  If not a descriptor, "x"
+   is returned unchanged.
+
+For instance bindings, the precedence of descriptor invocation depends
+on which descriptor methods are defined.  A descriptor can define any
+combination of "__get__()", "__set__()" and "__delete__()".  If it
+does not define "__get__()", then accessing the attribute will return
+the descriptor object itself unless there is a value in the object‚Äôs
+instance dictionary.  If the descriptor defines "__set__()" and/or
+"__delete__()", it is a data descriptor; if it defines neither, it is
+a non-data descriptor.  Normally, data descriptors define both
+"__get__()" and "__set__()", while non-data descriptors have just the
+"__get__()" method.  Data descriptors with "__get__()" and "__set__()"
+(and/or "__delete__()") defined always override a redefinition in an
+instance dictionary.  In contrast, non-data descriptors can be
+overridden by instances.
+
+Python methods (including those decorated with "@staticmethod" and
+"@classmethod") are implemented as non-data descriptors.  Accordingly,
+instances can redefine and override methods.  This allows individual
+instances to acquire behaviors that differ from other instances of the
+same class.
+
+The "property()" function is implemented as a data descriptor.
+Accordingly, instances cannot override the behavior of a property.
+
+
+__slots__
+=========
+
+*__slots__* allow us to explicitly declare data members (like
+properties) and deny the creation of "__dict__" and *__weakref__*
+(unless explicitly declared in *__slots__* or available in a parent.)
+
+The space saved over using "__dict__" can be significant. Attribute
+lookup speed can be significantly improved as well.
+
+object.__slots__
+
+   This class variable can be assigned a string, iterable, or sequence
+   of strings with variable names used by instances.  *__slots__*
+   reserves space for the declared variables and prevents the
+   automatic creation of "__dict__" and *__weakref__* for each
+   instance.
+
+Notes on using *__slots__*:
+
+* When inheriting from a class without *__slots__*, the "__dict__" and
+  *__weakref__* attribute of the instances will always be accessible.
+
+* Without a "__dict__" variable, instances cannot be assigned new
+  variables not listed in the *__slots__* definition.  Attempts to
+  assign to an unlisted variable name raises "AttributeError". If
+  dynamic assignment of new variables is desired, then add
+  "'__dict__'" to the sequence of strings in the *__slots__*
+  declaration.
+
+* Without a *__weakref__* variable for each instance, classes defining
+  *__slots__* do not support "weak references" to its instances. If
+  weak reference support is needed, then add "'__weakref__'" to the
+  sequence of strings in the *__slots__* declaration.
+
+* *__slots__* are implemented at the class level by creating
+  descriptors for each variable name.  As a result, class attributes
+  cannot be used to set default values for instance variables defined
+  by *__slots__*; otherwise, the class attribute would overwrite the
+  descriptor assignment.
+
+* The action of a *__slots__* declaration is not limited to the class
+  where it is defined.  *__slots__* declared in parents are available
+  in child classes. However, instances of a child subclass will get a
+  "__dict__" and *__weakref__* unless the subclass also defines
+  *__slots__* (which should only contain names of any *additional*
+  slots).
+
+* If a class defines a slot also defined in a base class, the instance
+  variable defined by the base class slot is inaccessible (except by
+  retrieving its descriptor directly from the base class). This
+  renders the meaning of the program undefined.  In the future, a
+  check may be added to prevent this.
+
+* "TypeError" will be raised if nonempty *__slots__* are defined for a
+  class derived from a ""variable-length" built-in type" such as
+  "int", "bytes", and "tuple".
+
+* Any non-string *iterable* may be assigned to *__slots__*.
+
+* If a "dictionary" is used to assign *__slots__*, the dictionary keys
+  will be used as the slot names. The values of the dictionary can be
+  used to provide per-attribute docstrings that will be recognised by
+  "inspect.getdoc()" and displayed in the output of "help()".
+
+* "__class__" assignment works only if both classes have the same
+  *__slots__*.
+
+* Multiple inheritance with multiple slotted parent classes can be
+  used, but only one parent is allowed to have attributes created by
+  slots (the other bases must have empty slot layouts) - violations
+  raise "TypeError".
+
+* If an *iterator* is used for *__slots__* then a *descriptor* is
+  created for each of the iterator‚Äôs values. However, the *__slots__*
+  attribute will be an empty iterator.
+''',
+    'attribute-references': r'''Attribute references
+********************
+
+An attribute reference is a primary followed by a period and a name:
+
+   attributeref ::= primary "." identifier
+
+The primary must evaluate to an object of a type that supports
+attribute references, which most objects do.  This object is then
+asked to produce the attribute whose name is the identifier. The type
+and value produced is determined by the object.  Multiple evaluations
+of the same attribute reference may yield different objects.
+
+This production can be customized by overriding the
+"__getattribute__()" method or the "__getattr__()" method.  The
+"__getattribute__()" method is called first and either returns a value
+or raises "AttributeError" if the attribute is not available.
+
+If an "AttributeError" is raised and the object has a "__getattr__()"
+method, that method is called as a fallback.
+''',
+    'augassign': r'''Augmented assignment statements
+*******************************
+
+Augmented assignment is the combination, in a single statement, of a
+binary operation and an assignment statement:
+
+   augmented_assignment_stmt ::= augtarget augop (expression_list | yield_expression)
+   augtarget                 ::= identifier | attributeref | subscription | slicing
+   augop                     ::= "+=" | "-=" | "*=" | "@=" | "/=" | "//=" | "%=" | "**="
+                                 | ">>=" | "<<=" | "&=" | "^=" | "|="
+
+(See section Primaries for the syntax definitions of the last three
+symbols.)
+
+An augmented assignment evaluates the target (which, unlike normal
+assignment statements, cannot be an unpacking) and the expression
+list, performs the binary operation specific to the type of assignment
+on the two operands, and assigns the result to the original target.
+The target is only evaluated once.
+
+An augmented assignment statement like "x += 1" can be rewritten as "x
+= x + 1" to achieve a similar, but not exactly equal effect. In the
+augmented version, "x" is only evaluated once. Also, when possible,
+the actual operation is performed *in-place*, meaning that rather than
+creating a new object and assigning that to the target, the old object
+is modified instead.
+
+Unlike normal assignments, augmented assignments evaluate the left-
+hand side *before* evaluating the right-hand side.  For example, "a[i]
++= f(x)" first looks-up "a[i]", then it evaluates "f(x)" and performs
+the addition, and lastly, it writes the result back to "a[i]".
+
+With the exception of assigning to tuples and multiple targets in a
+single statement, the assignment done by augmented assignment
+statements is handled the same way as normal assignments. Similarly,
+with the exception of the possible *in-place* behavior, the binary
+operation performed by augmented assignment is the same as the normal
+binary operations.
+
+For targets which are attribute references, the same caveat about
+class and instance attributes applies as for regular assignments.
+''',
+    'await': r'''Await expression
+****************
+
+Suspend the execution of *coroutine* on an *awaitable* object. Can
+only be used inside a *coroutine function*.
+
+   await_expr ::= "await" primary
+
+Added in version 3.5.
+''',
+    'binary': r'''Binary arithmetic operations
+****************************
+
+The binary arithmetic operations have the conventional priority
+levels.  Note that some of these operations also apply to certain non-
+numeric types.  Apart from the power operator, there are only two
+levels, one for multiplicative operators and one for additive
+operators:
+
+   m_expr ::= u_expr | m_expr "*" u_expr | m_expr "@" m_expr |
+              m_expr "//" u_expr | m_expr "/" u_expr |
+              m_expr "%" u_expr
+   a_expr ::= m_expr | a_expr "+" m_expr | a_expr "-" m_expr
+
+The "*" (multiplication) operator yields the product of its arguments.
+The arguments must either both be numbers, or one argument must be an
+integer and the other must be a sequence. In the former case, the
+numbers are converted to a common type and then multiplied together.
+In the latter case, sequence repetition is performed; a negative
+repetition factor yields an empty sequence.
+
+This operation can be customized using the special "__mul__()" and
+"__rmul__()" methods.
+
+The "@" (at) operator is intended to be used for matrix
+multiplication.  No builtin Python types implement this operator.
+
+This operation can be customized using the special "__matmul__()" and
+"__rmatmul__()" methods.
+
+Added in version 3.5.
+
+The "/" (division) and "//" (floor division) operators yield the
+quotient of their arguments.  The numeric arguments are first
+converted to a common type. Division of integers yields a float, while
+floor division of integers results in an integer; the result is that
+of mathematical division with the ‚Äòfloor‚Äô function applied to the
+result.  Division by zero raises the "ZeroDivisionError" exception.
+
+The division operation can be customized using the special
+"__truediv__()" and "__rtruediv__()" methods. The floor division
+operation can be customized using the special "__floordiv__()" and
+"__rfloordiv__()" methods.
+
+The "%" (modulo) operator yields the remainder from the division of
+the first argument by the second.  The numeric arguments are first
+converted to a common type.  A zero right argument raises the
+"ZeroDivisionError" exception.  The arguments may be floating-point
+numbers, e.g., "3.14%0.7" equals "0.34" (since "3.14" equals "4*0.7 +
+0.34".)  The modulo operator always yields a result with the same sign
+as its second operand (or zero); the absolute value of the result is
+strictly smaller than the absolute value of the second operand [1].
+
+The floor division and modulo operators are connected by the following
+identity: "x == (x//y)*y + (x%y)".  Floor division and modulo are also
+connected with the built-in function "divmod()": "divmod(x, y) ==
+(x//y, x%y)". [2].
+
+In addition to performing the modulo operation on numbers, the "%"
+operator is also overloaded by string objects to perform old-style
+string formatting (also known as interpolation).  The syntax for
+string formatting is described in the Python Library Reference,
+section printf-style String Formatting.
+
+The *modulo* operation can be customized using the special "__mod__()"
+and "__rmod__()" methods.
+
+The floor division operator, the modulo operator, and the "divmod()"
+function are not defined for complex numbers.  Instead, convert to a
+floating-point number using the "abs()" function if appropriate.
+
+The "+" (addition) operator yields the sum of its arguments.  The
+arguments must either both be numbers or both be sequences of the same
+type.  In the former case, the numbers are converted to a common type
+and then added together. In the latter case, the sequences are
+concatenated.
+
+This operation can be customized using the special "__add__()" and
+"__radd__()" methods.
+
+The "-" (subtraction) operator yields the difference of its arguments.
+The numeric arguments are first converted to a common type.
+
+This operation can be customized using the special "__sub__()" and
+"__rsub__()" methods.
+''',
+    'bitwise': r'''Binary bitwise operations
+*************************
+
+Each of the three bitwise operations has a different priority level:
+
+   and_expr ::= shift_expr | and_expr "&" shift_expr
+   xor_expr ::= and_expr | xor_expr "^" and_expr
+   or_expr  ::= xor_expr | or_expr "|" xor_expr
+
+The "&" operator yields the bitwise AND of its arguments, which must
+be integers or one of them must be a custom object overriding
+"__and__()" or "__rand__()" special methods.
+
+The "^" operator yields the bitwise XOR (exclusive OR) of its
+arguments, which must be integers or one of them must be a custom
+object overriding "__xor__()" or "__rxor__()" special methods.
+
+The "|" operator yields the bitwise (inclusive) OR of its arguments,
+which must be integers or one of them must be a custom object
+overriding "__or__()" or "__ror__()" special methods.
+''',
+    'bltin-code-objects': r'''Code Objects
+************
+
+Code objects are used by the implementation to represent ‚Äúpseudo-
+compiled‚Äù executable Python code such as a function body. They differ
+from function objects because they don‚Äôt contain a reference to their
+global execution environment.  Code objects are returned by the built-
+in "compile()" function and can be extracted from function objects
+through their "__code__" attribute. See also the "code" module.
+
+Accessing "__code__" raises an auditing event "object.__getattr__"
+with arguments "obj" and ""__code__"".
+
+A code object can be executed or evaluated by passing it (instead of a
+source string) to the "exec()" or "eval()"  built-in functions.
+
+See The standard type hierarchy for more information.
+''',
+    'bltin-ellipsis-object': r'''The Ellipsis Object
+*******************
+
+This object is commonly used by slicing (see Slicings).  It supports
+no special operations.  There is exactly one ellipsis object, named
+"Ellipsis" (a built-in name).  "type(Ellipsis)()" produces the
+"Ellipsis" singleton.
+
+It is written as "Ellipsis" or "...".
+''',
+    'bltin-null-object': r'''The Null Object
+***************
+
+This object is returned by functions that don‚Äôt explicitly return a
+value.  It supports no special operations.  There is exactly one null
+object, named "None" (a built-in name).  "type(None)()" produces the
+same singleton.
+
+It is written as "None".
+''',
+    'bltin-type-objects': r'''Type Objects
+************
+
+Type objects represent the various object types.  An object‚Äôs type is
+accessed by the built-in function "type()".  There are no special
+operations on types.  The standard module "types" defines names for
+all standard built-in types.
+
+Types are written like this: "<class 'int'>".
+''',
+    'booleans': r'''Boolean operations
+******************
+
+   or_test  ::= and_test | or_test "or" and_test
+   and_test ::= not_test | and_test "and" not_test
+   not_test ::= comparison | "not" not_test
+
+In the context of Boolean operations, and also when expressions are
+used by control flow statements, the following values are interpreted
+as false: "False", "None", numeric zero of all types, and empty
+strings and containers (including strings, tuples, lists,
+dictionaries, sets and frozensets).  All other values are interpreted
+as true.  User-defined objects can customize their truth value by
+providing a "__bool__()" method.
+
+The operator "not" yields "True" if its argument is false, "False"
+otherwise.
+
+The expression "x and y" first evaluates *x*; if *x* is false, its
+value is returned; otherwise, *y* is evaluated and the resulting value
+is returned.
+
+The expression "x or y" first evaluates *x*; if *x* is true, its value
+is returned; otherwise, *y* is evaluated and the resulting value is
+returned.
+
+Note that neither "and" nor "or" restrict the value and type they
+return to "False" and "True", but rather return the last evaluated
+argument.  This is sometimes useful, e.g., if "s" is a string that
+should be replaced by a default value if it is empty, the expression
+"s or 'foo'" yields the desired value.  Because "not" has to create a
+new value, it returns a boolean value regardless of the type of its
+argument (for example, "not 'foo'" produces "False" rather than "''".)
+''',
+    'break': r'''The "break" statement
+*********************
+
+   break_stmt ::= "break"
+
+"break" may only occur syntactically nested in a "for" or "while"
+loop, but not nested in a function or class definition within that
+loop.
+
+It terminates the nearest enclosing loop, skipping the optional "else"
+clause if the loop has one.
+
+If a "for" loop is terminated by "break", the loop control target
+keeps its current value.
+
+When "break" passes control out of a "try" statement with a "finally"
+clause, that "finally" clause is executed before really leaving the
+loop.
+''',
+    'callable-types': r'''Emulating callable objects
+**************************
+
+object.__call__(self[, args...])
+
+   Called when the instance is ‚Äúcalled‚Äù as a function; if this method
+   is defined, "x(arg1, arg2, ...)" roughly translates to
+   "type(x).__call__(x, arg1, ...)". The "object" class itself does
+   not provide this method.
+''',
+    'calls': r'''Calls
+*****
+
+A call calls a callable object (e.g., a *function*) with a possibly
+empty series of *arguments*:
+
+   call                 ::= primary "(" [argument_list [","] | comprehension] ")"
+   argument_list        ::= positional_arguments ["," starred_and_keywords]
+                            ["," keywords_arguments]
+                            | starred_and_keywords ["," keywords_arguments]
+                            | keywords_arguments
+   positional_arguments ::= positional_item ("," positional_item)*
+   positional_item      ::= assignment_expression | "*" expression
+   starred_and_keywords ::= ("*" expression | keyword_item)
+                            ("," "*" expression | "," keyword_item)*
+   keywords_arguments   ::= (keyword_item | "**" expression)
+                            ("," keyword_item | "," "**" expression)*
+   keyword_item         ::= identifier "=" expression
+
+An optional trailing comma may be present after the positional and
+keyword arguments but does not affect the semantics.
+
+The primary must evaluate to a callable object (user-defined
+functions, built-in functions, methods of built-in objects, class
+objects, methods of class instances, and all objects having a
+"__call__()" method are callable).  All argument expressions are
+evaluated before the call is attempted.  Please refer to section
+Function definitions for the syntax of formal *parameter* lists.
+
+If keyword arguments are present, they are first converted to
+positional arguments, as follows.  First, a list of unfilled slots is
+created for the formal parameters.  If there are N positional
+arguments, they are placed in the first N slots.  Next, for each
+keyword argument, the identifier is used to determine the
+corresponding slot (if the identifier is the same as the first formal
+parameter name, the first slot is used, and so on).  If the slot is
+already filled, a "TypeError" exception is raised. Otherwise, the
+argument is placed in the slot, filling it (even if the expression is
+"None", it fills the slot).  When all arguments have been processed,
+the slots that are still unfilled are filled with the corresponding
+default value from the function definition.  (Default values are
+calculated, once, when the function is defined; thus, a mutable object
+such as a list or dictionary used as default value will be shared by
+all calls that don‚Äôt specify an argument value for the corresponding
+slot; this should usually be avoided.)  If there are any unfilled
+slots for which no default value is specified, a "TypeError" exception
+is raised.  Otherwise, the list of filled slots is used as the
+argument list for the call.
+
+**CPython implementation detail:** An implementation may provide
+built-in functions whose positional parameters do not have names, even
+if they are ‚Äònamed‚Äô for the purpose of documentation, and which
+therefore cannot be supplied by keyword.  In CPython, this is the case
+for functions implemented in C that use "PyArg_ParseTuple()" to parse
+their arguments.
+
+If there are more positional arguments than there are formal parameter
+slots, a "TypeError" exception is raised, unless a formal parameter
+using the syntax "*identifier" is present; in this case, that formal
+parameter receives a tuple containing the excess positional arguments
+(or an empty tuple if there were no excess positional arguments).
+
+If any keyword argument does not correspond to a formal parameter
+name, a "TypeError" exception is raised, unless a formal parameter
+using the syntax "**ident5ô  6ô  7ô  8ô  9ô  :ô  ;ô  <ô  =ô  >ô  ?ô  @ô  Aô  Bô  Cô  Dô  Eô  Fô  Gô  Hô  Iô  Jô  Kô  Lô  Mô  Nô  Oô  Pô  Qô  Rô  Sô  Tô  Uô  Vô  Wô  Xô  Yô  Zô  [ô  \ô  ]ô  ^ô  _ô  `ô  aô  bô  cô  dô  eô  fô  gô  hô  iô  jô  kô  lô  mô  nô  oô  pô  qô  rô  sô  tô  uô  vô  wô  xô  yô  zô  {ô  |ô  }ô  ~ô  ô  Äô  Åô  Çô  Éô  Ñô  Öô  Üô  áô  àô  âô  äô  ãô  åô  çô  éô  èô  êô  ëô  íô  ìô  îô  ïô  ñô  óô  òô  ôô  öô  õô  úô  ùô  ûô  üô  †ô  °ô  ¢ô  £ô  §ô  •ô  ¶ô  ßô  ®ô  ©ô                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              ifier" is present; in this case, that formal
+parameter receives a dictionary containing the excess keyword
+arguments (using the keywords as keys and the argument values as
+corresponding values), or a (new) empty dictionary if there were no
+excess keyword arguments.
+
+If the syntax "*expression" appears in the function call, "expression"
+must evaluate to an *iterable*.  Elements from these iterables are
+treated as if they were additional positional arguments.  For the call
+"f(x1, x2, *y, x3, x4)", if *y* evaluates to a sequence *y1*, ‚Ä¶, *yM*,
+this is equivalent to a call with M+4 positional arguments *x1*, *x2*,
+*y1*, ‚Ä¶, *yM*, *x3*, *x4*.
+
+A consequence of this is that although the "*expression" syntax may
+appear *after* explicit keyword arguments, it is processed *before*
+the keyword arguments (and any "**expression" arguments ‚Äì see below).
+So:
+
+   >>> def f(a, b):
+   ...     print(a, b)
+   ...
+   >>> f(b=1, *(2,))
+   2 1
+   >>> f(a=1, *(2,))
+   Traceback (most recent call last):
+     File "<stdin>", line 1, in <module>
+   TypeError: f() got multiple values for keyword argument 'a'
+   >>> f(1, *(2,))
+   1 2
+
+It is unusual for both keyword arguments and the "*expression" syntax
+to be used in the same call, so in practice this confusion does not
+often arise.
+
+If the syntax "**expression" appears in the function call,
+"expression" must evaluate to a *mapping*, the contents of which are
+treated as additional keyword arguments. If a parameter matching a key
+has already been given a value (by an explicit keyword argument, or
+from another unpacking), a "TypeError" exception is raised.
+
+When "**expression" is used, each key in this mapping must be a
+string. Each value from the mapping is assigned to the first formal
+parameter eligible for keyword assignment whose name is equal to the
+key. A key need not be a Python identifier (e.g. ""max-temp ¬∞F"" is
+acceptable, although it will not match any formal parameter that could
+be declared). If there is no match to a formal parameter the key-value
+pair is collected by the "**" parameter, if there is one, or if there
+is not, a "TypeError" exception is raised.
+
+Formal parameters using the syntax "*identifier" or "**identifier"
+cannot be used as positional argument slots or as keyword argument
+names.
+
+Changed in version 3.5: Function calls accept any number of "*" and
+"**" unpackings, positional arguments may follow iterable unpackings
+("*"), and keyword arguments may follow dictionary unpackings ("**").
+Originally proposed by **PEP 448**.
+
+A call always returns some value, possibly "None", unless it raises an
+exception.  How this value is computed depends on the type of the
+callable object.
+
+If it is‚Äî
+
+a user-defined function:
+   The code block for the function is executed, passing it the
+   argument list.  The first thing the code block will do is bind the
+   formal parameters to the arguments; this is described in section
+   Function definitions.  When the code block executes a "return"
+   statement, this specifies the return value of the function call.
+   If execution reaches the end of the code block without executing a
+   "return" statement, the return value is "None".
+
+a built-in function or method:
+   The result is up to the interpreter; see Built-in Functions for the
+   descriptions of built-in functions and methods.
+
+a class object:
+   A new instance of that class is returned.
+
+a class instance method:
+   The corresponding user-defined function is called, with an argument
+   list that is one longer than the argument list of the call: the
+   instance becomes the first argument.
+
+a class instance:
+   The class must define a "__call__()" method; the effect is then the
+   same as if that method was called.
+''',
+    'class': r'''Class definitions
+*****************
+
+A class definition defines a class object (see section The standard
+type hierarchy):
+
+   classdef    ::= [decorators] "class" classname [type_params] [inheritance] ":" suite
+   inheritance ::= "(" [argument_list] ")"
+   classname   ::= identifier
+
+A class definition is an executable statement.  The inheritance list
+usually gives a list of base classes (see Metaclasses for more
+advanced uses), so each item in the list should evaluate to a class
+object which allows subclassing.  Classes without an inheritance list
+inherit, by default, from the base class "object"; hence,
+
+   class Foo:
+       pass
+
+is equivalent to
+
+   class Foo(object):
+       pass
+
+The class‚Äôs suite is then executed in a new execution frame (see
+Naming and binding), using a newly created local namespace and the
+original global namespace. (Usually, the suite contains mostly
+function definitions.)  When the class‚Äôs suite finishes execution, its
+execution frame is discarded but its local namespace is saved. [5] A
+class object is then created using the inheritance list for the base
+classes and the saved local namespace for the attribute dictionary.
+The class name is bound to this class object in the original local
+namespace.
+
+The order in which attributes are defined in the class body is
+preserved in the new class‚Äôs "__dict__".  Note that this is reliable
+only right after the class is created and only for classes that were
+defined using the definition syntax.
+
+Class creation can be customized heavily using metaclasses.
+
+Classes can also be decorated: just like when decorating functions,
+
+   @f1(arg)
+   @f2
+   class Foo: pass
+
+is roughly equivalent to
+
+   class Foo: pass
+   Foo = f1(arg)(f2(Foo))
+
+The evaluation rules for the decorator expressions are the same as for
+function decorators.  The result is then bound to the class name.
+
+Changed in version 3.9: Classes may be decorated with any valid
+"assignment_expression". Previously, the grammar was much more
+restrictive; see **PEP 614** for details.
+
+A list of type parameters may be given in square brackets immediately
+after the class‚Äôs name. This indicates to static type checkers that
+the class is generic. At runtime, the type parameters can be retrieved
+from the class‚Äôs "__type_params__" attribute. See Generic classes for
+more.
+
+Changed in version 3.12: Type parameter lists are new in Python 3.12.
+
+**Programmer‚Äôs note:** Variables defined in the class definition are
+class attributes; they are shared by instances.  Instance attributes
+can be set in a method with "self.name = value".  Both class and
+instance attributes are accessible through the notation ‚Äú"self.name"‚Äù,
+and an instance attribute hides a class attribute with the same name
+when accessed in this way.  Class attributes can be used as defaults
+for instance attributes, but using mutable values there can lead to
+unexpected results.  Descriptors can be used to create instance
+variables with different implementation details.
+
+See also:
+
+  **PEP 3115** - Metaclasses in Python 3000
+     The proposal that changed the declaration of metaclasses to the
+     current syntax, and the semantics for how classes with
+     metaclasses are constructed.
+
+  **PEP 3129** - Class Decorators
+     The proposal that added class decorators.  Function and method
+     decorators were introduced in **PEP 318**.
+''',
+    'comparisons': r'''Comparisons
+***********
+
+Unlike C, all comparison operations in Python have the same priority,
+which is lower than that of any arithmetic, shifting or bitwise
+operation.  Also unlike C, expressions like "a < b < c" have the
+interpretation that is conventional in mathematics:
+
+   comparison    ::= or_expr (comp_operator or_expr)*
+   comp_operator ::= "<" | ">" | "==" | ">=" | "<=" | "!="
+                     | "is" ["not"] | ["not"] "in"
+
+Comparisons yield boolean values: "True" or "False". Custom *rich
+comparison methods* may return non-boolean values. In this case Python
+will call "bool()" on such value in boolean contexts.
+
+Comparisons can be chained arbitrarily, e.g., "x < y <= z" is
+equivalent to "x < y and y <= z", except that "y" is evaluated only
+once (but in both cases "z" is not evaluated at all when "x < y" is
+found to be false).
+
+Formally, if *a*, *b*, *c*, ‚Ä¶, *y*, *z* are expressions and *op1*,
+*op2*, ‚Ä¶, *opN* are comparison operators, then "a op1 b op2 c ... y
+opN z" is equivalent to "a op1 b and b op2 c and ... y opN z", except
+that each expression is evaluated at most once.
+
+Note that "a op1 b op2 c" doesn‚Äôt imply any kind of comparison between
+*a* and *c*, so that, e.g., "x < y > z" is perfectly legal (though
+perhaps not pretty).
+
+
+Value comparisons
+=================
+
+The operators "<", ">", "==", ">=", "<=", and "!=" compare the values
+of two objects.  The objects do not need to have the same type.
+
+Chapter Objects, values and types states that objects have a value (in
+addition to type and identity).  The value of an object is a rather
+abstract notion in Python: For example, there is no canonical access
+method for an object‚Äôs value.  Also, there is no requirement that the
+value of an object should be constructed in a particular way, e.g.
+comprised of all its data attributes. Comparison operators implement a
+particular notion of what the value of an object is.  One can think of
+them as defining the value of an object indirectly, by means of their
+comparison implementation.
+
+Because all types are (direct or indirect) subtypes of "object", they
+inherit the default comparison behavior from "object".  Types can
+customize their comparison behavior by implementing *rich comparison
+methods* like "__lt__()", described in Basic customization.
+
+The default behavior for equality comparison ("==" and "!=") is based
+on the identity of the objects.  Hence, equality comparison of
+instances with the same identity results in equality, and equality
+comparison of instances with different identities results in
+inequality.  A motivation for this default behavior is the desire that
+all objects should be reflexive (i.e. "x is y" implies "x == y").
+
+A default order comparison ("<", ">", "<=", and ">=") is not provided;
+an attempt raises "TypeError".  A motivation for this default behavior
+is the lack of a similar invariant as for equality.
+
+The behavior of the default equality comparison, that instances with
+different identities are always unequal, may be in contrast to what
+types will need that have a sensible definition of object value and
+value-based equality.  Such types will need to customize their
+comparison behavior, and in fact, a number of built-in types have done
+that.
+
+The following list describes the comparison behavior of the most
+important built-in types.
+
+* Numbers of built-in numeric types (Numeric Types ‚Äî int, float,
+  complex) and of the standard library types "fractions.Fraction" and
+  "decimal.Decimal" can be compared within and across their types,
+  with the restriction that complex numbers do not support order
+  comparison.  Within the limits of the types involved, they compare
+  mathematically (algorithmically) correct without loss of precision.
+
+  The not-a-number values "float('NaN')" and "decimal.Decimal('NaN')"
+  are special.  Any ordered comparison of a number to a not-a-number
+  value is false. A counter-intuitive implication is that not-a-number
+  values are not equal to themselves.  For example, if "x =
+  float('NaN')", "3 < x", "x < 3" and "x == x" are all false, while "x
+  != x" is true.  This behavior is compliant with IEEE 754.
+
+* "None" and "NotImplemented" are singletons.  **PEP 8** advises that
+  comparisons for singletons should always be done with "is" or "is
+  not", never the equality operators.
+
+* Binary sequences (instances of "bytes" or "bytearray") can be
+  compared within and across their types.  They compare
+  lexicographically using the numeric values of their elements.
+
+* Strings (instances of "str") compare lexicographically using the
+  numerical Unicode code points (the result of the built-in function
+  "ord()") of their characters. [3]
+
+  Strings and binary sequences cannot be directly compared.
+
+* Sequences (instances of "tuple", "list", or "range") can be compared
+  only within each of their types, with the restriction that ranges do
+  not support order comparison.  Equality comparison across these
+  types results in inequality, and ordering comparison across these
+  types raises "TypeError".
+
+  Sequences compare lexicographically using comparison of
+  corresponding elements.  The built-in containers typically assume
+  identical objects are equal to themselves.  That lets them bypass
+  equality tests for identical objects to improve performance and to
+  maintain their internal invariants.
+
+  Lexicographical comparison between built-in collections works as
+  follows:
+
+  * For two collections to compare equal, they must be of the same
+    type, have the same length, and each pair of corresponding
+    elements must compare equal (for example, "[1,2] == (1,2)" is
+    false because the type is not the same).
+
+  * Collections that support order comparison are ordered the same as
+    their first unequal elements (for example, "[1,2,x] <= [1,2,y]"
+    has the same value as "x <= y").  If a corresponding element does
+    not exist, the shorter collection is ordered first (for example,
+    "[1,2] < [1,2,3]" is true).
+
+* Mappings (instances of "dict") compare equal if and only if they
+  have equal "(key, value)" pairs. Equality comparison of the keys and
+  values enforces reflexivity.
+
+  Order comparisons ("<", ">", "<=", and ">=") raise "TypeError".
+
+* Sets (instances of "set" or "frozenset") can be compared within and
+  across their types.
+
+  They define order comparison operators to mean subset and superset
+  tests.  Those relations do not define total orderings (for example,
+  the two sets "{1,2}" and "{2,3}" are not equal, nor subsets of one
+  another, nor supersets of one another).  Accordingly, sets are not
+  appropriate arguments for functions which depend on total ordering
+  (for example, "min()", "max()", and "sorted()" produce undefined
+  results given a list of sets as inputs).
+
+  Comparison of sets enforces reflexivity of its elements.
+
+* Most other built-in types have no comparison methods implemented, so
+  they inherit the default comparison behavior.
+
+User-defined classes that customize their comparison behavior should
+follow some consistency rules, if possible:
+
+* Equality comparison should be reflexive. In other words, identical
+  objects should compare equal:
+
+     "x is y" implies "x == y"
+
+* Comparison should be symmetric. In other words, the following
+  expressions should have the same result:
+
+     "x == y" and "y == x"
+
+     "x != y" and "y != x"
+
+     "x < y" and "y > x"
+
+     "x <= y" and "y >= x"
+
+* Comparison should be transitive. The following (non-exhaustive)
+  examples illustrate that:
+
+     "x > y and y > z" implies "x > z"
+
+     "x < y and y <= z" implies "x < z"
+
+* Inverse comparison should result in the boolean negation. In other
+  words, the following expressions should have the same result:
+
+     "x == y" and "not x != y"
+
+     "x < y" and "not x >= y" (for total ordering)
+
+     "x > y" and "not x <= y" (for total ordering)
+
+  The last two expressions apply to totally ordered collections (e.g.
+  to sequences, but not to sets or mappings). See also the
+  "total_ordering()" decorator.
+
+* The "hash()" result should be consistent with equality. Objects that
+  are equal should either have the same hash value, or be marked as
+  unhashable.
+
+Python does not enforce these consistency rules. In fact, the
+not-a-number values are an example for not following these rules.
+
+
+Membership test operations
+==========================
+
+The operators "in" and "not in" test for membership.  "x in s"
+evaluates to "True" if *x* is a member of *s*, and "False" otherwise.
+"x not in s" returns the negation of "x in s".  All built-in sequences
+and set types support this as well as dictionary, for which "in" tests
+whether the dictionary has a given key. For container types such as
+list, tuple, set, frozenset, dict, or collections.deque, the
+expression "x in y" is equivalent to "any(x is e or x == e for e in
+y)".
+
+For the string and bytes types, "x in y" is "True" if and only if *x*
+is a substring of *y*.  An equivalent test is "y.find(x) != -1".
+Empty strings are always considered to be a substring of any other
+string, so """ in "abc"" will return "True".
+
+For user-defined classes which define the "__contains__()" method, "x
+in y" returns "True" if "y.__contains__(x)" returns a true value, and
+"False" otherwise.
+
+For user-defined classes which do not define "__contains__()" but do
+define "__iter__()", "x in y" is "True" if some value "z", for which
+the expression "x is z or x == z" is true, is produced while iterating
+over "y". If an exception is raised during the iteration, it is as if
+"in" raised that exception.
+
+Lastly, the old-style iteration protocol is tried: if a class defines
+"__getitem__()", "x in y" is "True" if and only if there is a non-
+negative integer index *i* such that "x is y[i] or x == y[i]", and no
+lower integer index raises the "IndexError" exception.  (If any other
+exception is raised, it is as if "in" raised that exception).
+
+The operator "not in" is defined to have the inverse truth value of
+"in".
+
+
+Identity comparisons
+====================
+
+The operators "is" and "is not" test for an object‚Äôs identity: "x is
+y" is true if and only if *x* and *y* are the same object.  An
+Object‚Äôs identity is determined using the "id()" function.  "x is not
+y" yields the inverse truth value. [4]
+''',
+    'compound': r'''Compound statements
+*******************
+
+Compound statements contain (groups of) other statements; they affect
+or control the execution of those other statements in some way.  In
+general, compound statements span multiple lines, although in simple
+incarnations a whole compound statement may be contained in one line.
+
+The "if", "while" and "for" statements implement traditional control
+flow constructs.  "try" specifies exception handlers and/or cleanup
+code for a group of statements, while the "with" statement allows the
+execution of initialization and finalization code around a block of
+code.  Function and class definitions are also syntactically compound
+statements.
+
+A compound statement consists of one or more ‚Äòclauses.‚Äô  A clause
+consists of a header and a ‚Äòsuite.‚Äô  The clause headers of a
+particular compound statement are all at the same indentation level.
+Each clause header begins with a uniquely identifying keyword and ends
+with a colon.  A suite is a group of statements controlled by a
+clause.  A suite can be one or more semicolon-separated simple
+statements on the same line as the header, following the header‚Äôs
+colon, or it can be one or more indented statements on subsequent
+lines.  Only the latter form of a suite can contain nested compound
+statements; the following is illegal, mostly because it wouldn‚Äôt be
+clear to which "if" clause a following "else" clause would belong:
+
+   if test1: if test2: print(x)
+
+Also note that the semicolon binds tighter than the colon in this
+context, so that in the following example, either all or none of the
+"print()" calls are executed:
+
+   if x < y < z: print(x); print(y); print(z)
+
+Summarizing:
+
+   compound_stmt ::= if_stmt
+                     | while_stmt
+                     | for_stmt
+                     | try_stmt
+                     | with_stmt
+                     | match_stmt
+                     | funcdef
+                     | classdef
+                     | async_with_stmt
+                     | async_for_stmt
+                     | async_funcdef
+   suite         ::= stmt_list NEWLINE | NEWLINE INDENT statement+ DEDENT
+   statement     ::= stmt_list NEWLINE | compound_stmt
+   stmt_list     ::= simple_stmt (";" simple_stmt)* [";"]
+
+Note that statements always end in a "NEWLINE" possibly followed by a
+"DEDENT".  Also note that optional continuation clauses always begin
+with a keyword that cannot start a statement, thus there are no
+ambiguities (the ‚Äòdangling "else"‚Äô problem is solved in Python by
+requiring nested "if" statements to be indented).
+
+The formatting of the grammar rules in the following sections places
+each clause on a separate line for clarity.
+
+
+The "if" statement
+==================
+
+The "if" statement is used for conditional execution:
+
+   if_stmt ::= "if" assignment_expression ":" suite
+               ("elif" assignment_expression ":" suite)*
+               ["else" ":" suite]
+
+It selects exactly one of the suites by evaluating the expressions one
+by one until one is found to be true (see section Boolean operations
+for the definition of true and false); then that suite is executed
+(and no other part of the "if" statement is executed or evaluated).
+If all expressions are false, the suite of the "else" clause, if
+present, is executed.
+
+
+The "while" statement
+=====================
+
+The "while" statement is used for repeated execution as long as an
+expression is true:
+
+   while_stmt ::= "while" assignment_expression ":" suite
+                  ["else" ":" suite]
+
+This repeatedly tests the expression and, if it is true, executes the
+first suite; if the expression is false (which may be the first time
+it is tested) the suite of the "else" clause, if present, is executed
+and the loop terminates.
+
+A "break" statement executed in the first suite terminates the loop
+without executing the "else" clause‚Äôs suite.  A "continue" statement
+executed in the first suite skips the rest of the suite and goes back
+to testing the expression.
+
+
+The "for" statement
+===================
+
+The "for" statement is used to iterate over the elements of a sequence
+(such as a string, tuple or list) or other iterable object:
+
+   for_stmt ::= "for" target_list "in" starred_list ":" suite
+                ["else" ":" suite]
+
+The "starred_list" expression is evaluated once; it should yield an
+*iterable* object.  An *iterator* is created for that iterable. The
+first item provided by the iterator is then assigned to the target
+list using the standard rules for assignments (see Assignment
+statements), and the suite is executed.  This repeats for each item
+provided by the iterator.  When the iterator is exhausted, the suite
+in the "else" clause, if present, is executed, and the loop
+terminates.
+
+A "break" statement executed in the first suite terminates the loop
+without executing the "else" clause‚Äôs suite.  A "continue" statement
+executed in the first suite skips the rest of the suite and continues
+with the next item, or with the "else" clause if there is no next
+item.
+
+The for-loop makes assignments to the variables in the target list.
+This overwrites all previous assignments to those variables including
+those made in the suite of the for-loop:
+
+   for i in range(10):
+       print(i)
+       i = 5             # this will not affect the for-loop
+                         # because i will be overwritten with the next
+                         # index in the range
+
+Names in the target list are not deleted when the loop is finished,
+but if the sequence is empty, they will not have been assigned to at
+all by the loop.  Hint: the built-in type "range()" represents
+immutable arithmetic sequences of integers. For instance, iterating
+"range(3)" successively yields 0, 1, and then 2.
+
+Changed in version 3.11: Starred elements are now allowed in the
+expression list.
+
+
+The "try" statement
+===================
+
+The "try" statement specifies exception handlers and/or cleanup code
+for a group of statements:
+
+   try_stmt  ::= try1_stmt | try2_stmt | try3_stmt
+   try1_stmt ::= "try" ":" suite
+                 ("except" [expression ["as" identifier]] ":" suite)+
+                 ["else" ":" suite]
+                 ["finally" ":" suite]
+   try2_stmt ::= "try" ":" suite
+                 ("except" "*" expression ["as" identifier] ":" suite)+
+                 ["else" ":" suite]
+                 ["finally" ":" suite]
+   try3_stmt ::= "try" ":" suite
+                 "finally" ":" suite
+
+Additional information on exceptions can be found in section
+Exceptions, and information on using the "raise" statement to generate
+exceptions may be found in section The raise statement.
+
+
+"except" clause
+---------------
+
+The "except" clause(s) specify one or more exception handlers. When no
+exception occurs in the "try" clause, no exception handler is
+executed. When an exception occurs in the "try" suite, a search for an
+exception handler is started. This search inspects the "except"
+clauses in turn until one is found that matches the exception. An
+expression-less "except" clause, if present, must be last; it matches
+any exception.
+
+For an "except" clause with an expression, the expression must
+evaluate to an exception type or a tuple of exception types. The
+raised exception matches an "except" clause whose expression evaluates
+to the class or a *non-virtual base class* of the exception object, or
+to a tuple that contains such a class.
+
+If no "except" clause matches the exception, the search for an
+exception handler continues in the surrounding code and on the
+invocation stack.  [1]
+
+If the evaluation of an expression in the header of an "except" clause
+raises an exception, the original search for a handler is canceled and
+a search starts for the new exception in the surrounding code and on
+the call stack (it is treated as if the entire "try" statement raised
+the exception).
+
+When a matching "except" clause is found, the exception is assigned to
+the target specified after the "as" keyword in that "except" clause,
+if present, and the "except" clause‚Äôs suite is executed. All "except"
+clauses must have an executable block. When the end of this block is
+reached, execution continues normally after the entire "try"
+statement. (This means that if two nested handlers exist for the same
+exception, and the exception occurs in the "try" clause of the inner
+handler, the outer handler will not handle the exception.)
+
+When an exception has been assigned using "as target", it is cleared
+at the end of the "except" clause.  This is as if
+
+   except E as N:
+       foo
+
+was translated to
+
+   except E as N:
+       try:
+           foo
+       finally:
+           del N
+
+This means the exception must be assigned to a different name to be
+able to refer to it after the "except" clause. Exceptions are cleared
+because with the traceback attached to them, they form a reference
+cycle with the stack frame, keeping all locals in that frame alive
+until the next garbage collection occurs.
+
+Before an "except" clause‚Äôs suite is executed, the exception is stored
+in the "sys" module, where it can be accessed from within the body of
+the "except" clause by calling "sys.exception()". When leaving an
+exception handler, the exception stored in the "sys" module is reset
+to its previous value:
+
+   >>> print(sys.exception())
+   None
+   >>> try:
+   ...     raise TypeError
+   ... except:
+   ...     print(repr(sys.exception()))
+   ...     try:
+   ...          raise ValueError
+   ...     except:
+   ...         print(repr(sys.exception()))
+   ...     print(repr(sys.exception()))
+   ...
+   TypeError()
+   ValueError()
+   TypeError()
+   >>> print(sys.exception())
+   None
+
+
+"except*" clause
+----------------
+
+The "except*" clause(s) are used for handling "ExceptionGroup"s. The
+exception type for matching is interpreted as in the case of "except",
+but in the case of exception groups we can have partial matches when
+the type matches some of the exceptions in the group. This means that
+multiple "except*" clauses can execute, each handling part of the
+exception group. Each clause executes at most once and handles an
+exception group of all matching exceptions.  Each exception in the
+group is handled by at most one "except*" clause, the first that
+matches it.
+
+   >>> try:
+   ...     raise ExceptionGroup("eg",
+   ...         [ValueError(1), TypeError(2), OSError(3), OSError(4)])
+   ... except* TypeError as e:
+   ...     print(f'caught {type(e)} with nested {e.exceptions}')
+   ... except* OSError as e:
+   ...     print(f'caught {type(e)} with nested {e.exceptions}')
+   ...
+   caught <class 'ExceptionGroup'> with nested (TypeError(2),)
+   caught <class 'ExceptionGroup'> with nested (OSError(3), OSError(4))
+     + Exception Group Traceback (most recent call last):
+     |   File "<stdin>", line 2, in <module>
+     | ExceptionGroup: eg
+     +-+---------------- 1 ----------------
+       | ValueError: 1
+       +------------------------------------
+
+Any remaining exceptions that were not handled by any "except*" clause
+are re-raised at the end, along with all exceptions that were raised
+from within the "except*" clauses. If this list contains more than one
+exception to reraise, they are combined into an exception group.
+
+If the raised exception is not an exception group and its type matches
+one of the "except*" clauses, it is caught and wrapped by an exception
+group with an empty message string.
+
+   >>> try:
+   ...     raise BlockingIOError
+   ... except* BlockingIOError as e:
+   ...     print(repr(e))
+   ...
+   ExceptionGroup('', (BlockingIOError()))
+
+An "except*" clause must have a matching expression; it cannot be
+"except*:". Furthermore, this expression cannot contain exception
+group types, because that would have ambiguous semantics.
+
+It is not possible to mix "except" and "except*" in the same "try".
+"break", "continue" and "return" cannot appear in an "except*" clause.
+
+
+"else" clause
+-------------
+
+The optional "else" clause is executed if the control flow leaves the
+"try" suite, no exception was raised, and no "return", "continue", or
+"break" statement was executed.  Exceptions in the "else" clause are
+not handled by the preceding "except" clauses.
+
+
+"finally" clause
+----------------
+
+If "finally" is present, it specifies a ‚Äòcleanup‚Äô handler.  The "try"
+clause is executed, including any "except" and "else" clauses.  If an
+exception occurs in any of the clauses and is not handled, the
+exception is temporarily saved. The "finally" clause is executed.  If
+there is a saved exception it is re-raised at the end of the "finally"
+clause.  If the "finally" clause raises another exception, the saved
+exception is set as the context of the new exception. If the "finally"
+clause executes a "return", "break" or "continue" statement, the saved
+exception is discarded:
+
+   >>> def f():
+   ...     try:
+   ...         1/0
+   ...     finally:
+   ...         return 42
+   ...
+   >>> f()
+   42
+
+The exception information is not available to the program during
+execution of the "finally" clause.
+
+When a "return", "break" or "continue" statement is executed in the
+"try" suite of a "try"‚Ä¶"finally" statement, the "finally" clause is
+also executed ‚Äòon the way out.‚Äô
+
+The return value of a function is determined by the last "return"
+statement executed.  Since the "finally" clause always executes, a
+"return" statement executed in the "finally" clause will always be the
+last one executed:
+
+   >>> def foo():
+   ...     try:
+   ...         return 'try'
+   ...     finally:
+   ...         return 'finally'
+   ...
+   >>> foo()
+   'finally'
+
+Changed in version 3.8: Prior to Python 3.8, a "continue" statement
+was illegal in the "finally" clause due to a problem with the
+implementation.
+
+
+The "with" statement
+====================
+
+The "with" statement is used to wrap the execution of a block with
+methods defined by a context manager (see section With Statement
+Context Managers). This allows common "try"‚Ä¶"except"‚Ä¶"finally" usage
+patterns to be encapsulated for convenient reuse.
+
+   with_stmt          ::= "with" ( "(" with_stmt_contents ","? ")" | with_stmt_contents ) ":" suite
+   with_stmt_contents ::= with_item ("," with_item)*
+   with_item          ::= expression ["as" target]
+
+The execution of the "with" statement with one ‚Äúitem‚Äù proceeds as
+follows:
+
+1. The context expression (the expression given in the "with_item") is
+   evaluated to obtain a context manager.
+
+2. The context manager‚Äôs "__enter__()" is loaded for later use.
+
+3. The context manager‚Äôs "__exit__()" is loaded for later use.
+
+4. The context manager‚Äôs "__enter__()" method is invoked.
+
+5. If a target was included in the "with" statement, the return value
+   from "__enter__()" is assigned to it.
+
+   Note:
+
+     The "with" statement guarantees that if the "__enter__()" method
+     returns without an error, then "__exit__()" will always be
+     called. Thus, if an error occurs during the assignment to the
+     target list, it will be treated the same as an error occurring
+     within the suite would be. See step 7 below.
+
+6. The suite is executed.
+
+7. The context manager‚Äôs "__exit__()" method is invoked.  If an
+   exception caused the suite to be exited, its type, value, and
+   traceback are passed as arguments to "__exit__()". Otherwise, three
+   "None" arguments are supplied.
+
+   If the suite was exited due to an exception, and the return value
+   from the "__exit__()" method was false, the exception is reraised.
+   If the return value was true, the exception is suppressed, and
+   execution continues with the statement following the "with"
+   statement.
+
+   If the suite was exited for any reason other than an exception, the
+   return value from "__exit__()" is ignored, and execution proceeds
+   at the normal location for the kind of exit that was taken.
+
+The following code:
+
+   with EXPRESSION as TARGET:
+       SUITE
+
+is semantically equivalent to:
+
+   manager = (EXPRESSION)
+   enter = type(manager).__enter__
+   exit = type(manager).__exit__
+   value = enter(manager)
+   hit_except = False
+
+   try:
+       TARGET = value
+       SUITE
+   except:
+       hit_except = True
+       if not exit(manager, *sys.exc_info()):
+           raise
+   finally:
+       if not hit_except:
+           exit(manager, None, None, None)
+
+With more than one item, the context managers are processed as if
+multiple "with" statements were nested:
+
+   with A() as a, B() as b:
+       SUITE
+
+is semantically equivalent to:
+
+   with A() as a:
+       with B() as b:
+           SUITE
+
+You can also write multi-item context managers in multiple lines if
+the items are surrounded by parentheses. For example:
+
+   with (
+       A() as a,
+       B() as b,
+   ):
+       SUITE
+
+Changed in version 3.1: Support for multiple context expressions.
+
+Changed in version 3.10: Support for using grouping parentheses to
+break the statement in multiple lines.
+
+See also:
+
+  **PEP 343** - The ‚Äúwith‚Äù statement
+     The specification, background, and examples for the Python "with"
+     statement.
+
+
+The "match" statement
+=====================
+
+Added in version 3.10.
+
+The match statement is used for pattern matching.  Syntax:
+
+   match_stmt   ::= 'match' subject_expr ":" NEWLINE INDENT case_block+ DEDENT
+   subject_expr ::= star_named_expression "," star_named_expressions?
+                    | named_expression
+   case_block   ::= 'case' patterns [guard] ":" block
+
+Note:
+
+  This section uses single quotes to denote soft keywords.
+
+Pattern matching takes a pattern as input (following "case") and a
+subject value (following "match").  The pattern (which may contain
+subpatterns) is matched against the subject value.  The outcomes are:
+
+* A match success or failure (also termed a pattern success or
+  failure).
+
+* Possible binding of matched values to a name.  The prerequisites for
+  this are further discussed below.
+
+The "match" and "case" keywords are soft keywords.
+
+See also:
+
+  * **PEP 634** ‚Äì Structural Pattern Matching: Specification
+
+  * **PEP 636** ‚Äì Structural Pattern Matching: Tutorial
+
+
+Overview
+--------
+
+Here‚Äôs an overview of the logical flow of a match statement:
+
+1. The subject expression "subject_expr" is evaluated and a resulting
+   subject value obtained. If the subject expression contains a comma,
+   a tuple is constructed using the standard rules.
+
+2. Each pattern in a "case_block" is attempted to match with the
+   subject value. The specific rules for success or failure are
+   described below. The match attempt can also bind some or all of the
+   standalone names within the pattern. The precise pattern binding
+   rules vary per pattern type and are specified below.  **Name
+   bindings made during a successful pattern match outlive the
+   executed block and can be used after the match statement**.
+
+   Note:
+
+     During failed pattern matches, some subpatterns may succeed.  Do
+     not rely on bindings being made for a failed match.  Conversely,
+     do not rely on variables remaining unchanged after a failed
+     match.  The exact behavior is dependent on implementation and may
+     vary.  This is an intentional decision made to allow different
+     implementations to add optimizations.
+
+3. If the pattern succeeds, the corresponding guard (if present) is
+   evaluated. In this case all name bindings are guaranteed to have
+   happened.
+
+   * If the guard evaluates as true or is missing, the "block" inside
+     "case_block" is executed.
+
+   * Otherwise, the next "case_block" is attempted as described above.
+
+   * If there are no further case blocks, the match statement is
+     completed.
+
+Note:
+
+  Users should generally never rely on a pattern being evaluated.
+  Depending on implementation, the interpreter may cache values or use
+  other optimizations which skip repeated evaluations.
+
+A sample match statement:
+
+   >>> flag = False
+   >>> match (100, 200):
+   ...    case (100, 300):  # Mismatch: 200 != 300
+   ...        print('Case 1')
+   ...    case (100, 200) if flag:  # Successful match, but guard fails
+   ...        print('Case 2')
+   ...    case (100, y):  # Matches and binds y to 200
+   ...        print(f'Case 3, y: {y}')
+   ...    case _:  # Pattern not attempted
+   ...        print('Case 4, I match anything!')
+   ...
+   Case 3, y: 200
+
+In this case, "if flag" is a guard.  Read more about that in the next
+section.
+
+
+Guards
+------
+
+   guard ::= "if" named_expression
+
+A "guard" (which is part of the "case") must succeed for code inside
+the "case" block to execute.  It takes the form: "if" followed by an
+expression.
+
+The logical flow of a "case" block with a "guard" follows:
+
+1. Check that the pattern in the "case" block succeeded.  If the
+   pattern failed, the "guard" is not evaluated and the next "case"
+   block is checked.
+
+2. If the pattern succeeded, evaluate the "guard".
+
+   * If the "guard" condition evaluates as true, the case block is
+     selected.
+
+   * If the "guard" condition evaluates as false, the case block is
+     not selected.
+
+   * If the "guard" raises an exception during evaluation, the
+     exception bubbles up.
+
+Guards are allowed to have side effects as they are expressions.
+Guard evaluation must proceed from the first to the last case block,
+one at a time, skipping case blocks whose pattern(s) don‚Äôt all
+succeed. (I.e., guard evaluation must happen in order.) Guard
+evaluation must stop once a case block is selected.
+
+
+Irrefutable Case Blocks
+-----------------------
+
+An irrefutable case block is a match-all case block.  A match
+statement may have at most one irrefutable case block, and it must be
+last.
+
+A case block is considered irrefutable if it has no guard and its
+pattern is irrefutable.  A pattern is considered irrefutable if we can
+prove from its syntax alone that it will always succeed.  Only the
+following patterns are irrefutable:
+
+* AS Patterns whose left-hand side is irrefutable
+
+* OR Patterns containing at least one irrefutable pattern
+
+* Capture Patterns
+
+* Wildcard Patterns
+
+* parenthesized irrefutable patterns
+
+
+Patterns
+--------
+
+Note:
+
+  This section uses grammar notations beyond standard EBNF:
+
+  * the notation "SEP.RULE+" is shorthand for "RULE (SEP RULE)*"
+
+  * the notation "!RULE" is shorthand for a negative lookahead
+    assertion
+
+The top-level syntax for "patterns" is:
+
+   patterns       ::= open_sequence_pattern | pattern
+   pattern        ::= as_pattern | or_pattern
+   closed_pattern ::= | literal_pattern
+                      | capture_pattern
+                      | wildcard_pattern
+                      | value_pattern
+                      | group_pattern
+                      | sequence_pattern
+                      | mapping_pattern
+                      | class_pattern
+
+The descriptions below will include a description ‚Äúin simple terms‚Äù of
+what a pattern does for illustration purposes (credits to Raymond
+Hettinger for a document that inspired most of the descriptions). Note
+that these descriptions are purely for illustration purposes and **may
+not** reflect the underlying implementation.  Furthermore, they do not
+cover all valid forms.
+
+
+OR Patterns
+~~~~~~~~~~~
+
+An OR pattern is two or more patterns separated by vertical bars "|".
+Syntax:
+
+   or_pattern ::= "|".closed_pattern+
+
+Only the final subpattern may be irrefutable, and each subpattern must
+bind the same set of names to avoid ambiguity.
+
+An OR pattern matches each of its subpatterns in turn to the subject
+value, until one succeeds.  The OR pattern is then considered
+successful.  Otherwise, if none of the subpatterns succeed, the OR
+pattern fails.
+
+In simple terms, "P1 | P2 | ..." will try to match "P1", if it fails
+it will try to match "P2", succeeding immediately if any succeeds,
+failing otherwise.
+
+
+AS Patterns
+~~~~~~~~~~~
+
+An AS pattern matches an OR pattern on the left of the "as" keyword
+against a subject.  Syntax:
+
+   as_pattern ::= or_pattern "as" capture_pattern
+
+If the OR pattern fails, the AS pattern fails.  Otherwise, the AS
+pattern binds the subject to the name on the right of the as keyword
+and succeeds. "capture_pattern" cannot be a "_".
+
+In simple terms "P as NAME" will match with "P", and on success it
+will set "NAME = <subject>".
+
+
+Literal Patterns
+~~~~~~~~~~~~~~~~
+
+A literal pattern corresponds to most literals in Python.  Syntax:
+
+   literal_pattern ::= signed_number
+                       | signed_number "+" NUMBER
+                       | signed_number "-" NUMBER
+                       | strings
+                       | "None"
+                       | "True"
+                       | "False"
+   signed_number   ::= ["-"] NUMBER
+
+The rule "strings" and the token "NUMBER" are defined in the standard
+Python grammar.  Triple-quoted strings are supported.  Raw strings and
+byte strings are supported.  f-strings are not supported.
+
+The forms "signed_number '+' NUMBER" and "signed_number '-' NUMBER"
+are for expressing complex numbers; they require a real number on the
+left and an imaginary number on the right. E.g. "3 + 4j".
+
+In simple terms, "LITERAL" will succeed only if "<subject> ==
+LITERAL". For the singletons "None", "True" and "False", the "is"
+operator is used.
+
+
+Capture Patterns
+~~~~~~~~~~~~~~~~
+
+A capture pattern binds the subject value to a name. Syntax:
+
+   capture_pattern ::= !'_' NAME
+
+A single underscore "_" is not a capture pattern (this is what "!'_'"
+expresses). It is instead treated as a "wildcard_pattern".
+
+In a given pattern, a given name can only be bound once.  E.g. "case
+x, x: ..." is invalid while "case [x] | x: ..." is allowed.
+
+Capture patterns always succeed.  The binding follows scoping rules
+established by the assignment expression operator in **PEP 572**; the
+name becomes a local variable in the closest containing function scope
+unless there‚Äôs an applicable "global" or "nonlocal" statement.
+
+In simple terms "NAME" will always succeed and it will set "NAME =
+<subject>".
+
+
+Wildcard Patterns
+~~~~~~~~~~~~~~~~~
+
+A wildcard pattern always succeeds (matches anything) and binds no
+name.  Syntax:
+
+   wildcard_pattern ::= '_'
+
+"_" is a soft keyword within any pattern, but only within patterns.
+It is an identifier, as usual, even within "match" subject
+expressions, "guard"s, and "case" blocks.
+
+In simple terms, "_" will always succeed.
+
+
+Value Patterns
+~~~~~~~~~~~~~~
+
+A value pattern represents a named value in Python. Syntax:
+
+   value_pattern ::= attr
+   attr          ::= name_or_attr "." NAME
+   name_or_attr  ::= attr | NAME
+
+The dotted name in the pattern is looked up using standard Python name
+resolution rules.  The pattern succeeds if the value found compares
+equal to the subject value (using the "==" equality operator).
+
+In simple terms "NAME1.NAME2" will succeed only if "<subject> ==
+NAME1.NAME2"
+
+Note:
+
+  If the same value occurs multiple times in the same match statement,
+  the interpreter may cache the first value found and reuse it rather
+  than repeat the same lookup.  This cache is strictly tied to a given
+  execution of a given match statement.
+
+
+Group Patterns
+~~~~~~~~~~~~~~
+
+A group pattern allows users to add parentheses around patterns to
+emphasize the intended grouping.  Otherwise, it has no additional
+syntax. Syntax:
+
+   group_pattern ::= "(" pattern ")"
+
+In simple terms "(P)" has the same effect as "P".
+
+
+Sequence Patterns
+~~~~~~~~~~~~~~~~~
+
+A sequence pattern contains several subpatterns to be matched against
+sequence elements. The syntax is similar to the unpacking of a list or
+tuple.
+
+   sequence_pattern       ::= "[" [maybe_sequence_pattern] "]"
+                              | "(" [open_sequence_pattern] ")"
+   open_sequence_pattern  ::= maybe_star_pattern "," [maybe_sequence_pattern]
+   maybe_sequence_pattern ::= ",".maybe_star_pattern+ ","?
+   maybe_star_pattern     ::= star_p

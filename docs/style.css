@@ -21,11 +21,131 @@ body {
 .left-section {
     flex: 2;
     background: #ffffff;
-    padding: 40px;
+    padding: 30px;
     display: flex;
     flex-direction: column;
-    justify-content: center;
+    overflow-y: auto;
+}
+
+.dashboard-header {
+    margin-bottom: 25px;
+}
+
+.dashboard-header h1 {
+    font-size: 28px;
+    color: #333;
+    margin-bottom: 15px;
+}
+
+.search-box {
+    width: 100%;
+    padding: 12px 16px;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 14px;
+    transition: border-color 0.2s;
+}
+
+.search-box:focus {
+    outline: none;
+    border-color: #4CAF50;
+}
+
+.category {
+    margin-bottom: 30px;
+}
+
+.category-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid #e0e0e0;
+}
+
+.app-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.app-item {
+    padding: 14px 16px;
+    background: #f9f9f9;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    justify-content: space-between;
     align-items: center;
+}
+
+.app-item:hover {
+    background: #f1f8f4;
+    border-color: #4CAF50;
+    transform: translateX(4px);
+}
+
+.app-item.hidden {
+    display: none;
+}
+
+.app-item.running {
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+.app-info {
+    flex: 1;
+}
+
+.app-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 4px;
+}
+
+.app-description {
+    font-size: 12px;
+    color: #666;
+    line-height: 1.4;
+}
+
+.app-script {
+    display: none;
+    font-size: 12px;
+    color: #666;
+    line-height: 1.4;
+}
+
+.run-btn {
+    background: #4CAF50;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 600;
+    transition: all 0.2s;
+    white-space: nowrap;
+}
+
+.run-btn:hover:not(:disabled) {
+    background: #45a049;
+    transform: scale(1.05);
+}
+
+.run-btn:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+}
+
+.run-btn.running {
+    background: #ff9800;
 }
 
 .right-section {
@@ -174,6 +294,21 @@ body {
     background: #cc0000;
 }
 
+.file-download {
+    background: #2196F3;
+    color: white;
+    border: none;
+    padding: 4px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 11px;
+    margin-left: 10px;
+}
+
+.file-download:hover {
+    background: #0b7dda;
+}
+
 .icon {
     font-size: 36px;
     margin-bottom: 8px;
@@ -203,6 +338,7 @@ h1 {
     font-size: 32px;
     color: #333;
     margin-bottom: 20px;
+    margin: 0;
 }
 
 .welcome-text {
@@ -210,4 +346,5 @@ h1 {
     font-size: 16px;
     text-align: center;
     max-width: 500px;
+    display: none;
 }

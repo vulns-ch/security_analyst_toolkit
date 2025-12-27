@@ -1,0 +1,1905 @@
+33998e5facc8da83fbd1  usr/share/man/man7/EVP_KDF-SSHKDF.7ssl.gz
+819e400a459343562914ddbef7fda7c0  usr/share/man/man7/EVP_KDF-TLS13_KDF.7ssl.gz
+76a270a5702afddffea46ef51d544cbf  usr/share/man/man7/EVP_KDF-TLS1_PRF.7ssl.gz
+e526bd8ced0678dbf1deb62d7c6b2a60  usr/share/man/man7/EVP_KDF-X942-ASN1.7ssl.gz
+62848278f0a3c729d4bf6935fda15047  usr/share/man/man7/EVP_KDF-X942-CONCAT.7ssl.gz
+e699985579c40e29123c98889beb2468  usr/share/man/man7/EVP_KDF-X963.7ssl.gz
+68a7df586ee172fad47a1d19d6a6b5b2  usr/share/man/man7/EVP_KEM-EC.7ssl.gz
+2a46a852eff7eb25bebf97e796348d66  usr/share/man/man7/EVP_KEM-ML-KEM.7ssl.gz
+3a6e58195443f06d51e6eef6b55fff04  usr/share/man/man7/EVP_KEM-RSA.7ssl.gz
+aa46b2eeab01d2e5a32ba3ade513ad74  usr/share/man/man7/EVP_KEM-X25519.7ssl.gz
+7f76e9a69b8318092b91c3eb99aef55d  usr/share/man/man7/EVP_KEYEXCH-DH.7ssl.gz
+6ad8668162138f13d27750e10eac387b  usr/share/man/man7/EVP_KEYEXCH-ECDH.7ssl.gz
+efab0e20aedbf2fdf55bbf26462bc3f8  usr/share/man/man7/EVP_KEYEXCH-X25519.7ssl.gz
+d86efb96f59fe7f14bc1bfa9e0aab6b0  usr/share/man/man7/EVP_MAC-BLAKE2.7ssl.gz
+93bf5aee877066fef1f321d51ada4746  usr/share/man/man7/EVP_MAC-CMAC.7ssl.gz
+2a0871edad3cecb8c34889977f2ca08b  usr/share/man/man7/EVP_MAC-GMAC.7ssl.gz
+52276d86d013f6addb7c42be74a20e66  usr/share/man/man7/EVP_MAC-HMAC.7ssl.gz
+9d074d41c5c2c3d616febe9d48719296  usr/share/man/man7/EVP_MAC-KMAC.7ssl.gz
+028863814e9a8c32cc45960c05299bff  usr/share/man/man7/EVP_MAC-Poly1305.7ssl.gz
+07c4941ffd2031c150abb42a8bf6230a  usr/share/man/man7/EVP_MAC-Siphash.7ssl.gz
+375341d9bbadba749434a64c1e91435b  usr/share/man/man7/EVP_MD-BLAKE2.7ssl.gz
+da8dcbd8c5a4b7be28719c874edbee31  usr/share/man/man7/EVP_MD-KECCAK.7ssl.gz
+4335510354af6958fe0680af86842a03  usr/share/man/man7/EVP_MD-MD2.7ssl.gz
+bb411378aadb18d51cbe44e5a795e292  usr/share/man/man7/EVP_MD-MD4.7ssl.gz
+210bab6231bf447bc2646cb194675f08  usr/share/man/man7/EVP_MD-MD5-SHA1.7ssl.gz
+51ac0507dfa2106f11a3de223a563528  usr/share/man/man7/EVP_MD-MD5.7ssl.gz
+856f48b1e443473f64ad63eb9b6b4851  usr/share/man/man7/EVP_MD-MDC2.7ssl.gz
+834ac2cc68ef047eba93728309ef3e42  usr/share/man/man7/EVP_MD-NULL.7ssl.gz
+bb144f83b61c5a1c16dc1f782f68fa2a  usr/share/man/man7/EVP_MD-RIPEMD160.7ssl.gz
+2213d5e18860693a7bc197b887a74123  usr/share/man/man7/EVP_MD-SHA1.7ssl.gz
+18276512a12fdb9ed16f107f05141f4d  usr/share/man/man7/EVP_MD-SHA2.7ssl.gz
+ccfb3af4e9ef92e6db0ee9b6204c2e72  usr/share/man/man7/EVP_MD-SHA3.7ssl.gz
+52078762da0940b6ba4b993ebdcf7b89  usr/share/man/man7/EVP_MD-SHAKE.7ssl.gz
+51bafd0212b14bd2f5667698b29d7c92  usr/share/man/man7/EVP_MD-SM3.7ssl.gz
+cc3cdf6ed11e75ca40a7dfe518d90fca  usr/share/man/man7/EVP_MD-WHIRLPOOL.7ssl.gz
+aae80e0d2c18dfab82a46873c8177459  usr/share/man/man7/EVP_MD-common.7ssl.gz
+d857e76b80c82152f46c91a1c0f93f0b  usr/share/man/man7/EVP_PKEY-DH.7ssl.gz
+58e8525dee7eecc5dea0a1b3b1e03fde  usr/share/man/man7/EVP_PKEY-DSA.7ssl.gz
+665cdecef5b58edd2c704d7c3d68ec92  usr/share/man/man7/EVP_PKEY-EC.7ssl.gz
+8617a86a5ead5501a4d929cadacb61fa  usr/share/man/man7/EVP_PKEY-FFC.7ssl.gz
+d100999c3edd8d61259f7e52098ec03c  usr/share/man/man7/EVP_PKEY-HMAC.7ssl.gz
+56fb6b5a7fb8ed616fb41353e6673cd8  usr/share/man/man7/EVP_PKEY-ML-DSA.7ssl.gz
+21580482b1a191b8b8cab3e4e2b22715  usr/share/man/man7/EVP_PKEY-ML-KEM.7ssl.gz
+610d45cff4bc39949c67b66d9098ede1  usr/share/man/man7/EVP_PKEY-RSA.7ssl.gz
+d4c4190a3b51e26fccc30c70f65c9b41  usr/share/man/man7/EVP_PKEY-SLH-DSA.7ssl.gz
+b093118b9ab4d235463d9d0e33ea895f  usr/share/man/man7/EVP_PKEY-SM2.7ssl.gz
+15d9939a7af3c77ed2ced7abed40ab45  usr/share/man/man7/EVP_PKEY-X25519.7ssl.gz
+58ab1e6e5bd243bfb89272d579d48789  usr/share/man/man7/EVP_RAND-CRNG-TEST.7ssl.gz
+c4f38032daa111ec8ca773b538e9ffb2  usr/share/man/man7/EVP_RAND-CTR-DRBG.7ssl.gz
+87d17866786775eaf7045772f903778a  usr/share/man/man7/EVP_RAND-HASH-DRBG.7ssl.gz
+283042667bf3d4e69a693ada5a287bf5  usr/share/man/man7/EVP_RAND-HMAC-DRBG.7ssl.gz
+0212a570eda7a96951e1cb20cad7e866  usr/share/man/man7/EVP_RAND-JITTER.7ssl.gz
+d6368c957b6e9ecd0f5a6d49f0d7cb17  usr/share/man/man7/EVP_RAND-SEED-SRC.7ssl.gz
+3769ab85c91f798f47390d2ddb2a01ce  usr/share/man/man7/EVP_RAND-TEST-RAND.7ssl.gz
+0d275eb2ebdd25cf4fa4e52bc02b9cfc  usr/share/man/man7/EVP_RAND.7ssl.gz
+7d6cf9ce5d615af7692973e59c1c6e52  usr/share/man/man7/EVP_SIGNATURE-DSA.7ssl.gz
+65c6381cda025a2338d96f4adf5d5b93  usr/share/man/man7/EVP_SIGNATURE-ECDSA.7ssl.gz
+07e8f034220039b31709310e14ee1dac  usr/share/man/man7/EVP_SIGNATURE-ED25519.7ssl.gz
+df161f8e6d69e29b42b907e75216d7d3  usr/share/man/man7/EVP_SIGNATURE-HMAC.7ssl.gz
+21a3251f6a0741e7a49525ff3ed49a61  usr/share/man/man7/EVP_SIGNATURE-ML-DSA.7ssl.gz
+088c8179a43625c79186749881d5dd20  usr/share/man/man7/EVP_SIGNATURE-RSA.7ssl.gz
+1e13e0a481b8a1c66e69e47ea70bec6c  usr/share/man/man7/EVP_SIGNATURE-SLH-DSA.7ssl.gz
+970b7e0f66b813472b9b7a86a8659a73  usr/share/man/man7/OSSL_PROVIDER-FIPS.7ssl.gz
+0b3d26f72c7116fd7c70ccf56421e9be  usr/share/man/man7/OSSL_PROVIDER-base.7ssl.gz
+ca80d0d82e47e07857694003058b1d78  usr/share/man/man7/OSSL_PROVIDER-default.7ssl.gz
+c40000b1c6883ebf402c88a3b994f113  usr/share/man/man7/OSSL_PROVIDER-legacy.7ssl.gz
+304c9d8f4dbe18353d213a1bb6e2f7ba  usr/share/man/man7/OSSL_PROVIDER-null.7ssl.gz
+68f2125bb8aa0f1c0c497b2384f384e4  usr/share/man/man7/OSSL_STORE-winstore.7ssl.gz
+0c9b9a3f8480e1fcbc2f6d175e229a5f  usr/share/man/man7/RAND.7ssl.gz
+c31b92d8ccc5eb3cfab6170ec87f5035  usr/share/man/man7/RSA-PSS.7ssl.gz
+851d58c912be907898cf39ab0e812608  usr/share/man/man7/X25519.7ssl.gz
+20c0999265beea0624c4eccbb3323022  usr/share/man/man7/bio.7ssl.gz
+e459ba87e316cb2d9a802a0afed95da7  usr/share/man/man7/ct.7ssl.gz
+59bc3b4ce369ee92583b3cb07a98b4a4  usr/share/man/man7/des_modes.7ssl.gz
+cfaecfbf49b59ede7dcf5bdaa5900d12  usr/share/man/man7/evp.7ssl.gz
+c29fb0288e87e25869bbdbd0405d774e  usr/share/man/man7/fips_module.7ssl.gz
+6c7b61d283593170e4f5a822baf274fc  usr/share/man/man7/life_cycle-cipher.7ssl.gz
+2bc1b3da0dbf66844d7d114b3bb9ba5b  usr/share/man/man7/life_cycle-digest.7ssl.gz
+b5d602cca31f5f6a46125eb3a75897e9  usr/share/man/man7/life_cycle-kdf.7ssl.gz
+8b43aa039a32d0b6a90096f02141ca62  usr/share/man/man7/life_cycle-mac.7ssl.gz
+b199961ae693bd8aaf0d1736c1fa7e06  usr/share/man/man7/life_cycle-pkey.7ssl.gz
+f9e8dc6bbc28266b48d177192935ce57  usr/share/man/man7/life_cycle-rand.7ssl.gz
+e217375fd110b6ed550c1b0c17650d6a  usr/share/man/man7/openssl-core.h.7ssl.gz
+90ee4d7941cf3f2cbba14da36121258b  usr/share/man/man7/openssl-core_dispatch.h.7ssl.gz
+3b16f163037c27c374b4bc874e8423a2  usr/share/man/man7/openssl-core_names.h.7ssl.gz
+2ca63f748a3af5b712e7e48dbcc80472  usr/share/man/man7/openssl-env.7ssl.gz
+6c953c42898ccca800838ad859e19291  usr/share/man/man7/openssl-glossary.7ssl.gz
+57093b71763913487eca2cba9ef0e959  usr/share/man/man7/openssl-qlog.7ssl.gz
+fa8e04f166b5d028c470301c2c37a560  usr/share/man/man7/openssl-quic-concurrency.7ssl.gz
+79075640062937d719919a026192a0f4  usr/share/man/man7/openssl-quic.7ssl.gz
+321c90907edc4f570665d068ef58494c  usr/share/man/man7/openssl-threads.7ssl.gz
+472f76dcb2ad1bb39e1a191b595206ce  usr/share/man/man7/openssl_user_macros.7ssl.gz
+15737d5935221f29d802125a0d6a6bcc  usr/share/man/man7/ossl-guide-introduction.7ssl.gz
+7755e9f2efe973bc5def37b8f4448f96  usr/share/man/man7/ossl-guide-libcrypto-introduction.7ssl.gz
+3683dd079d9d5eddaebd745bfc638d0d  usr/share/man/man7/ossl-guide-libraries-introduction.7ssl.gz
+deb7b29b42d075d5979adf0b0adc0749  usr/share/man/man7/ossl-guide-libssl-introduction.7ssl.gz
+2f92de4b6405d92dd61489c323a5ce6c  usr/share/man/man7/ossl-guide-migration.7ssl.gz
+2b972e3f6a0e99a6444e758387635c23  usr/share/man/man7/ossl-guide-quic-client-block.7ssl.gz
+e1b99a7d4ef7e62e03328e9f8081858c  usr/share/man/man7/ossl-guide-quic-client-non-block.7ssl.gz
+298502d7d316603e9dbbc00ea42e6891  usr/share/man/man7/ossl-guide-quic-introduction.7ssl.gz
+c8b4666e49743e3c63e93c7cca225b53  usr/share/man/man7/ossl-guide-quic-multi-stream.7ssl.gz
+b301cf4992c1de4ce50c214f6f04214a  usr/share/man/man7/ossl-guide-quic-server-block.7ssl.gz
+5123741068d6be696bd50e91d393202b  usr/share/man/man7/ossl-guide-quic-server-non-block.7ssl.gz
+3c07adf0d2785e3efc4e80fe603693ad  usr/share/man/man7/ossl-guide-tls-client-block.7ssl.gz
+e9ae231624af24c140b741481edca15e  usr/share/man/man7/ossl-guide-tls-client-non-block.7ssl.gz
+934317ad766199410b165ec56ead3b1b  usr/share/man/man7/ossl-guide-tls-introduction.7ssl.gz
+e5ca87834c65ce37aa40911f023bb7e4  usr/share/man/man7/ossl-guide-tls-server-block.7ssl.gz
+38de442861e26bd9359122019e3ae2b5  usr/share/man/man7/ossl_store-file.7ssl.gz
+9e29a38761ef59f26fe27abbf11e697a  usr/share/man/man7/ossl_store.7ssl.gz
+35addb40208909ca5756270201cbff25  usr/share/man/man7/passphrase-encoding.7ssl.gz
+3b295328fd0c3333f97ab25b950ceae2  usr/share/man/man7/property.7ssl.gz
+1a9842955a26144917fe4bb67ef70a52  usr/share/man/man7/provider-asym_cipher.7ssl.gz
+ba0c43edd712a2fc7e16e632db93683c  usr/share/man/man7/provider-base.7ssl.gz
+9dcf9ed46de0355eaaf9512eec4c5ca5  usr/share/man/man7/provider-cipher.7ssl.gz
+3280cff9ea4f6d4f44f351d3dc01c633  usr/share/man/man7/provider-decoder.7ssl.gz
+1a83d0c59467dd665d3aaf6132c551cb  usr/share/man/man7/provider-digest.7ssl.gz
+71a5f635a9cb85078996a7520d5350e3  usr/share/man/man7/provider-encoder.7ssl.gz
+af209e0093f0d686bf2b4aa68ad17c53  usr/share/man/man7/provider-kdf.7ssl.gz
+65c09a47f7624b41d33389a81e3705a1  usr/share/man/man7/provider-kem.7ssl.gz
+e44ef40b53adb08946afe61c026aa0df  usr/share/man/man7/provider-keyexch.7ssl.gz
+b04f245f307afdaf0669f906bed93f30  usr/share/man/man7/provider-keymgmt.7ssl.gz
+03739d28c61dd1d9302734c544651de6  usr/share/man/man7/provider-mac.7ssl.gz
+177274aea5f9cac7794c9cfb47683ca7  usr/share/man/man7/provider-object.7ssl.gz
+fd3b6b14b0aacda240d990d013955699  usr/share/man/man7/provider-rand.7ssl.gz
+779ab4c6e5fc2ecf7543cc516cda8be2  usr/share/man/man7/provider-signature.7ssl.gz
+6ac76997d6f0eb871fdfb228e3416d74  usr/share/man/man7/provider-skeymgmt.7ssl.gz
+523fcfafe422647bcc647690d11b6d95  usr/share/man/man7/provider-storemgmt.7ssl.gz
+d67577e565722311e3d12552002bc5d1  usr/share/man/man7/provider.7ssl.gz
+7cb77bcbf1d512c86773bac8576d255f  usr/share/man/man7/proxy-certificates.7ssl.gz
+959d07f83de9b95dc44dd8f4632aebb4  usr/share/man/man7/x509.7ssl.gz
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          #!/bin/sh -e
+
+if [ ! -e /usr/lib/ssl ]
+then
+  echo Linking /usr/lib/ssl to /etc/ssl
+  ln -sf /etc/ssl /usr/lib/ssl
+fi
+
+
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        /etc/default/useradd
+/etc/pam.d/chfn
+/etc/pam.d/chpasswd
+/etc/pam.d/chsh
+/etc/pam.d/newusers
+/etc/pam.d/passwd
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 /.
+/etc
+/etc/default
+/etc/default/useradd
+/etc/pam.d
+/etc/pam.d/chfn
+/etc/pam.d/chpasswd
+/etc/pam.d/chsh
+/etc/pam.d/newusers
+/etc/pam.d/passwd
+/usr
+/usr/bin
+/usr/bin/chage
+/usr/bin/chfn
+/usr/bin/chsh
+/usr/bin/expiry
+/usr/bin/gpasswd
+/usr/bin/passwd
+/usr/lib
+/usr/lib/tmpfiles.d
+/usr/lib/tmpfiles.d/passwd.conf
+/usr/sbin
+/usr/sbin/chgpasswd
+/usr/sbin/chpasswd
+/usr/sbin/groupadd
+/usr/sbin/groupdel
+/usr/sbin/groupmod
+/usr/sbin/grpck
+/usr/sbin/grpconv
+/usr/sbin/grpunconv
+/usr/sbin/newusers
+/usr/sbin/pwck
+/usr/sbin/pwconv
+/usr/sbin/pwunconv
+/usr/sbin/shadowconfig
+/usr/sbin/useradd
+/usr/sbin/userdel
+/usr/sbin/usermod
+/usr/sbin/vipw
+/usr/share
+/usr/share/doc
+/usr/share/doc/passwd
+/usr/share/doc/passwd/NEWS.Debian.gz
+/usr/share/doc/passwd/README.Debian
+/usr/share/doc/passwd/TODO.Debian
+/usr/share/doc/passwd/changelog.Debian.gz
+/usr/share/doc/passwd/changelog.gz
+/usr/share/doc/passwd/copyright
+/usr/share/doc/passwd/examples
+/usr/share/doc/passwd/examples/passwd.expire.cron
+/usr/share/lintian
+/usr/share/lintian/overrides
+/usr/share/lintian/overrides/passwd
+/usr/share/locale
+/usr/share/locale/bs
+/usr/share/locale/bs/LC_MESSAGES
+/usr/share/locale/bs/LC_MESSAGES/shadow.mo
+/usr/share/locale/ca
+/usr/share/locale/ca/LC_MESSAGES
+/usr/share/locale/ca/LC_MESSAGES/shadow.mo
+/usr/share/locale/cs
+/usr/share/locale/cs/LC_MESSAGES
+/usr/share/locale/cs/LC_MESSAGES/shadow.mo
+/usr/share/locale/da
+/usr/share/locale/da/LC_MESSAGES
+/usr/share/locale/da/LC_MESSAGES/shadow.mo
+/usr/share/locale/de
+/usr/share/locale/de/LC_MESSAGES
+/usr/share/locale/de/LC_MESSAGES/shadow.mo
+/usr/share/locale/dz
+/usr/share/locale/dz/LC_MESSAGES
+/usr/share/locale/dz/LC_MESSAGES/shadow.mo
+/usr/share/locale/el
+/usr/share/locale/el/LC_MESSAGES
+/usr/share/locale/el/LC_MESSAGES/shadow.mo
+/usr/share/locale/es
+/usr/share/locale/es/LC_MESSAGES
+/usr/share/locale/es/LC_MESSAGES/shadow.mo
+/usr/share/locale/eu
+/usr/share/locale/eu/LC_MESSAGES
+/usr/share/locale/eu/LC_MESSAGES/shadow.mo
+/usr/share/locale/fi
+/usr/share/locale/fi/LC_MESSAGES
+/usr/share/locale/fi/LC_MESSAGES/shadow.mo
+/usr/share/locale/fr
+/usr/share/locale/fr/LC_MESSAGES
+/usr/share/locale/fr/LC_MESSAGES/shadow.mo
+/usr/share/locale/gl
+/usr/share/locale/gl/LC_MESSAGES
+/usr/share/locale/gl/LC_MESSAGES/shadow.mo
+/usr/share/locale/he
+/usr/share/locale/he/LC_MESSAGES
+/usr/share/locale/he/LC_MESSAGES/shadow.mo
+/usr/share/locale/hu
+/usr/share/locale/hu/LC_MESSAGES
+/usr/share/locale/hu/LC_MESSAGES/shadow.mo
+/usr/share/locale/id
+/usr/share/locale/id/LC_MESSAGES
+/usr/share/locale/id/LC_MESSAGES/shadow.mo
+/usr/share/locale/it
+/usr/share/locale/it/LC_MESSAGES
+/usr/share/locale/it/LC_MESSAGES/shadow.mo
+/usr/share/locale/ja
+/usr/share/locale/ja/LC_MESSAGES
+/usr/share/locale/ja/LC_MESSAGES/shadow.mo
+/usr/share/locale/ka
+/usr/share/locale/ka/LC_MESSAGES
+/usr/share/locale/ka/LC_MESSAGES/shadow.mo
+/usr/share/locale/kk
+/usr/share/locale/kk/LC_MESSAGES
+/usr/share/locale/kk/LC_MESSAGES/shadow.mo
+/usr/share/locale/km
+/usr/share/locale/km/LC_MESSAGES
+/usr/share/locale/km/LC_MESSAGES/shadow.mo
+/usr/share/locale/ko
+/usr/share/locale/ko/LC_MESSAGES
+/usr/share/locale/ko/LC_MESSAGES/shadow.mo
+/usr/share/locale/nb
+/usr/share/locale/nb/LC_MESSAGES
+/usr/share/locale/nb/LC_MESSAGES/shadow.mo
+/usr/share/locale/ne
+/usr/share/locale/ne/LC_MESSAGES
+/usr/share/locale/ne/LC_MESSAGES/shadow.mo
+/usr/share/locale/nl
+/usr/share/locale/nl/LC_MESSAGES
+/usr/share/locale/nl/LC_MESSAGES/shadow.mo
+/usr/share/locale/nn
+/usr/share/locale/nn/LC_MESSAGES
+/usr/share/locale/nn/LC_MESSAGES/shadow.mo
+/usr/share/locale/pl
+/usr/share/locale/pl/LC_MESSAGES
+/usr/share/locale/pl/LC_MESSAGES/shadow.mo
+/usr/share/locale/pt
+/usr/share/locale/pt/LC_MESSAGES
+/usr/share/locale/pt/LC_MESSAGES/shadow.mo
+/usr/share/locale/pt_BR
+/usr/share/locale/pt_BR/LC_MESSAGES
+/usr/share/locale/pt_BR/LC_MESSAGES/shadow.mo
+/usr/share/locale/ro
+/usr/share/locale/ro/LC_MESSAGES
+/usr/share/locale/ro/LC_MESSAGES/shadow.mo
+/usr/share/locale/ru
+/usr/share/locale/ru/LC_MESSAGES
+/usr/share/locale/ru/LC_MESSAGES/shadow.mo
+/usr/share/locale/sk
+/usr/share/locale/sk/LC_MESSAGES
+/usr/share/locale/sk/LC_MESSAGES/shadow.mo
+/usr/share/locale/sq
+/usr/share/locale/sq/LC_MESSAGES
+/usr/share/locale/sq/LC_MESSAGES/shadow.mo
+/usr/share/locale/sv
+/usr/share/locale/sv/LC_MESSAGES
+/usr/share/locale/sv/LC_MESSAGES/shadow.mo
+/usr/share/locale/tl
+/usr/share/locale/tl/LC_MESSAGES
+/usr/share/locale/tl/LC_MESSAGES/shadow.mo
+/usr/share/locale/tr
+/usr/share/locale/tr/LC_MESSAGES
+/usr/share/locale/tr/LC_MESSAGES/shadow.mo
+/usr/share/locale/uk
+/usr/share/locale/uk/LC_MESSAGES
+/usr/share/locale/uk/LC_MESSAGES/shadow.mo
+/usr/share/locale/vi
+/usr/share/locale/vi/LC_MESSAGES
+/usr/share/locale/vi/LC_MESSAGES/shadow.mo
+/usr/share/locale/zh_CN
+/usr/share/locale/zh_CN/LC_MESSAGES
+/usr/share/locale/zh_CN/LC_MESSAGES/shadow.mo
+/usr/share/locale/zh_TW
+/usr/share/locale/zh_TW/LC_MESSAGES
+/usr/share/locale/zh_TW/LC_MESSAGES/shadow.mo
+/usr/share/man
+/usr/share/man/cs
+/usr/share/man/cs/man1
+/usr/share/man/cs/man1/expiry.1.gz
+/usr/share/man/cs/man1/gpasswd.1.gz
+/usr/share/man/cs/man5
+/usr/share/man/cs/man5/gshadow.5.gz
+/usr/share/man/cs/man5/passwd.5.gz
+/usr/share/man/cs/man5/shadow.5.gz
+/usr/share/man/cs/man8
+/usr/share/man/cs/man8/groupadd.8.gz
+/usr/share/man/cs/man8/groupdel.8.gz
+/usr/share/man/cs/man8/groupmod.8.gz
+/usr/share/man/cs/man8/grpck.8.gz
+/usr/share/man/cs/man8/vipw.8.gz
+/usr/share/man/da
+/usr/share/man/da/man1
+/usr/share/man/da/man1/chfn.1.gz
+/usr/share/man/da/man5
+/usr/share/man/da/man5/gshadow.5.gz
+/usr/share/man/da/man8
+/usr/share/man/da/man8/groupdel.8.gz
+/usr/share/man/da/man8/vipw.8.gz
+/usr/share/man/de
+/usr/share/man/de/man1
+/usr/share/man/de/man1/chage.1.gz
+/usr/share/man/de/man1/chfn.1.gz
+/usr/share/man/de/man1/chsh.1.gz
+/usr/share/man/de/man1/expiry.1.gz
+/usr/share/man/de/man1/gpasswd.1.gz
+/usr/share/man/de/man1/passwd.1.gz
+/usr/share/man/de/man5
+/usr/share/man/de/man5/gshadow.5.gz
+/usr/share/man/de/man5/passwd.5.gz
+/usr/share/man/de/man5/shadow.5.gz
+/usr/share/man/de/man8
+/usr/share/man/de/man8/chgpasswd.8.gz
+/usr/share/man/de/man8/chpasswd.8.gz
+/usr/share/man/de/man8/groupadd.8.gz
+/usr/share/man/de/man8/groupdel.8.gz
+/usr/share/man/de/man8/groupmod.8.gz
+/usr/share/man/de/man8/grpck.8.gz
+/usr/share/man/de/man8/newusers.8.gz
+/usr/share/man/de/man8/pwck.8.gz
+/usr/share/man/de/man8/pwconv.8.gz
+/usr/share/man/de/man8/useradd.8.gz
+/usr/share/man/de/man8/userdel.8.gz
+/usr/share/man/de/man8/usermod.8.gz
+/usr/share/man/de/man8/vipw.8.gz
+/usr/share/man/fi
+/usr/share/man/fi/man1
+/usr/share/man/fi/man1/chfn.1.gz
+/usr/share/man/fi/man1/chsh.1.gz
+/usr/share/man/fr
+/usr/share/man/fr/man1
+/usr/share/man/fr/man1/chage.1.gz
+/usr/share/man/fr/man1/chfn.1.gz
+/usr/share/man/fr/man1/chsh.1.gz
+/usr/share/man/fr/man1/expiry.1.gz
+/usr/share/man/fr/man1/gpasswd.1.gz
+/usr/share/man/fr/man1/passwd.1.gz
+/usr/share/man/fr/man5
+/usr/share/man/fr/man5/gshadow.5.gz
+/usr/share/man/fr/man5/passwd.5.gz
+/usr/share/man/fr/man5/shadow.5.gz
+/usr/share/man/fr/man5/subgid.5.gz
+/usr/share/man/fr/man5/subuid.5.gz
+/usr/share/man/fr/man8
+/usr/share/man/fr/man8/chgpasswd.8.gz
+/usr/share/man/fr/man8/chpasswd.8.gz
+/usr/share/man/fr/man8/groupadd.8.gz
+/usr/share/man/fr/man8/groupdel.8.gz
+/usr/share/man/fr/man8/groupmod.8.gz
+/usr/share/man/fr/man8/grpck.8.gz
+/usr/share/man/fr/man8/newusers.8.gz
+/usr/share/man/fr/man8/pwck.8.gz
+/usr/share/man/fr/man8/pwconv.8.gz
+/usr/share/man/fr/man8/useradd.8.gz
+/usr/share/man/fr/man8/userdel.8.gz
+/usr/share/man/fr/man8/usermod.8.gz
+/usr/share/man/fr/man8/vipw.8.gz
+/usr/share/man/hu
+/usr/share/man/hu/man1
+/usr/share/man/hu/man1/chsh.1.gz
+/usr/share/man/hu/man1/gpasswd.1.gz
+/usr/share/man/hu/man1/passwd.1.gz
+/usr/share/man/hu/man5
+/usr/share/man/hu/man5/passwd.5.gz
+/usr/share/man/id
+/usr/share/man/id/man1
+/usr/share/man/id/man1/chsh.1.gz
+/usr/share/man/id/man8
+/usr/share/man/id/man8/useradd.8.gz
+/usr/share/man/it
+/usr/share/man/it/man1
+/usr/share/man/it/man1/chage.1.gz
+/usr/share/man/it/man1/chfn.1.gz
+/usr/share/man/it/man1/chsh.1.gz
+/usr/share/man/it/man1/expiry.1.gz
+/usr/share/man/it/man1/gpasswd.1.gz
+/usr/share/man/it/man1/passwd.1.gz
+/usr/share/man/it/man5
+/usr/share/man/it/man5/gshadow.5.gz
+/usr/share/man/it/man5/passwd.5.gz
+/usr/share/man/it/man5/shadow.5.gz
+/usr/share/man/it/man8
+/usr/share/man/it/man8/chgpasswd.8.gz
+/usr/share/man/it/man8/chpasswd.8.gz
+/usr/share/man/it/man8/groupadd.8.gz
+/usr/share/man/it/man8/groupdel.8.gz
+/usr/share/man/it/man8/groupmod.8.gz
+/usr/share/man/it/man8/grpck.8.gz
+/usr/share/man/it/man8/newusers.8.gz
+/usr/share/man/it/man8/pwck.8.gz
+/usr/share/man/it/man8/pwconv.8.gz
+/usr/share/man/it/man8/useradd.8.gz
+/usr/share/man/it/man8/userdel.8.gz
+/usr/share/man/it/man8/usermod.8.gz
+/usr/share/man/it/man8/vipw.8.gz
+/usr/share/man/ja
+/usr/share/man/ja/man1
+/usr/share/man/ja/man1/chage.1.gz
+/usr/share/man/ja/man1/chfn.1.gz
+/usr/share/man/ja/man1/chsh.1.gz
+/usr/share/man/ja/man1/expiry.1.gz
+/usr/share/man/ja/man1/gpasswd.1.gz
+/usr/share/man/ja/man1/passwd.1.gz
+/usr/share/man/ja/man5
+/usr/share/man/ja/man5/passwd.5.gz
+/usr/share/man/ja/man5/shadow.5.gz
+/usr/share/man/ja/man8
+/usr/share/man/ja/man8/chpasswd.8.gz
+/usr/share/man/ja/man8/groupadd.8.gz
+/usr/share/man/ja/man8/groupdel.8.gz
+/usr/share/man/ja/man8/groupmod.8.gz
+/usr/share/man/ja/man8/grpck.8.gz
+/usr/share/man/ja/man8/newusers.8.gz
+/usr/share/man/ja/man8/pwck.8.gz
+/usr/share/man/ja/man8/pwconv.8.gz
+/usr/share/man/ja/man8/useradd.8.gz
+/usr/share/man/ja/man8/userdel.8.gz
+/usr/share/man/ja/man8/usermod.8.gz
+/usr/share/man/ja/man8/vipw.8.gz
+/usr/share/man/ko
+/usr/share/man/ko/man1
+/usr/share/man/ko/man1/chfn.1.gz
+/usr/share/man/ko/man1/chsh.1.gz
+/usr/share/man/ko/man5
+/usr/share/man/ko/man5/passwd.5.gz
+/usr/share/man/ko/man8
+/usr/share/man/ko/man8/vipw.8.gz
+/usr/share/man/man1
+/usr/share/man/man1/chage.1.gz
+/usr/share/man/man1/chfn.1.gz
+/usr/share/man/man1/chsh.1.gz
+/usr/share/man/man1/expiry.1.gz
+/usr/share/man/man1/gpasswd.1.gz
+/usr/share/man/man1/passwd.1.gz
+/usr/share/man/man5
+/usr/share/man/man5/gshadow.5.gz
+/usr/share/man/man5/passwd.5.gz
+/usr/share/man/man5/shadow.5.gz
+/usr/share/man/man5/subgid.5.gz
+/usr/share/man/man5/subuid.5.gz
+/usr/share/man/man8
+/usr/share/man/man8/chgpasswd.8.gz
+/usr/share/man/man8/chpasswd.8.gz
+/usr/share/man/man8/groupadd.8.gz
+/usr/share/man/man8/groupdel.8.gz
+/usr/share/man/man8/groupmod.8.gz
+/usr/share/man/man8/grpck.8.gz
+/usr/share/man/man8/newusers.8.gz
+/usr/share/man/man8/pwck.8.gz
+/usr/share/man/man8/pwconv.8.gz
+/usr/share/man/man8/shadowconfig.8.gz
+/usr/share/man/man8/useradd.8.gz
+/usr/share/man/man8/userdel.8.gz
+/usr/share/man/man8/usermod.8.gz
+/usr/share/man/man8/vipw.8.gz
+/usr/share/man/pl
+/usr/share/man/pl/man1
+/usr/share/man/pl/man1/chage.1.gz
+/usr/share/man/pl/man1/chsh.1.gz
+/usr/share/man/pl/man1/expiry.1.gz
+/usr/share/man/pl/man8
+/usr/share/man/pl/man8/groupadd.8.gz
+/usr/share/man/pl/man8/groupdel.8.gz
+/usr/share/man/pl/man8/groupmod.8.gz
+/usr/share/man/pl/man8/grpck.8.gz
+/usr/share/man/pl/man8/userdel.8.gz
+/usr/share/man/pl/man8/usermod.8.gz
+/usr/share/man/pl/man8/vipw.8.gz
+/usr/share/man/pt_BR
+/usr/share/man/pt_BR/man1
+/usr/share/man/pt_BR/man1/gpasswd.1.gz
+/usr/share/man/pt_BR/man5
+/usr/share/man/pt_BR/man5/passwd.5.gz
+/usr/share/man/pt_BR/man5/shadow.5.gz
+/usr/share/man/pt_BR/man8
+/usr/share/man/pt_BR/man8/groupadd.8.gz
+/usr/share/man/pt_BR/man8/groupdel.8.gz
+/usr/share/man/pt_BR/man8/groupmod.8.gz
+/usr/share/man/ru
+/usr/share/man/ru/man1
+/usr/share/man/ru/man1/chage.1.gz
+/usr/share/man/ru/man1/chfn.1.gz
+/usr/share/man/ru/man1/chsh.1.gz
+/usr/share/man/ru/man1/expiry.1.gz
+/usr/share/man/ru/man1/gpasswd.1.gz
+/usr/share/man/ru/man1/passwd.1.gz
+/usr/share/man/ru/man5
+/usr/share/man/ru/man5/gshadow.5.gz
+/usr/share/man/ru/man5/passwd.5.gz
+/usr/share/man/ru/man5/shadow.5.gz
+/usr/share/man/ru/man8
+/usr/share/man/ru/man8/chgpasswd.8.gz
+/usr/share/man/ru/man8/chpasswd.8.gz
+/usr/share/man/ru/man8/groupadd.8.gz
+/usr/share/man/ru/man8/groupdel.8.gz
+/usr/share/man/ru/man8/groupmod.8.gz
+/usr/share/man/ru/man8/grpck.8.gz
+/usr/share/man/ru/man8/newusers.8.gz
+/usr/share/man/ru/man8/pwck.8.gz
+/usr/share/man/ru/man8/pwconv.8.gz
+/usr/share/man/ru/man8/useradd.8.gz
+/usr/share/man/ru/man8/userdel.8.gz
+/usr/share/man/ru/man8/usermod.8.gz
+/usr/share/man/ru/man8/vipw.8.gz
+/usr/share/man/sv
+/usr/share/man/sv/man1
+/usr/share/man/sv/man1/chage.1.gz
+/usr/share/man/sv/man1/chsh.1.gz
+/usr/share/man/sv/man1/expiry.1.gz
+/usr/share/man/sv/man1/passwd.1.gz
+/usr/share/man/sv/man5
+/usr/share/man/sv/man5/gshadow.5.gz
+/usr/share/man/sv/man5/passwd.5.gz
+/usr/share/man/sv/man8
+/usr/share/man/sv/man8/groupadd.8.gz
+/usr/share/man/sv/man8/groupdel.8.gz
+/usr/share/man/sv/man8/groupmod.8.gz
+/usr/share/man/sv/man8/grpck.8.gz
+/usr/share/man/sv/man8/pwck.8.gz
+/usr/share/man/sv/man8/userdel.8.gz
+/usr/share/man/sv/man8/vipw.8.gz
+/usr/share/man/tr
+/usr/share/man/tr/man1
+/usr/share/man/tr/man1/chage.1.gz
+/usr/share/man/tr/man1/chfn.1.gz
+/usr/share/man/tr/man1/passwd.1.gz
+/usr/share/man/tr/man5
+/usr/share/man/tr/man5/passwd.5.gz
+/usr/share/man/tr/man5/shadow.5.gz
+/usr/share/man/tr/man8
+/usr/share/man/tr/man8/groupadd.8.gz
+/usr/share/man/tr/man8/groupdel.8.gz
+/usr/share/man/tr/man8/groupmod.8.gz
+/usr/share/man/tr/man8/useradd.8.gz
+/usr/share/man/tr/man8/userdel.8.gz
+/usr/share/man/tr/man8/usermod.8.gz
+/usr/share/man/uk
+/usr/share/man/uk/man1
+/usr/share/man/uk/man1/chage.1.gz
+/usr/share/man/uk/man1/chfn.1.gz
+/usr/share/man/uk/man1/chsh.1.gz
+/usr/share/man/uk/man1/expiry.1.gz
+/usr/share/man/uk/man1/gpasswd.1.gz
+/usr/share/man/uk/man1/passwd.1.gz
+/usr/share/man/uk/man5
+/usr/share/man/uk/man5/gshadow.5.gz
+/usr/share/man/uk/man5/passwd.5.gz
+/usr/share/man/uk/man5/shadow.5.gz
+/usr/share/man/uk/man8
+/usr/share/man/uk/man8/chgpasswd.8.gz
+/usr/share/man/uk/man8/chpasswd.8.gz
+/usr/share/man/uk/man8/groupadd.8.gz
+/usr/share/man/uk/man8/groupdel.8.gz
+/usr/share/man/uk/man8/groupmod.8.gz
+/usr/share/man/uk/man8/grpck.8.gz
+/usr/share/man/uk/man8/newusers.8.gz
+/usr/share/man/uk/man8/pwck.8.gz
+/usr/share/man/uk/man8/pwconv.8.gz
+/usr/share/man/uk/man8/useradd.8.gz
+/usr/share/man/uk/man8/userdel.8.gz
+/usr/share/man/uk/man8/usermod.8.gz
+/usr/share/man/uk/man8/vipw.8.gz
+/usr/share/man/zh_CN
+/usr/share/man/zh_CN/man1
+/usr/share/man/zh_CN/man1/chage.1.gz
+/usr/share/man/zh_CN/man1/chfn.1.gz
+/usr/share/man/zh_CN/man1/chsh.1.gz
+/usr/share/man/zh_CN/man1/expiry.1.gz
+/usr/share/man/zh_CN/man1/gpasswd.1.gz
+/usr/share/man/zh_CN/man1/passwd.1.gz
+/usr/share/man/zh_CN/man5
+/usr/share/man/zh_CN/man5/gshadow.5.gz
+/usr/share/man/zh_CN/man5/passwd.5.gz
+/usr/share/man/zh_CN/man5/shadow.5.gz
+/usr/share/man/zh_CN/man8
+/usr/share/man/zh_CN/man8/chgpasswd.8.gz
+/usr/share/man/zh_CN/man8/chpasswd.8.gz
+/usr/share/man/zh_CN/man8/groupadd.8.gz
+/usr/share/man/zh_CN/man8/groupdel.8.gz
+/usr/share/man/zh_CN/man8/groupmod.8.gz
+/usr/share/man/zh_CN/man8/grpck.8.gz
+/usr/share/man/zh_CN/man8/newusers.8.gz
+/usr/share/man/zh_CN/man8/pwck.8.gz
+/usr/share/man/zh_CN/man8/pwconv.8.gz
+/usr/share/man/zh_CN/man8/useradd.8.gz
+/usr/share/man/zh_CN/man8/userdel.8.gz
+/usr/share/man/zh_CN/man8/usermod.8.gz
+/usr/share/man/zh_CN/man8/vipw.8.gz
+/usr/share/man/zh_TW
+/usr/share/man/zh_TW/man1
+/usr/share/man/zh_TW/man1/chfn.1.gz
+/usr/share/man/zh_TW/man1/chsh.1.gz
+/usr/share/man/zh_TW/man5
+/usr/share/man/zh_TW/man5/passwd.5.gz
+/usr/share/man/zh_TW/man8
+/usr/share/man/zh_TW/man8/chpasswd.8.gz
+/usr/share/man/zh_TW/man8/groupadd.8.gz
+/usr/share/man/zh_TW/man8/groupdel.8.gz
+/usr/share/man/zh_TW/man8/groupmod.8.gz
+/usr/share/man/zh_TW/man8/useradd.8.gz
+/usr/share/man/zh_TW/man8/userdel.8.gz
+/usr/share/man/zh_TW/man8/usermod.8.gz
+/usr/sbin/vigr
+/usr/share/man/da/man8/vigr.8.gz
+/usr/share/man/de/man8/grpconv.8.gz
+/usr/share/man/de/man8/grpunconv.8.gz
+/usr/share/man/de/man8/pwunconv.8.gz
+/usr/share/man/de/man8/vigr.8.gz
+/usr/share/man/fr/man8/grpconv.8.gz
+/usr/share/man/fr/man8/grpunconv.8.gz
+/usr/share/man/fr/man8/pwunconv.8.gz
+/usr/share/man/fr/man8/vigr.8.gz
+/usr/share/man/it/man8/grpconv.8.gz
+/usr/share/man/it/man8/grpunconv.8.gz
+/usr/share/man/it/man8/pwunconv.8.gz
+/usr/share/man/it/man8/vigr.8.gz
+/usr/share/man/ja/man8/grpconv.8.gz
+/usr/share/man/ja/man8/grpunconv.8.gz
+/usr/share/man/ja/man8/pwunconv.8.gz
+/usr/share/man/ja/man8/vigr.8.gz
+/usr/share/man/ko/man8/vigr.8.gz
+/usr/share/man/man8/grpconv.8.gz
+/usr/share/man/man8/grpunconv.8.gz
+/usr/share/man/man8/pwunconv.8.gz
+/usr/share/man/man8/vigr.8.gz
+/usr/share/man/pl/man8/vigr.8.gz
+/usr/share/man/ru/man8/grpconv.8.gz
+/usr/share/man/ru/man8/grpunconv.8.gz
+/usr/share/man/ru/man8/pwunconv.8.gz
+/usr/share/man/ru/man8/vigr.8.gz
+/usr/share/man/sv/man8/vigr.8.gz
+/usr/share/man/uk/man8/grpconv.8.gz
+/usr/share/man/uk/man8/grpunconv.8.gz
+/usr/share/man/uk/man8/pwunconv.8.gz
+/usr/share/man/uk/man8/vigr.8.gz
+/usr/share/man/zh_CN/man8/grpconv.8.gz
+/usr/share/man/zh_CN/man8/grpunconv.8.gz
+/usr/share/man/zh_CN/man8/pwunconv.8.gz
+/usr/share/man/zh_CN/man8/vigr.8.gz
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      44a30d853cb77253b304fbd367965bd6  usr/bin/chage
+3c6034cf68afb527bb6aa16d9aa06414  usr/bin/chfn
+3e7cce35a04c7111498d096096a01c58  usr/bin/chsh
+9a9a740539b51d15b50b87b5cef07385  usr/bin/expiry
+af0a542aa2e2cbd74f5fe27a8c4504f8  usr/bin/gpasswd
+bdbe6cf15eff9e7dce0055f96612bda5  usr/bin/passwd
+fd813ae6329b77cb59bac8961e613bf0  usr/lib/tmpfiles.d/passwd.conf
+b3b90423ec4dbd97e14ba09aa5594e37  usr/sbin/chgpasswd
+d9c8563dd33fe5b7123d17067bbdd6eb  usr/sbin/chpasswd
+a0e018714e6334c83d9a00839e79e77e  usr/sbin/groupadd
+caf853b44acefe128ff4a57999ded2b5  usr/sbin/groupdel
+0ef79aca6b7f1c59fc825f9efb022f5a  usr/sbin/groupmod
+14e72e35fbee959bfed9cbaaadae5f60  usr/sbin/grpck
+3852b7edc5add905a7e89f00d54bfd92  usr/sbin/grpconv
+6d4407f8a3ed097024fadb8cc493e53e  usr/sbin/grpunconv
+6465327be5a6facb108ec2f2055022e2  usr/sbin/newusers
+f1bcdc2eb2a0b42e092e400955d667b9  usr/sbin/pwck
+7d49f724ea510f6eaa4b01c8a75058eb  usr/sbin/pwconv
+24d3f365c77cc026925fdfebf1d10346  usr/sbin/pwunconv
+383254a3a8df104b489b70bc2bd95b51  usr/sbin/shadowconfig
+7ce74d1534e2f9ce4522a29819ee3e1f  usr/sbin/useradd
+ee89e256e8a915c807e99f4dfa95717f  usr/sbin/userdel
+ea0bf2785aea8eb136c7751e7058d523  usr/sbin/usermod
+45dbfac48651dcd76c07efd2eb268f53  usr/sbin/vipw
+8a53d489edecccc7f10506fbb5afd05a  usr/share/doc/passwd/NEWS.Debian.gz
+c6c154f0a32f9b1b57582ea243ac7771  usr/share/doc/passwd/README.Debian
+02916812cbd2183a26d75b8645bea7b7  usr/share/doc/passwd/TODO.Debian
+060a1b46f609623a458e31eb3b4afab4  usr/share/doc/passwd/changelog.Debian.gz
+e9e588a3a604999eb45d21db72c3282a  usr/share/doc/passwd/changelog.gz
+5dbe6658eef36129385e295af7c97522  usr/share/doc/passwd/copyright
+42b6b6d065ae2c959e885fcfa47a9887  usr/share/doc/passwd/examples/passwd.expire.cron
+7941e9f86fe7a6bb1a88f1f3e7279d75  usr/share/lintian/overrides/passwd
+1cc1aaa693c56d89a5bb40d34002d202  usr/share/locale/bs/LC_MESSAGES/shadow.mo
+0b66fde0880008ea6ae33025713edef4  usr/share/locale/ca/LC_MESSAGES/shadow.mo
+7869a1df6514d75c8689091120779691  usr/share/locale/cs/LC_MESSAGES/shadow.mo
+3c3b1484fe8217c35e471eb337da4727  usr/share/locale/da/LC_MESSAGES/shadow.mo
+bbc514e23d350a9ae7d77a7baa0bc8f4  usr/share/locale/de/LC_MESSAGES/shadow.mo
+e7be4ce047e59f9e9a3b1619f36b34ac  usr/share/locale/dz/LC_MESSAGES/shadow.mo
+c548cc10b56aa9f2ba51ffd6bfb71c82  usr/share/locale/el/LC_MESSAGES/shadow.mo
+6de869d95956514c6226ff95d384d9dd  usr/share/locale/es/LC_MESSAGES/shadow.mo
+a7078563a5359f08cfa4dff03abe0c9f  usr/share/locale/eu/LC_MESSAGES/shadow.mo
+ff6828f48925f26d535065f664a8fa5e  usr/share/locale/fi/LC_MESSAGES/shadow.mo
+8f58dc237c6570ad83496fdaca5de415  usr/share/locale/fr/LC_MESSAGES/shadow.mo
+e75332304ad47fc529831feeab02e5e2  usr/share/locale/gl/LC_MESSAGES/shadow.mo
+7694151b571dd572075c38d67ea831fd  usr/share/locale/he/LC_MESSAGES/shadow.mo
+1a261dcde351c50954507f65f5ba06cb  usr/share/locale/hu/LC_MESSAGES/shadow.mo
+4ec4e5d6f25abfb4783bbbc4953ffb9d  usr/share/locale/id/LC_MESSAGES/shadow.mo
+218b58329679cb8ec012dca5106985ad  usr/share/locale/it/LC_MESSAGES/shadow.mo
+6f3b804e7b3502a4fe10478146188e1d  usr/share/locale/ja/LC_MESSAGES/shadow.mo
+d1a7815c7d0c9ecf07ea65a4a5c6dea1  usr/share/locale/ka/LC_MESSAGES/shadow.mo
+5dd374ffffea913d4de1969529923497  usr/share/locale/kk/LC_MESSAGES/shadow.mo
+c923efd2c4233222589b94e232d6bf69  usr/share/locale/km/LC_MESSAGES/shadow.mo
+ead7078cd95618ee4b631c71205c6321  usr/share/locale/ko/LC_MESSAGES/shadow.mo
+d4c98d889e6c7d8e3d9a1648ccae2130  usr/share/locale/nb/LC_MESSAGES/shadow.mo
+2d074c6384cbe8a809a59f8c4ce59465  usr/share/locale/ne/LC_MESSAGES/shadow.mo
+311139a3ad6df8dfeffa1dcdf0363b96  usr/share/locale/nl/LC_MESSAGES/shadow.mo
+8e7b1584e889a14b00f28d7f9d1c3a70  usr/share/locale/nn/LC_MESSAGES/shadow.mo
+1249a9cf5df35385a999e71bedcd6280  usr/share/locale/pl/LC_MESSAGES/shadow.mo
+dd8ae3fe61e8093a26086c0381bf20b7  usr/share/locale/pt/LC_MESSAGES/shadow.mo
+1abe849080d3cef083975794fb651f14  usr/share/locale/pt_BR/LC_MESSAGES/shadow.mo
+21be714eb01b81c360dee4ec53251435  usr/share/locale/ro/LC_MESSAGES/shadow.mo
+a3df23ee84c614109cd22e950d9f745a  usr/share/locale/ru/LC_MESSAGES/shadow.mo
+fd435fa89f9f011e7ca812468a28778e  usr/share/locale/sk/LC_MESSAGES/shadow.mo
+bd29286afb7c9e99705bf9a8d2c759f0  usr/share/locale/sq/LC_MESSAGES/shadow.mo
+e9fca7bbb8668ff57ede2fbef570710e  usr/share/locale/sv/LC_MESSAGES/shadow.mo
+589d45ff1c7f7d40a1e1a7229569bb02  usr/share/locale/tl/LC_MESSAGES/shadow.mo
+6bda6f24b7f4f5d6e2ce1af4bd024496  usr/share/locale/tr/LC_MESSAGES/shadow.mo
+f4f19e443b713554fc6ab0d96720cd85  usr/share/locale/uk/LC_MESSAGES/shadow.mo
+0e035f2beed39b75c672b9ccd9bf6ffa  usr/share/locale/vi/LC_MESSAGES/shadow.mo
+9bbb228c48b30e34da6ce6004dae9b32  usr/share/locale/zh_CN/LC_MESSAGES/shadow.mo
+754ee5f6e4b334f3eea774d66293a0b3  usr/share/locale/zh_TW/LC_MESSAGES/shadow.mo
+32f282e077a7b6be3ae89e7de510e221  usr/share/man/cs/man1/expiry.1.gz
+06dcfb2131a2bf6faaea7c3fa96c9686  usr/share/man/cs/man1/gpasswd.1.gz
+af948c95629a44c155adf8b04206fb35  usr/share/man/cs/man5/gshadow.5.gz
+7ddfd4899afd2ca81e849b7bd39947a6  usr/share/man/cs/man5/passwd.5.gz
+bc5d5f7c82ec707c4d1fd4f4b07dfe7b  usr/share/man/cs/man5/shadow.5.gz
+fc64fb093ab0ca6bb3cf0f757398bdf2  usr/share/man/cs/man8/groupadd.8.gz
+eb7bf5ef0bfffa1c638509bc4702e1e2  usr/share/man/cs/man8/groupdel.8.gz
+86e218f9995d85ab2679fb8ea0a7e71f  usr/share/man/cs/man8/groupmod.8.gz
+622261037661c45f3b7ae00e7ee91d8e  usr/share/man/cs/man8/grpck.8.gz
+b417d08e085b5f8976e8506d9f2b0a1f  usr/share/man/cs/man8/vipw.8.gz
+def13b749dbba22199e9f873e6675755  usr/share/man/da/man1/chfn.1.gz
+ffc118003ff0ee719677da4bdd65197d  usr/share/man/da/man5/gshadow.5.gz
+3ee019b0044f7a5e8751701a75505e68  usr/share/man/da/man8/groupdel.8.gz
+ee223cb2f63684921926c4c72469a622  usr/share/man/da/man8/vipw.8.gz
+420f9d6bf292600df3542d2179bc6695  usr/share/man/de/man1/chage.1.gz
+6b6d22f3f74c9b9435919f400ba99110  usr/share/man/de/man1/chfn.1.gz
+96af2d7ca2a12ce37c387f8027871100  usr/share/man/de/man1/chsh.1.gz
+183f3b0281f97a369b63f9ca45754737  usr/share/man/de/man1/expiry.1.gz
+c45d3dbc88672a1d52c898841e852cb1  usr/share/man/de/man1/gpasswd.1.gz
+e9f0636e4665a9f000f455119bf8e18f  usr/share/man/de/man1/passwd.1.gz
+b3c64bacb69dd680b7134620f3961530  usr/share/man/de/man5/gshadow.5.gz
+e791f4023c6d368f31befe0200681ff0  usr/share/man/de/man5/passwd.5.gz
+ecae6caf13a5abdd42a47379da1c218d  usr/share/man/de/man5/shadow.5.gz
+4e3fc0a7ee4053f2b93b26724d081b08  usr/share/man/de/man8/chgpasswd.8.gz
+dbf1ec1a659882c7e3a062024a141a2b  usr/share/man/de/man8/chpasswd.8.gz
+46615affd0557bd75e28008e1d4fe1cc  usr/share/man/de/man8/groupadd.8.gz
+8f74b248f05b88f5b438e31277673002  usr/share/man/de/man8/groupdel.8.gz
+057074728870d123a6faed1798af555a  usr/share/man/de/man8/groupmod.8.gz
+cd0251a195983ad5bcc698a02e8a83a0  usr/share/man/de/man8/grpck.8.gz
+dac6e086c0a7264bddbaaecfb94bda25  usr/share/man/de/man8/newusers.8.gz
+b365fc9c5d0ba5e791828ecb042289ea  usr/share/man/de/man8/pwck.8.gz
+1860b21944cee0fdd2e02e3a4e9596c8  usr/share/man/de/man8/pwconv.8.gz
+8a1babf739b694fe71a7cf0fee7af35c  usr/share/man/de/man8/useradd.8.gz
+c520bb9b202cbf3ed964dd56906c9fe9  usr/share/man/de/man8/userdel.8.gz
+4ab764f2af2a22dd87d0da2ba384afd8  usr/share/man/de/man8/usermod.8.gz
+7e9f479fba219191f9e9000f718632ab  usr/share/man/de/man8/vipw.8.gz
+cdd7f1e7de0c99b3ab83c6eeb5141f7c  usr/share/man/fi/man1/chfn.1.gz
+6d97c554084e4ece8ff23fcea2f8d9e3  usr/share/man/fi/man1/chsh.1.gz
+f7f0d3ff8b9fe8307ec90189cc2817d4  usr/share/man/fr/man1/chage.1.gz
+dbb1ecfd209166016981ef1c66340094  usr/share/man/fr/man1/chfn.1.gz
+8aafc142ad7f9b5198917efbe42fe71e  usr/share/man/fr/man1/chsh.1.gz
+920e23b60f4ba31d2acd701ba99c8574  usr/share/man/fr/man1/expiry.1.gz
+749acbe0d4359d3c4655b0e095f66271  usr/share/man/fr/man1/gpasswd.1.gz
+b39c209bfb56827de6f2275e92b38d8e  usr/share/man/fr/man1/passwd.1.gz
+552e712133b64e0b12925cdead9b063e  usr/share/man/fr/man5/gshadow.5.gz
+ccbc92cc7bb19575ae297e04d8545aab  usr/share/man/fr/man5/passwd.5.gz
+4a8b15e2243b96dfe80e10aae39cfb98  usr/share/man/fr/man5/shadow.5.gz
+b139184c873ef5c80bd4c2aeb71982f5  usr/share/man/fr/man5/subgid.5.gz
+f47c73eaa8952ec192e36ac40d9840c3  usr/share/man/fr/man5/subuid.5.gz
+b76b814ec829177fad2f1b2f5956ab2e  usr/share/man/fr/man8/chgpasswd.8.gz
+196812001ba49de3d8d32ea3565cb172  usr/share/man/fr/man8/chpasswd.8.gz
+1c220855802740121a9b24334252725a  usr/share/man/fr/man8/groupadd.8.gz
+f2e6a3697eede3d074e967d9b4d2a5f7  usr/share/man/fr/man8/groupdel.8.gz
+e42c136702667fff9ad9260399858240  usr/share/man/fr/man8/groupmod.8.gz
+1248de58df684bf757aa8d6519b93af0  usr/share/man/fr/man8/grpck.8.gz
+6a0223f822e136d961b735b376df090d  usr/share/man/fr/man8/newusers.8.gz
+348430be3d7239d5eaf4295b0f1899f4  usr/share/man/fr/man8/pwck.8.gz
+ab73d89d94e2938881d728ae7110c072  usr/share/man/fr/man8/pwconv.8.gz
+0dfaf5efc1ed908166724a38f5773cb0  usr/share/man/fr/man8/useradd.8.gz
+c0a7cebdccdd3ca128b20fe773118cec  usr/share/man/fr/man8/userdel.8.gz
+135f39995d4d976873b28bcdd7b6dc59  usr/share/man/fr/man8/usermod.8.gz
+47a100fe8704c7179e4aa12a2756ca42  usr/share/man/fr/man8/vipw.8.gz
+cd9577f2fa319ef721658da34ca2229d  usr/share/man/hu/man1/chsh.1.gz
+cc09760fcf15c4f9aa4d71ba271dd158  usr/share/man/hu/man1/gpasswd.1.gz
+3659573dc5712e91b49d83dba10e828b  usr/share/man/hu/man1/passwd.1.gz
+ef1cf0a6ce799417645ddbabb7b74801  usr/share/man/hu/man5/passwd.5.gz
+130b2d425143d1cfd5f1a596812a26a0  usr/share/man/id/man1/chsh.1.gz
+2d4ee7afb32b617247f1da0f57257f5c  usr/share/man/id/man8/useradd.8.gz
+f7393d7373abd210550d5d9f23d4bb82  usr/share/man/it/man1/chage.1.gz
+5448c0ee8114acdaf4abfa5b31767c1a  usr/share/man/it/man1/chfn.1.gz
+b705c35456f0b1e128c354ef1d347524  usr/share/man/it/man1/chsh.1.gz
+929c646e087dd18b67d96aff2035cf8f  usr/share/man/it/man1/expiry.1.gz
+44d07603e5b5ecc6e1a059004df0de60  usr/share/man/it/man1/gpasswd.1.gz
+f339c770ad540373fa7c4be4423a012d  usr/share/man/it/man1/passwd.1.gz
+ade5755503ee2c16a96344afd795ff04  usr/share/man/it/man5/gshadow.5.gz
+5bf96da6153785b348ccc2f06810c47b  usr/share/man/it/man5/passwd.5.gz
+5b48c286684413177bbb2cc2ceb8a8cc  usr/share/man/it/man5/shadow.5.gz
+431ce56393abcf12a5ee21931649c61e  usr/share/man/it/man8/chgpasswd.8.gz
+83432797f3b1706ab77f794937d02cdb  usr/share/man/it/man8/chpasswd.8.gz
+bee4b3b92e3c28ed82767236c200a18c  usr/share/man/it/man8/groupadd.8.gz
+15e1664b762a2932fb188e96c597181c  usr/share/man/it/man8/groupdel.8.gz
+4f5b79446dd82ea428234c8923130eee  usr/share/man/it/man8/groupmod.8.gz
+5b6c6cfeaf90aefa36b8faddc18c9aac  usr/share/man/it/man8/grpck.8.gz
+9cd2e863d3ca39bd2234fb8c42a86af8  usr/share/man/it/man8/newusers.8.gz
+b2319c57dce2ca5770cb126689a1827c  usr/share/man/it/man8/pwck.8.gz
+3b163d0c49d7544683589d8aa448dad4  usr/share/man/it/man8/pwconv.8.gz
+65b9c45ae0bbfe0fceb2236156fbf1b2  usr/share/man/it/man8/useradd.8.gz
+50b2863264e8465f0bada1cff45ed586  usr/share/man/it/man8/userdel.8.gz
+9419d88aae22fc3c193dbc2d015b5e93  usr/share/man/it/man8/usermod.8.gz
+42eacbde02f1454f1b8aba2de5c3eb59  usr/share/man/it/man8/vipw.8.gz
+45b880408d37fce5b19b037a961fc43b  usr/share/man/ja/man1/chage.1.gz
+6acb65b591cdbbaebbd38adee6bfb094  usr/share/man/ja/man1/chfn.1.gz
+837d25ecc72d24c6c873c9befd6e9a49  usr/share/man/ja/man1/chsh.1.gz
+472359d8d14861e36962108d9bd8a09f  usr/share/man/ja/man1/expiry.1.gz
+9d5900b4d7744acccd25f9236e13eb31  usr/share/man/ja/man1/gpasswd.1.gz
+b710a8e94b39e14003c9136c1b17a764  usr/share/man/ja/man1/passwd.1.gz
+1a66d6ec9256812d21b1516b16b52115  usr/share/man/ja/man5/passwd.5.gz
+28e4a9b0f5dae166aa69485fee46687f  usr/share/man/ja/man5/shadow.5.gz
+97bbd349c936092d3e258105d17fb488  usr/share/man/ja/man8/chpasswd.8.gz
+828c0b21f9294e6d24149f4f2b7239af  usr/share/man/ja/man8/groupadd.8.gz
+7cf8d0a53eabee05d0415d11cbf77b33  usr/share/man/ja/man8/groupdel.8.gz
+714f84f5083bb5f336b3233e1b894117  usr/share/man/ja/man8/groupmod.8.gz
+41b6d757bfa7da2df6857b14c2c1f9b4  usr/share/man/ja/man8/grpck.8.gz
+2616c9ce3abc19050aee6239219e2f74  usr/share/man/ja/man8/newusers.8.gz
+039e3645601e82d946efc039762ecb5f  usr/share/man/ja/man8/pwck.8.gz
+f86dfb5e2e4e79511a13d58c1d3f15f6  usr/share/man/ja/man8/pwconv.8.gz
+a8b5e68fa9ba2929d3c8f5343e5b44ae  usr/share/man/ja/man8/useradd.8.gz
+a5db7e21ff97d5cfc2762aeefc06bfe8  usr/share/man/ja/man8/userdel.8.gz
+6f59ac26225899fd9ca4048b300d8be7  usr/share/man/ja/man8/usermod.8.gz
+d1cc08014e0a78d3eaca83a177d4b344  usr/share/man/ja/man8/vipw.8.gz
+ba9e918a0d165cc3be4240be8feec4a1  usr/share/man/ko/man1/chfn.1.gz
+e2397bd1fff79c64caa7ee856b3828ed  usr/share/man/ko/man1/chsh.1.gz
+14ef2fe516039c1dd91dc214569e504a  usr/share/man/ko/man5/passwd.5.gz
+a15eda23f100c2da01d29cd5319600f3  usr/share/man/ko/man8/vipw.8.gz
+feed65f428590062cd63cae8ae54d5f2  usr/share/man/man1/chage.1.gz
+6d57b97ba047869091c714c201e23e6d  usr/share/man/man1/chfn.1.gz
+8fbf4f12a304c18c7ac6832fe8c3d63b  usr/share/man/man1/chsh.1.gz
+6191d6a8662ef5b889b8d89fa3b458a2  usr/share/man/man1/expiry.1.gz
+da894623e929c01cae143e5025292139  usr/share/man/man1/gpasswd.1.gz
+f311cb462dc9651365a6538d0026521e  usr/share/man/man1/passwd.1.gz
+e87e7f04e518446427d7af1151ffc05f  usr/share/man/man5/gshadow.5.gz
+6293f8819fedb17a865144f1c29b11da  usr/share/man/man5/passwd.5.gz
+d0e2e54ddc9b5faec688091822f25f85  usr/share/man/man5/shadow.5.gz
+ecfad3f501a1c608481e7802dfafef14  usr/share/man/man5/subgid.5.gz
+41810ddae81bfd63eae09ab7aba750a9  usr/share/man/man5/subuid.5.gz
+07732558c6c4173dc74c76e64d2079f6  usr/share/man/man8/chgpasswd.8.gz
+73f10c06ca9703c04cc44038e5d9ab8e  usr/share/man/man8/chpasswd.8.gz
+825f8548d5704586589dbcaa40503a51  usr/share/man/man8/groupadd.8.gz
+ee39daf8b781dd6917a062347095310c  usr/share/man/man8/groupdel.8.gz
+931691328fbb52764fe5a331c94a6408  usr/share/man/man8/groupmod.8.gz
+f5fb1953a656b338b3ca31dfbeea635b  usr/share/man/man8/grpck.8.gz
+629269051a7dd3016ba565542ea33062  usr/share/man/man8/newusers.8.gz
+916153e84af71a30a43c5609c2b0fa85  usr/share/man/man8/pwck.8.gz
+e2330e69123a00accd4e2d3db68cf6cc  usr/share/man/man8/pwconv.8.gz
+f78b76e9603817b463fd5cf85586f766  usr/share/man/man8/shadowconfig.8.gz
+c44f9cb3fa0555de026a7dddd2025be9  usr/share/man/man8/useradd.8.gz
+f0093fd29947cbdab20bebcce2cd0e66  usr/share/man/man8/userdel.8.gz
+538ad5fd4bffa1a666978b6424994f4c  usr/share/man/man8/usermod.8.gz
+4993efb416f9a921b41ec4b6162302b1  usr/share/man/man8/vipw.8.gz
+b0737d0529e2680c316c6b2686b7ecc2  usr/share/man/pl/man1/chage.1.gz
+afca3868153753351702a52902b92e89  usr/share/man/pl/man1/chsh.1.gz
+70ed073bef42ad2affa67de17b190de3  usr/share/man/pl/man1/expiry.1.gz
+7483de49607b3c02185d54257e825002  usr/share/man/pl/man8/groupadd.8.gz
+c1ea376662ba60f055c8bfe9284956c8  usr/share/man/pl/man8/groupdel.8.gz
+a9ef07b66f66c347d5e88a019e3c41c8  usr/share/man/pl/man8/groupmod.8.gz
+148c9aedb421b9991bdc4876e9ffae29  usr/share/man/pl/man8/grpck.8.gz
+d970112df8e763a29b7bda720bcc2078  usr/share/man/pl/man8/userdel.8.gz
+5121612d0da1418c73bb6833ba4d9f50  usr/share/man/pl/man8/usermod.8.gz
+b2210d2b42e53bb05b5780e9acb10f68  usr/share/man/pl/man8/vipw.8.gz
+a5fccd5124a7b11e036642e1c996c1f6  usr/share/man/pt_BR/man1/gpasswd.1.gz
+ed2dbc12df8c8e24574b08e705ae38fb  usr/share/man/pt_BR/man5/passwd.5.gz
+e7ac9ee5d0dabbd42f0f05a42fbeb864  usr/share/man/pt_BR/man5/shadow.5.gz
+f0a0c618a38733263ab1ee62b8cf7b90  usr/share/man/pt_BR/man8/groupadd.8.gz
+31d9d92e0fddbde0f4b8b4a4e3e36a0a  usr/share/man/pt_BR/man8/groupdel.8.gz
+53d7820c9890a8d4df44b075428b16ce  usr/share/man/pt_BR/man8/groupmod.8.gz
+bffaf48759b879fb612c2d5bd52ffac3  usr/share/man/ru/man1/chage.1.gz
+a7dc6e99e0e3f74211313bba3a717d84  usr/share/man/ru/man1/chfn.1.gz
+bfa384bd0aaae0fbf0f9de7ae5227635  usr/share/man/ru/man1/chsh.1.gz
+e4dd9d97e5aee0f126359fe05affa2de  usr/share/man/ru/man1/expiry.1.gz
+7f005ebc19983e83bd7c54323a33df37  usr/share/man/ru/man1/gpasswd.1.gz
+def3f1c75450ef2c54eab6ab71aa4f6d  usr/share/man/ru/man1/passwd.1.gz
+b00e3cb3a75672585d25c9cf0994b7dd  usr/share/man/ru/man5/gshadow.5.gz
+dfb418aad8cc0177f6006a5cfe9dec91  usr/share/man/ru/man5/passwd.5.gz
+36ebfeac8a814576345b0f1f0a824b4e  usr/share/man/ru/man5/shadow.5.gz
+b37d34d95ab929fbec29d01ce05332bf  usr/share/man/ru/man8/chgpasswd.8.gz
+7eb500f14a61c5089d5563117b13ef1d  usr/share/man/ru/man8/chpasswd.8.gz
+810710d142c6c0179a6bb8d38c2b1e56  usr/share/man/ru/man8/groupadd.8.gz
+d53ca1e38a504d62dea93415eef4200d  usr/share/man/ru/man8/groupdel.8.gz
+8758461ad7c0ed7dd53218f900cf825e  usr/share/man/ru/man8/groupmod.8.gz
+7074d58ad144b5a4c10368096ab2f455  usr/share/man/ru/man8/grpck.8.gz
+becd6a746ede63c7450c7f223336da67  usr/share/man/ru/man8/newusers.8.gz
+73c2eb51ff981c394156de64ec9922a5  usr/share/man/ru/man8/pwck.8.gz
+6e93eef4066cc4e54642c4ed64da3c17  usr/share/man/ru/man8/pwconv.8.gz
+fe21a6e43b3dd1e3d7d2640bf3aaf54e  usr/share/man/ru/man8/useradd.8.gz
+eaca6110997802db2337c860f49972b8  usr/share/man/ru/man8/userdel.8.gz
+5e3d379027d034aec8898726478262b3  usr/share/man/ru/man8/usermod.8.gz
+6d6e3707682c4ce53ac7c81c649fe79e  usr/share/man/ru/man8/vipw.8.gz
+41168031a0ace5185a40fc2aaa9a4e14  usr/share/man/sv/man1/chage.1.gz
+144094bea6879d12097a6b3c5893b117  usr/share/man/sv/man1/chsh.1.gz
+37a846992dacbc0a1e99ff0fcd792966  usr/share/man/sv/man1/expiry.1.gz
+e3dacc97a0dc5971f585b938f92f96dc  usr/share/man/sv/man1/passwd.1.gz
+1fd39746c5a09744b8e5de2e83eccace  usr/share/man/sv/man5/gshadow.5.gz
+55b963e6a77d1049af9fb4008d02b50e  usr/share/man/sv/man5/passwd.5.gz
+e46cf64cb1c25f88ced27cce22a1b307  usr/share/man/sv/man8/groupadd.8.gz
+1d6046efd211f6ed0d84ced062063db2  usr/share/man/sv/man8/groupdel.8.gz
+9c63a641018f467f323e15f436b24ee7  usr/share/man/sv/man8/groupmod.8.gz
+315f251f1b307e0cb2a58c5c132f9533  usr/share/man/sv/man8/grpck.8.gz
+5d3b85d15455ff92f953ac68120f5bc6  usr/share/man/sv/man8/pwck.8.gz
+e4512ff1c97ab5c5d48aacaf58ebb2e3  usr/share/man/sv/man8/userdel.8.gz
+d2d70de63329d8e4b03088b32afee98f  usr/share/man/sv/man8/vipw.8.gz
+db5b0e9acd62b9867ab71abc240a671b  usr/share/man/tr/man1/chage.1.gz
+092b6d994a843c2f53c5b416116c02d2  usr/share/man/tr/man1/chfn.1.gz
+e8230102e7eadc46bd59683ecdfa4950  usr/share/man/tr/man1/passwd.1.gz
+2428e897e4bbb8a248d4bccececd480f  usr/share/man/tr/man5/passwd.5.gz
+8b0bf0ca13494b6a05fd818d7acb5a50  usr/share/man/tr/man5/shadow.5.gz
+c1120d1e238cbe8af71454cad431abe2  usr/share/man/tr/man8/groupadd.8.gz
+8971051cfe5cb3d5ae022466114974b3  usr/share/man/tr/man8/groupdel.8.gz
+80130b9dab895851c19d8162dc11bbf7  usr/share/man/tr/man8/groupmod.8.gz
+3ea0c9eff706063a3f56cf1184827e7a  usr/share/man/tr/man8/useradd.8.gz
+3f007966653fde5e170135e8014f6218  usr/share/man/tr/man8/userdel.8.gz
+cb51a6be272c85ea04a22300d86bc32a  usr/share/man/tr/man8/usermod.8.gz
+fb9838bb17001773ecf84a146adbca9a  usr/share/man/uk/man1/chage.1.gz
+4632539841def629bce759e6faa1c4b2  usr/share/man/uk/man1/chfn.1.gz
+39fc9a238d056cd2de53c64dc31aaa40  usr/share/man/uk/man1/chsh.1.gz
+afd9bf7de9c3aad8c7553a9db24c76c9  usr/share/man/uk/man1/expiry.1.gz
+8e6aaa45a00946741bcd9b2a0b4c84b2  usr/share/man/uk/man1/gpasswd.1.gz
+ca06588b9a4d09a5928101e9a4a3c168  usr/share/man/uk/man1/passwd.1.gz
+3add6c726a3e3ae5de903957f3413072  usr/share/man/uk/man5/gshadow.5.gz
+403c8ae429594832fce92493a88f8d8c  usr/share/man/uk/man5/passwd.5.gz
+a85f5b86969d742875c44276fb516c10  usr/share/man/uk/man5/shadow.5.gz
+ab870fcc6dd18c0f0972491ce153ce84  usr/share/man/uk/man8/chgpasswd.8.gz
+3d1da3272ae6a268ba79ab67353362df  usr/share/man/uk/man8/chpasswd.8.gz
+d6d51f6c7c384f93851fa6e6a620f190  usr/share/man/uk/man8/groupadd.8.gz
+6455321ce43bc75dbfbe8a00a9e03a97  usr/share/man/uk/man8/groupdel.8.gz
+3fdd0f0fc2fed48e84ae0d1fd32a2df3  usr/share/man/uk/man8/groupmod.8.gz
+292d9816ed81c5222884771b9ffd034c  usr/share/man/uk/man8/grpck.8.gz
+f47024b294f3265b6fce640358e5709a  usr/share/man/uk/man8/newusers.8.gz
+c9cfb312d11efcb987d491b596139cbc  usr/share/man/uk/man8/pwck.8.gz
+874eaddca1d982e4082440a1a2530268  usr/share/man/uk/man8/pwconv.8.gz
+e505e9fff2b11aa18b14e819fdf299e2  usr/share/man/uk/man8/useradd.8.gz
+14ff6b21963caee2e7860387208425bd  usr/share/man/uk/man8/userdel.8.gz
+14d8a14d399ba91aa35e8589568447ac  usr/share/man/uk/man8/usermod.8.gz
+c1d5055998ac6097cca7403e4c6d7505  usr/share/man/uk/man8/vipw.8.gz
+ad9917fabd6268f3ee35b023755b7ac4  usr/share/man/zh_CN/man1/chage.1.gz
+60e511c33e96b20b90ce3603eb67ade6  usr/share/man/zh_CN/man1/chfn.1.gz
+ea0c14f8539747df72295e5e9340e7a7  usr/share/man/zh_CN/man1/chsh.1.gz
+db40a110cbb7000d532d8571d4798619  usr/share/man/zh_CN/man1/expiry.1.gz
+cf207246296bf5acef026a168d08e64d  usr/share/man/zh_CN/man1/gpasswd.1.gz
+009fcec90a3daae4faf87dc0aaf4cf94  usr/share/man/zh_CN/man1/passwd.1.gz
+7f67de4d202df7efb6c850784a7ddf31  usr/share/man/zh_CN/man5/gshadow.5.gz
+b1ba3edd94852641d922da479ab43fb0  usr/share/man/zh_CN/man5/passwd.5.gz
+1510f819b6c13b8f2d80053dcaa18eeb  usr/share/man/zh_CN/man5/shadow.5.gz
+f40203fafa4f9c1ac8a40271c7b7ae6d  usr/share/man/zh_CN/man8/chgpasswd.8.gz
+0772ee06031ff743cfb44891625ab6e3  usr/share/man/zh_CN/man8/chpasswd.8.gz
+39d0e822e2165c4783fb81661f2d70c3  usr/share/man/zh_CN/man8/groupadd.8.gz
+8b4cc5e9b749ea198ad656c0fd6e2af8  usr/share/man/zh_CN/man8/groupdel.8.gz
+b07dbf8ea1d3e4cc07d3d2aae5fa51bc  usr/share/man/zh_CN/man8/groupmod.8.gz
+c33f5641963f14425bdff8afc265a9e1  usr/share/man/zh_CN/man8/grpck.8.gz
+2c8b6b27e2e576f55715c0545ee9ab3f  usr/share/man/zh_CN/man8/newusers.8.gz
+6da1a929ec04d7c7bfc6421395080ba1  usr/share/man/zh_CN/man8/pwck.8.gz
+e06bf15879a7200ba39b911beb416c7c  usr/share/man/zh_CN/man8/pwconv.8.gz
+13ff48ca6d6390288a9e7e14b68c8626  usr/share/man/zh_CN/man8/useradd.8.gz
+0858acfb0f83341b58ffc417969a95bc  usr/share/man/zh_CN/man8/userdel.8.gz
+805bc8d8f1a544a5a92ed8e980ba8fec  usr/share/man/zh_CN/man8/usermod.8.gz
+7d55220a4252bf451ab6e810a9d807a9  usr/share/man/zh_CN/man8/vipw.8.gz
+71d394a444e1bae52ccd1c792f8c2621  usr/share/man/zh_TW/man1/chfn.1.gz
+f82136c3c46150671bec51ac9abc73cd  usr/share/man/zh_TW/man1/chsh.1.gz
+9b60e3cfec664af17c84a480a69baea7  usr/share/man/zh_TW/man5/passwd.5.gz
+319ba0e21723fe95449dc2438e3e99d4  usr/share/man/zh_TW/man8/chpasswd.8.gz
+b46ea9382a5033d7df9455078d0a483a  usr/share/man/zh_TW/man8/groupadd.8.gz
+0bd97c379d4d95974b2ad6345dca423b  usr/share/man/zh_TW/man8/groupdel.8.gz
+a8395accf3ef680940c289e5b094f407  usr/share/man/zh_TW/man8/groupmod.8.gz
+04517ca2cb6a5791b2fffeacbdaaff3a  usr/share/man/zh_TW/man8/useradd.8.gz
+2efacf471eed788ce8e970a037824bde  usr/share/man/zh_TW/man8/userdel.8.gz
+e2afaad95d754384a370c781e82493d7  usr/share/man/zh_TW/man8/usermod.8.gz
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              #!/bin/sh
+
+set -e
+
+case "$1" in
+configure)
+	if ! getent group shadow | grep -q '^shadow:[^:]*:42'
+	then
+		groupadd -g 42 shadow || (
+    			cat <<EOF
+Group ID 42 has been allocated for the shadow group.  You have either
+used 42 yourself or created a shadow group with a different ID.
+Please correct this problem and reconfigure with ``dpkg --configure passwd''.
+
+Note that both user and group IDs in the range 0-99 are globally
+allocated by the Debian project and must be the same on every Debian
+system.
+EOF
+    			exit 1
+		)
+	fi
+    ;;
+esac
+
+# Run shadowconfig only on new installs
+[ -z "$2" ] && shadowconfig on
+
+# Automatically added by dh_installtmpfiles/13.24.2
+if [ "$1" = "configure" ] || [ "$1" = "abort-upgrade" ] || [ "$1" = "abort-deconfigure" ] || [ "$1" = "abort-remove" ] ; then
+	if [ -x "$(command -v systemd-tmpfiles)" ]; then
+		systemd-tmpfiles ${DPKG_ROOT:+--root="$DPKG_ROOT"} --create passwd.conf || true
+	fi
+fi
+# End automatically added section
+# Automatically added by dh_installdeb/13.24.2
+dpkg-maintscript-helper rm_conffile /etc/cron.daily/passwd 1:4.7-2\~ -- "$@"
+# End automatically added section
+
+
+exit 0
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  #!/bin/sh
+set -e
+# Automatically added by dh_installdeb/13.24.2
+dpkg-maintscript-helper rm_conffile /etc/cron.daily/passwd 1:4.7-2\~ -- "$@"
+# End automatically added section
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 #!/bin/sh
+set -e
+# Automatically added by dh_installdeb/13.24.2
+dpkg-maintscript-helper rm_conffile /etc/cron.daily/passwd 1:4.7-2\~ -- "$@"
+# End automatically added section
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 #!/bin/sh
+set -e
+# Automatically added by dh_installdeb/13.24.2
+dpkg-maintscript-helper rm_conffile /etc/cron.daily/passwd 1:4.7-2\~ -- "$@"
+# End automatically added section
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 /.
+/usr
+/usr/bin
+/usr/bin/perl
+/usr/bin/perl5.40.1
+/usr/lib
+/usr/lib/i386-linux-gnu
+/usr/lib/i386-linux-gnu/perl-base
+/usr/lib/i386-linux-gnu/perl-base/AutoLoader.pm
+/usr/lib/i386-linux-gnu/perl-base/Carp
+/usr/lib/i386-linux-gnu/perl-base/Carp/Heavy.pm
+/usr/lib/i386-linux-gnu/perl-base/Carp.pm
+/usr/lib/i386-linux-gnu/perl-base/Config.pm
+/usr/lib/i386-linux-gnu/perl-base/Config_git.pl
+/usr/lib/i386-linux-gnu/perl-base/Config_heavy.pl
+/usr/lib/i386-linux-gnu/perl-base/Cwd.pm
+/usr/lib/i386-linux-gnu/perl-base/DynaLoader.pm
+/usr/lib/i386-linux-gnu/perl-base/Errno.pm
+/usr/lib/i386-linux-gnu/perl-base/Exporter
+/usr/lib/i386-linux-gnu/perl-base/Exporter/Heavy.pm
+/usr/lib/i386-linux-gnu/perl-base/Exporter.pm
+/usr/lib/i386-linux-gnu/perl-base/Fcntl.pm
+/usr/lib/i386-linux-gnu/perl-base/File
+/usr/lib/i386-linux-gnu/perl-base/File/Basename.pm
+/usr/lib/i386-linux-gnu/perl-base/File/Glob.pm
+/usr/lib/i386-linux-gnu/perl-base/File/Path.pm
+/usr/lib/i386-linux-gnu/perl-base/File/Spec
+/usr/lib/i386-linux-gnu/perl-base/File/Spec/Unix.pm
+/usr/lib/i386-linux-gnu/perl-base/File/Spec.pm
+/usr/lib/i386-linux-gnu/perl-base/File/Temp.pm
+/usr/lib/i386-linux-gnu/perl-base/FileHandle.pm
+/usr/lib/i386-linux-gnu/perl-base/Getopt
+/usr/lib/i386-linux-gnu/perl-base/Getopt/Long
+/usr/lib/i386-linux-gnu/perl-base/Getopt/Long/Parser.pm
+/usr/lib/i386-linux-gnu/perl-base/Getopt/Long.pm
+/usr/lib/i386-linux-gnu/perl-base/Hash
+/usr/lib/i386-linux-gnu/perl-base/Hash/Util.pm
+/usr/lib/i386-linux-gnu/perl-base/IO
+/usr/lib/i386-linux-gnu/perl-base/IO/File.pm
+/usr/lib/i386-linux-gnu/perl-base/IO/Handle.pm
+/usr/lib/i386-linux-gnu/perl-base/IO/Pipe.pm
+/usr/lib/i386-linux-gnu/perl-base/IO/Seekable.pm
+/usr/lib/i386-linux-gnu/perl-base/IO/Select.pm
+/usr/lib/i386-linux-gnu/perl-base/IO/Socket
+/usr/lib/i386-linux-gnu/perl-base/IO/Socket/INET.pm
+/usr/lib/i386-linux-gnu/perl-base/IO/Socket/IP.pm
+/usr/lib/i386-linux-gnu/perl-base/IO/Socket/UNIX.pm
+/usr/lib/i386-linux-gnu/perl-base/IO/Socket.pm
+/usr/lib/i386-linux-gnu/perl-base/IO.pm
+/usr/lib/i386-linux-gnu/perl-base/IPC
+/usr/lib/i386-linux-gnu/perl-base/IPC/Open2.pm
+/usr/lib/i386-linux-gnu/perl-base/IPC/Open3.pm
+/usr/lib/i386-linux-gnu/perl-base/List
+/usr/lib/i386-linux-gnu/perl-base/List/Util.pm
+/usr/lib/i386-linux-gnu/perl-base/POSIX.pm
+/usr/lib/i386-linux-gnu/perl-base/Scalar
+/usr/lib/i386-linux-gnu/perl-base/Scalar/Util.pm
+/usr/lib/i386-linux-gnu/perl-base/SelectSaver.pm
+/usr/lib/i386-linux-gnu/perl-base/Socket.pm
+/usr/lib/i386-linux-gnu/perl-base/Symbol.pm
+/usr/lib/i386-linux-gnu/perl-base/Text
+/usr/lib/i386-linux-gnu/perl-base/Text/ParseWords.pm
+/usr/lib/i386-linux-gnu/perl-base/Text/Tabs.pm
+/usr/lib/i386-linux-gnu/perl-base/Text/Wrap.pm
+/usr/lib/i386-linux-gnu/perl-base/Tie
+/usr/lib/i386-linux-gnu/perl-base/Tie/Hash.pm
+/usr/lib/i386-linux-gnu/perl-base/XSLoader.pm
+/usr/lib/i386-linux-gnu/perl-base/attributes.pm
+/usr/lib/i386-linux-gnu/perl-base/auto
+/usr/lib/i386-linux-gnu/perl-base/auto/Cwd
+/usr/lib/i386-linux-gnu/perl-base/auto/Cwd/Cwd.so
+/usr/lib/i386-linux-gnu/perl-base/auto/Fcntl
+/usr/lib/i386-linux-gnu/perl-base/auto/Fcntl/Fcntl.so
+/usr/lib/i386-linux-gnu/perl-base/auto/File
+/usr/lib/i386-linux-gnu/perl-base/auto/File/Glob
+/usr/lib/i386-linux-gnu/perl-base/auto/File/Glob/Glob.so
+/usr/lib/i386-linux-gnu/perl-base/auto/Hash
+/usr/lib/i386-linux-gnu/perl-base/auto/Hash/Util
+/usr/lib/i386-linux-gnu/perl-base/auto/Hash/Util/Util.so
+/usr/lib/i386-linux-gnu/perl-base/auto/IO
+/usr/lib/i386-linux-gnu/perl-base/auto/IO/IO.so
+/usr/lib/i386-linux-gnu/perl-base/auto/List
+/usr/lib/i386-linux-gnu/perl-base/auto/List/Util
+/usr/lib/i386-linux-gnu/perl-base/auto/List/Util/Util.so
+/usr/lib/i386-linux-gnu/perl-base/auto/POSIX
+/usr/lib/i386-linux-gnu/perl-base/auto/POSIX/POSIX.so
+/usr/lib/i386-linux-gnu/perl-base/auto/Socket
+/usr/lib/i386-linux-gnu/perl-base/auto/Socket/Socket.so
+/usr/lib/i386-linux-gnu/perl-base/auto/attributes
+/usr/lib/i386-linux-gnu/perl-base/auto/attributes/attributes.so
+/usr/lib/i386-linux-gnu/perl-base/auto/re
+/usr/lib/i386-linux-gnu/perl-base/auto/re/re.so
+/usr/lib/i386-linux-gnu/perl-base/base.pm
+/usr/lib/i386-linux-gnu/perl-base/builtin.pm
+/usr/lib/i386-linux-gnu/perl-base/bytes.pm
+/usr/lib/i386-linux-gnu/perl-base/constant.pm
+/usr/lib/i386-linux-gnu/perl-base/feature.pm
+/usr/lib/i386-linux-gnu/perl-base/fields.pm
+/usr/lib/i386-linux-gnu/perl-base/integer.pm
+/usr/lib/i386-linux-gnu/perl-base/lib.pm
+/usr/lib/i386-linux-gnu/perl-base/locale.pm
+/usr/lib/i386-linux-gnu/perl-base/overload.pm
+/usr/lib/i386-linux-gnu/perl-base/overloading.pm
+/usr/lib/i386-linux-gnu/perl-base/parent.pm
+/usr/lib/i386-linux-gnu/perl-base/re.pm
+/usr/lib/i386-linux-gnu/perl-base/strict.pm
+/usr/lib/i386-linux-gnu/perl-base/unicore
+/usr/lib/i386-linux-gnu/perl-base/unicore/To
+/usr/lib/i386-linux-gnu/perl-base/unicore/To/Age.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/To/Bc.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/To/Bmg.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/To/Bpb.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/To/Bpt.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/To/Cf.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/To/Ea.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/To/EqUIdeo.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/To/GCB.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/To/Gc.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/To/Hst.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/To/Identif2.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/To/Identifi.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/To/InPC.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/To/InSC.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/To/Isc.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/To/Jg.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/To/Jt.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/To/Lb.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/To/Lc.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/To/NFCQC.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/To/NFDQC.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/To/NFKCCF.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/To/NFKCQC.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/To/NFKDQC.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/To/Na1.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/To/NameAlia.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/To/Nt.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/To/Nv.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/To/PerlDeci.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/To/SB.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/To/Sc.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/To/Scx.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/To/Tc.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/To/Uc.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/To/Vo.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/To/WB.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/To/_PerlLB.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/To/_PerlSCX.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Age
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Age/NA.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Age/V100.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Age/V11.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Age/V110.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Age/V120.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Age/V130.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Age/V140.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Age/V150.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Age/V20.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Age/V30.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Age/V31.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Age/V32.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Age/V40.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Age/V41.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Age/V50.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Age/V51.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Age/V52.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Age/V60.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Age/V61.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Age/V70.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Age/V80.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Age/V90.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Alpha
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Alpha/Y.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Bc
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Bc/AL.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Bc/AN.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Bc/B.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Bc/BN.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Bc/CS.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Bc/EN.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Bc/ES.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Bc/ET.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Bc/L.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Bc/NSM.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Bc/ON.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Bc/R.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Bc/WS.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/BidiC
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/BidiC/Y.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/BidiM
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/BidiM/Y.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Blk
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Blk/NB.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Bpt
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Bpt/C.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Bpt/N.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Bpt/O.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/CE
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/CE/Y.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/CI
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/CI/Y.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/CWCF
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/CWCF/Y.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/CWCM
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/CWCM/Y.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/CWKCF
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/CWKCF/Y.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/CWL
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/CWL/Y.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/CWT
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/CWT/Y.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/CWU
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/CWU/Y.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Cased
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Cased/Y.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Ccc
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Ccc/A.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Ccc/AL.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Ccc/AR.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Ccc/ATAR.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Ccc/B.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Ccc/BR.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Ccc/DB.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Ccc/NK.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Ccc/NR.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Ccc/OV.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Ccc/VR.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/CompEx
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/CompEx/Y.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/DI
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/DI/Y.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Dash
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Dash/Y.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Dep
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Dep/Y.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Dia
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Dia/Y.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Dt
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Dt/Com.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Dt/Enc.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Dt/Fin.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Dt/Font.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Dt/Init.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Dt/Iso.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Dt/Med.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Dt/Nar.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Dt/Nb.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Dt/NonCanon.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Dt/Sqr.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Dt/Sub.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Dt/Sup.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Dt/Vert.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/EBase
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/EBase/Y.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/EComp
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/EComp/Y.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/EPres
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/EPres/Y.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Ea
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Ea/A.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Ea/H.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Ea/N.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Ea/Na.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Ea/W.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Emoji
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Emoji/Y.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Ext
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Ext/Y.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/ExtPict
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/ExtPict/Y.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/GCB
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/GCB/CN.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/GCB/EX.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/GCB/LV.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/GCB/LVT.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/GCB/PP.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/GCB/SM.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/GCB/XX.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Gc
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Gc/C.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Gc/Cf.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Gc/Cn.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Gc/L.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Gc/LC.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Gc/Ll.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Gc/Lm.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Gc/Lo.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Gc/Lu.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Gc/M.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Gc/Mc.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Gc/Me.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Gc/Mn.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Gc/N.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Gc/Nd.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Gc/Nl.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Gc/No.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Gc/P.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Gc/Pc.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Gc/Pd.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Gc/Pe.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Gc/Pf.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Gc/Pi.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Gc/Po.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Gc/Ps.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Gc/S.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Gc/Sc.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Gc/Sk.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Gc/Sm.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Gc/So.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Gc/Z.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Gc/Zs.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/GrBase
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/GrBase/Y.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/GrExt
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/GrExt/Y.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Hex
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Hex/Y.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Hst
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Hst/NA.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Hyphen
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Hyphen/T.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/IDC
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/IDC/Y.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/IDS
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/IDS/Y.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/IdStatus
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/IdStatus/Allowed.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/IdStatus/Restrict.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/IdType
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/IdType/DefaultI.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/IdType/Exclusio.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/IdType/Inclusio.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/IdType/LimitedU.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/IdType/NotChara.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/IdType/NotNFKC.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/IdType/NotXID.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/IdType/Obsolete.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/IdType/Recommen.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/IdType/Technica.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/IdType/Uncommon.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Ideo
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Ideo/Y.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/In
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/In/10_0.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/In/11_0.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/In/12_0.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/In/12_1.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/In/13_0.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/In/14_0.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/In/15_0.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/In/2_0.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/In/2_1.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/In/3_0.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/In/3_1.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/In/3_2.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/In/4_0.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/In/4_1.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/In/5_0.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/In/5_1.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/In/5_2.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/In/6_0.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/In/6_1.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/In/6_2.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/In/6_3.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/In/7_0.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/In/8_0.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/In/9_0.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/InPC
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/InPC/Bottom.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/InPC/BottomAn.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/InPC/Left.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/InPC/LeftAndR.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/InPC/NA.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/InPC/Overstru.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/InPC/Right.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/InPC/Top.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/InPC/TopAndBo.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/InPC/TopAndL2.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/InPC/TopAndLe.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/InPC/TopAndRi.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/InPC/VisualOr.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/InSC
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/InSC/Avagraha.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/InSC/Bindu.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/InSC/Cantilla.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/InSC/Consona2.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/InSC/Consona3.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/InSC/Consona4.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/InSC/Consona5.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/InSC/Consona6.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/InSC/Consona7.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/InSC/Consona8.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/InSC/Consona9.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/InSC/Consonan.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/InSC/Geminati.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/InSC/Invisibl.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/InSC/Nukta.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/InSC/Number.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/InSC/Other.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/InSC/PureKill.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/InSC/Syllable.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/InSC/ToneMark.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/InSC/Virama.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/InSC/Visarga.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/InSC/Vowel.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/InSC/VowelDep.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/InSC/VowelInd.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Jg
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Jg/Ain.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Jg/Alef.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Jg/Beh.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Jg/Dal.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Jg/FarsiYeh.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Jg/Feh.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Jg/Gaf.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Jg/Hah.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Jg/HanifiRo.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Jg/Kaf.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Jg/Lam.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Jg/NoJoinin.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Jg/Noon.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Jg/Qaf.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Jg/Reh.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Jg/Sad.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Jg/Seen.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Jg/Tah.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Jg/Waw.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Jg/Yeh.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Jt
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Jt/C.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Jt/D.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Jt/L.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Jt/R.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Jt/T.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Jt/U.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Lb
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Lb/AI.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Lb/AL.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Lb/BA.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Lb/BB.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Lb/CJ.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Lb/CL.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Lb/CM.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Lb/EX.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Lb/GL.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Lb/ID.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Lb/IN.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Lb/IS.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Lb/NS.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Lb/NU.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Lb/OP.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Lb/PO.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Lb/PR.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Lb/QU.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Lb/SA.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Lb/XX.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Lower
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Lower/Y.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Math
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Math/Y.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/NFCQC
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/NFCQC/M.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/NFCQC/Y.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/NFDQC
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/NFDQC/N.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/NFDQC/Y.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/NFKCQC
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/NFKCQC/N.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/NFKCQC/Y.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/NFKDQC
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/NFKDQC/N.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/NFKDQC/Y.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Nt
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Nt/Di.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Nt/None.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Nt/Nu.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Nv
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Nv/0.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Nv/1.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Nv/10.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Nv/100.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Nv/1000.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Nv/10000.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Nv/100000.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Nv/11.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Nv/12.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Nv/13.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Nv/14.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Nv/15.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Nv/16.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Nv/17.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Nv/18.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Nv/19.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Nv/1_16.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Nv/1_2.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Nv/1_3.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Nv/1_4.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Nv/1_6.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Nv/1_8.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Nv/2.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Nv/20.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Nv/200.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Nv/2000.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Nv/20000.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Nv/2_3.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Nv/3.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Nv/30.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Nv/300.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Nv/3000.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Nv/30000.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Nv/3_16.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Nv/3_4.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Nv/4.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Nv/40.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Nv/400.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Nv/4000.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Nv/40000.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Nv/5.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Nv/50.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Nv/500.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Nv/5000.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Nv/50000.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Nv/6.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Nv/60.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Nv/600.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Nv/6000.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Nv/60000.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Nv/7.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Nv/70.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Nv/700.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Nv/7000.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Nv/70000.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Nv/8.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Nv/80.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Nv/800.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Nv/8000.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Nv/80000.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Nv/9.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Nv/90.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Nv/900.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Nv/9000.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Nv/90000.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/PCM
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/PCM/Y.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/PatSyn
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/PatSyn/Y.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Perl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Perl/Alnum.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Perl/Assigned.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Perl/Blank.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Perl/Graph.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Perl/PerlWord.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Perl/PosixPun.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Perl/Print.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Perl/SpacePer.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Perl/Title.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Perl/Word.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Perl/XPosixPu.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Perl/_PerlAny.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Perl/_PerlCh2.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Perl/_PerlCha.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Perl/_PerlFol.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Perl/_PerlIDC.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Perl/_PerlIDS.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Perl/_PerlIsI.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Perl/_PerlNch.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Perl/_PerlPat.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Perl/_PerlPr2.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Perl/_PerlPro.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Perl/_PerlQuo.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/QMark
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/QMark/Y.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/SB
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/SB/AT.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/SB/CL.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/SB/EX.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/SB/FO.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/SB/LE.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/SB/LO.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/SB/NU.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/SB/SC.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/SB/ST.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/SB/Sp.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/SB/UP.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/SB/XX.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/SD
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/SD/Y.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/STerm
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/STerm/Y.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Sc
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Sc/Arab.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Sc/Beng.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Sc/Cprt.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Sc/Cyrl.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Sc/Deva.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Sc/Dupl.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Sc/Geor.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Sc/Glag.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Sc/Gong.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Sc/Gonm.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Sc/Gran.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Sc/Grek.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Sc/Gujr.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Sc/Guru.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Sc/Han.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Sc/Hang.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Sc/Hira.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Sc/Kana.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Sc/Knda.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Sc/Latn.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Sc/Limb.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Sc/Linb.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Sc/Mlym.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Sc/Mong.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Sc/Mult.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Sc/Orya.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Sc/Sinh.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Sc/Syrc.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Sc/Taml.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Sc/Telu.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Sc/Zinh.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Sc/Zyyy.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Scx
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Scx/Adlm.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Scx/Arab.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Scx/Armn.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Scx/Beng.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Scx/Bhks.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Scx/Bopo.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Scx/Cakm.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Scx/Cham.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Scx/Copt.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Scx/Cprt.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Scx/Cyrl.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Scx/Deva.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Scx/Diak.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Scx/Dupl.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Scx/Ethi.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Scx/Geor.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Scx/Glag.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Scx/Gong.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Scx/Gonm.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Scx/Gran.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Scx/Grek.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Scx/Gujr.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Scx/Guru.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Scx/Han.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Scx/Hang.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Scx/Hebr.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Scx/Hira.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Scx/Hmng.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Scx/Hmnp.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Scx/Kana.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Scx/Khar.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Scx/Khmr.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Scx/Khoj.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Scx/Knda.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Scx/Kthi.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Scx/Lana.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Scx/Lao.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Scx/Latn.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Scx/Limb.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Scx/Lina.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Scx/Linb.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Scx/Mlym.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Scx/Mong.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Scx/Mult.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Scx/Mymr.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Scx/Nand.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Scx/Nko.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Scx/Orya.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Scx/Phlp.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Scx/Rohg.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Scx/Shrd.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Scx/Sind.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Scx/Sinh.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Scx/Syrc.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Scx/Tagb.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Scx/Takr.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Scx/Talu.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Scx/Taml.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Scx/Tang.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Scx/Telu.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Scx/Thaa.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Scx/Tibt.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Scx/Tirh.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Scx/Vith.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Scx/Xsux.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Scx/Yezi.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Scx/Yi.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Scx/Zinh.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Scx/Zyyy.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Scx/Zzzz.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Term
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Term/Y.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/UIdeo
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/UIdeo/Y.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Upper
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Upper/Y.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/VS
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/VS/Y.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Vo
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Vo/R.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Vo/Tr.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Vo/Tu.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/Vo/U.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/WB
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/WB/EX.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/WB/Extend.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/WB/FO.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/WB/HL.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/WB/KA.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/WB/LE.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/WB/MB.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/WB/ML.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/WB/MN.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/WB/NU.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/WB/WSegSpac.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/WB/XX.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/XIDC
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/XIDC/Y.pl
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/XIDS
+/usr/lib/i386-linux-gnu/perl-base/unicore/lib/XIDS/Y.pl
+/usr/lib/i386-linux-gnu/perl-base/utf8.pm
+/usr/lib/i386-linux-gnu/perl-base/vars.pm
+/usr/lib/i386-linux-gnu/perl-base/warnings
+/usr/lib/i386-linux-gnu/perl-base/warnings/register.pm
+/usr/lib/i386-linux-gnu/perl-base/warnings.pm
+/usr/share
+/usr/share/doc
+/usr/share/doc/perl
+/usr/share/doc/perl/AUTHORS.gz
+/usr/share/doc/perl/Documentation
+/usr/share/doc/perl-base
+/usr/share/doc/perl-base/changelog.Debian.gz
+/usr/share/doc/perl-base/changelog.gz
+/usr/share/doc/perl-base/copyright
+/usr/share/lintian
+/usr/share/lintian/overrides
+/usr/share/lintian/overrides/perl-base
+/usr/share/man
+/usr/share/man/man1
+/usr/share/man/man1/perl.1.gz
+/usr/share/man/man1/perl5.40.1.1.gz
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          0ec81432fd96f3e772bc61e6db3abb8b  usr/bin/perl
+0ec81432fd96f3e772bc61e6db3abb8b  usr/bin/perl5.40.1
+78ae6d88b5349819d4ae17230677575d  usr/lib/i386-linux-gnu/perl-base/AutoLoader.pm
+4b11010a71197eb90096542d7db0d533  usr/lib/i386-linux-gnu/perl-base/Carp.pm
+2649a7a3b3813390b3aeb0d7475576df  usr/lib/i386-linux-gnu/perl-base/Carp/Heavy.pm
+14d1e39ad99d41940614e9eb1cdc5fa1  usr/lib/i386-linux-gnu/perl-base/Config.pm
+43c2fc0c6c7fcce361baeebca99732de  usr/lib/i386-linux-gnu/perl-base/Config_git.pl
+9723f4e2608e83c1dece356acdf73ded  usr/lib/i386-linux-gnu/perl-base/Config_heavy.pl
+cd48716034cde272bbbde038f42981d8  usr/lib/i386-linux-gnu/perl-base/Cwd.pm
+e2c26c29155a7df0c43e24d2b9f5bcdb  usr/lib/i386-linux-gnu/perl-base/DynaLoader.pm
+fb9db81f2f28d858b4eb58ea03f25874  usr/lib/i386-linux-gnu/perl-base/Errno.pm
+6bfc7cd52dc28f2b1eed31d9cab199aa  usr/lib/i386-linux-gnu/perl-base/Exporter.pm
+061a38fb753c2581f4202bc0d4a9d743  usr/lib/i386-linux-gnu/perl-base/Exporter/Heavy.pm
+46c6976393513528b5947f648deea029  usr/lib/i386-linux-gnu/perl-base/Fcntl.pm
+8ecea84d7346bf335a231114ead4f5b2  usr/lib/i386-linux-gnu/perl-base/File/Basename.pm
+3f6875a45e28114a30cdcad6c183eded  usr/lib/i386-linux-gnu/perl-base/File/Glob.pm
+0d473e79024fc4e4aa9940b6ca34fec5  usr/lib/i386-linux-gnu/perl-base/File/Path.pm
+e0e2feb96360db1cd572631c34bb221b  usr/lib/i386-linux-gnu/perl-base/File/Spec.pm
+f526ad35f3a4ba312644e04864c94f88  usr/lib/i386-linux-gnu/perl-base/File/Spec/Unix.pm
+b29d98338e001881d02e0659b5c87fd5  usr/lib/i386-linux-gnu/perl-base/File/Temp.pm
+34b94c076dd9acba973864fc86068d6d  usr/lib/i386-linux-gnu/perl-base/FileHandle.pm
+2c89a4dd1d37546eb9c9dcbb2dd9584e  usr/lib/i386-linux-gnu/perl-base/Getopt/Long.pm
+3ff71cf5715265c8def08047f8cc9932  usr/lib/i386-linux-gnu/perl-base/Getopt/Long/Parser.pm
+6eb56ac0c9630edbd0ab00107c86bb42  usr/lib/i386-linux-gnu/perl-base/Hash/Util.pm
+d379cdd598b0dc234e2a04a26e39819a  usr/lib/i386-linux-gnu/perl-base/IO.pm
+38cf93105bf21253aeb59e2fa163bdb3  usr/lib/i386-linux-gnu/perl-base/IO/File.pm
+c1efd41eb5cbbb1394d02c8789e7e715  usr/lib/i386-linux-gnu/perl-base/IO/Handle.pm
+707493e9d15f4bf1dc06c290f3eb3660  usr/lib/i386-linux-gnu/perl-base/IO/Pipe.pm
+320edb101988d3ef68fbd4997625204b  usr/lib/i386-linux-gnu/perl-base/IO/Seekable.pm
+64c0408f57e1d4ef57b19bac72fc4bbf  usr/lib/i386-linux-gnu/perl-base/IO/Select.pm
+206d6c62beef06f8701a759c01c9794c  usr/lib/i386-linux-gnu/perl-base/IO/Socket.pm
+a8d2eb59a3eab993fbe4cc146e14bf0a  usr/lib/i386-linux-gnu/perl-base/IO/Socket/INET.pm
+3442c635249f7e4d3a6a7e9cbe080f4f  usr/lib/i386-linux-gnu/perl-base/IO/Socket/IP.pm
+9bf84dfb6f43fc19bad4d56705f79bcd  usr/lib/i386-linux-gnu/perl-base/IO/Socket/UNIX.pm
+bd9f266b9e35426da0e50d0d189a5760  usr/lib/i386-linux-gnu/perl-base/IPC/Open2.pm
+a4f60fed0f81ef6ad2f4fea9cfb321f5  usr/lib/i386-linux-gnu/perl-base/IPC/Open3.pm
+7a8d03b203abfa953c903e469188070a  usr/lib/i386-linux-gnu/perl-base/List/Util.pm
+8bc72d7dd37d917423739a5fe5ae55cd  usr/lib/i386-linux-gnu/perl-base/POSIX.pm
+6c3eb9d7d471d24b8dd1fd246f9d26bb  usr/lib/i386-linux-gnu/perl-base/Scalar/Util.pm
+d71a55c7cae110f38d85ea2c9147014e  usr/lib/i386-linux-gnu/perl-base/SelectSaver.pm
+da874590f717e6cf5f47c36a76868299  usr/lib/i386-linux-gnu/perl-base/Socket.pm
+b9cff8a2c27d2d6581fd10f711e38e58  usr/lib/i386-linux-gnu/perl-base/Symbol.pm
+e545714d5dc7de093d16b4d38193cc17  usr/lib/i386-linux-gnu/perl-base/Text/ParseWords.pm
+234b9b4ad08fde95fd717db5d66d1789  usr/lib/i386-linux-gnu/perl-base/Text/Tabs.pm
+03213c4212bd2241c81fdc269647948e  usr/lib/i386-linux-gnu/perl-base/Text/Wrap.pm
+3aa6ceedd80611771127e351795293ec  usr/lib/i386-linux-gnu/perl-base/Tie/Hash.pm
+025ea712faa69169d8fe91280530b271  usr/lib/i386-linux-gnu/perl-base/XSLoader.pm
+646ee4da3f7fa70c4564ff2d70089212  usr/lib/i386-linux-gnu/perl-base/attributes.pm
+99e3f84348fc8a8b9b340cb79b057bf1  usr/lib/i386-linux-gnu/perl-base/auto/Cwd/Cwd.so
+bc452e756d70621a0c5a189cf2abdd08  usr/lib/i386-linux-gnu/perl-base/auto/Fcntl/Fcntl.so
+7278b0b10177bdcee294d605e71b2c17  usr/lib/i386-linux-gnu/perl-base/auto/File/Glob/Glob.so
+61c23d92006535c02d0d88f270e900ac  usr/lib/i386-linux-gnu/perl-base/auto/Hash/Util/Util.so
+d3513e0adeef6aeaeaf34dbc5d2ae668  usr/lib/i386-linux-gnu/perl-base/auto/IO/IO.so
+a8b5750f0fcceb3431ee5e2f4d862173  usr/lib/i386-linux-gnu/perl-base/auto/List/Util/Util.so
+6e0e2539e7457beae87df302db504bd4  usr/lib/i386-linux-gnu/perl-base/auto/POSIX/POSIX.so
+209a48d692a502b07c0c439fde8ce3e2  usr/lib/i386-linux-gnu/perl-base/auto/Socket/Socket.so
+02c7e455312bae8ba94b730fc601f00a  usr/lib/i386-linux-gnu/perl-base/auto/attributes/attributes.so
+4ce96c65b091b1fc71a9ec9f9268f95d  usr/lib/i386-linux-gnu/perl-base/auto/re/re.so
+0484a8f8936a422af0f8b6f94ddcd269  usr/lib/i386-linux-gnu/perl-base/base.pm
+82cfc8739f50e61e6703bdfeb7809942  usr/lib/i386-linux-gnu/perl-base/builtin.pm
+28849e87ed658103f7d4d69fe753d31d  usr/lib/i386-linux-gnu/perl-base/bytes.pm
+5668acebd8d30aa263d57519c360cbc3  usr/lib/i386-linux-gnu/perl-base/constant.pm
+3ba1627ad7c2aa34cfdd5d5f45e4283d  usr/lib/i386-linux-gnu/perl-base/feature.pm
+8881b8db0a8b588889a18ba18b03e49a  usr/lib/i386-linux-gnu/perl-base/fields.pm
+ac4305fa41b2b537d4e426f5f56c5bfb  usr/lib/i386-linux-gnu/perl-base/integer.pm
+5ff70a0a442b7d5e23e5ea0a22498f6d  usr/lib/i386-linux-gnu/perl-base/lib.pm
+c6929bfac89f19e4551d14730d9d4683  usr/lib/i386-linux-gnu/perl-base/locale.pm
+78e575cd3f58418bd5d3c753030a6d8f  usr/lib/i386-linux-gnu/perl-base/overload.pm
+eae881bf623745585b70c107ced98f69  usr/lib/i386-linux-gnu/perl-base/overloading.pm
+d2183788f3a384328645bfd91327bf01  usr/lib/i386-linux-gnu/perl-base/parent.pm
+602094e96acdabda7c497cb8ef44a5ef  usr/lib/i386-linux-gnu/perl-base/re.pm
+11b6fbf5a67476d15946b9aae084e9a5  usr/lib/i386-linux-gnu/perl-base/strict.pm
+be738263d64f49ca759ce0b9a8f93196  usr/lib/i386-linux-gnu/perl-base/unicore/To/Age.pl
+57693fd73869e40a626c0ccaae1688e1  usr/lib/i386-linux-gnu/perl-base/unicore/To/Bc.pl
+a0e3dbdb19c516d27b16bd288a8ddd0a  usr/lib/i386-linux-gnu/perl-base/unicore/To/Bmg.pl
+2f9b14dc32b1026a0ba81b7e3a3ae335  usr/lib/i386-linux-gnu/perl-base/unicore/To/Bpb.pl
+df1127347b6f695cf6069c1ae04ec6b8  usr/lib/i386-linux-gnu/perl-base/unicore/To/Bpt.pl
+50953e8de4473592616f7d05a0c7eab6  usr/lib/i386-linux-gnu/perl-base/unicore/To/Cf.pl
+c79d0126881c7bf012660efa9c43e367  usr/lib/i386-linux-gnu/perl-base/unicore/To/Ea.pl
+2d1305bf4efde41171bdb6704aefb344  usr/lib/i386-linux-gnu/perl-base/unicore/To/EqUIdeo.pl
+feea316f28d524e1823c76a5880aa39d  usr/lib/i386-linux-gnu/perl-base/unicore/To/GCB.pl
+b0e759c303358cc93358245de0a6e6be  usr/lib/i386-linux-gnu/perl-base/unicore/To/Gc.pl
+336e482370d78231272486398667e828  usr/lib/i386-linux-gnu/perl-base/unicore/To/Hst.pl
+f4656711280e16e7a66cd68976a47ac9  usr/lib/i386-linux-gnu/perl-base/unicore/To/Identif2.pl
+419ad902d51c8b8aa66c3953250186c3  usr/lib/i386-linux-gnu/perl-base/unicore/To/Identifi.pl
+129ce15724bb1ed9a5980b9287449445  usr/lib/i386-linux-gnu/perl-base/unicore/To/InPC.pl
+b974929c4f3d2428168917c6baf9baf6  usr/lib/i386-linux-gnu/perl-base/unicore/To/InSC.pl
+814463b7efdd34d08040fcc148601352  usr/lib/i386-linux-gnu/perl-base/unicore/To/Isc.pl
+705c862767776f4437800474d5ad088b  usr/lib/i386-linux-gnu/perl-base/unicore/To/Jg.pl
+e757b68ead8a71e53fa033d8728885cc  usr/lib/i386-linux-gnu/perl-base/unicore/To/Jt.pl
+f6e32995d8b079744b698741d9f60aaa  usr/lib/i386-linux-gnu/perl-base/unicore/To/Lb.pl
+41b7d35c695618fda25e9de5aee76c69  usr/lib/i386-linux-gnu/perl-base/unicore/To/Lc.pl
+bbc352e15f38501c01a5e8fc12f072da  usr/lib/i386-linux-gnu/perl-base/unicore/To/NFCQC.pl
+9aeb0d0461c7fa2df4af171fc760f46b  usr/lib/i386-linux-gnu/perl-base/unicore/To/NFDQC.pl
+5067810542235e62afa1e275c10d460f  usr/lib/i386-linux-gnu/perl-base/unicore/To/NFKCCF.pl
+b1e4a3372c313ad7dcbb5c6f8cc89878  usr/lib/i386-linux-gnu/perl-base/unicore/To/NFKCQC.pl
+571d2ad99fdafa783fb1fb85de7d007a  usr/lib/i386-linux-gnu/perl-base/unicore/To/NFKDQC.pl
+00990fb3e5b51f333b341a31c318a0ec  usr/lib/i386-linux-gnu/perl-base/unicore/To/Na1.pl
+ce89803b374d1c3ceefa4ce99f01bb3e  usr/lib/i386-linux-gnu/perl-base/unicore/To/NameAlia.pl
+afaca73185582c2e0cd9c8c662f859d7  usr/lib/i386-linux-gnu/perl-base/unicore/To/Nt.pl
+216a179219910c70437557bb3f28f7cb  usr/l

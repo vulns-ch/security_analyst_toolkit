@@ -1,0 +1,1558 @@
+hen False adds a bunch of commonly found,
+        but non-standard types.
+        """
+        # TODO: Deprecate accepting file paths (in particular path-like objects).
+        url = os.fspath(url)
+        p = urllib.parse.urlparse(url)
+        if p.scheme and len(p.scheme) > 1:
+            scheme = p.scheme
+            url = p.path
+        else:
+            return self.guess_file_type(url, strict=strict)
+        if scheme == 'data':
+            # syntax of data URLs:
+            # dataurl   := "data:" [ mediatype ] [ ";base64" ] "," data
+            # mediatype := [ type "/" subtype ] *( ";" parameter )
+            # data      := *urlchar
+            # parameter := attribute "=" value
+            # type/subtype defaults to "text/plain"
+            comma = url.find(',')
+            if comma < 0:
+                # bad data URL
+                return None, None
+            semi = url.find(';', 0, comma)
+            if semi >= 0:
+                type = url[:semi]
+            else:
+                type = url[:comma]
+            if '=' in type or '/' not in type:
+                type = 'text/plain'
+            return type, None           # never compressed, so encoding is None
+        return self._guess_file_type(url, strict, posixpath.splitext)
+
+    def guess_file_type(self, path, *, strict=True):
+        """Guess the type of a file based on its path.
+
+        Similar to guess_type(), but takes file path istead of URL.
+        """
+        path = os.fsdecode(path)
+        path = os.path.splitdrive(path)[1]
+        return self._guess_file_type(path, strict, os.path.splitext)
+
+    def _guess_file_type(self, path, strict, splitext):
+        base, ext = splitext(path)
+        while (ext_lower := ext.lower()) in self.suffix_map:
+            base, ext = splitext(base + self.suffix_map[ext_lower])
+        # encodings_map is case sensitive
+        if ext in self.encodings_map:
+            encoding = self.encodings_map[ext]
+            base, ext = splitext(base)
+        else:
+            encoding = None
+        ext = ext.lower()
+        types_map = self.types_map[True]
+        if ext in types_map:
+            return types_map[ext], encoding
+        elif strict:
+            return None, encoding
+        types_map = self.types_map[False]
+        if ext in types_map:
+            return types_map[ext], encoding
+        else:
+            return None, encoding
+
+    def guess_all_extensions(self, type, strict=True):
+        """Guess the extensions for a file based on its MIME type.
+
+        Return value is a list of strings giving the possible filename
+        extensions, including the leading dot ('.').  The extension is not
+        guaranteed to have been associated with any particular data stream,
+        but would be mapped to the MIME type `type' by guess_type().
+
+        Optional `strict' argument when false adds a bunch of commonly found,
+        but non-standard types.
+        """
+        type = type.lower()
+        extensions = list(self.types_map_inv[True].get(type, []))
+        if not strict:
+            for ext in self.types_map_inv[False].get(type, []):
+                if ext not in extensions:
+                    extensions.append(ext)
+        return extensions
+
+    def guess_extension(self, type, strict=True):
+        """Guess the extension for a file based on its MIME type.
+
+        Return value is a string giving a filename extension,
+        including the leading dot ('.').  The extension is not
+        guaranteed to have been associated with any particular data
+        stream, but would be mapped to the MIME type `type' by
+        guess_type().  If no extension can be guessed for `type', None
+        is returned.
+
+        Optional `strict' argument when false adds a bunch of commonly found,
+        but non-standard types.
+        """
+        extensions = self.guess_all_extensions(type, strict)
+        if not extensions:
+            return None
+        return extensions[0]
+
+    def read(self, filename, strict=True):
+        """
+        Read a single mime.types-format file, specified by pathname.
+
+        If strict is true, information will be added to
+        list of standard types, else to the list of non-standard
+        types.
+        """
+        with open(filename, encoding='utf-8') as fp:
+            self.readfp(fp, strict)
+
+    def readfp(self, fp, strict=True):
+        """
+        Read a single mime.types-format file.
+
+        If strict is true, information will be added to
+        list of standard types, else to the list of non-standard
+        types.
+        """
+        while line := fp.readline():
+            words = line.split()
+            for i in range(len(words)):
+                if words[i][0] == '#':
+                    del words[i:]
+                    break
+            if not words:
+                continue
+            type, suffixes = words[0], words[1:]
+            for suff in suffixes:
+                self.add_type(type, '.' + suff, strict)
+
+    def read_windows_registry(self, strict=True):
+        """
+        Load the MIME types database from Windows registry.
+
+        If strict is true, information will be added to
+        list of standard types, else to the list of non-standard
+        types.
+        """
+
+        if not _mimetypes_read_windows_registry and not _winreg:
+            return
+
+        add_type = self.add_type
+        if strict:
+            add_type = lambda type, ext: self.add_type(type, ext, True)
+
+        # Accelerated function if it is available
+        if _mimetypes_read_windows_registry:
+            _mimetypes_read_windows_registry(add_type)
+        elif _winreg:
+            self._read_windows_registry(add_type)
+
+    @classmethod
+    def _read_windows_registry(cls, add_type):
+        def enum_types(mimedb):
+            i = 0
+            while True:
+                try:
+                    ctype = _winreg.EnumKey(mimedb, i)
+                except OSError:
+                    break
+                else:
+                    if '\0' not in ctype:
+                        yield ctype
+                i += 1
+
+        with _winreg.OpenKey(_winreg.HKEY_CLASSES_ROOT, '') as hkcr:
+            for subkeyname in enum_types(hkcr):
+                try:
+                    with _winreg.OpenKey(hkcr, subkeyname) as subkey:
+                        # Only check file extensions
+                        if not subkeyname.startswith("."):
+                            continue
+                        # raises OSError if no 'Content Type' value
+                        mimetype, datatype = _winreg.QueryValueEx(
+                            subkey, 'Content Type')
+                        if datatype != _winreg.REG_SZ:
+                            continue
+                        add_type(mimetype, subkeyname)
+                except OSError:
+                    continue
+
+def guess_type(url, strict=True):
+    """Guess the type of a file based on its URL.
+
+    Return value is a tuple (type, encoding) where type is None if the
+    type can't be guessed (no or unknown suffix) or a string of the
+    form type/subtype, usable for a MIME Content-type header; and
+    encoding is None for no encoding or the name of the program used
+    to encode (e.g. compress or gzip).  The mappings are table
+    driven.  Encoding suffixes are case sensitive; type suffixes are
+    first tried case sensitive, then case insensitive.
+
+    The suffixes .tgz, .taz and .tz (case sensitive!) are all mapped
+    to ".tar.gz".  (This is table-driven too, using the dictionary
+    suffix_map).
+
+    Optional `strict' argument when false adds a bunch of commonly found, but
+    non-standard types.
+    """
+    if _db is None:
+        init()
+    return _db.guess_type(url, strict)
+
+
+def guess_file_type(path, *, strict=True):
+    """Guess the type of a file based on its path.
+
+    Similar to guess_type(), but takes file path istead of URL.
+    """
+    if _db is None:
+        init()
+    return _db.guess_file_type(path, strict=strict)
+
+
+def guess_all_extensions(type, strict=True):
+    """Guess the extensions for a file based on its MIME type.
+
+    Return value is a list of strings giving the possible filename
+    extensions, including the leading dot ('.').  The extension is not
+    guaranteed to have been associated with any particular data
+    stream, but would be mapped to the MIME type `type' by
+    guess_type().  If no extension can be guessed for `type', None
+    is returned.
+
+    Optional `strict' argument when false adds a bunch of commonly found,
+    but non-standard types.
+    """
+    if _db is None:
+        init()
+    return _db.guess_all_extensions(type, strict)
+
+def guess_extension(type, strict=True):
+    """Guess the extension for a file based on its MIME type.
+
+    Return value is a string giving a filename extension, including the
+    leading dot ('.').  The extension is not guaranteed to have been
+    associated with any particular data stream, but would be mapped to the
+    MIME type `type' by guess_type().  If no extension can be guessed for
+    `type', None is returned.
+
+    Optional `strict' argument when false adds a bunch of commonly found,
+    but non-standard types.
+    """
+    if _db is None:
+        init()
+    return _db.guess_extension(type, strict)
+
+def add_type(type, ext, strict=True):
+    """Add a mapping between a type and an extension.
+
+    When the extension is already known, the new
+    type will replace the old one. When the type
+    is already known the extension will be added
+    to the list of known extensions.
+
+    If strict is true, information will be added to
+    list of standard types, else to the list of non-standard
+    types.
+    """
+    if _db is None:
+        init()
+    return _db.add_type(type, ext, strict)
+
+
+def init(files=None):
+    global suffix_map, types_map, encodings_map, common_types
+    global inited, _db
+    inited = True    # so that MimeTypes.__init__() doesn't call us again
+
+    if files is None or _db is None:
+        db = MimeTypes()
+        # Quick return if not supported
+        db.read_windows_registry()
+
+        if files is None:
+            files = knownfiles
+        else:
+            files = knownfiles + list(files)
+    else:
+        db = _db
+
+    for file in files:
+        if os.path.isfile(file):
+            db.read(file)
+    encodings_map = db.encodings_map
+    suffix_map = db.suffix_map
+    types_map = db.types_map[True]
+    common_types = db.types_map[False]
+    # Make the DB a global variable now that it is fully initialized
+    _db = db
+
+
+def read_mime_types(file):
+    try:
+        f = open(file, encoding='utf-8')
+    except OSError:
+        return None
+    with f:
+        db = MimeTypes()
+        db.readfp(f, True)
+        return db.types_map[True]
+
+
+def _default_mime_types():
+    global suffix_map, _suffix_map_default
+    global encodings_map, _encodings_map_default
+    global types_map, _types_map_default
+    global common_types, _common_types_default
+
+    suffix_map = _suffix_map_default = {
+        '.svgz': '.svg.gz',
+        '.tgz': '.tar.gz',
+        '.taz': '.tar.gz',
+        '.tz': '.tar.gz',
+        '.tbz2': '.tar.bz2',
+        '.txz': '.tar.xz',
+        }
+
+    encodings_map = _encodings_map_default = {
+        '.gz': 'gzip',
+        '.Z': 'compress',
+        '.bz2': 'bzip2',
+        '.xz': 'xz',
+        '.br': 'br',
+        }
+
+    # Before adding new types, make sure they are either registered with IANA,
+    # at http://www.iana.org/assignments/media-types
+    # or extensions, i.e. using the x- prefix
+
+    # If you add to these, please keep them sorted by mime type.
+    # Make sure the entry with the preferred file extension for a particular mime type
+    # appears before any others of the same mimetype.
+    types_map = _types_map_default = {
+        '.js'     : 'text/javascript',
+        '.mjs'    : 'text/javascript',
+        '.json'   : 'application/json',
+        '.webmanifest': 'application/manifest+json',
+        '.doc'    : 'application/msword',
+        '.dot'    : 'application/msword',
+        '.wiz'    : 'application/msword',
+        '.nq'     : 'application/n-quads',
+        '.nt'     : 'application/n-triples',
+        '.bin'    : 'application/octet-stream',
+        '.a'      : 'application/octet-stream',
+        '.dll'    : 'application/octet-stream',
+        '.exe'    : 'application/octet-stream',
+        '.o'      : 'application/octet-stream',
+        '.obj'    : 'application/octet-stream',
+        '.so'     : 'application/octet-stream',
+        '.oda'    : 'application/oda',
+        '.pdf'    : 'application/pdf',
+        '.p7c'    : 'application/pkcs7-mime',
+        '.ps'     : 'application/postscript',
+        '.ai'     : 'application/postscript',
+        '.eps'    : 'application/postscript',
+        '.trig'   : 'application/trig',
+        '.m3u'    : 'application/vnd.apple.mpegurl',
+        '.m3u8'   : 'application/vnd.apple.mpegurl',
+        '.xls'    : 'application/vnd.ms-excel',
+        '.xlb'    : 'application/vnd.ms-excel',
+        '.ppt'    : 'application/vnd.ms-powerpoint',
+        '.pot'    : 'application/vnd.ms-powerpoint',
+        '.ppa'    : 'application/vnd.ms-powerpoint',
+        '.pps'    : 'application/vnd.ms-powerpoint',
+        '.pwz'    : 'application/vnd.ms-powerpoint',
+        '.wasm'   : 'application/wasm',
+        '.bcpio'  : 'application/x-bcpio',
+        '.cpio'   : 'application/x-cpio',
+        '.csh'    : 'application/x-csh',
+        '.dvi'    : 'application/x-dvi',
+        '.gtar'   : 'application/x-gtar',
+        '.hdf'    : 'application/x-hdf',
+        '.h5'     : 'application/x-hdf5',
+        '.latex'  : 'application/x-latex',
+        '.mif'    : 'application/x-mif',
+        '.cdf'    : 'application/x-netcdf',
+        '.nc'     : 'application/x-netcdf',
+        '.p12'    : 'application/x-pkcs12',
+        '.pfx'    : 'application/x-pkcs12',
+        '.ram'    : 'application/x-pn-realaudio',
+        '.pyc'    : 'application/x-python-code',
+        '.pyo'    : 'application/x-python-code',
+        '.sh'     : 'application/x-sh',
+        '.shar'   : 'application/x-shar',
+        '.swf'    : 'application/x-shockwave-flash',
+        '.sv4cpio': 'application/x-sv4cpio',
+        '.sv4crc' : 'application/x-sv4crc',
+        '.tar'    : 'application/x-tar',
+        '.tcl'    : 'application/x-tcl',
+        '.tex'    : 'application/x-tex',
+        '.texi'   : 'application/x-texinfo',
+        '.texinfo': 'application/x-texinfo',
+        '.roff'   : 'application/x-troff',
+        '.t'      : 'application/x-troff',
+        '.tr'     : 'application/x-troff',
+        '.man'    : 'application/x-troff-man',
+        '.me'     : 'application/x-troff-me',
+        '.ms'     : 'application/x-troff-ms',
+        '.ustar'  : 'application/x-ustar',
+        '.src'    : 'application/x-wais-source',
+        '.xsl'    : 'application/xml',
+        '.rdf'    : 'application/xml',
+        '.wsdl'   : 'application/xml',
+        '.xpdl'   : 'application/xml',
+        '.zip'    : 'application/zip',
+        '.3gp'    : 'audio/3gpp',
+        '.3gpp'   : 'audio/3gpp',
+        '.3g2'    : 'audio/3gpp2',
+        '.3gpp2'  : 'audio/3gpp2',
+        '.aac'    : 'audio/aac',
+        '.adts'   : 'audio/aac',
+        '.loas'   : 'audio/aac',
+        '.ass'    : 'audio/aac',
+        '.au'     : 'audio/basic',
+        '.snd'    : 'audio/basic',
+        '.mp3'    : 'audio/mpeg',
+        '.mp2'    : 'audio/mpeg',
+        '.opus'   : 'audio/opus',
+        '.aif'    : 'audio/x-aiff',
+        '.aifc'   : 'audio/x-aiff',
+        '.aiff'   : 'audio/x-aiff',
+        '.ra'     : 'audio/x-pn-realaudio',
+        '.wav'    : 'audio/x-wav',
+        '.avif'   : 'image/avif',
+        '.bmp'    : 'image/bmp',
+        '.gif'    : 'image/gif',
+        '.ief'    : 'image/ief',
+        '.jpg'    : 'image/jpeg',
+        '.jpe'    : 'image/jpeg',
+        '.jpeg'   : 'image/jpeg',
+        '.heic'   : 'image/heic',
+        '.heif'   : 'image/heif',
+        '.png'    : 'image/png',
+        '.svg'    : 'image/svg+xml',
+        '.tiff'   : 'image/tiff',
+        '.tif'    : 'image/tiff',
+        '.ico'    : 'image/vnd.microsoft.icon',
+        '.webp'   : 'image/webp',
+        '.ras'    : 'image/x-cmu-raster',
+        '.pnm'    : 'image/x-portable-anymap',
+        '.pbm'    : 'image/x-portable-bitmap',
+        '.pgm'    : 'image/x-portable-graymap',
+        '.ppm'    : 'image/x-portable-pixmap',
+        '.rgb'    : 'image/x-rgb',
+        '.xbm'    : 'image/x-xbitmap',
+        '.xpm'    : 'image/x-xpixmap',
+        '.xwd'    : 'image/x-xwindowdump',
+        '.eml'    : 'message/rfc822',
+        '.mht'    : 'message/rfc822',
+        '.mhtml'  : 'message/rfc822',
+        '.nws'    : 'message/rfc822',
+        '.css'    : 'text/css',
+        '.csv'    : 'text/csv',
+        '.html'   : 'text/html',
+        '.htm'    : 'text/html',
+        '.md'     : 'text/markdown',
+        '.markdown': 'text/markdown',
+        '.n3'     : 'text/n3',
+        '.txt'    : 'text/plain',
+        '.bat'    : 'text/plain',
+        '.c'      : 'text/plain',
+        '.h'      : 'text/plain',
+        '.ksh'    : 'text/plain',
+        '.pl'     : 'text/plain',
+        '.srt'    : 'text/plain',
+        '.rtx'    : 'text/richtext',
+        '.rtf'    : 'text/rtf',
+        '.tsv'    : 'text/tab-separated-values',
+        '.vtt'    : 'text/vtt',
+        '.py'     : 'text/x-python',
+        '.rst'    : 'text/x-rst',
+        '.etx'    : 'text/x-setext',
+        '.sgm'    : 'text/x-sgml',
+        '.sgml'   : 'text/x-sgml',
+        '.vcf'    : 'text/x-vcard',
+        '.xml'    : 'text/xml',
+        '.mp4'    : 'video/mp4',
+        '.mpeg'   : 'video/mpeg',
+        '.m1v'    : 'video/mpeg',
+        '.mpa'    : 'video/mpeg',
+        '.mpe'    : 'video/mpeg',
+        '.mpg'    : 'video/mpeg',
+        '.mov'    : 'video/quicktime',
+        '.qt'     : 'video/quicktime',
+        '.webm'   : 'video/webm',
+        '.avi'    : 'video/x-msvideo',
+        '.movie'  : 'video/x-sgi-movie',
+        }
+
+    # These are non-standard types, commonly found in the wild.  They will
+    # only match if strict=0 flag is given to the API methods.
+
+    # Please sort these too
+    common_types = _common_types_default = {
+        '.rtf' : 'application/rtf',
+        '.midi': 'audio/midi',
+        '.mid' : 'audio/midi',
+        '.jpg' : 'image/jpg',
+        '.pict': 'image/pict',
+        '.pct' : 'image/pict',
+        '.pic' : 'image/pict',
+        '.xul' : 'text/xul',
+        }
+
+
+_default_mime_types()
+
+
+def _main():
+    import getopt
+
+    USAGE = """\
+Usage: mimetypes.py [options] type
+
+Options:
+    --help / -h       -- print this message and exit
+    --lenient / -l    -- additionally search of some common, but non-standard
+                         types.
+    --extension / -e  -- guess extension instead of type
+
+More than one type argument may be given.
+"""
+
+    def usage(code, msg=''):
+        print(USAGE)
+        if msg: print(msg)
+        sys.exit(code)
+
+    try:
+        opts, args = getopt.getopt(sys.argv[1:], 'hle',
+                                   ['help', 'lenient', 'extension'])
+    except getopt.error as msg:
+        usage(1, msg)
+
+    strict = 1
+    extension = 0
+    for opt, arg in opts:
+        if opt in ('-h', '--help'):
+            usage(0)
+        elif opt in ('-l', '--lenient'):
+            strict = 0
+        elif opt in ('-e', '--extension'):
+            extension = 1
+    for gtype in args:
+        if extension:
+            guess = guess_extension(gtype, strict)
+            if not guess: print("I don't know anything about type", gtype)
+            else: print(guess)
+        else:
+            guess, encoding = guess_type(gtype, strict)
+            if not guess: print("I don't know anything about type", gtype)
+            else: print('type:', guess, 'encoding:', encoding)
+
+
+if __name__ == '__main__':
+    _main()
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     """Find modules used by a script, using introspection."""
+
+import dis
+import importlib._bootstrap_external
+import importlib.machinery
+import marshal
+import os
+import io
+import sys
+
+# Old imp constants:
+
+_SEARCH_ERROR = 0
+_PY_SOURCE = 1
+_PY_COMPILED = 2
+_C_EXTENSION = 3
+_PKG_DIRECTORY = 5
+_C_BUILTIN = 6
+_PY_FROZEN = 7
+
+# Modulefinder does a good job at simulating Python's, but it can not
+# handle __path__ modifications packages make at runtime.  Therefore there
+# is a mechanism whereby you can register extra paths in this map for a
+# package, and it will be honored.
+
+# Note this is a mapping is lists of paths.
+packagePathMap = {}
+
+# A Public interface
+def AddPackagePath(packagename, path):
+    packagePathMap.setdefault(packagename, []).append(path)
+
+replacePackageMap = {}
+
+# This ReplacePackage mechanism allows modulefinder to work around
+# situations in which a package injects itself under the name
+# of another package into sys.modules at runtime by calling
+# ReplacePackage("real_package_name", "faked_package_name")
+# before running ModuleFinder.
+
+def ReplacePackage(oldname, newname):
+    replacePackageMap[oldname] = newname
+
+
+def _find_module(name, path=None):
+    """An importlib reimplementation of imp.find_module (for our purposes)."""
+
+    # It's necessary to clear the caches for our Finder first, in case any
+    # modules are being added/deleted/modified at runtime. In particular,
+    # test_modulefinder.py changes file tree contents in a cache-breaking way:
+
+    importlib.machinery.PathFinder.invalidate_caches()
+
+    spec = importlib.machinery.PathFinder.find_spec(name, path)
+
+    if spec is None:
+        raise ImportError("No module named {name!r}".format(name=name), name=name)
+
+    # Some special cases:
+
+    if spec.loader is importlib.machinery.BuiltinImporter:
+        return None, None, ("", "", _C_BUILTIN)
+
+    if spec.loader is importlib.machinery.FrozenImporter:
+        return None, None, ("", "", _PY_FROZEN)
+
+    file_path = spec.origin
+
+    if spec.loader.is_package(name):
+        return None, os.path.dirname(file_path), ("", "", _PKG_DIRECTORY)
+
+    if isinstance(spec.loader, importlib.machinery.SourceFileLoader):
+        kind = _PY_SOURCE
+
+    elif isinstance(
+        spec.loader, (
+            importlib.machinery.ExtensionFileLoader,
+            importlib.machinery.AppleFrameworkLoader,
+        )
+    ):
+        kind = _C_EXTENSION
+
+    elif isinstance(spec.loader, importlib.machinery.SourcelessFileLoader):
+        kind = _PY_COMPILED
+
+    else:  # Should never happen.
+        return None, None, ("", "", _SEARCH_ERROR)
+
+    file = io.open_code(file_path)
+    suffix = os.path.splitext(file_path)[-1]
+
+    return file, file_path, (suffix, "rb", kind)
+
+
+class Module:
+
+    def __init__(self, name, file=None, path=None):
+        self.__name__ = name
+        self.__file__ = file
+        self.__path__ = path
+        self.__code__ = None
+        # The set of global names that are assigned to in the module.
+        # This includes those names imported through starimports of
+        # Python modules.
+        self.globalnames = {}
+        # The set of starimports this module did that could not be
+        # resolved, ie. a starimport from a non-Python module.
+        self.starimports = {}
+
+    def __repr__(self):
+        s = "Module(%r" % (self.__name__,)
+        if self.__file__ is not None:
+            s = s + ", %r" % (self.__file__,)
+        if self.__path__ is not None:
+            s = s + ", %r" % (self.__path__,)
+        s = s + ")"
+        return s
+
+class ModuleFinder:
+
+    def __init__(self, path=None, debug=0, excludes=None, replace_paths=None):
+        if path is None:
+            path = sys.path
+        self.path = path
+        self.modules = {}
+        self.badmodules = {}
+        self.debug = debug
+        self.indent = 0
+        self.excludes = excludes if excludes is not None else []
+        self.replace_paths = replace_paths if replace_paths is not None else []
+        self.processed_paths = []   # Used in debugging only
+
+    def msg(self, level, str, *args):
+        if level <= self.debug:
+            for i in range(self.indent):
+                print("   ", end=' ')
+            print(str, end=' ')
+            for arg in args:
+                print(repr(arg), end=' ')
+            print()
+
+    def msgin(self, *args):
+        level = args[0]
+        if level <= self.debug:
+            self.indent = self.indent + 1
+            self.msg(*args)
+
+    def msgout(self, *args):
+        level = args[0]
+        if level <= self.debug:
+            self.indent = self.indent - 1
+            self.msg(*args)
+
+    def run_script(self, pathname):
+        self.msg(2, "run_script", pathname)
+        with io.open_code(pathname) as fp:
+            stuff = ("", "rb", _PY_SOURCE)
+            self.load_module('__main__', fp, pathname, stuff)
+
+    def load_file(self, pathname):
+        dir, name = os.path.split(pathname)
+        name, ext = os.path.splitext(name)
+        with io.open_code(pathname) as fp:
+            stuff = (ext, "rb", _PY_SOURCE)
+            self.load_module(name, fp, pathname, stuff)
+
+    def import_hook(self, name, caller=None, fromlist=None, level=-1):
+        self.msg(3, "import_hook", name, caller, fromlist, level)
+        parent = self.determine_parent(caller, level=level)
+        q, tail = self.find_head_package(parent, name)
+        m = self.load_tail(q, tail)
+        if not fromlist:
+            return q
+        if m.__path__:
+            self.ensure_fromlist(m, fromlist)
+        return None
+
+    def determine_parent(self, caller, level=-1):
+        self.msgin(4, "determine_parent", caller, level)
+        if not caller or level == 0:
+            self.msgout(4, "determine_parent -> None")
+            return None
+        pname = caller.__name__
+        if level >= 1: # relative import
+            if caller.__path__:
+                level -= 1
+            if level == 0:
+                parent = self.modules[pname]
+                assert parent is caller
+                self.msgout(4, "determine_parent ->", parent)
+                return parent
+            if pname.count(".") < level:
+                raise ImportError("relative importpath too deep")
+            pname = ".".join(pname.split(".")[:-level])
+            parent = self.modules[pname]
+            self.msgout(4, "determine_parent ->", parent)
+            return parent
+        if caller.__path__:
+            parent = self.modules[pname]
+            assert caller is parent
+            self.msgout(4, "determine_parent ->", parent)
+            return parent
+        if '.' in pname:
+            i = pname.rfind('.')
+            pname = pname[:i]
+            parent = self.modules[pname]
+            assert parent.__name__ == pname
+            self.msgout(4, "determine_parent ->", parent)
+            return parent
+        self.msgout(4, "determine_parent -> None")
+        return None
+
+    def find_head_package(self, parent, name):
+        self.msgin(4, "find_head_package", parent, name)
+        if '.' in name:
+            i = name.find('.')
+            head = name[:i]
+            tail = name[i+1:]
+        else:
+            head = name
+            tail = ""
+        if parent:
+            qname = "%s.%s" % (parent.__name__, head)
+        else:
+            qname = head
+        q = self.import_module(head, qname, parent)
+        if q:
+            self.msgout(4, "find_head_package ->", (q, tail))
+            return q, tail
+        if parent:
+            qname = head
+            parent = None
+            q = self.import_module(head, qname, parent)
+            if q:
+                self.msgout(4, "find_head_package ->", (q, tail))
+                return q, tail
+        self.msgout(4, "raise ImportError: No module named", qname)
+        raise ImportError("No module named " + qname)
+
+    def load_tail(self, q, tail):
+        self.msgin(4, "load_tail", q, tail)
+        m = q
+        while tail:
+            i = tail.find('.')
+            if i < 0: i = len(tail)
+            head, tail = tail[:i], tail[i+1:]
+            mname = "%s.%s" % (m.__name__, head)
+            m = self.import_module(head, mname, m)
+            if not m:
+                self.msgout(4, "raise ImportError: No module named", mname)
+                raise ImportError("No module named " + mname)
+        self.msgout(4, "load_tail ->", m)
+        return m
+
+    def ensure_fromlist(self, m, fromlist, recursive=0):
+        self.msg(4, "ensure_fromlist", m, fromlist, recursive)
+        for sub in fromlist:
+            if sub == "*":
+                if not recursive:
+                    all = self.find_all_submodules(m)
+                    if all:
+                        self.ensure_fromlist(m, all, 1)
+            elif not hasattr(m, sub):
+                subname = "%s.%s" % (m.__name__, sub)
+                submod = self.import_module(sub, subname, m)
+                if not submod:
+                    raise ImportError("No module named " + subname)
+
+    def find_all_submodules(self, m):
+        if not m.__path__:
+            return
+        modules = {}
+        # 'suffixes' used to be a list hardcoded to [".py", ".pyc"].
+        # But we must also collect Python extension modules - although
+        # we cannot separate normal dlls from Python extensions.
+        suffixes = []
+        suffixes += importlib.machinery.EXTENSION_SUFFIXES[:]
+        suffixes += importlib.machinery.SOURCE_SUFFIXES[:]
+        suffixes += importlib.machinery.BYTECODE_SUFFIXES[:]
+        for dir in m.__path__:
+            try:
+                names = os.listdir(dir)
+            except OSError:
+                self.msg(2, "can't list directory", dir)
+                continue
+            for name in names:
+                mod = None
+                for suff in suffixes:
+                    n = len(suff)
+                    if name[-n:] == suff:
+                        mod = name[:-n]
+                        break
+                if mod and mod != "__init__":
+                    modules[mod] = mod
+        return modules.keys()
+
+    def import_module(self, partname, fqname, parent):
+        self.msgin(3, "import_module", partname, fqname, parent)
+        try:
+            m = self.modules[fqname]
+        except KeyError:
+            pass
+        else:
+            self.msgout(3, "import_module ->", m)
+            return m
+        if fqname in self.badmodules:
+            self.msgout(3, "import_module -> None")
+            return None
+        if parent and parent.__path__ is None:
+            self.msgout(3, "import_module -> None")
+            return None
+        try:
+            fp, pathname, stuff = self.find_module(partname,
+                                                   parent and parent.__path__, parent)
+        except ImportError:
+            self.msgout(3, "import_module ->", None)
+            return None
+
+        try:
+            m = self.load_module(fqname, fp, pathname, stuff)
+        finally:
+            if fp:
+                fp.close()
+        if parent:
+            setattr(parent, partname, m)
+        self.msgout(3, "import_module ->", m)
+        return m
+
+    def load_module(self, fqname, fp, pathname, file_info):
+        suffix, mode, type = file_info
+        self.msgin(2, "load_module", fqname, fp and "fp", pathname)
+        if type == _PKG_DIRECTORY:
+            m = self.load_package(fqname, pathname)
+            self.msgout(2, "load_module ->", m)
+            return m
+        if type == _PY_SOURCE:
+            co = compile(fp.read(), pathname, 'exec')
+        elif type == _PY_COMPILED:
+            try:
+                data = fp.read()
+                importlib._bootstrap_external._classify_pyc(data, fqname, {})
+            except ImportError as exc:
+                self.msgout(2, "raise ImportError: " + str(exc), pathname)
+                raise
+            co = marshal.loads(memoryview(data)[16:])
+        else:
+            co = None
+        m = self.add_module(fqname)
+        m.__file__ = pathname
+        if co:
+            if self.replace_paths:
+                co = self.replace_paths_in_code(co)
+            m.__code__ = co
+            self.scan_code(co, m)
+        self.msgout(2, "load_module ->", m)
+        return m
+
+    def _add_badmodule(self, name, caller):
+        if name not in self.badmodules:
+            self.badmodules[name] = {}
+        if caller:
+            self.badmodules[name][caller.__name__] = 1
+        else:
+            self.badmodules[name]["-"] = 1
+
+    def _safe_import_hook(self, name, caller, fromlist, level=-1):
+        # wrapper for self.import_hook() that won't raise ImportError
+        if name in self.badmodules:
+            self._add_badmodule(name, caller)
+            return
+        try:
+            self.import_hook(name, caller, level=level)
+        except ImportError as msg:
+            self.msg(2, "ImportError:", str(msg))
+            self._add_badmodule(name, caller)
+        except SyntaxError as msg:
+            self.msg(2, "SyntaxError:", str(msg))
+            self._add_badmodule(name, caller)
+        else:
+            if fromlist:
+                for sub in fromlist:
+                    fullname = name + "." + sub
+                    if fullname in self.badmodules:
+                        self._add_badmodule(fullname, caller)
+                        continue
+                    try:
+                        self.import_hook(name, caller, [sub], level=level)
+                    except ImportError as msg:
+                        self.msg(2, "ImportError:", str(msg))
+                        self._add_badmodule(fullname, caller)
+
+    def scan_opcodes(self, co):
+        # Scan the code, and yield 'interesting' opcode combinations
+        for name in dis._find_store_names(co):
+            yield "store", (name,)
+        for name, level, fromlist in dis._find_imports(co):
+            if level == 0:  # absolute import
+                yield "absolute_import", (fromlist, name)
+            else:  # relative import
+                yield "relative_import", (level, fromlist, name)
+
+    def scan_code(self, co, m):
+        code = co.co_code
+        scanner = self.scan_opcodes
+        for what, args in scanner(co):
+            if what == "store":
+                name, = args
+                m.globalnames[name] = 1
+            elif what == "absolute_import":
+                fromlist, name = args
+                have_star = 0
+                if fromlist is not None:
+                    if "*" in fromlist:
+                        have_star = 1
+                    fromlist = [f for f in fromlist if f != "*"]
+                self._safe_import_hook(name, m, fromlist, level=0)
+                if have_star:
+                    # We've encountered an "import *". If it is a Python module,
+                    # the code has already been parsed and we can suck out the
+                    # global names.
+                    mm = None
+                    if m.__path__:
+                        # At this point we don't know whether 'name' is a
+                        # submodule of 'm' or a global module. Let's just try
+                        # the full name first.
+                        mm = self.modules.get(m.__name__ + "." + name)
+                    if mm is None:
+                        mm = self.modules.get(name)
+                    if mm is not None:
+                        m.globalnames.update(mm.globalnames)
+                        m.starimports.update(mm.starimports)
+                        if mm.__code__ is None:
+                            m.starimports[name] = 1
+                    else:
+                        m.starimports[name] = 1
+            elif what == "relative_import":
+                level, fromlist, name = args
+                if name:
+                    self._safe_import_hook(name, m, fromlist, level=level)
+                else:
+                    parent = self.determine_parent(m, level=level)
+                    self._safe_import_hook(parent.__name__, None, fromlist, level=0)
+            else:
+                # We don't expect anything else from the generator.
+                raise RuntimeError(what)
+
+        for c in co.co_consts:
+            if isinstance(c, type(co)):
+                self.scan_code(c, m)
+
+    def load_package(self, fqname, pathname):
+        self.msgin(2, "load_package", fqname, pathname)
+        newname = replacePackageMap.get(fqname)
+        if newname:
+            fqname = newname
+        m = self.add_module(fqname)
+        m.__file__ = pathname
+        m.__path__ = [pathname]
+
+        # As per comment at top of file, simulate runtime __path__ additions.
+        m.__path__ = m.__path__ + packagePathMap.get(fqname, [])
+
+        fp, buf, stuff = self.find_module("__init__", m.__path__)
+        try:
+            self.load_module(fqname, fp, buf, stuff)
+            self.msgout(2, "load_package ->", m)
+            return m
+        finally:
+            if fp:
+                fp.close()
+
+    def add_module(self, fqname):
+        if fqname in self.modules:
+            return self.modules[fqname]
+        self.modules[fqname] = m = Module(fqname)
+        return m
+
+    def find_module(self, name, path, parent=None):
+        if parent is not None:
+            # assert path is not None
+            fullname = parent.__name__+'.'+name
+        else:
+            fullname = name
+        if fullname in self.excludes:
+            self.msgout(3, "find_module -> Excluded", fullname)
+            raise ImportError(name)
+
+        if path is None:
+            if name in sys.builtin_module_names:
+                return (None, None, ("", "", _C_BUILTIN))
+
+            path = self.path
+
+        return _find_module(name, path)
+
+    def report(self):
+        """Print a report to stdout, listing the found modules with their
+        paths, as well as modules that are missing, or seem to be missing.
+        """
+        print()
+        print("  %-25s %s" % ("Name", "File"))
+        print("  %-25s %s" % ("----", "----"))
+        # Print modules found
+        keys = sorted(self.modules.keys())
+        for key in keys:
+            m = self.modules[key]
+            if m.__path__:
+                print("P", end=' ')
+            else:
+                print("m", end=' ')
+            print("%-25s" % key, m.__file__ or "")
+
+        # Print missing modules
+        missing, maybe = self.any_missing_maybe()
+        if missing:
+            print()
+            print("Missing modules:")
+            for name in missing:
+                mods = sorted(self.badmodules[name].keys())
+                print("?", name, "imported from", ', '.join(mods))
+        # Print modules that may be missing, but then again, maybe not...
+        if maybe:
+            print()
+            print("Submodules that appear to be missing, but could also be", end=' ')
+            print("global names in the parent package:")
+            for name in maybe:
+                mods = sorted(self.badmodules[name].keys())
+                print("?", name, "imported from", ', '.join(mods))
+
+    def any_missing(self):
+        """Return a list of modules that appear to be missing. Use
+        any_missing_maybe() if you want to know which modules are
+        certain to be missing, and which *may* be missing.
+        """
+        missing, maybe = self.any_missing_maybe()
+        return missing + maybe
+
+    def any_missing_maybe(self):
+        """Return two lists, one with modules that are certainly missing
+        and one with modules that *may* be missing. The latter names could
+        either be submodules *or* just global names in the package.
+
+        The reason it can't always be determined is that it's impossible to
+        tell which names are imported when "from module import *" is done
+        with an extension module, short of actually importing it.
+        """
+        missing = []
+        maybe = []
+        for name in self.badmodules:
+            if name in self.excludes:
+                continue
+            i = name.rfind(".")
+            if i < 0:
+                missing.append(name)
+                continue
+            subname = name[i+1:]
+            pkgname = name[:i]
+            pkg = self.modules.get(pkgname)
+            if pkg is not None:
+                if pkgname in self.badmodules[name]:
+                    # The package tried to import this module itself and
+                    # failed. It's definitely missing.
+                    missing.append(name)
+                elif subname in pkg.globalnames:
+                    # It's a global in the package: definitely not missing.
+                    pass
+                elif pkg.starimports:
+                    # It could be missing, but the package did an "import *"
+                    # from a non-Python module, so we simply can't be sure.
+                    maybe.append(name)
+                else:
+                    # It's not a global in the package, the package didn't
+                    # do funny star imports, it's very likely to be missing.
+                    # The symbol could be inserted into the package from the
+                    # outside, but since that's not good style we simply list
+                    # it missing.
+                    missing.append(name)
+            else:
+                missing.append(name)
+        missing.sort()
+        maybe.sort()
+        return missing, maybe
+
+    def replace_paths_in_code(self, co):
+        new_filename = original_filename = os.path.normpath(co.co_filename)
+        for f, r in self.replace_paths:
+            if original_filename.startswith(f):
+                new_filename = r + original_filename[len(f):]
+                break
+
+        if self.debug and original_filename not in self.processed_paths:
+            if new_filename != original_filename:
+                self.msgout(2, "co_filename %r changed to %r" \
+                                    % (original_filename,new_filename,))
+            else:
+                self.msgout(2, "co_filename %r remains unchanged" \
+                                    % (original_filename,))
+            self.processed_paths.append(original_filename)
+
+        consts = list(co.co_consts)
+        for i in range(len(consts)):
+            if isinstance(consts[i], type(co)):
+                consts[i] = self.replace_paths_in_code(consts[i])
+
+        return co.replace(co_consts=tuple(consts), co_filename=new_filename)
+
+
+def test():
+    # Parse command line
+    import getopt
+    try:
+        opts, args = getopt.getopt(sys.argv[1:], "dmp:qx:")
+    except getopt.error as msg:
+        print(msg)
+        return
+
+    # Process options
+    debug = 1
+    domods = 0
+    addpath = []
+    exclude = []
+    for o, a in opts:
+        if o == '-d':
+            debug = debug + 1
+        if o == '-m':
+            domods = 1
+        if o == '-p':
+            addpath = addpath + a.split(os.pathsep)
+        if o == '-q':
+            debug = 0
+        if o == '-x':
+            exclude.append(a)
+
+    # Provide default arguments
+    if not args:
+        script = "hello.py"
+    else:
+        script = args[0]
+
+    # Set the path based on sys.path and the script directory
+    path = sys.path[:]
+    path[0] = os.path.dirname(script)
+    path = addpath + path
+    if debug > 1:
+        print("path:")
+        for item in path:
+            print("   ", repr(item))
+
+    # Create the module finder and turn its crank
+    mf = ModuleFinder(path, debug, exclude)
+    for arg in args[1:]:
+        if arg == '-m':
+            domods = 1
+            continue
+        if domods:
+            if arg[-2:] == '.*':
+                mf.import_hook(arg[:-2], None, ["*"])
+            else:
+                mf.import_hook(arg)
+        else:
+            mf.load_file(arg)
+    mf.run_script(script)
+    mf.report()
+    return mf  # for -i debugging
+
+
+if __name__ == '__main__':
+    try:
+        mf = test()
+    except KeyboardInterrupt:
+        print("\n[interrupted]")
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                e   .   ˙   ..  f   __init__.py g   __pycache__ }   connection.py   ~   
+context.py     dummy   Ö   forkserver.py   Ü   heap.py á   managers.py à   pool.py â   popen_fork.py   ä   popen_forkserver.py ã   popen_spawn_posix.pyå   popen_spawn_win32.pyç   
+process.py  é   	queues.py   è   reduction.pyê   resource_sharer.py  ë   resource_tracker.py í   shared_memory.pyì   sharedctypes.py î   spawn.pyï   synchronize.py  ñ   util.py                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 #
+# Package analogous to 'threading.py' but using processes
+#
+# multiprocessing/__init__.py
+#
+# This package is intended to duplicate the functionality (and much of
+# the API) of threading.py but uses processes instead of threads.  A
+# subpackage 'multiprocessing.dummy' has the same API but is a simple
+# wrapper for 'threading'.
+#
+# Copyright (c) 2006-2008, R Oudkerk
+# Licensed to PSF under a Contributor Agreement.
+#
+
+import sys
+from . import context
+
+#
+# Copy stuff from default context
+#
+
+__all__ = [x for x in dir(context._default_context) if not x.startswith('_')]
+globals().update((name, getattr(context._default_context, name)) for name in __all__)
+
+#
+# XXX These should not really be documented or public.
+#
+
+SUBDEBUG = 5
+SUBWARNING = 25
+
+#
+# Alias for main module -- will be reset by bootstrapping child processes
+#
+
+if '__main__' in sys.modules:
+    sys.modules['__mp_main__'] = sys.modules['__main__']
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            g   .   e   ..  h    __init__.cpython-313.pyci  $ connection.cpython-313.pyc  j    context.cpython-313.pyc k  $ forkserver.cpython-313.pyc  l   heap.cpython-313.pycm    managers.cpython-313.pycn   pool.cpython-313.pyco  $ popen_fork.cpython-313.pyc  p  (  popen_forkserver.cpython-313.pycq  , !popen_spawn_posix.cpython-313.pyc   r  , !popen_spawn_win32.cpython-313.pyc   s    process.cpython-313.pyc t    queues.cpython-313.pyc  u  $ reduction.cpython-313.pyc   v  ( resource_sharer.cpython-313.pyc w  (  resource_tracker.cpython-313.pycx  ( shared_memory.cpython-313.pyc   y  $ sharedctypes.cpython-313.pycz    spawn.cpython-313.pyc   {  $ synchronize.cpython-313.pyc |   util.cpython-313.pyc                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    Û
+    F\hî  „                   Û2  ï S SK r SSKJr  \" \R                  5       V s/ s H  o R                  S5      (       a  M  U PM     sn r\" 5       R                  S \ 5       5        Sr	Sr
+S\ R                  ;   a  \ R                  S   \ R                  S	'   ggs  sn f )
+È    NÈ   )⁄context⁄_c              #   ÛX   #   ï U  H   o[        [        R                  U5      4v ï  M"     g 7f)N)⁄getattrr   ⁄_default_context)⁄.0⁄names     ⁄//usr/lib/python3.13/multiprocessing/__init__.py⁄	<genexpr>r      s    È Ä –U W¿Tú§◊ 8— 8∏$”?’@ W˘s   Ç(*È   È   ⁄__main__⁄__mp_main__)⁄sys⁄ r   ⁄dirr   ⁄
+startswith⁄__all__⁄globals⁄update⁄SUBDEBUG⁄
+SUBWARNING⁄modules)⁄xs   0r   ⁄<module>r      sã   Û › Ò ò'◊2—2‘3”
+M“3êø<π<»◊;Lè1—3—
+MÄŸ É	◊ — —U…W”U‘ U ÄÿÄ
+ êóë”ÿ!$ß°®Z—!8ÄCáKÅKê“ ˘Ú Ns
+   üBºB                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            Û
+    F\h‡£  „                   ÛÍ  ï / S Qr SSKrSSKrSSKrSSKrSSKrSSKrSSKrSSKrSSK	r	SSK
+Jr  SSK
+JrJr  SSKJr  \R                   r SSKrSSKrSSKJrJrJrJr  S	rS
+r\	R8                  " 5       rSrS/r\ " \S5      (       a  Sr\S/-  r\R2                  S:X  a  Sr\S/-  r\4S jr!S r"S r#S r$S r% " S S5      r&\(       a   " S S\&5      r' " S S\&5      r( " S S\)5      r*SCS jr+\R2                  S:w  a  SDS jr,OSDS jr, " S S\)5      r-S  r.\R2                  S:X  a   " S! S"\)5      r/S# r0S$r1S%r2S&r3S'r4\5" 1 S(k5      r6\7" S) \6 5       5      r8S*r9S+r:\9\:4r;S, r<S- r=S. r>SES/\?4S0 jjr@S/\?4S1 jrA " S2 S3\)5      rBS4 rCS5 rD " S6 S7\*5      rES8 rF\R2                  S:X  a!  S9 rG\Rê                  \Rí                  1rJSFS: jrKO0SSKLrL\ " \LS;5      (       a  \LRö                  rNO\LRû                  rNSFS< jrK\R2                  S:X  a3  S= rPS> rQ\R§                  " \(\P5        S? rSS@ rT\R§                  " \'\S5        gSA rPSB rQ\R§                  " \(\P5        g! \ a    \R2                  S:X  a  e Sr GNf = f)G)⁄Client⁄Listener⁄Pipe⁄waitÈ    NÈ   )⁄util)⁄AuthenticationError⁄BufferTooShort)⁄	reduction)⁄WAIT_OBJECT_0⁄WAIT_ABANDONED_0⁄WAIT_TIMEOUT⁄INFINITE⁄win32i    g      4@⁄AF_INET⁄AF_UNIX⁄AF_PIPEc                 Û2   ï [         R                  " 5       U -   $ ©N©⁄time⁄	monotonic)⁄timeouts    ⁄1/usr/lib/python3.13/multiprocessing/connection.py⁄_init_timeoutr   <   s   Ä ‹è>ä>”òg—%–%Û    c                 Û2   ï [         R                  " 5       U :Ñ  $ r   r   )⁄ts    r   ⁄_check_timeoutr   ?   s   Ä ‹è>ä>”òa—–r   c                 Û  ï U S:X  a  gU S:X  a(  [         R                  " S[        R                  " 5       S9$ U S:X  a:  [         R                  " S[        R
+                  " 5       [        [        5      4-  SS9$ [        S	5      e)
+z7
+Return an arbitrary free address for the given family
+r   )⁄	localhostr   r   z	listener-)⁄prefix⁄dirr   z\\.\pipe\pyc-%d-%d-⁄ zunrecognized family)	⁄tempfile⁄mktempr   ⁄get_temp_dir⁄os⁄getpid⁄next⁄_mmap_counter⁄
+ValueError©⁄familys    r   ⁄arbitrary_addressr/   F   sy   Ä  ê”ÿÿ	ê9”	‹èä†k¥t◊7H“7H”7J—K–Kÿ	ê9”	‹èä–&<‹ "ß	¢	£¨T¥-”-@–AÒ'BÿGIÒK 	KÙ –.”/–/r   c                 Û“   ï [         R                  S:w  a  U S:X  a  [        SU -  5      e[         R                  S:X  a+  U S:X  a$  [        [        U 5      (       d  [        SU -  5      eggg)z<
+Checks if the family is valid for the current environment.
+r   r   zFamily %s is not recognized.r   N)⁄sys⁄platformr,   ⁄hasattr⁄socketr-   s    r   ⁄_validate_familyr5   T   sf   Ä Ù á|Å|êw”†6®Y”#6‹–7∏&—@”A–A‰
+á|Å|êw”†6®Y”#6‰îvòv◊&—&‹–;∏f—D”E–E ' $7–r   c                 ÛÙ   ï [        U 5      [        :X  a  g[        U 5      [        L a  U R                  S5      (       a  g[        U 5      [        L d  [        R
+                  " U 5      (       a  g[        SU -  5      e)zQ
+Return the types of the address
+
+This can be 'AF_INET', 'AF_UNIX', or 'AF_PIPE'
+r   z\\r   r   zaddress type of %r unrecognized)⁄type⁄tuple⁄str⁄
+startswithr   ⁄is_abstract_socket_namespacer,   )⁄addresss    r   ⁄address_typer=   `   sb   Ä Ù àGÉ}ú”ÿ‹	àgãú#“	†'◊"4—"4∞V◊"<—"<ÿ‹	àgãú#“	§◊!B“!B¿7◊!K—!Kÿ‰–:∏W—D”E–Er   c                   Ûº   ï \ rS rSrSrSS jrS rS rS rS r	S r
+\S	 5       r\S
+ 5       r\S 5       rS rS rSS jrS rSS jrSS jrS rSS jrS rS rSrg)⁄_ConnectionBaseÈs   Nc                 Ûú   ï UR                  5       nUS:  a  [        S5      eU(       d  U(       d  [        S5      eXl        X l        X0l        g )Nr   zinvalid handlez6at least one of `readable` and `writable` must be True)⁄	__index__r,   ⁄_handle⁄	_readable⁄	_writable)⁄self⁄handle⁄readable⁄writables       r   ⁄__init__⁄_ConnectionBase.__init__v   sI   Ä ÿ◊!—!”#àÿêAã:‹–-”.–.ﬁ¶‹ÿHÛJ J‡åÿ!åÿ!çr   c                 Û@   ï U R                   b  U R                  5         g g r   ©rC   ⁄_close©rF   s    r   ⁄__del__⁄_ConnectionBase.__del__É   s   Ä ÿè<â<—#ÿèKâKçM $r   c                 Û4   ï U R                   c  [        S5      eg )N˙handle is closed)rC   ⁄OSErrorrO   s    r   ⁄_check_closed⁄_ConnectionBase._check_closedá   s   Ä ÿè<â<—‹–,”-–-  r   c                 Û<   ï U R                   (       d  [        S5      eg )Nzconnection is write-only)rD   rT   rO   s    r   ⁄_check_readable⁄_ConnectionBase._check_readableã   s   Ä ÿè~è~‹–4”5–5 r   c                 Û<   ï U R                   (       d  [        S5      eg )Nzconnection is read-only)rE   rT   rO   s    r   ⁄_check_writable⁄_ConnectionBase._check_writableè   s   Ä ÿè~è~‹–3”4–4 r   c                 Ûj   ï U R                   (       a  SU l        OU R                  5         [        S5      e)NFzbad message length)rE   rD   ⁄closerT   rO   s    r   ⁄_bad_message_length⁄#_ConnectionBase._bad_message_lengthì   s%   Ä ÿè>è>ÿ"àDçN‡èJâJåL‹–*”+–+r   c                 Û   ï U R                   SL $ )z True if the connection is closedN©rC   rO   s    r   ⁄closed⁄_ConnectionBase.closedö   s   Ä  è|â|òt–#–#r   c                 Û   ï U R                   $ )z"True if the connection is readable)rD   rO   s    r   rH   ⁄_ConnectionBase.readableü   Û   Ä  è~â~–r   c                 Û   ï U R                   $ )z"True if the connection is writable)rE   rO   s    r   rI   ⁄_ConnectionBase.writable§   rg   r   c                 Û:   ï U R                  5         U R                  $ )z+File descriptor or handle of the connection)rU   rC   rO   s    r   ⁄fileno⁄_ConnectionBase.fileno©   s   Ä ‡◊—‘ÿè|â|–r   c                 Ûh   ï U R                   b   U R                  5         SU l         gg! SU l         f = f)zClose the connectionNrM   rO   s    r   r^   ⁄_ConnectionBase.closeÆ   s1   Ä ‡è<â<—#$ÿóëî‡#êï	 $¯  $êï˙s   è( ®	1c                 Ûx  ï U R                  5         U R                  5         [        U5      nUR                  S:î  a  UR	                  S5      nUR
+                  nUS:  a  [        S5      eXR:  a  [        S5      eUc  XR-
+  nO$US:  a  [        S5      eX#-   U:î  a  [        S5      eU R                  XBX#-    5        g)	z,Send the bytes data from a bytes-like objectr   ⁄Br   zoffset is negativezbuffer length < offsetNzsize is negativezbuffer length < offset + size)rU   r[   ⁄
+memoryview⁄itemsize⁄cast⁄nbytesr,   ⁄_send_bytes)rF   ⁄buf⁄offset⁄size⁄m⁄ns         r   ⁄
+send_bytes⁄_ConnectionBase.send_bytes∂   s≤   Ä ‡◊—‘ÿ◊—‘‹êsãOàÿè:â:òã>ÿóëêsìàAÿèHâHàÿêAã:‹–1”2–2ÿã:‹–5”6–6ÿâ<ÿë:âDÿêAãX‹–/”0–0ÿâ]òQ”‹–<”=–=ÿ◊—ò†&°-–0’1r   c                 Ûå   ï U R                  5         U R                  5         U R                  [        R	                  U5      5        g)zSend a (picklable) objectN)rU   r[   ru   ⁄_ForkingPickler⁄dumps©rF   ⁄objs     r   ⁄send⁄_ConnectionBase.send    s3   Ä ‡◊—‘ÿ◊—‘ÿ◊—ú◊.—.®s”3’4r   c                 Û“   ï U R                  5         U R                  5         Ub  US:  a  [        S5      eU R                  U5      nUc  U R	                  5         UR                  5       $ )z'
+Receive bytes data as a bytes object.
+r   znegative maxlength)rU   rX   r,   ⁄_recv_bytesr_   ⁄getvalue)rF   ⁄	maxlengthrv   s      r   ⁄
+recv_bytes⁄_ConnectionBase.recv_bytes–   sa   Ä  	◊—‘ÿ◊—‘ÿ— †Y∞£]‹–1”2–2ÿ◊—òy”)àÿâ;ÿ◊$—$‘&ÿè|â|ã~–r   c                 Û‚  ï U R                  5         U R                  5         [        U5       nUR                  nU[	        U5      -  nUS:  a  [        S5      eX%:î  a  [        S5      eU R                  5       nUR                  5       nXRU-   :  a  [        UR                  5       5      eUR                  S5        UR                  X2U-  X'-   U-   5        UsSSS5        $ ! , (       d  f       g= f)zY
+Receive bytes data into a writeable bytes-like object.
+Return the number of bytes read.
+r   znegative offsetzoffset too largeN)rU   rX   rq   rr   ⁄lenr,   rÖ   ⁄tellr
+   rÜ   ⁄seek⁄readinto)rF   rv   rw   ry   rr   ⁄bytesize⁄resultrx   s           r   ⁄recv_bytes_into⁄_ConnectionBase.recv_bytes_into›   s–   Ä 
+ 	◊—‘ÿ◊—‘‹òå_†‡ózëzàHÿ§#†a£&—(àHÿòãz‹ –!2”3–3ÿ”"‹ –!3”4–4ÿ◊%—%”'àFÿó;ë;ì=àDÿ†4ô-”'‹$†Vß_°_”%6”7–7‡èKâKòåNÿèOâOòA®—0ÿ%ô}∞—9;Ù <‡˜! è_è_˙s   ¨B*C √ 
+C.c                 Û®   ï U R                  5         U R                  5         U R                  5       n[        R	                  UR                  5       5      $ )zReceive a (picklable) object)rU   rX   rÖ   r~   ⁄loads⁄	getbuffer)rF   rv   s     r   ⁄recv⁄_ConnectionBase.recvˆ   s?   Ä ‡◊—‘ÿ◊—‘ÿ◊—” à‹◊$—$†Sß]°]£_”5–5r   c                 Ûd   ï U R                  5         U R                  5         U R                  U5      $ )z/Whether there is any input available to be read)rU   rX   ⁄_poll©rF   r   s     r   ⁄poll⁄_ConnectionBase.poll˝   s)   Ä ‡◊—‘ÿ◊—‘ÿèzâzò'”"–"r   c                 Û   ï U $ r   © rO   s    r   ⁄	__enter__⁄_ConnectionBase.__enter__  Û   Ä ÿàr   c                 Û$   ï U R                  5         g r   ©r^   ©rF   ⁄exc_type⁄	exc_value⁄exc_tbs       r   ⁄__exit__⁄_ConnectionBase.__exit__  Û   Ä ÿè
+â
+çr   )rC   rD   rE   )TT)r   Nr   )r   )g        )⁄__name__⁄
+__module__⁄__qualname__⁄__firstlineno__rC   rJ   rP   rU   rX   r[   r_   ⁄propertyrc   rH   rI   rk   r^   r{   rÇ   rà   rë   rñ   rõ   rü   r®   ⁄__static_attributes__rû   r   r   r?   r?   s   sì   Ü ÿÄGÙ	"ÚÚ.Ú6Ú5Ú, Ò$Û $ ÒÛ  ÒÛ ÚÚ
+$Ù2Ú(5ÙÙÚ26Ù#Úır   r?   c                   Û\   ï \ rS rSrSrSrSr\R                  4S jr	S r
+SS jrS rS	 rS
+rg)⁄PipeConnectioni  zä
+Connection class based on a Windows named pipe.
+Overlapped I/O is used, so the handles must have been created
+with FILE_FLAG_OVERLAPPED.
+FNc                 Ûf   ï U R                   nUb  UR                  5         U" U R                  5        g r   )⁄_send_ov⁄cancelrC   )rF   ⁄_CloseHandle⁄ovs      r   rN   ⁄PipeConnection._close  s%   Ä ÿóëàBÿâ~‡ó	ë	îŸòüô’&r   c                 Û@  ï U R                   b  [        S5      e[        R                  " U R                  USS9u  p#X l          U[        R
+                  :X  a3  [        R                  " UR                  /S[        5      nU[        :X  d   eS U l         UR                  S5      u  pSU[        R                  :X  a  [        [        R                  S5      eUS:X  d   eU[!        U5      :X  d   eg !   UR                  5         e = f! S U l         UR                  S5      u  pSf = f)Nz/concurrent send_bytes() calls are not supportedT©⁄
+overlappedFrS   r   )r¥   r,   ⁄_winapi⁄	WriteFilerC   ⁄ERROR_IO_PENDING⁄WaitForMultipleObjects⁄eventr   r   rµ   ⁄GetOverlappedResult⁄ERROR_OPERATION_ABORTEDrT   ⁄errno⁄EPIPErã   )rF   rv   r∑   ⁄err⁄waitres⁄nwrittens         r   ru   ⁄PipeConnection._send_bytes  s  Ä ÿè}â}—(‰  "5Û 6 6‰◊'“'®Ø©∞c¿d—KâGàBÿåM
+=ÿú'◊2—2”2‹%◊<“<ÿüôò
+†E¨8Û5êG‡"§m”3–3–3
+ !%êîÿ "◊ 6— 6∞t” <ëêÿîg◊5—5”5Ù úeükôk–+=”>–>ÿò!ì8àOê8ÿús†3õx”'–'—'¯ÿó	ë	îÿ˚‡ $êîÿ "◊ 6— 6∞t” <ëêò#˙s   ¡AC+ √+C>√>D ƒDc                 Û  ï U R                   (       a  SU l         [        R                  " 5       $ Uc  SO[        US5      n [        R
+                  " U R                  USS9u  p4 U[        R                  :X  a3  [        R                  " UR                  /S[        5      nU[        :X  d   eUR                  S5      u  pdUS:X  a6  [        R                  " 5       nUR                  UR                  5       5        U$ U[        R                   :X  a  U R#                  X15      $  [-        S5      e!   UR                  5         e = f! UR                  S5      u  pdUS:X  a:  [        R                  " 5       nUR                  UR                  5       5        Us  s $ U[        R                   :X  a  U R#                  X15      s  s $ f = f! [$         a*  nUR&                  [        R(                  :X  a  [*        ee S nAff = f)NFÈÄ   Tr∫   r   z.shouldn't get here; expected KeyboardInterrupt)⁄_got_empty_message⁄io⁄BytesIO⁄minrº   ⁄ReadFilerC   ræ   rø   r¿   r   r   rµ   r¡   ⁄writerï   ⁄ERROR_MORE_DATA⁄_get_more_datarT   ⁄winerror⁄ERROR_BROKEN_PIPE⁄EOFError⁄RuntimeError)	rF   ⁄maxsize⁄bsizer∑   r≈   r∆   ⁄nread⁄f⁄es	            r   rÖ   ⁄PipeConnection._recv_bytes6  sû  Ä ÿ◊&◊&ÿ*/ê‘'‹ózízì|–#‡&ôô¥C∏¿”4Eê‹%◊.“.®tØ|©|∏Uÿ;?ÒAëGêBDÿ§'◊":—":”:‹&-◊&D“&Dÿ!#ß°†
+®E¥8Û'=òG‡#*¨m”#;–;–#;
+ &(◊%;—%;∏D”%Aô
+òÿ†!õ8‹ "ß
+¢
+£òAÿüGôG†BßL°L£N‘3ÿ#$òHÿ §G◊$;—$;”;ÿ#'◊#6—#6∞r”#C–C <Ù –O”P–P¯!ÿü	ô	úÿ˚‡%'◊%;—%;∏D”%Aô
+òÿ†!õ8‹ "ß
+¢
+£òAÿüGôG†BßL°L£N‘3ÿ#$úHÿ §G◊$;—$;”;ÿ#'◊#6—#6∞r”#C‘C <˚‰Û ÿózëz§W◊%>—%>”>‹&ò‡˚	˙s]   ¡ "G ¡#AD* ¬*AG √9$G ƒ*D=ƒ=E  ≈ AF>∆G ∆'F>∆;G ∆=F>∆>G «
+G5«%G0«0G5c                 Û†   ï U R                   (       d'  [        R                  " U R                  5      S   S:w  a  g[	        [        U /U5      5      $ )Nr   T)rÀ   rº   ⁄PeekNamedPiperC   ⁄boolr   rö   s     r   rô   ⁄PipeConnection._pollV  s>   Ä ÿ◊'◊'‹◊-“-®dØl©l”;∏A—>¿!”Cÿ‹úòdòV†W”-”.–.r   c                 Ûÿ  ï UR                  5       n[        R                  " 5       nUR                  U5        [        R
+                  " U R                  5      S   nUS:î  d   eUb"  [        U5      U-   U:î  a  U R                  5         [        R                  " U R                  USS9u  pUR                  S5      u  pvUS:X  d   eXu:X  d   eUR                  UR                  5       5        U$ )Nr   r   Tr∫   )rï   rÃ   rÕ   r–   rº   rﬁ   rC   rã   r_   rœ   r¡   )rF   r∑   r◊   rv   r⁄   ⁄leftr≈   ⁄rbytess           r   r“   ⁄PipeConnection._get_more_data\  s¿   Ä ÿó,ë,ì.àC‹ó
+í
+ìàAÿèGâGêCåL‹◊(“(®Ø©”6∞q—9àDÿò!ì8àOê8ÿ—"§s®3£x∞$°∏”'@ÿ◊(—(‘*‹◊&“&†tß|°|∞T¿d—KâGàBÿ◊0—0∞”6âKàFÿò!ì8àOê8ÿì>–!ê>ÿèGâGêBóLëLìN‘#ÿàHr   )rÀ   r¥   r   )r´   r¨   r≠   rÆ   ⁄__doc__rÀ   r¥   rº   ⁄CloseHandlerN   ru   rÖ   rô   r“   r∞   rû   r   r   r≤   r≤     s8   Ü Ò	
+ #–ÿà‡&-◊&9—&9Ù 	'Ú	(Ù4	QÚ@	/ı	r   r≤   c                   Ûˆ   ï \ rS rSrSr\(       a)  \R                  4S jr\R                  r
+\R                  rO(\R                  4S jr\R                  r
+\R                   r\
+4S jr\4S jrS rSS	 jrS
+ rSrg)⁄
+Connectionil  zc
+Connection class based on an arbitrary file descriptor (Unix only), or
+a socket handle (Windows).
+c                 Û(   ï U" U R                   5        g r   rb   ©rF   rN   s     r   rN   ⁄Connection._closes  Û   Ä Ÿê4ó<ë<’ r   c                 Û(   ï U" U R                   5        g r   rb   rÍ   s     r   rN   rÎ   x  rÏ   r   c                 Ûb   ï [        U5      n U" U R                  U5      nX4-  nUS:X  a  g XS  nM$  ©Nr   )rã   rC   )rF   rv   r–   ⁄	remainingrz   s        r   ⁄_send⁄Connection._send}  s=   Ä ‹òìHà	ÿŸêdólël†C”(àAÿâNàIÿòAã~ÿÿêbê'àCÒ r   c                 Û   ï [         R                  " 5       nU R                  nUnUS:î  aL  U" XE5      n[        U5      nUS:X  a  XQ:X  a  [        e[        S5      eUR                  U5        XW-  nUS:î  a  ML  U$ )Nr   zgot end of file during message)rÃ   rÕ   rC   rã   r’   rT   r–   )rF   rx   ⁄readrv   rG   r   ⁄chunkrz   s           r   ⁄_recv⁄Connection._recvÜ  sv   Ä ‹èjäjãlàÿóëàÿà	ÿò!ãmŸò”+àE‹êEì
+àAÿêAãvÿ”$‹"êN‰!–"B”C–CÿèIâIêe‘ÿâNàI ò!çm à
+r   c                 Ûê  ï [        U5      nUS:î  ab  [        R                  " SS5      n[        R                  " SU5      nU R                  U5        U R                  U5        U R                  U5        g [        R                  " SU5      nUS:î  a#  U R                  U5        U R                  U5        g U R                  XA-   5        g )Niˇˇˇ˙!iÈˇˇˇˇ˙!Qi @  )rã   ⁄struct⁄packrÒ   )rF   rv   rz   ⁄
+pre_header⁄headers        r   ru   ⁄Connection._send_bytesñ  só   Ä ‹êãHàÿàzã>‹üö†T®2”.àJ‹ó[í[††q”)àFÿèJâJêz‘"ÿèJâJêv‘ÿèJâJêsçOÙ ó[í[††q”)àFÿê5ãy ó
+ë
+ò6‘"ÿó
+ë
+ò3ï ó
+ë
+ò6ô<’(r   Nc                 Û"  ï U R                  S5      n[        R                  " SUR                  5       5      u  nUS:X  a8  U R                  S5      n[        R                  " SUR                  5       5      u  nUb  X1:î  a  g U R                  U5      $ )NÈ   r˘   r˙   È   r˚   )rˆ   r¸   ⁄unpackrÜ   )rF   r◊   rv   rx   s       r   rÖ   ⁄Connection._recv_bytes≠  so   Ä ÿèjâjòãmà‹óíòd†CßL°L£N”3âàÿê2ã:ÿó*ë*òQì-àC‹óMíM†$®Ø©´”7âEàDÿ—†4£>ÿÿèzâzò$”–r   c                 Û2   ï [        U /U5      n[        U5      $ r   )r   rﬂ   )rF   r   ⁄rs      r   rô   ⁄Connection._poll∑  s   Ä ‹ê$êò”!à‹êAãwàr   rû   r   )r´   r¨   r≠   rÆ   rÂ   rº   ⁄_multiprocessing⁄closesocketrN   rÇ   ⁄_writerñ   ⁄_readr(   r^   r–   rÙ   rÒ   rˆ   ru   rÖ   rô   r∞   rû   r   r   rË   rË   l  so   Ü Òˆ
+ ÿ 0◊ <— <Ù 	!‡!◊&—&àÿ ◊%—%â‡ "ß°Ù 	!‡óëàÿóëà‡%Ù   %Ù Ú )Ù. ır   rË   c                   ÛZ   ï \ rS rSrSrSS jrS rS r\S 5       r	\S 5       r
+S	 rS
+ rSrg)r   i¿  zÖ
+Returns a listener object.
+
+This is a wrapper for a bound socket which is 'listening' for
+connections, or for a Windows named pipe.
+Nc                 Û8  ï U=(       d!    U=(       a    [        U5      =(       d    [        nU=(       d    [        U5      n[        U5        US:X  a  [	        X5      U l        O[        XU5      U l        Ub   [        U[        5      (       d  [        S5      eX@l
+        g )Nr   ˙authkey should be a byte string)r=   ⁄default_familyr/   r5   ⁄PipeListener⁄	_listener⁄SocketListener⁄
+isinstance⁄bytes⁄	TypeError⁄_authkey)rF   r<   r.   ⁄backlog⁄authkeys        r   rJ   ⁄Listener.__init__«  sÄ   Ä ÿ˜ #òG◊=¨∞W”(=˜ #‹" 	‡◊6‘.®v”6à‰ò‘ ÿêY”‹)®'”;àDçN‰+®G∏W”EàDåN‡—§z∞'º5◊'A—'A‹–=”>–>‡çr   c                 Ûÿ   ï U R                   c  [        S5      eU R                   R                  5       nU R                  b*  [	        XR                  5        [        XR                  5        U$ )zb
+Accept a connection on the bound socket or named pipe of `self`.
+
+Returns a `Connection` object.
+zlistener is closed)r  rT   ⁄acceptr  ⁄deliver_challenge⁄answer_challenge)rF   ⁄cs     r   r  ⁄Listener.accept◊  sS   Ä  è>â>—!‹–.”/–/‡èNâN◊!—!”#àÿè=â=—$‹òaß°‘/‹òQß°‘.ÿàr   c                 ÛR   ï U R                   nUb  SU l         UR                  5         gg)z1
+Close the bound socket or named pipe of `self`.
+N)r  r^   )rF   ⁄listeners     r   r^   ⁄Listener.closeÊ  s)   Ä  ó>ë>àÿ—ÿ!àDåNÿèNâN’  r   c                 Û.   ï U R                   R                  $ r   )r  ⁄_addressrO   s    r   r<   ⁄Listener.addressÔ  s   Ä ‡è~â~◊&—&–&r   c                 Û.   ï U R                   R                  $ r   )r  ⁄_last_acceptedrO   s    r   ⁄last_accepted⁄Listener.last_acceptedÛ  s   Ä ‡è~â~◊,—,–,r   c                 Û   ï U $ r   rû   rO   s    r   rü   ⁄Listener.__enter__˜  r°   r   c                 Û$   ï U R                  5         g r   r£   r§   s       r   r®   ⁄Listener.__exit__˙  r™   r   )r  r  )NNr   N)r´   r¨   r≠   rÆ   rÂ   rJ   r  r^   rØ   r<   r)  rü   r®   r∞   rû   r   r   r   r   ¿  sH   Ü ÒÙ Ú Ú Ò'Û ' Ò-Û -Úır   r   c                 Ûˆ   ï U=(       d    [        U 5      n[        U5        US:X  a  [        U 5      nO[        U 5      nUb   [	        U[
+        5      (       d  [        S5      eUb  [        X25        [        X25        U$ )z5
+Returns a connection to the address of a `Listener`
+r   r  )	r=   r5   ⁄
+PipeClient⁄SocketClientr  r  r  r  r  )r<   r.   r  r  s       r   r   r   ˛  sp   Ä  ◊,î|†G”,ÄF‹êV‘ÿê”‹êw”â‰ò”!à‡—§:®g¥u◊#=—#=‹–9”:–:‡—‹ò‘$‹ò!‘%‡ÄHr   c                 ÛH  ï U (       an  [         R                  " 5       u  pUR                  S5        UR                  S5        [        UR	                  5       5      n[        UR	                  5       5      nX44$ [
+        R                  " 5       u  pV[        USS9n[        USS9nX44$ )˙<
+Returns pair of connection objects at either end of a pipe
+TF©rI   ©rH   )r4   ⁄
+socketpair⁄setblockingrË   ⁄detachr(   ⁄pipe)⁄duplex⁄s1⁄s2⁄c1⁄c2⁄fd1⁄fd2s          r   r   r     sÜ   Ä ˆ ‹◊&“&”(âFàBÿèNâNò4‘ ÿèNâNò4‘ ‹òBüIôIõK”(àB‹òBüIôIõK”(àB àvàÙ	 ówíwìyâHàC‹òC®%—0àB‹òC®%—0àB‡àvàr   c           
+      Û~  ï [        S5      nU (       a=  [        R                  n[        R                  [        R                  -  n[
+        [
+        pTO'[        R                  n[        R                  nS[
+        pT[        R                  " X[        R                  -  [        R                  -  [        R                  [        R                  -  [        R                  -  SXE[        R                  [        R                  5      n[        R                  " XS[        R                  [        R                   [        R                  [        R                  5      n[        R"                  " U[        R                  SS5        [        R$                  " USS9nUR'                  S5      u  pöU
+S:X  d   e[)        X`S9n[)        XpS9nXº4$ )	r3  r   r   r   NTr∫   r4  r5  )r/   rº   ⁄PIPE_ACCESS_DUPLEX⁄GENERIC_READ⁄GENERIC_WRITE⁄BUFSIZE⁄PIPE_ACCESS_INBOUND⁄CreateNamedPipe⁄FILE_FLAG_OVERLAPPED⁄FILE_FLAG_FIRST_PIPE_INSTANCE⁄PIPE_TYPE_MESSAGE⁄PIPE_READMODE_MESSAGE⁄	PIPE_WAIT⁄NMPWAIT_WAIT_FOREVER⁄NULL⁄
+CreateFile⁄OPEN_EXISTING⁄SetNamedPipeHandleState⁄ConnectNamedPiper¡   r≤   )r:  r<   ⁄openmode⁄access⁄obsize⁄ibsize⁄h1⁄h2rª   ⁄_r≈   r=  r>  s                r   r   r   (  sW  Ä Ù $†I”.àﬁ‹◊1—1àH‹◊)—)¨G◊,A—,A—AàF‹$§gëF‰◊2—2àH‹◊*—*àFÿ§êF‰◊$“$ÿ§◊ <— <—<‹◊1—1Ò2‰◊%—%¨◊(E—(E—E‹◊—Ò‡àvúw◊;—;‰èLâLÛàÙ ◊“ÿòQ§ß°¨g◊.C—.C‹◊(—(¨'Ø,©,ÛàÙ 	◊'“'ÿî◊-—-®t∞TÙ	Ù ◊-“-®b∏T—Bà
+ÿ◊/—/∞”5âàÿêaãxààx‰òB—0à‹òB—0à‡àvàr   c                   Û.   ï \ rS rSrSrSS jrS rS rSrg)	r  iT  zG
+Representation of a socket which is bound to an address and listening
+c                 ÛÊ  ï [         R                   " [        [         U5      5      U l         [        R                  S:X  a9  U R                  R                  [         R                  [         R                  S5        U R                  R                  S5        U R                  R                  U5        U R                  R                  U5        U R                  R                  5       U l        X l        S U l        US:X  aG  ["        R$                  " U5      (       d,  ["        R&                  " U [        R(                  U4SS9U l        g S U l        g ! [         a    U R                  R                  5         e f = f)N⁄posixr   Tr   r   ©⁄args⁄exitpriority)r4   ⁄getattr⁄_socketr(   ⁄name⁄
+setsockopt⁄
+SOL_SOCKET⁄SO_REUSEADDRr7  ⁄bind⁄listen⁄getsocknamer%  rT   r^   ⁄_familyr(  r   r;   ⁄Finalize⁄unlink⁄_unlink)rF   r<   r.   r  s       r   rJ   ⁄SocketListener.__init__X  s  Ä ‹ó}í}§W¨V∞V”%<”=àå	‰èwâwò'”!ÿóë◊'—'¨◊(9—(9‹(.◊(;—(;∏QÙ@‡èLâL◊$—$†T‘*ÿèLâL◊—òg‘&ÿèLâL◊—†‘(ÿ üLôL◊4—4”6àDåM åÿ"à‘‡êY”§t◊'H“'H»◊'Q—'Q‰ü=ö=ÿîbóiëi†w†j∏qÒàDçL  àDçL¯Ù Û 	ÿèLâL◊—‘ ÿ	˙s   ´B=E
+ ≈
+&E0c                 Ûò   ï U R                   R                  5       u  ol        UR                  S5        [	        UR                  5       5      $ )NT)ra  r  r(  r7  rË   r8  ©rF   ⁄ss     r   r  ⁄SocketListener.acceptq  s7   Ä ÿ!%ß°◊!4—!4”!6—à‘ÿ	èâêd‘‹ò!ü(ô(õ*”%–%r   c                 Ûº   ï  U R                   R                  5         U R                  nUb  S U l        U" 5         g g ! U R                  nUb  S U l        U" 5         f f = fr   )ra  r^   rl  )rF   rk  s     r   r^   ⁄SocketListener.closev  s[   Ä 	ÿèLâL◊—‘ ‡ó\ë\àFÿ—!ÿ#êîŸï "¯ ó\ë\àFÿ—!ÿ#êîŸï "˙s	   Ç; ª A)r%  ri  r(  ra  rl  N)r   )	r´   r¨   r≠   rÆ   rÂ   rJ   r  r^   r∞   rû   r   r   r  r  T  s   Ü ÒÙ Ú2&ı
+r   r  c                 Û  ï [        U 5      n[        R                  " [        [        U5      5       nUR                  S5        UR	                  U 5        [        UR                  5       5      sSSS5        $ ! , (       d  f       g= f)zG
+Return a connection object connected to the socket given by `address`
+TN)r=   r4   r`  r7  ⁄connectrË   r8  )r<   r.   rp  s      r   r1  r1  Ä  sU   Ä Ù ò'”"ÄF‹	èäú§®”/‘	1∞Qÿ	èâêd‘ÿ	è	â	ê'‘‹ò!ü(ô(õ*”%˜ 
+2◊	1◊	1˙s   ∞;A5¡5
+Bc                   ÛB   ï \ rS rSrSrS	S jrS
+S jrS r\S 5       r	Sr
+g)r  iê  z 
+Representation of a named pipe
+Nc                 Û
+  ï Xl         U R                  SS9/U l        S U l        [        R
+                  " SU R                   5        [        R                  " U [        R                  U R                  U R                   4SS9U l	        g )NT)⁄firstz listener created with address=%rr   r]  )
+r%  ⁄_new_handle⁄_handle_queuer(  r   ⁄	sub_debugrj  r  ⁄_finalize_pipe_listenerr^   )rF   r<   r  s      r   rJ   ⁄PipeListener.__init__î  sj   Ä ÿ#åMÿ"&◊"2—"2∏–"2–">–!?àD‘‡"&àD‘‹èNäN–=∏tø}π}‘M‹üöÿîl◊:—:ÿ◊(—(®$Ø-©-–8¿qÒàDçJr   c           
+      Ûä  ï [         R                  [         R                  -  nU(       a  U[         R                  -  n[         R                  " U R
+                  U[         R                  [         R                  -  [         R                  -  [         R                  [        [        [         R                  [         R                  5      $ r   )rº   rB  rH  rI  rG  r%  rJ  rK  rL  ⁄PIPE_UNLIMITED_INSTANCESrE  rM  rN  )rF   rx  ⁄flagss      r   ry  ⁄PipeListener._new_handleü  sÖ   Ä ‹◊.—.¥◊1M—1M—MàEﬁÿú◊>—>—>ê‹◊*“*ÿóëòu‹◊)—)¨G◊,I—,I—I‹◊!—!Ò"‰◊0—0¥'º7‹◊,—,¨gØl©lÛ r   c                 ÛZ  ï U R                   R                  U R                  5       5        U R                   R                  S5      n [        R
+                  " USS9n [        R                  " UR                  /S[        5      n UR                  S5      u  pEUS:X  d   e [        U5      $ !   UR                  5         [        R                  " U5        e = f! UR                  S5      u  pEUS:X  d   ef = f! [         a)  nUR                  [        R                  :w  a  e  S nANÖS nAff = f)Nr   Tr∫   F)rz  ⁄appendry  ⁄poprº   rR  rø   r¿   r   rµ   rÊ   r¡   rT   r”   ⁄ERROR_NO_DATAr≤   )rF   rG   r∑   ⁄resrY  r≈   r€   s          r   r  ⁄PipeListener.accept´  s  Ä ÿ◊—◊%—%†d◊&6—&6”&8‘9ÿ◊'—'◊+—+®A”.àF$‹◊-“-®f¿—Fê	$‹!◊8“8ÿüôò
+†E¨8Û5ëC  ◊3—3∞D”9ëFêAÿ†!õ8êOô8‹!†&”)–)¯ÿóIëIîK‹◊'“'®‘/ÿ˚‡◊3—3∞D”9ëFêAÿ†!õ8êOô8˚Ù Û ÿó:ë:§◊!6—!6”6ÿÙ 7˚˙s0   ¡C7 ¡'B+ ¬+)C√C √C4√7
+D*ƒD%ƒ%D*c                 Ûp   ï [         R                  " SU5        U  H  n[        R                  " U5        M     g )Nz closing listener with address=%r)r   r{  rº   rÊ   )⁄queuer<   rG   s      r   r|  ⁄$PipeListener._finalize_pipe_listener¬  s)   Ä ‰èNäN–=∏w‘G€ê‹◊#“#†F÷+Ú  r   )r%  rz  r(  r^   r   )F)r´   r¨   r≠   rÆ   rÂ   rJ   ry  r  ⁄staticmethodr|  r∞   rû   r   r   r  r  ê  s*   Ü Ò	Ù		Ù
+	Ú	*. 
+Ò	,Û 
+Û	,r   r  c           	      ÛF  ï [        5       n  [        R                  " U S5        [        R                  " U [        R                  [        R
+                  -  S[        R                  [        R                  [        R                  [        R                  5      n [        R                  " U[        R                  SS5        [!        U5      $ ! [         aI  nUR                  [        R                  [        R                  4;  d  [        U5      (       a  e  SnAOSnAff = fGM  )zE
+Return a connection object connected to the pipe given by `address`
+ÈË  r   N)r   rº   ⁄WaitNamedPiperO  rC  rD  rN  rP  rH  rT   r”   ⁄ERROR_SEM_TIMEOUT⁄ERROR_PIPE_BUSYr   rQ  rK  r≤   )r<   r   ⁄hr€   s       r   r0  r0  »  sÈ   Ä Ù ãOàÿ‹◊%“%†g®t‘4‹◊&“&ÿúW◊1—1¥G◊4I—4I—Iÿîwó|ë|§W◊%:—%:‹◊0—0¥'∑,±,Ûê Ù 	◊'“'ÿåw◊,—,®d∞DÙ	Ù òa” – ¯Ù Û ÿó:ë:§g◊&?—&?‹&-◊&=—&=&?Û ?‹BP–QR◊BS—BSÿÙ CT˚˙Ú s   çB
+C
+ √
+
+D√?DƒDÈ(   s   #CHALLENGE#s	   #WELCOME#s	   #FAILURE#>   Û   md5Û   sha256Û   sha384Û   sha3_256Û   sha3_384c              #   Û8   #   ï U  H  n[        U5      v ï  M     g 7fr   )rã   )⁄.0rY  s     r   ⁄	<genexpr>rö  F  s   È Ä –7“&6†îcò!ófêf“&6˘s   ÇÈ   È   c                 Û  ï [        U 5      [        ;   a  SU 4$ U R                  S5      (       aI  U R                  SS[        S-   5      =nS:î  a)  U SU nU[
+        ;   a  XS-   S nUR                  S5      U4$ [        S	U < 35      e)
+zÛReturns a digest name and the payload for a response hash.
+
+If a legacy protocol is detected based on the message length
+or contents the digest name returned will be empty to indicate
+legacy mode where MD5 and no digest prefix should be sent.
+r$   Û   {Û   }r   È   r   N⁄asciizRunsupported message length, missing digest prefix, or unsupported digest: message=)rã   ⁄_LEGACY_LENGTHSr:   ⁄find⁄_MAX_DIGEST_LEN⁄_ALLOWED_DIGESTS⁄decoder	   )⁄message⁄curly⁄digest⁄payloads       r   ⁄_get_digest_name_and_payloadr´  Q  sü   Ä Ù à7É|î”&
+ ê7à{–ÿ◊—ò4◊ — ÿó,ë,òt†Q¨∏—(9”:–	:à∏a”?ÿòò5–!àÿ‘%”%ÿ†Aôgòh–'àGÿó=ë=†”)®7–2–2‹
+/ÿ&-°Z1Û2 2r   c                 Û  ï SSK n[        U5      S   nU(       d!   UR                  XS5      R                  5       $ UR                  XU5      R                  5       nSUR                  S5      U4-  $ ! [         a    Sn NDf = f)ao  Create a MAC based on authkey and message
+
+The MAC algorithm defaults to HMAC-MD5, unless MD5 is not available or
+the message has a '{digest_name}' prefix. For legacy HMAC-MD5, the response
+is the raw MAC, otherwise the response is prefixed with '{digest_name}',
+e.g. b'{sha256}abcdefg...'
+
+Note: The MAC protects the entire message including the digest_name prefix.
+r   N⁄md5⁄sha256Û   {%s}%sr°  )⁄hmacr´  ⁄newr©  r,   ⁄encode)r  rß  r∞  ⁄digest_name⁄responses        r   ⁄_create_responserµ  k  sÜ   Ä Û ‹.®w”7∏—:ÄKÊ	#ÿó8ë8òG®e”4◊;—;”=–= èxâxò®+”6◊=—=”?ÄHÿò◊*—*®7”3∞X–>—>–>¯Ù Û 	# #äK		#˙s   õA1 ¡1B ¡?B c           
+      Ûz  ï SSK n[        U5      u  pEU=(       d    Sn UR                  XU5      R                  5       n[        U5      [        U5      :w  a'  [        SU< S[        U5       S[        U5       35      eUR                  Xe5      (       d  [        S	5      eg! [         a    [        SU< S35      ef = f)
+aH  Verify MAC challenge
+
+If our message did not include a digest_name prefix, the client is allowed
+to select a stronger digest_name from _ALLOWED_DIGESTS.
+
+In case our message is prefixed, a client cannot downgrade to a weaker
+algorithm, because the MAC is calculated over the entire message
+including the '{digest_name}' prefix.
+r   Nr≠  zresponse_digest=z unsupportedz	expected z of length z got zdigest received was wrong)r∞  r´  r±  r©  r,   r	   rã   ⁄compare_digest)r  rß  r¥  r∞  ⁄response_digest⁄response_mac⁄expecteds          r   ⁄_verify_challengerª  á  s“   Ä Û ‹$@¿”$J—!ÄOÿ%◊.®ÄOEÿó8ë8òG®o”>◊E—E”GàÙ à8É}úòL”)”)‹!ÿòO—.®kº#∏hª-∏ I‹ò<”(–)+Û, 	, ◊—òx◊6—6‹!–"=”>–> 7¯Ù Û E‹!–%5†_—$6∞l–"C”D–DE˙s   û B ¬B:r  c                 Û‹  ï [        U[        5      (       d#  [        SR                  [	        U5      5      5      e[
+        [        :î  d   S5       e[        R                  " [
+        5      nSUR                  S5      U4-  nU R                  [        U-   5        U R                  S5      n [        XU5        U R                  [        5        g ! [         a    U R                  [         5        e f = f)N˙ Authkey must be bytes, not {0!s}zprotocol constraintrØ  r°  È   )r  r  r,   ⁄formatr7   ⁄MESSAGE_LENGTH⁄_MD5ONLY_MESSAGE_LENGTHr(   ⁄urandomr≤  r{   ⁄
+_CHALLENGErà   rª  ⁄_WELCOMEr	   ⁄_FAILURE)⁄
+connectionr  r≥  rß  r¥  s        r   r  r  †  s”   Ä ‹êgúu◊%—%‹ÿ.◊5—5¥d∏7≥m”DÛF 	F‰‘3”3–J–5J”J–3‹èjäjú”(ÄGÿò;◊-—-®g”6∏–@—@ÄG ◊—ú*†w—.‘/ÿ◊$—$†S”)ÄH(‹ò'®H‘5
+ 	◊—úh’'¯Ù	 Û ÿ◊—úh‘'ÿ˙s   ¬(C
+ √
+!C+c                 ÛÊ  ï [        U[        5      (       d#  [        SR                  [	        U5      5      5      eU R                  S5      nUR                  [        5      (       d  [        SU< 35      eU[        [        5      S  n[        U5      [        :  a  [        S[        U5       S35      e[        X5      nU R                  U5        U R                  S5      nU[        :w  a  [        S5      eg )NrΩ  ræ  z,Protocol error, expected challenge: message=zchallenge too short: z byteszdigest sent was rejected)r  r  r,   rø  r7   rà   r:   r√  r	   rã   r¡  rµ  r{   rƒ  )r∆  r  rß  r©  r¥  s        r   r  r  µ  s‚   Ä ‹êgúu◊%—%‹ÿ.◊5—5¥d∏7≥m”DÛF 	F‡◊#—#†C”(ÄGÿ◊—új◊)—)‹!ÿ?∞w±j–AÛC 	C‡îcú*ìo–&–'ÄG‹
+à7É|‘-”-‹!–$9º#∏gª,∏¿v–"N”O–O‹òg”/ÄFÿ◊—ò&‘!ÿ◊$—$†S”)ÄHÿî8”‹!–"<”=–= r   c                   Û&   ï \ rS rSrS rS rS rSrg)⁄ConnectionWrapperi   c                 Ûh   ï Xl         X l        X0l        S H  n[        X5      n[	        XU5        M     g )N)rk   r^   rõ   rà   r{   )⁄_conn⁄_dumps⁄_loadsr`  ⁄setattr)rF   ⁄connr   rî   ⁄attrrÅ   s         r   rJ   ⁄ConnectionWrapper.__init__À  s0   Ä ÿå
+ÿåÿå€KàD‹ò$”%àC‹êD†÷$Ú Lr   c                 Û\   ï U R                  U5      nU R                  R                  U5        g r   )rÃ  rÀ  r{   )rF   rÅ   rp  s      r   rÇ   ⁄ConnectionWrapper.send“  s"   Ä ÿèKâKò”àÿè
+â
+◊—òa’ r   c                 ÛX   ï U R                   R                  5       nU R                  U5      $ r   )rÀ  rà   rÕ  ro  s     r   rñ   ⁄ConnectionWrapper.recv’  s"   Ä ÿèJâJ◊!—!”#àÿè{â{ò1ã~–r   )rÀ  rÃ  rÕ  N)r´   r¨   r≠   rÆ   rJ   rÇ   rñ   r∞   rû   r   r   r…  r…     s   Ü Ú%Ú!ır   r…  c                 ÛT   ï [         R                  U 4S S S S5      R                  S5      $ )Nr   ˙utf-8)⁄	xmlrpclibr   r≤  )rÅ   s    r   ⁄
+_xml_dumpsrŸ  Ÿ  s&   Ä ‹è?â?òCò6†4®®t∞Q”7◊>—>∏w”G–Gr   c                 ÛV   ï [         R                  U R                  S5      5      u  u  pU$ )Nr◊  )rÿ  rî   r¶  )rp  rÅ   ⁄methods      r   ⁄
+_xml_loadsr‹  ‹  s"   Ä ‹ó_ë_†QßX°X®g”%6”7ÅNÅFÄSÿÄJr   c                   Û   ï \ rS rSrS rSrg)⁄XmlListeneri‡  c                 Ûb   ï SS K Jq  [        R	                  U 5      n[        U[        [        5      $ rÔ   )⁄xmlrpc.client⁄clientrÿ  r   r  r…  rŸ  r‹  rÄ   s     r   r  ⁄XmlListener.accept·  s"   Ä Â)‹èoâoòd”#à‹ †§j¥*”=–=r   rû   N)r´   r¨   r≠   rÆ   r  r∞   rû   r   r   rﬁ  rﬁ  ‡  s   Ü ı>r   rﬁ  c                  ÛJ   ï SS K Jq  [        [	        U 0 UD6[
+        [        5      $ rÔ   )r‡  r·  rÿ  r…  r   rŸ  r‹  )r^  ⁄kwdss     r   ⁄	XmlClientrÂ  Á  s   Ä Â%‹úV†T–2®T—2¥Jƒ
+”K–Kr   c                 Û˙  ^ï [        U 5      m/ n[        T5      S:î  au   [        R                  " TSU5      nUR                  U4S jU 5       5        U(       a8  [        T5       VVs/ s H  u  pEXCS   U-  s=:î  a  U;  d  M  O  M  UPM!     snnmSnT(       a…  [        T5      S:î  a  TS S OTn[        R                  " USU5      nU[        :X  a   U$ [        Us=::  a  [        [        T5      -   :  a  O  O
+U[        -  nO9[        Us=::  a  [        [        T5      -   :  a  O  O
+U[        -  nO[        S5      eUR                  TU   5        TUS-   S  mSnT(       a  M…  U$ ! [         a    / s $ f = fs  snnf )NÈ<   Fc              3   Û.   >#   ï U  H
+  nTU   v ï  M     g 7fr   rû   )rô  ⁄i⁄Ls     Är   rö  ⁄#_exhaustive_wait.<locals>.<genexpr>˛  s   ¯È Ä –+¢s†!òò1û¢s˘Û   Ér   zShould not get herer   )⁄listrã   rº   ⁄BatchedWaitForMultipleObjects⁄TimeoutError⁄extend⁄	enumeraterø   r   r   r   r÷   rÉ  )⁄handlesr   ⁄readyrÜ  rÈ  rë  ⁄short_LrÍ  s          @r   ⁄_exhaustive_waitrı  Ú  sc  ¯Ä Ù êãMàÿàÙ àqã6êBã;‹◊;“;∏A∏u¿g”Nê èLâL‘+°s”+‘+ﬁ‹#,®Q§<‘M¢<ô4ò1∞1∏1±v¿±z’3L»—3LìQ—3LïQ°<“MêÿàGﬁ‹ #†A£®£êaòòëf∞àG‹◊0“0∞∏%¿”IàCÿîl”"ÿ àÙ †#’>¨º∏Aª—(>÷>ÿî}—$ë‹!†S’D‘+;ºc¿!ªf—+D÷Dÿ‘'—'ë‰"–#8”9–9ÿèLâLòò3ô‘ ÿê#êaë%ê&ê	àAÿàG˜ àa à¯Ù)  Û ÿí	¸Û Ns#   üE% ¡'E7¬E7¬E7≈%E4≈3E4c                 Û÷  ^ï Uc  [         nOUS:  a  SnO[        US-  S-   5      n[        U 5      n 0 m/ n[        5       n[        5       n U  Hœ  n [	        US5      n [
+        R                  " U" 5       SS5      u  pxU[
+        R                  :X  a"  UR                  U5        UTUR                  '   Mf  U(       aO  [        R                  " 5       SS S:º  a3   UR                  S	5      u  p®U(       d  [!        US
+5      (       a  SUl        UR%                  U5        SnM—     [+        TR-                  5       U5      nU H  nUR/                  5         M     U Ho  n UR                  S5      u  p®U[
+        R0                  :w  d  M-  TUR                     nUR%                  U5        US:X  d  MU  [!        US
+5      (       d  Mh  SUl        Mq     UR3                  U4S jU 5       5        U  Vs/ s H  oUU;   d  M
+  UPM     sn$ ! [         a#  n	SU	R                  páU[        ;  a  e  Sn	A	GN®Sn	A	ff = f! [         a  n	U	R                  n Sn	A	GN_Sn	A	ff = f! [&         a    UTUR)                  5       '    GM%  f = f! [         a"  n	U	R                  nU[        ;  a  e  Sn	A	GN1Sn	A	ff = f! U H  nUR/                  5         M     U Hû  n UR                  S5      u  p®O.! [         a!  n	U	R                  nU[        ;  a  e  Sn	A	OSn	A	ff = fU[
+        R0                  :w  d  M\  TUR                     nUR%                  U5        US:X  d  MÑ  [!        US
+5      (       d  Mó  SUl        M†     f = fs  snf )˙
+Wait till an object in object_list is ready/readable.
+
+Returns list of those objects in object_list which are ready/readable.
+Nr   rç  g      ‡?rk   Tr†  )È   r†  FrÀ   c              3   Û.   >#   ï U  H
+  nTU   v ï  M     g 7fr   rû   )rô  rë  ⁄waithandle_to_objs     Är   rö  ⁄wait.<locals>.<genexpr>_  s   ¯È Ä –I∫=∞a–.®q÷1∫=˘rÏ  )r   ⁄intrÌ  ⁄setr`  rº   rœ   rT   r”   ⁄_ready_errorsræ   rÉ  r¿   r1   ⁄getwindowsversionr¡   r3   rÀ   ⁄add⁄AttributeErrorrB   rı  ⁄keysrµ   r¬   ⁄update)⁄object_listr   ⁄ov_list⁄ready_objects⁄ready_handles⁄ork   r∑   r≈   r€   rY  r˙  s              @r   r   r     s,  ¯Ä  â?‹âGÿêqã[ÿâG‰ò'†Dô.®3—.”/àG‰ò;”'àÿ–ÿà‹õà‹õà6	8€ ê$‹$†Q®”1êF
+"‹")◊"2“"2±6≥8∏Q¿”"Eôò
+ úg◊6—6”6ÿüô†r‘*ÿ67–)®"Ø(©(”3ˆ
+ §#◊"7“"7”"9∏"∏1–"=¿”"G1ÿ)+◊)?—)?¿”)F°†ˆ $'¨7∞1–6J◊+K—+Kÿ7;†‘ 4ÿ%◊)—)®!‘,ÿ"#öÒ= !Ù@ -–->◊-C—-C”-E¿w”OàMÛ êÿó	ë	ñÒ Û êÿ◊3—3∞D”9ëFêA
+ ú'◊9—9’9ÿ)®"Ø(©(—3êAÿ!◊%—%†a‘(ÿòaïxÙ #†1–&:◊;”;ÿ37òA÷0Ò   	◊—‘Iπ=”I‘IŸ&”=ö;êa®}—*<óô;—=–=¯Ù_ #Û "ÿ"&®Ø
+©
+òCÿ§m”3ÿ!ı 4˚"˚Ù  $+Û 1ÿ&'ßj°j¶˚1˚Ù- &Û 9ÿ78–%†aßk°k£m’49˚ÙN Û ÿü*ô*êCÿ§-”/ÿı 0˚˚Û êÿó	ë	ñÒ Û êÿ◊3—3∞D”9ëFêAês¯‹Û ÿü*ô*êCÿ§-”/ÿÙ 0˚˙ ú'◊9—9’9ÿ)®"Ø(©(—3êAÿ!◊%—%†a‘(ÿòaïxÙ #†1–&:◊;”;ÿ37òA÷0Ú ¸Ú" >s‡   ¡
+J$ ¡I¡G<¡<AJ$ √H,√)AJ$ ≈I5«&	M&«3M&«<
+H)»H$»J$ »$H)»)J$ »,
+I»6I…J$ …I…J$ …I2…-J$ …1I2…2J$ …5
+J!…?J J! $M#ÀKÀM#À
+L	À"K>	À9M#À>L	ÃM#Ã$M#ÕM#ÕM#⁄PollSelectorc                 Û∞  ï [        5        nU  H#  nUR                  U[        R                  5        M%     Ub  [        R
+                  " 5       U-   n UR                  U5      nU(       a*  U VVs/ s H  u  pgUR                  PM     snnsSSS5        $ Ub)  W[        R
+                  " 5       -
+  nUS:  a  UsSSS5        $ Mp  s  snnf ! , (       d  f       g= f)r˜  Nr   )⁄_WaitSelector⁄register⁄	selectors⁄
+EVENT_READr   r   ⁄select⁄fileobj)r  r   ⁄selectorrÅ   ⁄deadlinerÛ  ⁄key⁄eventss           r   r   r   n  s¥   Ä Ù å_†€"êÿ◊!—!†#§y◊';—';÷<Ò # —"‹ü>ö>”+®g—5ê‡ÿ üô®”0êﬁŸ=B‘C∫U©M®SòCüKúKπU“C˜ â_ —*ÿ"*¨TØ^™^”-=—"=òÿ"†Qõ;ÿ#(˜ â_Ò ˘Û D˜ ç_˙s$   ãA#C¡.C¬C¬"C¬?C√
+Cc                 Û*  ï U R                  5       n[        R                  " U[        R                  [        R                  5       nSSKJn  UR                  U5      n[        X@R                  U R                  44sS S S 5        $ ! , (       d  f       g = f)Nr   )⁄resource_sharer)rk   r4   ⁄fromfdr   ⁄SOCK_STREAMr$   r  ⁄	DupSocket⁄rebuild_connectionrH   rI   )rœ  rG   rp  r  ⁄dss        r   ⁄reduce_connectionr  ä  s^   Ä ÿóëìà‹è]ä]ò6§6ß>°>¥6◊3E—3E‘F»!›)ÿ ◊*—*®1”-àB‹%®ØM©M∏4ø=π=–'I–I˜ G◊F◊F˙s   ¡5B¬
+Bc                 ÛV   ï U R                  5       n[        UR                  5       X5      $ r   ©r8  rË   )r  rH   rI   ⁄socks       r   r  r  ê  s    Ä ÿèyâyã{à‹ò$ü+ô+õ-®”<–<r   c                 Û  ï U R                   (       a  [        R                  OSU R                  (       a  [        R                  OS-  n[
+        R                  " U R                  5       U5      n[        X R                   U R                  44$ rÔ   )	rH   rº   ⁄FILE_GENERIC_READrI   ⁄FILE_GENERIC_WRITEr   ⁄	DupHandlerk   ⁄rebuild_pipe_connection)rœ  rT  ⁄dhs      r   ⁄reduce_pipe_connectionr&  ï  s\   Ä ÿ04∑∑î7◊,“,¿1ÿ15∑∑î7◊-“-¿AÒGà‰◊ “ †ß°£∞”7à‹&®Ø]©]∏DøMπM–(J–J–Jr   c                 Û:   ï U R                  5       n[        X1U5      $ r   )r8  r≤   )r%  rH   rI   rG   s       r   r$  r$  ö  s   Ä ÿóëìà‹òf∞”9–9r   c                 ÛÜ   ï [         R                  " U R                  5       5      n[        XR                  U R
+                  44$ r   )r   ⁄DupFdrk   r  rH   rI   )rœ  ⁄dfs     r   r  r  †  s.   Ä ‹è_ä_òTü[ô[õ]”+à‹!†BØ©∞t∑}±}–#E–E–Er   c                 Û:   ï U R                  5       n[        X1U5      $ r   r  )r*  rH   rI   ⁄fds       r   r  r  £  s   Ä ÿèYâYã[à‹ò"®”1–1r   )NN)T)rÆ  r   )U⁄__all__r√   rÃ   r(   r1   r4   r¸   r   r%   ⁄	itertoolsr$   r   r	   r
+   ⁄contextr   ⁄ForkingPicklerr~   r	  rº   r   r   r   r   ⁄ImportErrorr2   rE  ⁄CONNECTION_TIMEOUT⁄countr+   r  ⁄familiesr3   r   r   r/   r5   r=   r?   r≤   rË   ⁄objectr   r   r   r  r1  r  r0  r¿  r√  rƒ  r≈  ⁄	frozensetr•  ⁄maxr§  r¡  ⁄_MD5_DIGEST_LENr¢  r´  rµ  rª  r  r  r  r…  rŸ  r‹  rﬁ  rÂ  rı  r‘   ⁄ERROR_NETNAME_DELETEDr˛  r   r  r	  r  ⁄SelectSelectorr  r  r  r&  r$  rû   r   r   ⁄<module>r;     sÎ  Ú 3Ä„ € 	€ 	€ 
+€ € € € € ı Á 1› ÿ◊*—*Ä€€ﬂO”O Ä‡– ‡óí”!Ä‡Äÿà;Ä·
+à6ê9◊—ÿÄNÿêê—ÄH‡á<Å<ê7”ÿÄNÿêê—ÄH -Ù &Ú Ú0Ú
+FÚF˜&TÒ Tˆn Ù]òÙ ]Ù@MêÙ MÙh;àvÙ ;Ù|* á<Å<ê7”ıÙ&&ÙX)êVÙ )ÚX& á<Å<ê7”Ù6,êvÙ 6,Úp!> Ä‡Ä
+ÿÄÿÄÒr ⁄@ÛB– ·—7—&6”7”7Ä – ÿÄÿ*®O–<ÄÚ2Ú4?Ú8?Ò2(®5ı (*>®%Ù >Ù*òÙ ÚHÚÙ>ê(Ù >ÚL á<Å<ê7”¸ñ                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              Ú@ ◊.—.∞◊0M—0M–NÄMıL>Û` Ò
+ àyò.◊)—)ÿ!◊.—.â‡!◊0—0àÙ)6 á<Å<ê7”ÚJÚ= ◊“êz–#4‘5ÚKÚ
+: ◊“ê~–'=’>ÚFÚ2 ◊“êz–#4’5¯K$ Û ÿ
+á|Å|êw”ÿÿÉG˙s   ¡
+I …I2…1I2                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       Û
+    F\h§-  „                   Û‚  ï S SK r S SKrS SKrSSKJr  SSKJr  Sr " S S\5      r " S S	\5      r	 " S
+ S\5      r
+ " S S\5      r " S S\5      r " S S\R                  5      r " S S\5      r\R"                  S:w  aù   " S S\R                  5      r " S S\R                  5      r " S S\R                  5      r " S S\5      r " S S\5      r " S S \5      r\" 5       \" 5       \" 5       S!.r\R"                  S":X  a  \" \S#   5      rO@\" \S$   5      rO4 " S% S\R                  5      r " S& S\5      rS#\" 5       0r\" \S#   5      rS' r\R6                  " 5       rS( rS) rS* rg)+È    NÈ   )⁄process)⁄	reduction© c                   Û   ï \ rS rSrSrg)⁄ProcessErrorÈ   r   N©⁄__name__⁄
+__module__⁄__qualname__⁄__firstlineno__⁄__static_attributes__r   Û    ⁄./usr/lib/python3.13/multiprocessing/context.pyr   r      Û   Ü ⁄r   r   c                   Û   ï \ rS rSrSrg)⁄BufferTooShortÈ   r   Nr
+   r   r   r   r   r      r   r   r   c                   Û   ï \ rS rSrSrg)⁄TimeoutErrorÈ   r   Nr
+   r   r   r   r   r      r   r   r   c                   Û   ï \ rS rSrSrg)⁄AuthenticationErrorÈ   r   Nr
+   r   r   r   r   r      r   r   r   c                   Û∞  ï \ rS rSr\r\r\r\r\" \	R                  5      r
+\" \	R                  5      r\" \	R                  5      rS rS rS$S jrS rS rS%S	 jrS&S
+ jrS&S jrS rS'S jrS(S jrS(S jrS r  S)S jrS rS rSS.S jrSS.S jrS rS r S%S jr!S r"S r#S r$S%S jr%S*S jr&S*S  jr'\(S! 5       r)\)RT                  S" 5       r)S# r+Sr,g)+⁄BaseContextÈ   c                 ÛL   ï [         R                  " 5       nUc  [        S5      eU$ )z(Returns the number of CPUs in the systemzcannot determine number of cpus)⁄os⁄	cpu_count⁄NotImplementedError)⁄self⁄nums     r   r!   ⁄BaseContext.cpu_count)   s#   Ä ‰èlälãnàÿâ;‹%–&G”H–H‡àJr   c                 ÛZ   ï SSK Jn  U" U R                  5       S9nUR                  5         U$ )z•Returns a manager associated with a running server process
+
+The managers methods such as `Lock()`, `Condition()` and `Queue()`
+can be used to create shared objects.
+r   )⁄SyncManager©⁄ctx)⁄managersr'   ⁄get_context⁄start)r#   r'   ⁄ms      r   ⁄Manager⁄BaseContext.Manager1   s(   Ä ı 	*ŸòD◊,—,”.—/àÿ	èâå	ÿàr   Tc                 Û   ï SSK Jn  U" U5      $ )z1Returns two connection object connected by a piper   )⁄Pipe)⁄
+connectionr1   )r#   ⁄duplexr1   s      r   r1   ⁄BaseContext.Pipe<   s   Ä Â$ŸêFã|–r   c                 Û6   ï SSK Jn  U" U R                  5       S9$ )z#Returns a non-recursive lock objectr   )⁄Lockr(   )⁄synchronizer6   r+   )r#   r6   s     r   r6   ⁄BaseContext.LockA   s   Ä Â%Ÿò◊(—(”*—+–+r   c                 Û6   ï SSK Jn  U" U R                  5       S9$ )zReturns a recursive lock objectr   )⁄RLockr(   )r7   r:   r+   )r#   r:   s     r   r:   ⁄BaseContext.RLockF   Û   Ä Â&Ÿò◊)—)”+—,–,r   Nc                 Û6   ï SSK Jn  U" XR                  5       S9$ )zReturns a condition objectr   )⁄	Conditionr(   )r7   r>   r+   )r#   ⁄lockr>   s      r   r>   ⁄BaseContext.ConditionK   s   Ä Â*Ÿò◊#3—#3”#5—6–6r   c                 Û6   ï SSK Jn  U" XR                  5       S9$ )zReturns a semaphore objectr   )⁄	Semaphorer(   )r7   rB   r+   )r#   ⁄valuerB   s      r   rB   ⁄BaseContext.SemaphoreP   s   Ä Â*Ÿò◊$4—$4”$6—7–7r   c                 Û6   ï SSK Jn  U" XR                  5       S9$ )z"Returns a bounded semaphore objectr   )⁄BoundedSemaphorer(   )r7   rF   r+   )r#   rC   rF   s      r   rF   ⁄BaseContext.BoundedSemaphoreU   s   Ä Â1Ÿ†◊+;—+;”+=—>–>r   c                 Û6   ï SSK Jn  U" U R                  5       S9$ )zReturns an event objectr   )⁄Eventr(   )r7   rI   r+   )r#   rI   s     r   rI   ⁄BaseContext.EventZ   r<   r   c                 Û8   ï SSK Jn  U" XX0R                  5       S9$ )zReturns a barrier objectr   )⁄Barrierr(   )r7   rL   r+   )r#   ⁄parties⁄action⁄timeoutrL   s        r   rL   ⁄BaseContext.Barrier_   s   Ä Â(Ÿêw®◊5E—5E”5G—H–Hr   c                 Û6   ï SSK Jn  U" XR                  5       S9$ )˙Returns a queue objectr   )⁄Queuer(   )⁄queuesrS   r+   )r#   ⁄maxsizerS   s      r   rS   ⁄BaseContext.Queued   s   Ä Â!ŸêW◊"2—"2”"4—5–5r   c                 Û6   ï SSK Jn  U" XR                  5       S9$ )rR   r   )⁄JoinableQueuer(   )rT   rX   r+   )r#   rU   rX   s      r   rX   ⁄BaseContext.JoinableQueuei   s   Ä Â)ŸòW◊*:—*:”*<—=–=r   c                 Û6   ï SSK Jn  U" U R                  5       S9$ )rR   r   )⁄SimpleQueuer(   )rT   r[   r+   )r#   r[   s     r   r[   ⁄BaseContext.SimpleQueuen   s   Ä Â'Ÿòt◊/—/”1—2–2r   r   c                 Û:   ï SSK Jn  U" XX4U R                  5       S9$ )zReturns a process pool objectr   )⁄Pool)⁄context)⁄poolr^   r+   )r#   ⁄	processes⁄initializer⁄initargs⁄maxtasksperchildr^   s         r   r^   ⁄BaseContext.Pools   s$   Ä ı 	ŸêI®Hÿ ◊,—,”.Ò0 	0r   c                 Û    ï SSK Jn  U" U/UQ76 $ )zReturns a shared objectr   )⁄RawValue)⁄sharedctypesrg   )r#   ⁄typecode_or_type⁄argsrg   s       r   rg   ⁄BaseContext.RawValuez   s   Ä Â*Ÿ–(–0®4“0–0r   c                 Û   ï SSK Jn  U" X5      $ )zReturns a shared arrayr   )⁄RawArray)rh   rm   )r#   ri   ⁄size_or_initializerrm   s       r   rm   ⁄BaseContext.RawArray   s   Ä Â*Ÿ–(”>–>r   )r?   c                ÛD   ï SSK Jn  U" U/UQ7UU R                  5       S.6$ )z$Returns a synchronized shared objectr   )⁄Value©r?   r)   )rh   rq   r+   )r#   ri   r?   rj   rq   s        r   rq   ⁄BaseContext.ValueÑ   s/   Ä Â'Ÿ–% -®Ò -∞4ÿ◊)—)”+Ú- 	-r   c                Û:   ï SSK Jn  U" XUU R                  5       S9$ )z#Returns a synchronized shared arrayr   )⁄Arrayrr   )rh   ru   r+   )r#   ri   rn   r?   ru   s        r   ru   ⁄BaseContext.Arrayä   s#   Ä Â'Ÿ–%¿ÿ◊)—)”+Ò- 	-r   c                 Ûv   ï U R                  5       S:X  a%  [        [        SS5      (       a  SSKJn  U" 5         ggg)z{Check whether this is a fake forked process in a frozen executable.
+If so then run code specified by commandline and exit.
+⁄spawn⁄frozenFr   )⁄freeze_supportN)⁄get_start_method⁄getattr⁄sysrx   rz   )r#   rz   s     r   rz   ⁄BaseContext.freeze_supportê   s5   Ä  ◊ — ”"†g”-¥'º#∏x»◊2O—2O›-Ÿ’ 3P–-r   c                 Û   ï SSK Jn  U" 5       $ )zJReturn package logger -- if it does not already exist then
+it is created.
+r   )⁄
+get_logger)⁄utilrÄ   )r#   rÄ   s     r   rÄ   ⁄BaseContext.get_loggerò   s   Ä ı 	%Ÿã|–r   c                 Û   ï SSK Jn  U" U5      $ )z8Turn on logging and add a handler which prints to stderrr   )⁄log_to_stderr)rÅ   rÑ   )r#   ⁄levelrÑ   s      r   rÑ   ⁄BaseContext.log_to_stderrü   s   Ä Â'ŸòU”#–#r   c                 Û   ï SSK Jn  g)zFInstall support for sending connections and sockets
+between processes
+r   )r2   N)⁄ r2   )r#   r2   s     r   ⁄allow_connection_pickling⁄%BaseContext.allow_connection_pickling§   s   Ä ˆ 	!r   c                 Û    ï SSK Jn  U" U5        g)z¥Sets the path to a python.exe or pythonw.exe binary used to run
+child processes instead of sys.executable when using the 'spawn'
+start method.  Useful for people embedding Python.
+r   )⁄set_executableN)rx   rå   )r#   ⁄
+executablerå   s      r   rå   ⁄BaseContext.set_executable¨   s   Ä ı
+ 	*Ÿêz’"r   c                 Û    ï SSK Jn  U" U5        g)z[Set list of module names to try to load in forkserver process.
+This is really just a hint.
+r   )⁄set_forkserver_preloadN)⁄
+forkserverrê   )r#   ⁄module_namesrê   s      r   rê   ⁄"BaseContext.set_forkserver_preload¥   s   Ä ı 	7Ÿò|’,r   c                 Û~   ï Uc  U $  [         U   nUR                  5         U$ ! [         a    [        SU-  5      S ef = f)Nzcannot find context for %r)⁄_concrete_contexts⁄KeyError⁄
+ValueError⁄_check_available)r#   ⁄methodr)   s      r   r+   ⁄BaseContext.get_contextª   sU   Ä ÿâ>ÿàK	N‹$†V—,àC 	◊—‘ÿà
+¯Ù Û 	N‹–9∏F—B”C»–M	N˙s   á	" ¢<c                 Û   ï U R                   $ ©N)⁄_name©r#   ⁄
+allow_nones     r   r{   ⁄BaseContext.get_start_method≈   s   Ä ÿèzâz–r   c                 Û   ï [        S5      e)Nz+cannot set start method of concrete context)ró   ©r#   rô   ⁄forces      r   ⁄set_start_method⁄BaseContext.set_start_method»   s   Ä ‹–F”G–Gr   c                 Û4   ï [        5       R                  S5      $ )zWControls how objects will be reduced to a form that can be
+shared with other processes.r   )⁄globals⁄get©r#   s    r   ⁄reducer⁄BaseContext.reducerÀ   s   Ä Ù ãyè}â}ò[”)–)r   c                 Û   ï U[        5       S'   g )Nr   )rß   )r#   r   s     r   r™   r´   —   s   Ä ‡!*åã	ê+“r   c                 Û   ï g rú   r   r©   s    r   rò   ⁄BaseContext._check_available’   s   Ä ÿr   )Trú   )r   )NN)r   )NNr   N©F)-r   r   r   r   r   r   r   r   ⁄staticmethodr   ⁄current_process⁄parent_process⁄active_childrenr!   r.   r1   r6   r:   r>   rB   rF   rI   rL   rS   rX   r[   r^   rg   rm   rq   ru   rz   rÄ   rÑ   râ   rå   rê   r+   r{   r§   ⁄propertyr™   ⁄setterrò   r   r   r   r   r   r      s  Ü ‡ÄLÿ#ÄNÿÄLÿ-–·"†7◊#:—#:”;ÄOŸ!†'◊"8—"8”9ÄNŸ"†7◊#:—#:”;ÄOÚÚ	ÙÚ
+,Ú
+-Ù
+7Ù
+8Ù
+?Ú
+-Ù
+IÙ
+6Ù
+>Ú
+3
+ ?Aÿ"Ù0Ú1Ú
+?
+ 37ı - DHı -ÚÚÙ$Ú
+!Ú#Ú-ÙÙÙH Ò*Û *
+ á^Å^Ò+Û +ır   r   c                   Û8   ï \ rS rSrSr\S 5       r\S 5       rSrg)⁄ProcessÈ‹   Nc                 Û\   ï [         R                  5       R                  R                  U 5      $ rú   )⁄_default_contextr+   r∑   ⁄_Popen)⁄process_objs    r   rª   ⁄Process._Popenﬁ   s"   Ä ‰◊+—+”-◊5—5◊<—<∏[”I–Ir   c                  ÛZ   ï [         R                  5       R                  R                  5       $ rú   )r∫   r+   r∑   ⁄_after_forkr   r   r   rø   ⁄Process._after_fork‚   s    Ä ‰◊+—+”-◊5—5◊A—A”C–Cr   r   ©	r   r   r   r   ⁄_start_methodr∞   rª   rø   r   r   r   r   r∑   r∑   ‹   s1   Ü ÿÄMÿÒJÛ J ÒDÛ ÛDr   r∑   c                   ÛP   ^ ï \ rS rSr\rS rSU 4S jjrS	S jrS	S jrS r	Sr
+U =r$ )
+⁄DefaultContextÈÊ   c                 Û   ï Xl         S U l        g rú   )r∫   ⁄_actual_context)r#   r_   s     r   ⁄__init__⁄DefaultContext.__init__È   s   Ä ÿ '‘ÿ#à’r   c                 Û|   >ï Uc*  U R                   c  U R                  U l         U R                   $ [        TU ]  U5      $ rú   )r«   r∫   ⁄superr+   )r#   rô   ⁄	__class__s     Är   r+   ⁄DefaultContext.get_contextÌ   s>   ¯Ä ÿâ>ÿ◊#—#—+ÿ'+◊'<—'<ê‘$ÿ◊'—'–'‰ë7—&†v”.–.r   c                 Ûí   ï U R                   b  U(       d  [        S5      eUc  U(       a  S U l         g U R                  U5      U l         g )Nzcontext has already been set)r«   ⁄RuntimeErrorr+   r¢   s      r   r§   ⁄DefaultContext.set_start_methodı   sA   Ä ÿ◊——+∂E‹–=”>–>ÿâ>ûeÿ#'àD‘ ÿÿ#◊/—/∞”7à’r

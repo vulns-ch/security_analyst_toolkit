@@ -1,0 +1,2096 @@
+late_args = get_template_arg_list(type_obj)
+            displayed_args = []
+            require_defaulted = False
+            for n in range(len(template_args)):
+                # The actual template argument in the type:
+                targ = template_args[n]
+                # The default template argument for the class template:
+                defarg = self._defargs.get(n)
+                if defarg is not None:
+                    # Substitute other template arguments into the default:
+                    defarg = defarg.format(*template_args)
+                    # Fail to recognize the type (by returning None)
+                    # unless the actual argument is the same as the default.
+                    try:
+                        if targ != gdb.lookup_type(defarg):
+                            return None
+                    except gdb.error:
+                        # Type lookup failed, just use string comparison:
+                        if targ.tag != defarg:
+                            return None
+                    # All subsequent args must have defaults:
+                    require_defaulted = True
+                elif require_defaulted:
+                    return None
+                else:
+                    # Recursively apply recognizers to the template argument
+                    # and add it to the arguments that will be displayed:
+                    displayed_args.append(self._recognize_subtype(targ))
+
+            # This assumes no class templates in the nested-name-specifier:
+            template_name = type_obj.tag[0:type_obj.tag.find('<')]
+            template_name = strip_inline_namespaces(template_name)
+
+            return template_name + '<' + ', '.join(displayed_args) + '>'
+
+        def _recognize_subtype(self, type_obj):
+            """Convert a gdb.Type to a string by applying recognizers,
+            or if that fails then simply converting to a string."""
+
+            if type_obj.code == gdb.TYPE_CODE_PTR:
+                return self._recognize_subtype(type_obj.target()) + '*'
+            if type_obj.code == gdb.TYPE_CODE_ARRAY:
+                type_str = self._recognize_subtype(type_obj.target())
+                if str(type_obj.strip_typedefs()).endswith('[]'):
+                    return type_str + '[]'  # array of unknown bound
+                return "%s[%d]" % (type_str, type_obj.range()[1] + 1)
+            if type_obj.code == gdb.TYPE_CODE_REF:
+                return self._recognize_subtype(type_obj.target()) + '&'
+            if hasattr(gdb, 'TYPE_CODE_RVALUE_REF'):
+                if type_obj.code == gdb.TYPE_CODE_RVALUE_REF:
+                    return self._recognize_subtype(type_obj.target()) + '&&'
+
+            type_str = gdb.types.apply_type_recognizers(
+                gdb.types.get_type_recognizers(), type_obj)
+            if type_str:
+                return type_str
+            return str(type_obj)
+
+    def instantiate(self):
+        """Return a recognizer object for this type printer."""
+        return self._recognizer(self.name, self._defargs)
+
+
+def add_one_template_type_printer(obj, name, defargs):
+    """
+    Add a type printer for a class template with default template arguments.
+
+    Args:
+        name (str): The template-name of the class template.
+        defargs (dict int:string) The default template arguments.
+
+    Types in defargs can refer to the Nth template-argument using {N}
+    (with zero-based indices).
+
+    e.g. 'unordered_map' has these defargs:
+    { 2: 'std::hash<{0}>',
+      3: 'std::equal_to<{0}>',
+      4: 'std::allocator<std::pair<const {0}, {1}> >' }
+    """
+    printer = TemplateTypePrinter('std::' + name, defargs)
+    gdb.types.register_type_printer(obj, printer)
+
+    # Add type printer for same type in debug namespace:
+    printer = TemplateTypePrinter('std::__debug::' + name, defargs)
+    gdb.types.register_type_printer(obj, printer)
+
+    if '__cxx11' not in name:
+        # Add second type printer for same type in versioned namespace:
+        ns = 'std::' + _versioned_namespace
+        # PR 86112 Cannot use dict comprehension here:
+        defargs = dict((n, d.replace('std::', ns))
+                       for (n, d) in defargs.items())
+        printer = TemplateTypePrinter(ns + name, defargs)
+        gdb.types.register_type_printer(obj, printer)
+
+        # Add type printer for same type in debug namespace:
+        printer = TemplateTypePrinter('std::__debug::' + name, defargs)
+        gdb.types.register_type_printer(obj, printer)
+
+
+class FilteringTypePrinter(object):
+    """
+    A type printer that uses typedef names for common template specializations.
+
+    Args:
+        template (str): The class template to recognize.
+        name (str): The typedef-name that will be used instead.
+        targ1 (str, optional): The first template argument. Defaults to None.
+
+    Checks if a specialization of the class template 'template' is the same type
+    as the typedef 'name', and prints it as 'name' instead.
+
+    e.g. if an instantiation of std::basic_istream<C, T> is the same type as
+    std::istream then print it as std::istream.
+
+    If targ1 is provided (not None), match only template specializations with
+    this type as the first template argument, e.g. if template='basic_string'
+    and targ1='char' then only match 'basic_string<char,...>' and not
+    'basic_string<wchar_t,...>'. This rejects non-matching specializations
+    more quickly, without needing to do GDB type lookups.
+    """
+
+    def __init__(self, template, name, targ1=None):
+        self._template = template
+        self.name = name
+        self._targ1 = targ1
+        self.enabled = True
+
+    class _recognizer(object):
+        """The recognizer class for FilteringTypePrinter."""
+
+        def __init__(self, template, name, targ1):
+            self._template = template
+            self.name = name
+            self._targ1 = targ1
+            self._type_obj = None
+
+        def recognize(self, type_obj):
+            """
+            If type_obj starts with self._template and is the same type as
+            self.name then return self.name, otherwise None.
+            """
+            if type_obj.tag is None:
+                return None
+
+            if self._type_obj is None:
+                if self._targ1 is not None:
+                    s = '{}<{}'.format(self._template, self._targ1)
+                    if not type_obj.tag.startswith(s):
+                        # Filter didn't match.
+                        return None
+                elif not type_obj.tag.startswith(self._template):
+                    # Filter didn't match.
+                    return None
+
+                try:
+                    self._type_obj = gdb.lookup_type(
+                        self.name).strip_typedefs()
+                except:
+                    pass
+
+            if self._type_obj is None:
+                return None
+
+            t1 = gdb.types.get_basic_type(self._type_obj)
+            t2 = gdb.types.get_basic_type(type_obj)
+            if t1 == t2:
+                return strip_inline_namespaces(self.name)
+
+            # Workaround ambiguous typedefs matching both std:: and
+            # std::__cxx11:: symbols.
+            if self._template.split('::')[-1] == 'basic_string':
+                s1 = self._type_obj.tag.replace('__cxx11::', '')
+                s2 = type_obj.tag.replace('__cxx11::', '')
+                if s1 == s2:
+                    return strip_inline_namespaces(self.name)
+
+            return None
+
+    def instantiate(self):
+        """Return a recognizer object for this type printer."""
+        return self._recognizer(self._template, self.name, self._targ1)
+
+
+def add_one_type_printer(obj, template, name, targ1=None):
+    printer = FilteringTypePrinter('std::' + template, 'std::' + name, targ1)
+    gdb.types.register_type_printer(obj, printer)
+    if '__cxx11' not in template:
+        ns = 'std::' + _versioned_namespace
+        printer = FilteringTypePrinter(ns + template, ns + name, targ1)
+        gdb.types.register_type_printer(obj, printer)
+
+
+def register_type_printers(obj):
+    global _use_type_printing
+
+    if not _use_type_printing:
+        return
+
+    # Add type printers for typedefs std::string, std::wstring etc.
+    for ch in (('', 'char'),
+               ('w', 'wchar_t'),
+               ('u8', 'char8_t'),
+               ('u16', 'char16_t'),
+               ('u32', 'char32_t')):
+        add_one_type_printer(obj, 'basic_string', ch[0] + 'string', ch[1])
+        add_one_type_printer(obj, '__cxx11::basic_string',
+                             ch[0] + 'string', ch[1])
+        # Typedefs for __cxx11::basic_string used to be in namespace __cxx11:
+        add_one_type_printer(obj, '__cxx11::basic_string',
+                             '__cxx11::' + ch[0] + 'string', ch[1])
+        add_one_type_printer(obj, 'basic_string_view',
+                             ch[0] + 'string_view', ch[1])
+
+    # Add type printers for typedefs std::istream, std::wistream etc.
+    for ch in (('', 'char'), ('w', 'wchar_t')):
+        for x in ('ios', 'streambuf', 'istream', 'ostream', 'iostream',
+                  'filebuf', 'ifstream', 'ofstream', 'fstream'):
+            add_one_type_printer(obj, 'basic_' + x, ch[0] + x, ch[1])
+        for x in ('stringbuf', 'istringstream', 'ostringstream',
+                  'stringstream'):
+            add_one_type_printer(obj, 'basic_' + x, ch[0] + x, ch[1])
+            # <sstream> types are in __cxx11 namespace, but typedefs aren't:
+            add_one_type_printer(obj, '__cxx11::basic_' + x, ch[0] + x, ch[1])
+
+    # Add type printers for typedefs regex, wregex, cmatch, wcmatch etc.
+    for abi in ('', '__cxx11::'):
+        for ch in (('', 'char'), ('w', 'wchar_t')):
+            add_one_type_printer(obj, abi + 'basic_regex',
+                                 abi + ch[0] + 'regex', ch[1])
+        for ch in ('c', 's', 'wc', 'ws'):
+            add_one_type_printer(
+                obj, abi + 'match_results', abi + ch + 'match')
+            for x in ('sub_match', 'regex_iterator', 'regex_token_iterator'):
+                add_one_type_printer(obj, abi + x, abi + ch + x)
+
+    # Note that we can't have a printer for std::wstreampos, because
+    # it is the same type as std::streampos.
+    add_one_type_printer(obj, 'fpos', 'streampos')
+
+    # Add type printers for <chrono> typedefs.
+    for dur in ('nanoseconds', 'microseconds', 'milliseconds', 'seconds',
+                'minutes', 'hours', 'days', 'weeks', 'years', 'months'):
+        add_one_type_printer(obj, 'chrono::duration', 'chrono::' + dur)
+
+    # Add type printers for <random> typedefs.
+    add_one_type_printer(obj, 'linear_congruential_engine', 'minstd_rand0')
+    add_one_type_printer(obj, 'linear_congruential_engine', 'minstd_rand')
+    add_one_type_printer(obj, 'mersenne_twister_engine', 'mt19937')
+    add_one_type_printer(obj, 'mersenne_twister_engine', 'mt19937_64')
+    add_one_type_printer(obj, 'subtract_with_carry_engine', 'ranlux24_base')
+    add_one_type_printer(obj, 'subtract_with_carry_engine', 'ranlux48_base')
+    add_one_type_printer(obj, 'discard_block_engine', 'ranlux24')
+    add_one_type_printer(obj, 'discard_block_engine', 'ranlux48')
+    add_one_type_printer(obj, 'shuffle_order_engine', 'knuth_b')
+
+    # Add type printers for experimental::basic_string_view typedefs.
+    ns = 'experimental::fundamentals_v1::'
+    for ch in (('', 'char'),
+               ('w', 'wchar_t'),
+               ('u8', 'char8_t'),
+               ('u16', 'char16_t'),
+               ('u32', 'char32_t')):
+        add_one_type_printer(obj, ns + 'basic_string_view',
+                             ns + ch[0] + 'string_view', ch[1])
+
+    # Do not show defaulted template arguments in class templates.
+    add_one_template_type_printer(obj, 'unique_ptr',
+                                  {1: 'std::default_delete<{0}>'})
+    add_one_template_type_printer(obj, 'deque', {1: 'std::allocator<{0}>'})
+    add_one_template_type_printer(
+        obj, 'forward_list', {1: 'std::allocator<{0}>'})
+    add_one_template_type_printer(obj, 'list', {1: 'std::allocator<{0}>'})
+    add_one_template_type_printer(
+        obj, '__cxx11::list', {1: 'std::allocator<{0}>'})
+    add_one_template_type_printer(obj, 'vector', {1: 'std::allocator<{0}>'})
+    add_one_template_type_printer(obj, 'map',
+                                  {2: 'std::less<{0}>',
+                                   3: 'std::allocator<std::pair<{0} const, {1}>>'})
+    add_one_template_type_printer(obj, 'multimap',
+                                  {2: 'std::less<{0}>',
+                                   3: 'std::allocator<std::pair<{0} const, {1}>>'})
+    add_one_template_type_printer(obj, 'set',
+                                  {1: 'std::less<{0}>', 2: 'std::allocator<{0}>'})
+    add_one_template_type_printer(obj, 'multiset',
+                                  {1: 'std::less<{0}>', 2: 'std::allocator<{0}>'})
+    add_one_template_type_printer(obj, 'unordered_map',
+                                  {2: 'std::hash<{0}>',
+                                   3: 'std::equal_to<{0}>',
+                                   4: 'std::allocator<std::pair<{0} const, {1}>>'})
+    add_one_template_type_printer(obj, 'unordered_multimap',
+                                  {2: 'std::hash<{0}>',
+                                   3: 'std::equal_to<{0}>',
+                                   4: 'std::allocator<std::pair<{0} const, {1}>>'})
+    add_one_template_type_printer(obj, 'unordered_set',
+                                  {1: 'std::hash<{0}>',
+                                   2: 'std::equal_to<{0}>',
+                                   3: 'std::allocator<{0}>'})
+    add_one_template_type_printer(obj, 'unordered_multiset',
+                                  {1: 'std::hash<{0}>',
+                                   2: 'std::equal_to<{0}>',
+                                   3: 'std::allocator<{0}>'})
+
+
+def register_libstdcxx_printers(obj):
+    """Register libstdc++ pretty-printers with objfile Obj."""
+
+    global _use_gdb_pp
+    global libstdcxx_printer
+
+    if _use_gdb_pp:
+        gdb.printing.register_pretty_printer(obj, libstdcxx_printer)
+    else:
+        if obj is None:
+            obj = gdb
+        obj.pretty_printers.append(libstdcxx_printer)
+
+    register_type_printers(obj)
+
+
+def build_libstdcxx_dictionary():
+    global libstdcxx_printer
+
+    libstdcxx_printer = Printer("libstdc++-v6")
+
+    # libstdc++ objects requiring pretty-printing.
+    # In order from:
+    # http://gcc.gnu.org/onlinedocs/libstdc++/latest-doxygen/a01847.html
+    libstdcxx_printer.add_version('std::', 'basic_string', StdStringPrinter)
+    libstdcxx_printer.add_version(
+        'std::__cxx11::', 'basic_string', StdStringPrinter)
+    libstdcxx_printer.add_container('std::', 'bitset', StdBitsetPrinter)
+    libstdcxx_printer.add_container('std::', 'deque', StdDequePrinter)
+    libstdcxx_printer.add_container('std::', 'list', StdListPrinter)
+    libstdcxx_printer.add_container('std::__cxx11::', 'list', StdListPrinter)
+    libstdcxx_printer.add_container('std::', 'map', StdMapPrinter)
+    libstdcxx_printer.add_container('std::', 'multimap', StdMapPrinter)
+    libstdcxx_printer.add_container('std::', 'multiset', StdSetPrinter)
+    libstdcxx_printer.add_version('std::', 'pair', StdPairPrinter)
+    libstdcxx_printer.add_version('std::', 'priority_queue',
+                                  StdStackOrQueuePrinter)
+    libstdcxx_printer.add_version('std::', 'queue', StdStackOrQueuePrinter)
+    libstdcxx_printer.add_version('std::', 'tuple', StdTuplePrinter)
+    libstdcxx_printer.add_container('std::', 'set', StdSetPrinter)
+    libstdcxx_printer.add_version('std::', 'stack', StdStackOrQueuePrinter)
+    libstdcxx_printer.add_version('std::', 'unique_ptr', UniquePointerPrinter)
+    libstdcxx_printer.add_container('std::', 'vector', StdVectorPrinter)
+    # vector<bool>
+    libstdcxx_printer.add_version('std::', 'locale', StdLocalePrinter)
+
+    libstdcxx_printer.add_version('std::', 'integral_constant',
+                                  StdIntegralConstantPrinter)
+    libstdcxx_printer.add_version('std::', 'text_encoding',
+                                  StdTextEncodingPrinter)
+
+    if hasattr(gdb.Value, 'dynamic_type'):
+        libstdcxx_printer.add_version('std::', 'error_code',
+                                      StdErrorCodePrinter)
+        libstdcxx_printer.add_version('std::', 'error_condition',
+                                      StdErrorCodePrinter)
+
+    # Printer registrations for classes compiled with -D_GLIBCXX_DEBUG.
+    libstdcxx_printer.add('std::__debug::bitset', StdBitsetPrinter)
+    libstdcxx_printer.add('std::__debug::deque', StdDequePrinter)
+    libstdcxx_printer.add('std::__debug::list', StdListPrinter)
+    libstdcxx_printer.add('std::__debug::map', StdMapPrinter)
+    libstdcxx_printer.add('std::__debug::multimap', StdMapPrinter)
+    libstdcxx_printer.add('std::__debug::multiset', StdSetPrinter)
+    libstdcxx_printer.add('std::__debug::set', StdSetPrinter)
+    libstdcxx_printer.add('std::__debug::vector', StdVectorPrinter)
+
+    # These are the TR1 and C++11 printers.
+    # For array - the default GDB pretty-printer seems reasonable.
+    libstdcxx_printer.add_version('std::', 'shared_ptr', SharedPointerPrinter)
+    libstdcxx_printer.add_version('std::', 'weak_ptr', SharedPointerPrinter)
+    libstdcxx_printer.add_container('std::', 'unordered_map',
+                                    Tr1UnorderedMapPrinter)
+    libstdcxx_printer.add_container('std::', 'unordered_set',
+                                    Tr1UnorderedSetPrinter)
+    libstdcxx_printer.add_container('std::', 'unordered_multimap',
+                                    Tr1UnorderedMapPrinter)
+    libstdcxx_printer.add_container('std::', 'unordered_multiset',
+                                    Tr1UnorderedSetPrinter)
+    libstdcxx_printer.add_container('std::', 'forward_list',
+                                    StdForwardListPrinter)
+
+    libstdcxx_printer.add_version(
+        'std::tr1::', 'shared_ptr', SharedPointerPrinter)
+    libstdcxx_printer.add_version(
+        'std::tr1::', 'weak_ptr', SharedPointerPrinter)
+    libstdcxx_printer.add_version('std::tr1::', 'unordered_map',
+                                  Tr1UnorderedMapPrinter)
+    libstdcxx_printer.add_version('std::tr1::', 'unordered_set',
+                                  Tr1UnorderedSetPrinter)
+    libstdcxx_printer.add_version('std::tr1::', 'unordered_multimap',
+                                  Tr1UnorderedMapPrinter)
+    libstdcxx_printer.add_version('std::tr1::', 'unordered_multiset',
+                                  Tr1UnorderedSetPrinter)
+
+    libstdcxx_printer.add_version('std::', 'initializer_list',
+                                  StdInitializerListPrinter)
+    libstdcxx_printer.add_version('std::', 'atomic', StdAtomicPrinter)
+    libstdcxx_printer.add_version(
+        'std::', 'basic_stringbuf', StdStringBufPrinter)
+    libstdcxx_printer.add_version(
+        'std::__cxx11::', 'basic_stringbuf', StdStringBufPrinter)
+    for sstream in ('istringstream', 'ostringstream', 'stringstream'):
+        libstdcxx_printer.add_version(
+            'std::', 'basic_' + sstream, StdStringStreamPrinter)
+        libstdcxx_printer.add_version(
+            'std::__cxx11::', 'basic_' + sstream, StdStringStreamPrinter)
+
+    libstdcxx_printer.add_version('std::chrono::', 'duration',
+                                  StdChronoDurationPrinter)
+    libstdcxx_printer.add_version('std::chrono::', 'time_point',
+                                  StdChronoTimePointPrinter)
+
+    # std::regex components
+    libstdcxx_printer.add_version('std::__detail::', '_State',
+                                  StdRegexStatePrinter)
+
+    # These are the C++11 printer registrations for -D_GLIBCXX_DEBUG cases.
+    # The tr1 namespace containers do not have any debug equivalents,
+    # so do not register printers for them.
+    libstdcxx_printer.add('std::__debug::unordered_map',
+                          Tr1UnorderedMapPrinter)
+    libstdcxx_printer.add('std::__debug::unordered_set',
+                          Tr1UnorderedSetPrinter)
+    libstdcxx_printer.add('std::__debug::unordered_multimap',
+                          Tr1UnorderedMapPrinter)
+    libstdcxx_printer.add('std::__debug::unordered_multiset',
+                          Tr1UnorderedSetPrinter)
+    libstdcxx_printer.add('std::__debug::forward_list',
+                          StdForwardListPrinter)
+
+    # Library Fundamentals TS components
+    libstdcxx_printer.add_version('std::experimental::fundamentals_v1::',
+                                  'any', StdExpAnyPrinter)
+    libstdcxx_printer.add_version('std::experimental::fundamentals_v1::',
+                                  'optional', StdExpOptionalPrinter)
+    libstdcxx_printer.add_version('std::experimental::fundamentals_v1::',
+                                  'basic_string_view', StdExpStringViewPrinter)
+    # Filesystem TS components
+    libstdcxx_printer.add_version('std::experimental::filesystem::v1::',
+                                  'path', StdExpPathPrinter)
+    libstdcxx_printer.add_version('std::experimental::filesystem::v1::__cxx11::',
+                                  'path', StdExpPathPrinter)
+    libstdcxx_printer.add_version('std::filesystem::',
+                                  'path', StdPathPrinter)
+    libstdcxx_printer.add_version('std::filesystem::__cxx11::',
+                                  'path', StdPathPrinter)
+
+    # C++17 components
+    libstdcxx_printer.add_version('std::',
+                                  'any', StdExpAnyPrinter)
+    libstdcxx_printer.add_version('std::',
+                                  'optional', StdExpOptionalPrinter)
+    libstdcxx_printer.add_version('std::',
+                                  'basic_string_view', StdExpStringViewPrinter)
+    libstdcxx_printer.add_version('std::',
+                                  'variant', StdVariantPrinter)
+    libstdcxx_printer.add_version('std::',
+                                  '_Node_handle', StdNodeHandlePrinter)
+
+    # C++20 components
+    libstdcxx_printer.add_version(
+        'std::', 'partial_ordering', StdCmpCatPrinter)
+    libstdcxx_printer.add_version('std::', 'weak_ordering', StdCmpCatPrinter)
+    libstdcxx_printer.add_version('std::', 'strong_ordering', StdCmpCatPrinter)
+    libstdcxx_printer.add_version('std::', 'span', StdSpanPrinter)
+    libstdcxx_printer.add_version('std::', 'basic_format_args',
+                                  StdFormatArgsPrinter)
+    for c in ['day', 'month', 'year', 'weekday', 'weekday_indexed', 'weekday_last',
+              'month_day', 'month_day_last', 'month_weekday', 'month_weekday_last',
+              'year_month', 'year_month_day', 'year_month_day_last',
+              'year_month_weekday', 'year_month_weekday_last', 'hh_mm_ss']:
+        libstdcxx_printer.add_version('std::chrono::', c,
+                                      StdChronoCalendarPrinter)
+    libstdcxx_printer.add_version('std::chrono::', 'time_zone',
+                                  StdChronoTimeZonePrinter)
+    libstdcxx_printer.add_version('std::chrono::', 'time_zone_link',
+                                  StdChronoTimeZonePrinter)
+    libstdcxx_printer.add_version('std::chrono::', 'zoned_time',
+                                  StdChronoZonedTimePrinter)
+    libstdcxx_printer.add_version('std::chrono::', 'leap_second',
+                                  StdChronoLeapSecondPrinter)
+    libstdcxx_printer.add_version(
+        'std::chrono::', 'tzdb', StdChronoTzdbPrinter)
+    # libstdcxx_printer.add_version('std::chrono::(anonymous namespace)', 'Rule',
+    #                              StdChronoTimeZoneRulePrinter)
+
+    # Extensions.
+    libstdcxx_printer.add_version('__gnu_cxx::', 'slist', StdSlistPrinter)
+
+    if True:
+        # These shouldn't be necessary, if GDB "print *i" worked.
+        # But it often doesn't, so here they are.
+        libstdcxx_printer.add_container('std::', '_List_iterator',
+                                        StdListIteratorPrinter)
+        libstdcxx_printer.add_container('std::', '_List_const_iterator',
+                                        StdListIteratorPrinter)
+        libstdcxx_printer.add_version('std::', '_Rb_tree_iterator',
+                                      StdRbtreeIteratorPrinter)
+        libstdcxx_printer.add_version('std::', '_Rb_tree_const_iterator',
+                                      StdRbtreeIteratorPrinter)
+        libstdcxx_printer.add_container('std::', '_Deque_iterator',
+                                        StdDequeIteratorPrinter)
+        libstdcxx_printer.add_container('std::', '_Deque_const_iterator',
+                                        StdDequeIteratorPrinter)
+        libstdcxx_printer.add_version('__gnu_cxx::', '__normal_iterator',
+                                      StdVectorIteratorPrinter)
+        libstdcxx_printer.add_container('std::', '_Bit_iterator',
+                                        StdBitIteratorPrinter)
+        libstdcxx_printer.add_container('std::', '_Bit_const_iterator',
+                                        StdBitIteratorPrinter)
+        libstdcxx_printer.add_container('std::', '_Bit_reference',
+                                        StdBitReferencePrinter)
+        libstdcxx_printer.add_version('__gnu_cxx::', '_Slist_iterator',
+                                      StdSlistIteratorPrinter)
+        libstdcxx_printer.add_container('std::', '_Fwd_list_iterator',
+                                        StdFwdListIteratorPrinter)
+        libstdcxx_printer.add_container('std::', '_Fwd_list_const_iterator',
+                                        StdFwdListIteratorPrinter)
+
+        # Debug (compiled with -D_GLIBCXX_DEBUG) printer
+        # registrations.
+        libstdcxx_printer.add('__gnu_debug::_Safe_iterator',
+                              StdDebugIteratorPrinter)
+
+
+build_libstdcxx_dictionary()
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  # Xmethods for libstdc++.
+
+# Copyright (C) 2014-2024 Free Software Foundation, Inc.
+
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+import gdb
+import gdb.xmethod
+import re
+
+matcher_name_prefix = 'libstdc++::'
+
+
+def get_bool_type():
+    return gdb.lookup_type('bool')
+
+def get_std_size_type():
+    return gdb.lookup_type('std::size_t')
+
+_versioned_namespace = '__8::'
+
+def is_specialization_of(x, template_name):
+    """
+    Test whether a type is a specialization of the named class template.
+    The type can be specified as a string or a gdb.Type object.
+    The template should be the name of a class template as a string,
+    without any 'std' qualification.
+    """
+    if isinstance(x, gdb.Type):
+        x = x.tag
+    template_name = '(%s)?%s' % (_versioned_namespace, template_name)
+    return re.match(r'^std::(__\d::)?%s<.*>$' % template_name, x) is not None
+
+class LibStdCxxXMethod(gdb.xmethod.XMethod):
+    def __init__(self, name, worker_class):
+        gdb.xmethod.XMethod.__init__(self, name)
+        self.worker_class = worker_class
+
+# Xmethods for std::array
+
+
+class ArrayWorkerBase(gdb.xmethod.XMethodWorker):
+    def __init__(self, val_type, size):
+        self._val_type = val_type
+        self._size = size
+
+    def null_value(self):
+        nullptr = gdb.parse_and_eval('(void *) 0')
+        return nullptr.cast(self._val_type.pointer()).dereference()
+
+
+class ArraySizeWorker(ArrayWorkerBase):
+    def __init__(self, val_type, size):
+        ArrayWorkerBase.__init__(self, val_type, size)
+
+    def get_arg_types(self):
+        return None
+
+    def get_result_type(self, obj):
+        return get_std_size_type()
+
+    def __call__(self, obj):
+        return self._size
+
+
+class ArrayEmptyWorker(ArrayWorkerBase):
+    def __init__(self, val_type, size):
+        ArrayWorkerBase.__init__(self, val_type, size)
+
+    def get_arg_types(self):
+        return None
+
+    def get_result_type(self, obj):
+        return get_bool_type()
+
+    def __call__(self, obj):
+        return (int(self._size) == 0)
+
+
+class ArrayFrontWorker(ArrayWorkerBase):
+    def __init__(self, val_type, size):
+        ArrayWorkerBase.__init__(self, val_type, size)
+
+    def get_arg_types(self):
+        return None
+
+    def get_result_type(self, obj):
+        return self._val_type
+
+    def __call__(self, obj):
+        if int(self._size) > 0:
+            return obj['_M_elems'][0]
+        else:
+            return self.null_value()
+
+
+class ArrayBackWorker(ArrayWorkerBase):
+    def __init__(self, val_type, size):
+        ArrayWorkerBase.__init__(self, val_type, size)
+
+    def get_arg_types(self):
+        return None
+
+    def get_result_type(self, obj):
+        return self._val_type
+
+    def __call__(self, obj):
+        if int(self._size) > 0:
+            return obj['_M_elems'][self._size - 1]
+        else:
+            return self.null_value()
+
+
+class ArrayAtWorker(ArrayWorkerBase):
+    def __init__(self, val_type, size):
+        ArrayWorkerBase.__init__(self, val_type, size)
+
+    def get_arg_types(self):
+        return get_std_size_type()
+
+    def get_result_type(self, obj, index):
+        return self._val_type
+
+    def __call__(self, obj, index):
+        if int(index) >= int(self._size):
+            raise IndexError('Array index "%d" should not be >= %d.' %
+                             ((int(index), self._size)))
+        return obj['_M_elems'][index]
+
+
+class ArraySubscriptWorker(ArrayWorkerBase):
+    def __init__(self, val_type, size):
+        ArrayWorkerBase.__init__(self, val_type, size)
+
+    def get_arg_types(self):
+        return get_std_size_type()
+
+    def get_result_type(self, obj, index):
+        return self._val_type
+
+    def __call__(self, obj, index):
+        if int(self._size) > 0:
+            return obj['_M_elems'][index]
+        else:
+            return self.null_value()
+
+
+class ArrayMethodsMatcher(gdb.xmethod.XMethodMatcher):
+    def __init__(self):
+        gdb.xmethod.XMethodMatcher.__init__(self,
+                                            matcher_name_prefix + 'array')
+        self._method_dict = {
+            'size': LibStdCxxXMethod('size', ArraySizeWorker),
+            'empty': LibStdCxxXMethod('empty', ArrayEmptyWorker),
+            'front': LibStdCxxXMethod('front', ArrayFrontWorker),
+            'back': LibStdCxxXMethod('back', ArrayBackWorker),
+            'at': LibStdCxxXMethod('at', ArrayAtWorker),
+            'operator[]': LibStdCxxXMethod('operator[]', ArraySubscriptWorker),
+        }
+        self.methods = [self._method_dict[m] for m in self._method_dict]
+
+    def match(self, class_type, method_name):
+        if not is_specialization_of(class_type, 'array'):
+            return None
+        method = self._method_dict.get(method_name)
+        if method is None or not method.enabled:
+            return None
+        try:
+            value_type = class_type.template_argument(0)
+            size = class_type.template_argument(1)
+        except:
+            return None
+        return method.worker_class(value_type, size)
+
+
+# Xmethods for std::deque
+
+
+class DequeWorkerBase(gdb.xmethod.XMethodWorker):
+    def __init__(self, val_type):
+        self._val_type = val_type
+        self._bufsize = 512 // val_type.sizeof or 1
+
+    def size(self, obj):
+        start = obj['_M_impl']['_M_start']
+        finish = obj['_M_impl']['_M_finish']
+        if start['_M_cur'] == finish['_M_cur']:
+            return 0
+        return (self._bufsize
+                * (finish['_M_node'] - start['_M_node'] - 1)
+                + (finish['_M_cur'] - finish['_M_first'])
+                + (start['_M_last'] - start['_M_cur']))
+
+    def index(self, obj, idx):
+        start = obj['_M_impl']['_M_start']
+        first_node_size = start['_M_last'] - start['_M_cur']
+        if idx < first_node_size:
+            return start['_M_cur'][idx]
+        idx = idx - first_node_size
+        index_node = start['_M_node'][1 + int(idx) // self._bufsize]
+        return index_node[idx % self._bufsize]
+
+
+class DequeEmptyWorker(DequeWorkerBase):
+    def get_arg_types(self):
+        return None
+
+    def get_result_type(self, obj):
+        return get_bool_type()
+
+    def __call__(self, obj):
+        return (obj['_M_impl']['_M_start']['_M_cur'] ==
+                obj['_M_impl']['_M_finish']['_M_cur'])
+
+
+class DequeSizeWorker(DequeWorkerBase):
+    def get_arg_types(self):
+        return None
+
+    def get_result_type(self, obj):
+        return get_std_size_type()
+
+    def __call__(self, obj):
+        return self.size(obj)
+
+
+class DequeFrontWorker(DequeWorkerBase):
+    def get_arg_types(self):
+        return None
+
+    def get_result_type(self, obj):
+        return self._val_type
+
+    def __call__(self, obj):
+        return obj['_M_impl']['_M_start']['_M_cur'][0]
+
+
+class DequeBackWorker(DequeWorkerBase):
+    def get_arg_types(self):
+        return None
+
+    def get_result_type(self, obj):
+        return self._val_type
+
+    def __call__(self, obj):
+        if (obj['_M_impl']['_M_finish']['_M_cur'] ==
+                obj['_M_impl']['_M_finish']['_M_first']):
+            prev_node = obj['_M_impl']['_M_finish']['_M_node'] - 1
+            return prev_node[0][self._bufsize - 1]
+        else:
+            return obj['_M_impl']['_M_finish']['_M_cur'][-1]
+
+
+class DequeSubscriptWorker(DequeWorkerBase):
+    def get_arg_types(self):
+        return get_std_size_type()
+
+    def get_result_type(self, obj, subscript):
+        return self._val_type
+
+    def __call__(self, obj, subscript):
+        return self.index(obj, subscript)
+
+
+class DequeAtWorker(DequeWorkerBase):
+    def get_arg_types(self):
+        return get_std_size_type()
+
+    def get_result_type(self, obj, index):
+        return self._val_type
+
+    def __call__(self, obj, index):
+        deque_size = int(self.size(obj))
+        if int(index) >= deque_size:
+            raise IndexError('Deque index "%d" should not be >= %d.' %
+                             (int(index), deque_size))
+        else:
+            return self.index(obj, index)
+
+
+class DequeMethodsMatcher(gdb.xmethod.XMethodMatcher):
+    def __init__(self):
+        gdb.xmethod.XMethodMatcher.__init__(self,
+                                            matcher_name_prefix + 'deque')
+        self._method_dict = {
+            'empty': LibStdCxxXMethod('empty', DequeEmptyWorker),
+            'size': LibStdCxxXMethod('size', DequeSizeWorker),
+            'front': LibStdCxxXMethod('front', DequeFrontWorker),
+            'back': LibStdCxxXMethod('back', DequeBackWorker),
+            'operator[]': LibStdCxxXMethod('operator[]', DequeSubscriptWorker),
+            'at': LibStdCxxXMethod('at', DequeAtWorker)
+        }
+        self.methods = [self._method_dict[m] for m in self._method_dict]
+
+    def match(self, class_type, method_name):
+        if not is_specialization_of(class_type, 'deque'):
+            return None
+        method = self._method_dict.get(method_name)
+        if method is None or not method.enabled:
+            return None
+        return method.worker_class(class_type.template_argument(0))
+
+# Xmethods for std::forward_list
+
+
+class ForwardListWorkerBase(gdb.xmethod.XMethodMatcher):
+    def __init__(self, val_type, node_type):
+        self._val_type = val_type
+        self._node_type = node_type
+
+    def get_arg_types(self):
+        return None
+
+
+class ForwardListEmptyWorker(ForwardListWorkerBase):
+    def get_result_type(self, obj):
+        return get_bool_type()
+
+    def __call__(self, obj):
+        return obj['_M_impl']['_M_head']['_M_next'] == 0
+
+
+class ForwardListFrontWorker(ForwardListWorkerBase):
+    def get_result_type(self, obj):
+        return self._val_type
+
+    def __call__(self, obj):
+        node = obj['_M_impl']['_M_head']['_M_next'].cast(self._node_type)
+        val_address = node['_M_storage']['_M_storage'].address
+        return val_address.cast(self._val_type.pointer()).dereference()
+
+
+class ForwardListMethodsMatcher(gdb.xmethod.XMethodMatcher):
+    def __init__(self):
+        matcher_name = matcher_name_prefix + 'forward_list'
+        gdb.xmethod.XMethodMatcher.__init__(self, matcher_name)
+        self._method_dict = {
+            'empty': LibStdCxxXMethod('empty', ForwardListEmptyWorker),
+            'front': LibStdCxxXMethod('front', ForwardListFrontWorker)
+        }
+        self.methods = [self._method_dict[m] for m in self._method_dict]
+
+    def match(self, class_type, method_name):
+        if not is_specialization_of(class_type, 'forward_list'):
+            return None
+        method = self._method_dict.get(method_name)
+        if method is None or not method.enabled:
+            return None
+        val_type = class_type.template_argument(0)
+        node_type = gdb.lookup_type(str(class_type) + '::_Node').pointer()
+        return method.worker_class(val_type, node_type)
+
+# Xmethods for std::list
+
+
+class ListWorkerBase(gdb.xmethod.XMethodWorker):
+    def __init__(self, val_type, node_type):
+        self._val_type = val_type
+        self._node_type = node_type
+
+    def get_arg_types(self):
+        return None
+
+    def get_value_from_node(self, node):
+        node = node.dereference()
+        if node.type.fields()[1].name == '_M_data':
+            # C++03 implementation, node contains the value as a member
+            return node['_M_data']
+        # C++11 implementation, node stores value in __aligned_membuf
+        addr = node['_M_storage'].address
+        return addr.cast(self._val_type.pointer()).dereference()
+
+
+class ListEmptyWorker(ListWorkerBase):
+    def get_result_type(self, obj):
+        return get_bool_type()
+
+    def __call__(self, obj):
+        base_node = obj['_M_impl']['_M_node']
+        if base_node['_M_next'] == base_node.address:
+            return True
+        else:
+            return False
+
+
+class ListSizeWorker(ListWorkerBase):
+    def get_result_type(self, obj):
+        return get_std_size_type()
+
+    def __call__(self, obj):
+        begin_node = obj['_M_impl']['_M_node']['_M_next']
+        end_node = obj['_M_impl']['_M_node'].address
+        size = 0
+        while begin_node != end_node:
+            begin_node = begin_node['_M_next']
+            size += 1
+        return size
+
+
+class ListFrontWorker(ListWorkerBase):
+    def get_result_type(self, obj):
+        return self._val_type
+
+    def __call__(self, obj):
+        node = obj['_M_impl']['_M_node']['_M_next'].cast(self._node_type)
+        return self.get_value_from_node(node)
+
+
+class ListBackWorker(ListWorkerBase):
+    def get_result_type(self, obj):
+        return self._val_type
+
+    def __call__(self, obj):
+        prev_node = obj['_M_impl']['_M_node']['_M_prev'].cast(self._node_type)
+        return self.get_value_from_node(prev_node)
+
+
+class ListMethodsMatcher(gdb.xmethod.XMethodMatcher):
+    def __init__(self):
+        gdb.xmethod.XMethodMatcher.__init__(self,
+                                            matcher_name_prefix + 'list')
+        self._method_dict = {
+            'empty': LibStdCxxXMethod('empty', ListEmptyWorker),
+            'size': LibStdCxxXMethod('size', ListSizeWorker),
+            'front': LibStdCxxXMethod('front', ListFrontWorker),
+            'back': LibStdCxxXMethod('back', ListBackWorker)
+        }
+        self.methods = [self._method_dict[m] for m in self._method_dict]
+
+    def match(self, class_type, method_name):
+        if not is_specialization_of(class_type, '(__cxx11::)?list'):
+            return None
+        method = self._method_dict.get(method_name)
+        if method is None or not method.enabled:
+            return None
+        val_type = class_type.template_argument(0)
+        node_type = gdb.lookup_type(str(class_type) + '::_Node').pointer()
+        return method.worker_class(val_type, node_type)
+
+# Xmethods for std::vector
+
+
+class VectorWorkerBase(gdb.xmethod.XMethodWorker):
+    def __init__(self, val_type):
+        self._val_type = val_type
+
+    def size(self, obj):
+        if self._val_type.code == gdb.TYPE_CODE_BOOL:
+            start = obj['_M_impl']['_M_start']['_M_p']
+            finish = obj['_M_impl']['_M_finish']['_M_p']
+            finish_offset = obj['_M_impl']['_M_finish']['_M_offset']
+            bit_size = start.dereference().type.sizeof * 8
+            return (finish - start) * bit_size + finish_offset
+        else:
+            return obj['_M_impl']['_M_finish'] - obj['_M_impl']['_M_start']
+
+    def get(self, obj, index):
+        if self._val_type.code == gdb.TYPE_CODE_BOOL:
+            start = obj['_M_impl']['_M_start']['_M_p']
+            bit_size = start.dereference().type.sizeof * 8
+            valp = start + index // bit_size
+            offset = index % bit_size
+            return (valp.dereference() & (1 << offset)) > 0
+        else:
+            return obj['_M_impl']['_M_start'][index]
+
+
+class VectorEmptyWorker(VectorWorkerBase):
+    def get_arg_types(self):
+        return None
+
+    def get_result_type(self, obj):
+        return get_bool_type()
+
+    def __call__(self, obj):
+        return int(self.size(obj)) == 0
+
+
+class VectorSizeWorker(VectorWorkerBase):
+    def get_arg_types(self):
+        return None
+
+    def get_result_type(self, obj):
+        return get_std_size_type()
+
+    def __call__(self, obj):
+        return self.size(obj)
+
+
+class VectorFrontWorker(VectorWorkerBase):
+    def get_arg_types(self):
+        return None
+
+    def get_result_type(self, obj):
+        return self._val_type
+
+    def __call__(self, obj):
+        return self.get(obj, 0)
+
+
+class VectorBackWorker(VectorWorkerBase):
+    def get_arg_types(self):
+        return None
+
+    def get_result_type(self, obj):
+        return self._val_type
+
+    def __call__(self, obj):
+        return self.get(obj, int(self.size(obj)) - 1)
+
+
+class VectorAtWorker(VectorWorkerBase):
+    def get_arg_types(self):
+        return get_std_size_type()
+
+    def get_result_type(self, obj, index):
+        return self._val_type
+
+    def __call__(self, obj, index):
+        size = int(self.size(obj))
+        if int(index) >= size:
+            raise IndexError('Vector index "%d" should not be >= %d.' %
+                             ((int(index), size)))
+        return self.get(obj, int(index))
+
+
+class VectorSubscriptWorker(VectorWorkerBase):
+    def get_arg_types(self):
+        return get_std_size_type()
+
+    def get_result_type(self, obj, subscript):
+        return self._val_type
+
+    def __call__(self, obj, subscript):
+        return self.get(obj, int(subscript))
+
+
+class VectorMethodsMatcher(gdb.xmethod.XMethodMatcher):
+    def __init__(self):
+        gdb.xmethod.XMethodMatcher.__init__(self,
+                                            matcher_name_prefix + 'vector')
+        self._method_dict = {
+            'size': LibStdCxxXMethod('size', VectorSizeWorker),
+            'empty': LibStdCxxXMethod('empty', VectorEmptyWorker),
+            'front': LibStdCxxXMethod('front', VectorFrontWorker),
+            'back': LibStdCxxXMethod('back', VectorBackWorker),
+            'at': LibStdCxxXMethod('at', VectorAtWorker),
+            'operator[]': LibStdCxxXMethod('operator[]',
+                                           VectorSubscriptWorker),
+        }
+        self.methods = [self._method_dict[m] for m in self._method_dict]
+
+    def match(self, class_type, method_name):
+        if not is_specialization_of(class_type, 'vector'):
+            return None
+        method = self._method_dict.get(method_name)
+        if method is None or not method.enabled:
+            return None
+        return method.worker_class(class_type.template_argument(0))
+
+# Xmethods for associative containers
+
+
+class AssociativeContainerWorkerBase(gdb.xmethod.XMethodWorker):
+    def __init__(self, unordered):
+        self._unordered = unordered
+
+    def node_count(self, obj):
+        if self._unordered:
+            return obj['_M_h']['_M_element_count']
+        else:
+            return obj['_M_t']['_M_impl']['_M_node_count']
+
+    def get_arg_types(self):
+        return None
+
+
+class AssociativeContainerEmptyWorker(AssociativeContainerWorkerBase):
+    def get_result_type(self, obj):
+        return get_bool_type()
+
+    def __call__(self, obj):
+        return int(self.node_count(obj)) == 0
+
+
+class AssociativeContainerSizeWorker(AssociativeContainerWorkerBase):
+    def get_result_type(self, obj):
+        return get_std_size_type()
+
+    def __call__(self, obj):
+        return self.node_count(obj)
+
+
+class AssociativeContainerMethodsMatcher(gdb.xmethod.XMethodMatcher):
+    def __init__(self, name):
+        gdb.xmethod.XMethodMatcher.__init__(self,
+                                            matcher_name_prefix + name)
+        self._name = name
+        self._method_dict = {
+            'size': LibStdCxxXMethod('size', AssociativeContainerSizeWorker),
+            'empty': LibStdCxxXMethod('empty',
+                                      AssociativeContainerEmptyWorker),
+        }
+        self.methods = [self._method_dict[m] for m in self._method_dict]
+
+    def match(self, class_type, method_name):
+        if not is_specialization_of(class_type, self._name):
+            return None
+        method = self._method_dict.get(method_name)
+        if method is None or not method.enabled:
+            return None
+        unordered = 'unordered' in self._name
+        return method.worker_class(unordered)
+
+# Xmethods for std::unique_ptr
+
+
+class UniquePtrGetWorker(gdb.xmethod.XMethodWorker):
+    """
+    Implement std::unique_ptr<T>::get() and std::unique_ptr<T>::operator->().
+    """
+
+    def __init__(self, elem_type):
+        self._is_array = elem_type.code == gdb.TYPE_CODE_ARRAY
+        if self._is_array:
+            self._elem_type = elem_type.target()
+        else:
+            self._elem_type = elem_type
+
+    def get_arg_types(self):
+        return None
+
+    def get_result_type(self, obj):
+        return self._elem_type.pointer()
+
+    def _supports(self, method_name):
+        # operator-> is not supported for unique_ptr<T[]>
+        return method_name == 'get' or not self._is_array
+
+    def __call__(self, obj):
+        impl_type = obj.dereference().type.fields()[0].type.tag
+        # Check for new implementations first:
+        if is_specialization_of(impl_type, '__uniq_ptr_(data|impl)'):
+            tuple_member = obj['_M_t']['_M_t']
+        elif is_specialization_of(impl_type, 'tuple'):
+            tuple_member = obj['_M_t']
+        else:
+            return None
+        tuple_impl_type = tuple_member.type.fields()[0].type  # _Tuple_impl
+        tuple_head_type = tuple_impl_type.fields()[1].type   # _Head_base
+        head_field = tuple_head_type.fields()[0]
+        if head_field.name == '_M_head_impl':
+            return tuple_member.cast(tuple_head_type)['_M_head_impl']
+        elif head_field.is_base_class:
+            return tuple_member.cast(head_field.type)
+        else:
+            return None
+
+
+class UniquePtrDerefWorker(UniquePtrGetWorker):
+    """Implement std::unique_ptr<T>::operator*()."""
+
+    def __init__(self, elem_type):
+        UniquePtrGetWorker.__init__(self, elem_type)
+
+    def get_result_type(self, obj):
+        return self._elem_type
+
+    def _supports(self, method_name):
+        # operator* is not supported for unique_ptr<T[]>
+        return not self._is_array
+
+    def __call__(self, obj):
+        return UniquePtrGetWorker.__call__(self, obj).dereference()
+
+
+class UniquePtrSubscriptWorker(UniquePtrGetWorker):
+    """Implement std::unique_ptr<T>::operator[](size_t)."""
+
+    def __init__(self, elem_type):
+        UniquePtrGetWorker.__init__(self, elem_type)
+
+    def get_arg_types(self):
+        return get_std_size_type()
+
+    def get_result_type(self, obj, index):
+        return self._elem_type
+
+    def _supports(self, method_name):
+        # operator[] is only supported for unique_ptr<T[]>
+        return self._is_array
+
+    def __call__(self, obj, index):
+        return UniquePtrGetWorker.__call__(self, obj)[index]
+
+
+class UniquePtrMethodsMatcher(gdb.xmethod.XMethodMatcher):
+    def __init__(self):
+        gdb.xmethod.XMethodMatcher.__init__(self,
+                                            matcher_name_prefix + 'unique_ptr')
+        self._method_dict = {
+            'get': LibStdCxxXMethod('get', UniquePtrGetWorker),
+            'operator->': LibStdCxxXMethod('operator->', UniquePtrGetWorker),
+            'operator*': LibStdCxxXMethod('operator*', UniquePtrDerefWorker),
+            'operator[]': LibStdCxxXMethod('operator[]', UniquePtrSubscriptWorker),
+        }
+        self.methods = [self._method_dict[m] for m in self._method_dict]
+
+    def match(self, class_type, method_name):
+        if not is_specialization_of(class_type, 'unique_ptr'):
+            return None
+        method = self._method_dict.get(method_name)
+        if method is None or not method.enabled:
+            return None
+        worker = method.worker_class(class_type.template_argument(0))
+        if worker._supports(method_name):
+            return worker
+        return None
+
+# Xmethods for std::shared_ptr
+
+
+class SharedPtrGetWorker(gdb.xmethod.XMethodWorker):
+    """
+    Implements std::shared_ptr<T>::get() and std::shared_ptr<T>::operator->().
+    """
+
+    def __init__(self, elem_type):
+        self._is_array = elem_type.code == gdb.TYPE_CODE_ARRAY
+        if self._is_array:
+            self._elem_type = elem_type.target()
+        else:
+            self._elem_type = elem_type
+
+    def get_arg_types(self):
+        return None
+
+    def get_result_type(self, obj):
+        return self._elem_type.pointer()
+
+    def _supports(self, method_name):
+        # operator-> is not supported for shared_ptr<T[]>
+        return method_name == 'get' or not self._is_array
+
+    def __call__(self, obj):
+        return obj['_M_ptr']
+
+
+class SharedPtrDerefWorker(SharedPtrGetWorker):
+    """Implement std::shared_ptr<T>::operator*()."""
+
+    def __init__(self, elem_type):
+        SharedPtrGetWorker.__init__(self, elem_type)
+
+    def get_result_type(self, obj):
+        return self._elem_type
+
+    def _supports(self, method_name):
+        # operator* is not supported for shared_ptr<T[]>
+        return not self._is_array
+
+    def __call__(self, obj):
+        return SharedPtrGetWorker.__call__(self, obj).dereference()
+
+
+class SharedPtrSubscriptWorker(SharedPtrGetWorker):
+    """Implement std::shared_ptr<T>::operator[](size_t)."""
+
+    def __init__(self, elem_type):
+        SharedPtrGetWorker.__init__(self, elem_type)
+
+    def get_arg_types(self):
+        return get_std_size_type()
+
+    def get_result_type(self, obj, index):
+        return self._elem_type
+
+    def _supports(self, method_name):
+        # operator[] is only supported for shared_ptr<T[]>
+        return self._is_array
+
+    def __call__(self, obj, index):
+        # Check bounds if _elem_type is an array of known bound
+        m = re.match(r'.*\[(\d+)]$', str(self._elem_type))
+        if m and index >= int(m.group(1)):
+            raise IndexError('shared_ptr<%s> index "%d" should not be >= %d.' %
+                             (self._elem_type, int(index), int(m.group(1))))
+        return SharedPtrGetWorker.__call__(self, obj)[index]
+
+
+class SharedPtrUseCountWorker(gdb.xmethod.XMethodWorker):
+    """Implement std::shared_ptr<T>::use_count()."""
+
+    def __init__(self, elem_type):
+        pass
+
+    def get_arg_types(self):
+        return None
+
+    def get_result_type(self, obj):
+        return gdb.lookup_type('long')
+
+    def _supports(self, method_name):
+        return True
+
+    def __call__(self, obj):
+        refcounts = obj['_M_refcount']['_M_pi']
+        return refcounts['_M_use_count'] if refcounts else 0
+
+
+class SharedPtrUniqueWorker(SharedPtrUseCountWorker):
+    """Implement std::shared_ptr<T>::unique()."""
+
+    def __init__(self, elem_type):
+        SharedPtrUseCountWorker.__init__(self, elem_type)
+
+    def get_result_type(self, obj):
+        return gdb.lookup_type('bool')
+
+    def __call__(self, obj):
+        return SharedPtrUseCountWorker.__call__(self, obj) == 1
+
+
+class SharedPtrMethodsMatcher(gdb.xmethod.XMethodMatcher):
+    def __init__(self):
+        gdb.xmethod.XMethodMatcher.__init__(self,
+                                            matcher_name_prefix + 'shared_ptr')
+        self._method_dict = {
+            'get': LibStdCxxXMethod('get', SharedPtrGetWorker),
+            'operator->': LibStdCxxXMethod('operator->', SharedPtrGetWorker),
+            'operator*': LibStdCxxXMethod('operator*', SharedPtrDerefWorker),
+            'operator[]': LibStdCxxXMethod('operator[]', SharedPtrSubscriptWorker),
+            'use_count': LibStdCxxXMethod('use_count', SharedPtrUseCountWorker),
+            'unique': LibStdCxxXMethod('unique', SharedPtrUniqueWorker),
+        }
+        self.methods = [self._method_dict[m] for m in self._method_dict]
+
+    def match(self, class_type, method_name):
+        if not is_specialization_of(class_type, 'shared_ptr'):
+            return None
+        method = self._method_dict.get(method_name)
+        if method is None or not method.enabled:
+            return None
+        worker = method.worker_class(class_type.template_argument(0))
+        if worker._supports(method_name):
+            return worker
+        return None
+
+
+def register_libstdcxx_xmethods(locus):
+    gdb.xmethod.register_xmethod_matcher(locus, ArrayMethodsMatcher())
+    gdb.xmethod.register_xmethod_matcher(locus, ForwardListMethodsMatcher())
+    gdb.xmethod.register_xmethod_matcher(locus, DequeMethodsMatcher())
+    gdb.xmethod.register_xmethod_matcher(locus, ListMethodsMatcher())
+    gdb.xmethod.register_xmethod_matcher(locus, VectorMethodsMatcher())
+    gdb.xmethod.register_xmethod_matcher(
+        locus, AssociativeContainerMethodsMatcher('set'))
+    gdb.xmethod.register_xmethod_matcher(
+        locus, AssociativeContainerMethodsMatcher('map'))
+    gdb.xmethod.register_xmethod_matcher(
+        locus, AssociativeContainerMethodsMatcher('multiset'))
+    gdb.xmethod.register_xmethod_matcher(
+        locus, AssociativeContainerMethodsMatcher('multimap'))
+    gdb.xmethod.register_xmethod_matcher(
+        locus, AssociativeContainerMethodsMatcher('unordered_set'))
+    gdb.xmethod.register_xmethod_matcher(
+        locus, AssociativeContainerMethodsMatcher('unordered_map'))
+    gdb.xmethod.register_xmethod_matcher(
+        locus, AssociativeContainerMethodsMatcher('unordered_multiset'))
+    gdb.xmethod.register_xmethod_matcher(
+        locus, AssociativeContainerMethodsMatcher('unordered_multimap'))
+    gdb.xmethod.register_xmethod_matcher(locus, UniquePtrMethodsMatcher())
+    gdb.xmethod.register_xmethod_matcher(locus, SharedPtrMethodsMatcher())
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 H   .   —   ..  I  Ë	auto-load                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       I   .   H   ..  J  Ëusr                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             J   .   I   ..  K  Ëlib                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             K   .   J   ..  L  Ëi386-linux-gnu                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  L   .   K   ..  M  Ëlibstdc++.so.6.0.33-gdb.py                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      # -*- python -*-
+# Copyright (C) 2009-2024 Free Software Foundation, Inc.
+
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+import sys
+import gdb
+import os
+import os.path
+
+pythondir = '/usr/share/gcc/python'
+libdir = '/usr/lib/i386-linux-gnu'
+
+# This file might be loaded when there is no current objfile.  This
+# can happen if the user loads it manually.  In this case we don't
+# update sys.path; instead we just hope the user managed to do that
+# beforehand.
+if gdb.current_objfile () is not None:
+    # Update module path.  We want to find the relative path from libdir
+    # to pythondir, and then we want to apply that relative path to the
+    # directory holding the objfile with which this file is associated.
+    # This preserves relocatability of the gcc tree.
+
+    # Do a simple normalization that removes duplicate separators.
+    pythondir = os.path.normpath (pythondir)
+    libdir = os.path.normpath (libdir)
+
+    prefix = os.path.commonprefix ([libdir, pythondir])
+    # In some bizarre configuration we might have found a match in the
+    # middle of a directory name.
+    if prefix[-1] != '/':
+        prefix = os.path.dirname (prefix) + '/'
+
+    # Strip off the prefix.
+    pythondir = pythondir[len (prefix):]
+    libdir = libdir[len (prefix):]
+
+    # Compute the ".."s needed to get from libdir to the prefix.
+    dotdots = ('..' + os.sep) * len (libdir.split (os.sep))
+
+    objfile = gdb.current_objfile ().filename
+    dir_ = os.path.join (os.path.dirname (objfile), dotdots, pythondir)
+
+    if not dir_ in sys.path:
+        sys.path.insert(0, dir_)
+
+# Call a function as a plain import would not execute body of the included file
+# on repeated reloads of this object file.
+from libstdcxx.v6 import register_libstdcxx_printers
+register_libstdcxx_printers(gdb.current_objfile())
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               N   .   —   ..  O  Ëfonts                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           O   .   N   ..  P  ËSMgoJ                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           %!PS-Adobe-3.0 Resource-Font
+%%BeginResource: Font (SMgoJ)
+/SMgoJ
+  /Adobe-Korea1-KSC-EUC-H findfont
+  dup length dict
+  begin
+    {def} forall
+    currentdict
+  end
+  definefont
+pop
+%%EndResource
+%%EOF
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     Q   .   —   ..  R   distsigkey.gpg  S   help.be.txt T   help.ca.txt U   help.cs.txt V   help.da.txt W   help.de.txt X   help.el.txt Y   help.eo.txt Z   help.es.txt [   help.et.txt \   help.fi.txt ]   help.fr.txt ^   help.gl.txt _   help.hu.txt `   help.id.txt a   help.it.txt b   help.ja.txt c   help.nb.txt d   help.pl.txt e   help.pt.txt f   help.pt_BR.txt  g   help.ro.txt h   help.ru.txt i   help.sk.txt j   help.sv.txt k   help.tr.txt l   help.txtm   help.zh_CN.txt  n  ∞help.zh_TW.txt                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          ôçXÀ∫Æ ß3ºÕHÜï0úO◊kî∆aÌwã®•Ó/CRá:‡Œ7Éùı›ƒ`ä(ç≥í;*L©[;‹ó≥Èï∂}ÜV¡¡≠/‚£”\∏/iW¸k≠Vï¡¯KAkqªPfiiG@µbç∏Ω^àØ±ˆƒGd≤iùÂ≠?Br˛±~ÙÂ∫<_Ì•ã[,jO≈Æ¸¥⁄Ìƒ9√/ö- 6#úàÔ¸î‚]ÒÇS˜ÀD†Ω|nÿ9îj“€2MZkTç±∫{ΩÀª¬ ú&`≥_ﬂ»o? â‰ïÊgMÚÕhYﬁËaÀ_Äæ.WÉ"– hc)ËÓ∑1ÕHø ¸:(í»HÁ>úMÇÚ∆%h‰≥A˙òˆ^[ˇêlôÑΩænx“ø2iU7iÌà"πMëûIjjuÿ™∫«’^ãLFìx‚ °òxD	‹h&ŸÙæ`∑ç˙Ccâ7´u~4◊Í˜Ö	ªa#⁄Ct|‘Ù∑‘T⁄}˛d¥/Ì`√ë1Ë˚å∆/FŸÖä&C  âŒ 8![Ä≈uBòÀUÿÌjºÔ~)K	.(XÀ¿›Äî•…†</Â ;	]éﬂr<Ùb∂±  
+	ºÔ~)K	.(6
+ˇOä◊1ïª.NLÈ∂º–8}ŸDsOÖ"tëLˆo¨ªXÅüyª«•D∏î‡t‰+|∏∞(%u4
+L∫ÛL_™A;ıgÒ˝¥úË	Ì£2ë¢–Ó√3œá`ƒÖRÿ6®ªÄ≈Ì∏(_>~™Ê´√¸[Vkí·Cjs§wÄ?nèk$a∫;∏˙Öv˘IÜSG≠Ãep)#R'›∑ôLºKECﬂ˜‚cDÜÕ%á◊>€M=≠úµÄÕÕJrB»ƒ>ôDw6C®CCﬁÅy+#OåñÙ@˚–'n>§ÃQ˙YÈìÄY·c˛ôAåF¸VF¯XXßw9%A¸õËûêˇ/SN¿	¿aÌ
+âµbπQR5˚@π'dµ®yò<úΩ35Rﬁ–’ÆO¶«πÁ˛DX8x÷¿∫EYöjœ1{£¯≥àDIFﬂ˘˜rµ∏Œ˜ßZ›©xÄ0Õ'œ≤Í3¶EM‘@9úu+ÿF6Bﬂ!PN;	¥$Andre Heinecke (Release Signing Key)â‘ >![Ä≈uBòÀUÿÌjºÔ~)K	.(XÀ∫Æ	Ã 		
+Ä 
+	ºÔ~)K	.(B˝ Ñ æHK‹∑.∂|˜∂Ül"ÖsdLª:àºh'NÀpãúÄ;Á?∑I[{å∏∞ùJ¨¶›»Âàê2∆ÜÀ	%2HH	¨dY"ëwù˘çzD]	W¶•¸å(-–ˆmî'=Kx0ã+ÀI€…IÍìııCØ∆l¿…ì QΩ÷Á-~ 8»∑≈!HÒñ„Œ∞ãÇFŒΩˇä~Ã%—·ÓÀ˛§†Âî?ÙeBÈH8≈˙›àíÙk2S>{„1éIbûø/‘TFŒa?ê'£¸ÛË∞l(ÊmŒ2 ŒIgPì€K>d|πhff≠DúçºÊ±w°+xﬂrF…Y&^1˛3€Ã®ZhÏﬂüE™:æRŒ¿\∞5Lß¢n»Æ‘yF˚#«§M¥§P>ócö‹Óøc≥ÿÜÆ·√ πó$`è|"ëÕm_K’¥Ï\ävÙ+S€REDßÏP%ò0™Éù∫Ñ£ò‚ºÒdâ∞Í&!Öw2â|~7ı>øKÏ?∂Øâ≥ !î•…†</Â ;	]éﬂr<Ùb∂±XÀøõ 
+	ﬂr<Ùb∂±p‚ˇ\S7ÔÀ…˝Ñìè‚∞∞ó\îªÓbf`sK°çƒ•‰$%\ä∫¥.™¢®Àen†»Ö–Ìd	Ü†[U=I;o»B¢Îjë≤{"ú†≥˛XÉ`VvÅx;M*w0Ú¡*H*Ω Ô>+`Gjæ[¬…l6ﬂ¿jÛ"ıﬂ]÷æ «Tˆ‹Ÿ¯eY“¸wÌ¿©Öâqwy:`ô]¿• PW]åí@§â¬»>j~gN7„èÁfWë_2≤‡Êø„V†≠XÉóL8gÜíﬁÆ‘!y`_9®^Vœè|Û<–´˜ÂuóxÜÃø¢pKN˙’ûkf,r∆z™î^⁄W’<y7Êßñ`£õâ·¿]ﬂ‹Z‡q“V€DvŸ6ÿØª%@"±îx8eHÊ±<,≤v(4‹Ÿ? D(ÔúÕ¯w˝±÷Í„™ÿ)Ì˙≥f∫J!ú¡/ :ÃPÉ%oø¸º2Æõ©©ˇÃ@µVz Xd€w™ÿÌ¢—∑0ì ©º¨î+d˚Qi .Å"ò3_CÂâ	+⁄G@œæGïÈ◊¢aÖÚ40ßDW›ì\0#¥dnñ0&6ó¥Werner Koch (dist signing 2020)àö
+ B!m™ndßm(@WIRàó∏&@:⁄_CÏ5	Ö«	"
+	Ä 
+	Ràó∏&@:⁄yÆ ˇn/ÒŒt ø´·iQK≥ÜÁiñè"O@Fµ4t`& ˇ`!üÈ ÙÙe•Ó¿ó±+N˙£GˆÃ÷≠KzéBéàm !ÄaXpı∫÷ê36Ü–Ú≠Ö¨B≥g_CÒÊ 
+	Ú≠Ö¨B≥g!ô ﬁ1∫-∆oWıü∆<8ö¨…Ü∏sH‚s~:/b ‡ÒÛ2pyr)hñ¯≈ ÚO¡M˚sì¿ÎÓàu !Æ®N‹ÿlG»\c:ËfX}
+_CÚ% 
+	c:ËfX}
+◊„ ˇKâ‰‹ù'»Eá4ú0UR∆ º@Z‘∂SÏﬁ jR˘O ƒ¨"ŸóGAàÒ∑æZ0S5Í{µ©¡≥¶Iü¡ujçm â3 !ÿi!#ƒ]Í^:µ$õ9“O%„∂_CÛÆ 
+	$õ9“O%„∂ZˇJ=â˛∫¶Ö&∏+¯÷’^åÊ’Üíı¬îRÔDär¬`¢W˘πâ4‹yY{û8ƒf»SˆÇLõ√‹‚PO
+ö-)^/˛ËCºq‚|Oú K¶Ám3¿8‚{◊◊âä…ûpÊ€‘#`AùÿxºÓz\ÌUäÃ∫#¯è÷qzÆ rb‰ÔSSΩI›÷òÈƒYÚˇ¶≤0s>U(ò+–$|¿©y VxfWÿvú¢√d~|Ω+—1ek¢…"CAœ–Ú"mr/Ç¸°Ù˜ù!BXœ¥Ã‹æ⁄Fï˛‡™aÍYEœ®;0∆ˇyì"z£Âƒ”ë∫‰d¿L"CB“’Œª]m⁄àu
+ !¡”Ki!ûJÓ¿∫!„˝ˇ!éE∑+_CÛ¸ 
+	„˝ˇ!éE∑+ﬁT ∆¨ÒYwŸwÉb6Ûys÷·‚˘pry6L∑Å˘N3# Ω ≤“y⁄ÕSmU»VB2Üé_∞3:6™@2ﬂ‚?ùU<`ò3`§Çá	+⁄G@ôù
+|åCy?wÑé"ZN≥B/.∂¯ΩÄ˘ÌyÑ¯>¥ Niibe Yutaka (GnuPG Release Key)àö
+ B!¨é[˜>-çG˙ôÈéõ-∆»Ω`§Çá	ô	"
+	Ä 
+	Èéõ-∆»ΩˇÇ ˇZÔJΩÃS‰Ø‚8M0˛	‡∑Ça‰=Ï:¶/UK¡ÿ& ˆÿóÔl$ø¬)FZ˛c∆>7„ôèıáŸõDlÉ3„àu !$ú≥wPt]\›2<‚g∞R6Oça@Cû 
+	‚g∞R6OçBà ˛)4ıQWPLaÃ ÒfáB5<∆≠7≠˘€Ôé±9˚É ˝]$ˆ`Î‘*Óº4L¥.èënGÇ∂d	˝œ/Ê'ÖΩm â3 !A$Ω;HbØz
+BÒ ¥^ΩLß∫æa@C∑ 
+	 ¥^ΩLß∫æ$h ¢S—Ò3VU-/\¬´ØI4óc?Ò	M¢Ÿ«QìÙ‹u…æ$¶;SÃbHF≠ºPDO)˛ëﬁ;cË*Ê∫øç(uREè´	äE<9˙r"Ø+,GÜ‚@ô∑È≈“r∞Nd|Æ)7YÄƒoÚ,;x†ßB√ˆ∆Q∫o©áë¨ò
+ô0)XxØ∫ï¯•BÎﬁ°L)˝|y¡sÕS.™·„é¢ñÓª#Ωº—á	≠ÆóÀÍ=âå·úZ¢WΩ?‹0%Ìsd[B#/<Ãs=æ´˛`œCƒ¿ö[n>≠LÌØ∑É·∞ëtoêï(~Ì”j§±cWÄ›IÊŸöÙ#I;ΩÈL•>¸òSaiJ£	+$^ó”fQ ‡ã&n5¬u‚b0Û]∞cQ’«˛YÖ¢È·ÆÙÖ≈VÛ≤0˚˝k˛øvÊ0˙À¯ÕÉ/!bIÏôƒ¥$GnuPG.com (Release Signing Key 2021)àö B!Ûçˇs˘|∞9°⁄Tûi^ê[¢aiJ£	q◊ä	"
+	Ä 
+	Tûi^ê[¢NJ ˝ç§Â’·SÒùõ]®ﬁ:»Áìy≈í∂]:í«n\ï\£ ˝¿≈ø:~4=kãv¿® ’ZPCRÃ3Û1±Ω‚Fíàu
+ !m™ndßm(@WIRàó∏&@:⁄aiNÒ 
+	Ràó∏&@:⁄…@ á∂2 H¿ÀÙ,◊ ∑é/"ÚúıÔnZ»«tëG D/ ´YlKäN”ÂÇB‘Ä…^M∆I˛Ò!$OÜΩÙ=£ò
+°àu
+ !¡”Ki!ûJÓ¿∫!„˝ˇ!éE∑+aiOZ 
+	„˝ˇ!éE∑+ ÈÈ°í7˜‘„ÂÒØAEcTö	:ÃA·G
+∞ÚXÖ€ ‹Ìƒ˙{_É†ãX†êA,¢z"'∞f˙Wb∫WN                                                                                                                                                                                                   # help..txt -  GnuPG online help
+# Copyright (C) 2007 Free Software Foundation, Inc.
+#
+# This file is part of GnuPG.
+#
+# GnuPG is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+# 
+# GnuPG is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, see <https://www.gnu.org/licenses/>.
+
+
+.#gpg.edit_ownertrust.value
+# fixme: Please translate and remove the hash mark from the key line.
+It's up to you to assign a value here; this value will never be exported
+to any 3rd party.  We need it to implement the web-of-trust; it has nothing
+to do with the (implicitly created) web-of-certificates.
+.
+
+.#gpg.edit_ownertrust.set_ultimate.okay
+# fixme: Please translate and remove the hash mark from the key line.
+To build the Web-of-Trust, GnuPG needs to know which keys are
+ultimately trusted - those are usually the keys for which you have
+access to the secret key.  Answer "yes" to set this key to
+ultimately trusted
+
+.
+
+.#gpg.untrusted_key.override
+# fixme: Please translate and remove the hash mark from the key line.
+If you want to use this untrusted key anyway, answer "yes".
+.
+
+.#gpg.pklist.user_id.enter
+# fixme: Please translate and remove the hash mark from the key line.
+Enter the user ID of the addressee to whom you want to send the message.
+.
+
+.#gpg.keygen.algo
+# fixme: Please translate and remove the hash mark from the key line.
+Select the algorithm to use.
+
+DSA (aka DSS) is the Digital Signature Algorithm and can only be used
+for signatures.
+
+Elgamal is an encrypt-only algorithm.
+
+RSA may be used for signatures or encryption.
+
+The first (primary) key must always be a key which is capable of signing.
+.
+
+.#gpg.keygen.algo.rsa_se
+# fixme: Please translate and remove the hash mark from the key line.
+In general it is not a good idea to use the same key for signing and
+encryption.  This algorithm should only be used in certain domains.
+Please consult your security expert first.
+.
+
+.#gpg.keygen.size
+# fixme: Please translate and remove the hash mark from the key line.
+Enter the size of the key
+.
+
+.#gpg.keygen.size.huge.okay
+# fixme: Please translate and remove the hash mark from the key line.
+Answer "yes" or "no"
+.
+
+.#gpg.keygen.size.large.okay
+# fixme: Please translate and remove the hash mark from the key line.
+Answer "yes" or "no"
+.
+
+.#gpg.keygen.valid
+# fixme: Please translate and remove the hash mark from the key line.
+Enter the required value as shown in the prompt.
+It is possible to enter a ISO date (YYYY-MM-DD) but you won't
+get a good error response - instead the system tries to interpret
+the given value as an interval.
+.
+
+.#gpg.keygen.valid.okay
+# fixme: Please translate and remove the hash mark from the key line.
+Answer "yes" or "no"
+.
+
+.#gpg.keygen.name
+# fixme: Please translate and remove the hash mark from the key line.
+Enter the name of the key holder
+.
+
+.#gpg.keygen.email
+# fixme: Please translate and remove the hash mark from the key line.
+please enter an optional but highly suggested email address
+.
+
+.#gpg.keygen.comment
+# fixme: Please translate and remove the hash mark from the key line.
+Please enter an optional comment
+.
+
+.#gpg.keygen.userid.cmd
+# fixme: Please translate and remove the hash mark from the key line.
+N  to change the name.
+C  to change the comment.
+E  to change the email address.
+O  to continue with key generation.
+Q  to to quit the key generation.
+.
+
+.#gpg.keygen.sub.okay
+# fixme: Please translate and remove the hash mark from the key line.
+Answer "yes" (or just "y") if it is okay to generate the sub key.
+.
+
+.#gpg.sign_uid.okay
+# fixme: Please translate and remove the hash mark from the key line.
+Answer "yes" or "no"
+.
+
+.#gpg.sign_uid.class
+# fixme: Please translate and remove the hash mark from the key line.
+When you sign a user ID on a key, you should first verify that the key
+belongs to the person named in the user ID.  It is useful for others to
+know how carefully you verified this.
+
+"0" means you make no particular claim as to how carefully you verified the
+    key.
+
+"1" means you believe the key is owned by the person who claims to own it
+    but you could not, or did not verify the key at all.  This is useful for
+    a "persona" verification, where you sign the key of a pseudonymous user.
+
+"2" means you did casual verification of the key.  For example, this could
+    mean that you verified the key fingerprint and checked the user ID on the
+    key against a photo ID.
+
+"3" means you did extensive verification of the key.  For example, this could
+    mean that you verified the key fingerprint with the owner of the key in
+    person, and that you checked, by means of a hard to forge document with a
+    photo ID (such as a passport) that the name of the key owner matches the
+    name in the user ID on the key, and finally that you verified (by exchange
+    of email) that the email address on the key belongs to the key owner.
+
+Note that the examples given above for levels 2 and 3 are *only* examples.
+In the end, it is up to you to decide just what "casual" and "extensive"
+mean to you when you sign other keys.
+
+If you don't know what the right answer is, answer "0".
+.
+
+.#gpg.change_passwd.empty.okay
+# fixme: Please translate and remove the hash mark from the key line.
+Answer "yes" or "no"
+.
+
+.#gpg.keyedit.save.okay
+# fixme: Please translate and remove the hash mark from the key line.
+Answer "yes" or "no"
+.
+
+.#gpg.keyedit.cancel.okay
+# fixme: Please translate and remove the hash mark from the key line.
+Answer "yes" or "no"
+.
+
+.#gpg.keyedit.sign_all.okay
+# fixme: Please translate and remove the hash mark from the key line.
+Answer "yes" if you want to sign ALL the user IDs
+.
+
+.#gpg.keyedit.remove.uid.okay
+# fixme: Please translate and remove the hash mark from the key line.
+Answer "yes" if you really want to delete this user ID.
+All certificates are then also lost!
+.
+
+.#gpg.keyedit.remove.subkey.okay
+# fixme: Please translate and remove the hash mark from the key line.
+Answer "yes" if it is okay to delete the subkey
+.
+
+.#gpg.keyedit.delsig.valid
+# fixme: Please translate and remove the hash mark from the key line.
+This is a valid signature on the key; you normally don't want
+to delete this signature because it may be important to establish a
+trust connection to the key or another key certified by this key.
+.
+
+.#gpg.keyedit.delsig.unknown
+# fixme: Please translate and remove the hash mark from the key line.
+This signature can't be checked because you don't have the
+corresponding key.  You should postpone its deletion until you
+know which key was used because this signing key might establish
+a trust connection through another already certified key.
+.
+
+.#gpg.keyedit.delsig.invalid
+# fixme: Please translate and remove the hash mark from the key line.
+The signature is not valid.  It does make sense to remove it from
+your keyring.
+.
+
+.#gpg.keyedit.delsig.selfsig
+# fixme: Please translate and remove the hash mark from the key line.
+This is a signature which binds the user ID to the key. It is
+usually not a good idea to remove such a signature.  Actually
+GnuPG might not be able to use this key anymore.  So do this
+only if this self-signature is for some reason not valid and
+a second one is available.
+.
+
+.#gpg.keyedit.updpref.okay
+# fixme: Please translate and remove the hash mark from the key line.
+Change the preferences of all user IDs (or just of the selected ones)
+to the current list of preferences.  The timestamp of all affected
+self-signatures will be advanced by one second.
+
+.
+
+.#gpg.passphrase.enter
+# fixme: Please translate and remove the hash mark from the key line.
+Please enter the passphrase; this is a secret sentence
+
+.
+
+.#gpg.passphrase.repeat
+# fixme: Please translate and remove the hash mark from the key line.
+Please repeat the last passphrase, so you are sure what you typed in.
+.
+
+.#gpg.detached_signature.filename
+# fixme: Please translate and remove the hash mark from the key line.
+Give the name of the file to which the signature applies
+.
+
+.#gpg.openfile.overwrite.okay
+# fixme: Please translate and remove the hash mark from the key line.
+Answer "yes" if it is okay to overwrite the file
+.
+
+.#gpg.openfile.askoutname
+# fixme: Please translate and remove the hash mark from the key line.
+Please enter a new filename. If you just hit RETURN the default
+file (which is shown in brackets) will be used.
+.
+
+.#gpg.ask_revocation_reason.code
+# fixme: Please translate and remove the hash mark from the key line.
+You should specify a reason for the certification.  Depending on the
+context you have the ability to choose from this list:
+  "Key has been compromised"
+      Use this if you have a reason to believe that unauthorized persons
+      got access to your secret key.
+  "Key is superseded"
+      Use this if you have replaced this key with a newer one.
+  "Key is no longer used"
+      Use this if you have retired this key.
+  "User ID is no longer valid"
+      Use this to state that the user ID should not longer be used;
+      this is normally used to mark an email address invalid.
+
+.
+
+.#gpg.ask_revocation_reason.text
+# fixme: Please translate and remove the hash mark from the key line.
+If you like, you can enter a text describing why you issue this
+revocation certificate.  Please keep this text concise.
+An empty line ends the text.
+
+.
+
+
+
+# Local variables:
+# mode: fundamental
+# coding: utf-8
+# End:
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   # help..txt -  GnuPG online help
+# Copyright (C) 2007 Free Software Foundation, Inc.
+#
+# This file is part of GnuPG.
+#
+# GnuPG is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+# 
+# GnuPG is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, see <https://www.gnu.org/licenses/>.
+
+
+.#gpg.edit_ownertrust.value
+# fixme: Please translate and remove the hash mark from the key line.
+It's up to you to assign a value here; this value will never be exported
+to any 3rd party.  We need it to implement the web-of-trust; it has nothing
+to do with the (implicitly created) web-of-certificates.
+.
+
+.#gpg.edit_ownertrust.set_ultimate.okay
+# fixme: Please translate and remove the hash mark from the key line.
+To build the Web-of-Trust, GnuPG needs to know which keys are
+ultimately trusted - those are usually the keys for which you have
+access to the secret key.  Answer "yes" to set this key to
+ultimately trusted
+
+.
+
+.#gpg.untrusted_key.override
+# fixme: Please translate and remove the hash mark from the key line.
+If you want to use this untrusted key anyway, answer "yes".
+.
+
+.#gpg.pklist.user_id.enter
+# fixme: Please translate and remove the hash mark from the key line.
+Enter the user ID of the addressee to whom you want to send the message.
+.
+
+.#gpg.keygen.algo
+# fixme: Please translate and remove the hash mark from the key line.
+Select the algorithm to use.
+
+DSA (aka DSS) is the Digital Signature Algorithm and can only be used
+for signatures.
+
+Elgamal is an encrypt-only algorithm.
+
+RSA may be used for signatures or encryption.
+
+The first (primary) key must always be a key which is capable of signing.
+.
+
+.#gpg.keygen.algo.rsa_se
+# fixme: Please translate and remove the hash mark from the key line.
+In general it is not a good idea to use the same key for signing and
+encryption.  This algorithm should only be used in certain domains.
+Please consult your security expert first.
+.
+
+.#gpg.keygen.size
+# fixme: Please translate and remove the hash mark from the key line.
+Enter the size of the key
+.
+
+.#gpg.keygen.size.huge.okay
+# fixme: Please translate and remove the hash mark from the key line.
+Answer "yes" or "no"
+.
+
+.#gpg.keygen.size.large.okay
+# fixme: Please translate and remove the hash mark from the key line.
+Answer "yes" or "no"
+.
+
+.#gpg.keygen.valid
+# fixme: Please translate and remove the hash mark from the key line.
+Enter the required value as shown in the prompt.
+It is possible to enter a ISO date (YYYY-MM-DD) but you won't
+get a good error response - instead the system tries to interpret
+the given value as an interval.
+.
+
+.#gpg.keygen.valid.okay
+# fixme: Please translate and remove the hash mark from the key line.
+Answer "yes" or "no"
+.
+
+.#gpg.keygen.name
+# fixme: Please translate and remove the hash mark from the key line.
+Enter the name of the key holder
+.
+
+.#gpg.keygen.email
+# fixme: Please translate and remove the hash mark from the key line.
+please enter an optional but highly suggested email address
+.
+
+.#gpg.keygen.comment
+# fixme: Please translate and remove the hash mark from the key line.
+Please enter an optional comment
+.
+
+.#gpg.keygen.userid.cmd
+# fixme: Please translate and remove the hash mark from the key line.
+N  to change the name.
+C  to change the comment.
+E  to change the email address.
+O  to continue with key generation.
+Q  to to quit the key generation.
+.
+
+.#gpg.keygen.sub.okay
+# fixme: Please translate and remove the hash mark from the key line.
+Answer "yes" (or just "y") if it is okay to generate the sub key.
+.
+
+.#gpg.sign_uid.okay
+# fixme: Please translate and remove the hash mark from the key line.
+Answer "yes" or "no"
+.
+
+.#gpg.sign_uid.class
+# fixme: Please translate and remove the hash mark from the key line.
+When you sign a user ID on a key, you should first verify that the key
+belongs to the person named in the user ID.  It is useful for others to
+know how carefully you verified this.
+
+"0" means you make no particular claim as to how carefully you verified the
+    key.
+
+"1" means you believe the key is owned by the person who claims to own it
+    but you could not, or did not verify the key at all.  This is useful for
+    a "persona" verification, where you sign the key of a pseudonymous user.
+
+"2" means you did casual verification of the key.  For example, this could
+    mean that you verified the key fingerprint and checked the user ID on the
+    key against a photo ID.
+
+"3" means you did extensive verification of the key.  For example, this could
+    mean that you verified the key fingerprint with the owner of the key in
+    person, and that you checked, by means of a hard to forge document with a
+    photo ID (such as a passport) that the name of the key owner matches the
+    name in the user ID on the key, and finally that you verified (by exchange
+    of email) that the email address on the key belongs to the key owner.
+
+Note that the examples given above for levels 2 and 3 are *only* examples.
+In the end, it is up to you to decide just what "casual" and "extensive"
+mean to you when you sign other keys.
+
+If you don't know what the right answer is, answer "0".
+.
+
+.#gpg.change_passwd.empty.okay
+# fixme: Please translate and remove the hash mark from the key line.
+Answer "yes" or "no"
+.
+
+.#gpg.keyedit.save.okay
+# fixme: Please translate and remove the hash mark from the key line.
+Answer "yes" or "no"
+.
+
+.#gpg.keyedit.cancel.okay
+# fixme: Please translate and remove the hash mark from the key line.
+Answer "yes" or "no"
+.
+
+.#gpg.keyedit.sign_all.okay
+# fixme: Please translate and remove the hash mark from the key line.
+Answer "yes" if you want to sign ALL the user IDs
+.
+
+.#gpg.keyedit.remove.uid.okay
+# fixme: Please translate and remove the hash mark from the key line.
+Answer "yes" if you really want to delete this user ID.
+All certificates are then also lost!
+.
+
+.#gpg.keyedit.remove.subkey.okay
+# fixme: Please translate and remove the hash mark from the key line.
+Answer "yes" if it is okay to delete the subkey
+.
+
+.#gpg.keyedit.delsig.valid
+# fixme: Please translate and remove the hash mark from the key line.
+This is a valid signature on the key; you normally don't want
+to delete this signature because it may be important to establish a
+trust connection to the key or another key certified by this key.
+.
+
+.#gpg.keyedit.delsig.unknown
+# fixme: Please translate and remove the hash mark from the key line.
+This signature can't be checked because you don't have the
+corresponding key.  You should postpone its deletion until you
+know which key was used because this signing key might establish
+a trust connection through another already certified key.
+.
+
+.#gpg.keyedit.delsig.invalid
+# fixme: Please translate and remove the hash mark from the key line.
+The signature is not valid.  It does make sense to remove it from
+your keyring.
+.
+
+.#gpg.keyedit.delsig.selfsig
+# fixme: Please translate and remove the hash mark from the key line.
+This is a signature which binds the user ID to the key. It is
+usually not a good idea to remove such a signature.  Actually
+GnuPG might not be able to use this key anymore.  So do this
+only if this self-signature is for some reason not valid and
+a second one is available.
+.
+
+.#gpg.keyedit.updpref.okay
+# fixme: Please translate and remove the hash mark from the key line.
+Change the preferences of all user IDs (or just of the selected ones)
+to the current list of preferences.  The timestamp of all affected
+self-signatures will be advanced by one second.
+
+.
+
+.#gpg.passphrase.enter
+# fixme: Please translate and remove the hash mark from the key line.
+Please enter the passphrase; this is a secret sentence
+
+.
+
+.#gpg.passphrase.repeat
+# fixme: Please translate and remove the hash mark from the key line.
+Please repeat the last passphrase, so you are sure what you typed in.
+.
+
+.#gpg.detached_signature.filename
+# fixme: Please translate and remove the hash mark from the key line.
+Give the name of the file to which the signature applies
+.
+
+.#gpg.openfile.overwrite.okay
+# fixme: Please translate and remove the hash mark from the key line.
+Answer "yes" if it is okay to overwrite the file
+.
+
+.#gpg.openfile.askoutname
+# fixme: Please translate and remove the hash mark from the key line.
+Please enter a new filename. If you just hit RETURN the default
+file (which is shown in brackets) will be used.
+.
+
+.#gpg.ask_revocation_reason.code
+# fixme: Please translate and remove the hash mark from the key line.
+You should specify a reason for the certification.  Depending on the
+context you have the ability to choose from this list:
+  "Key has been compromised"
+      Use this if you have a reason to believe that unauthorized persons
+      got access to your secret key.
+  "Key is superseded"
+      Use this if you have replaced this key with a newer one.
+  "Key is no longer used"
+      Use this if you have retired this key.
+  "User ID is no longer valid"
+      Use this to state that the user ID should not longer be used;
+      this is normally used to mark an email address invalid.
+
+.
+
+.#gpg.ask_revocation_reason.text
+# fixme: Please translate and remove the hash mark from the key line.
+If you like, you can enter a text describing why you issue this
+revocation certificate.  Please keep this text concise.
+An empty line ends the text.
+
+.
+
+
+
+# Local variables:
+# mode: fundamental
+# coding: utf-8
+# End:
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   

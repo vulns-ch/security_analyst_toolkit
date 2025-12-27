@@ -1,0 +1,1399 @@
+/.
+/usr
+/usr/share
+/usr/share/X11
+/usr/share/X11/XErrorDB
+/usr/share/X11/locale
+/usr/share/X11/locale/C
+/usr/share/X11/locale/C/Compose
+/usr/share/X11/locale/C/XI18N_OBJS
+/usr/share/X11/locale/C/XLC_LOCALE
+/usr/share/X11/locale/am_ET.UTF-8
+/usr/share/X11/locale/am_ET.UTF-8/Compose
+/usr/share/X11/locale/am_ET.UTF-8/XI18N_OBJS
+/usr/share/X11/locale/am_ET.UTF-8/XLC_LOCALE
+/usr/share/X11/locale/armscii-8
+/usr/share/X11/locale/armscii-8/Compose
+/usr/share/X11/locale/armscii-8/XI18N_OBJS
+/usr/share/X11/locale/armscii-8/XLC_LOCALE
+/usr/share/X11/locale/compose.dir
+/usr/share/X11/locale/cs_CZ.UTF-8
+/usr/share/X11/locale/cs_CZ.UTF-8/Compose
+/usr/share/X11/locale/cs_CZ.UTF-8/XI18N_OBJS
+/usr/share/X11/locale/cs_CZ.UTF-8/XLC_LOCALE
+/usr/share/X11/locale/el_GR.UTF-8
+/usr/share/X11/locale/el_GR.UTF-8/Compose
+/usr/share/X11/locale/el_GR.UTF-8/XI18N_OBJS
+/usr/share/X11/locale/el_GR.UTF-8/XLC_LOCALE
+/usr/share/X11/locale/en_US.UTF-8
+/usr/share/X11/locale/en_US.UTF-8/Compose
+/usr/share/X11/locale/en_US.UTF-8/XI18N_OBJS
+/usr/share/X11/locale/en_US.UTF-8/XLC_LOCALE
+/usr/share/X11/locale/fi_FI.UTF-8
+/usr/share/X11/locale/fi_FI.UTF-8/Compose
+/usr/share/X11/locale/fi_FI.UTF-8/XI18N_OBJS
+/usr/share/X11/locale/fi_FI.UTF-8/XLC_LOCALE
+/usr/share/X11/locale/georgian-academy
+/usr/share/X11/locale/georgian-academy/Compose
+/usr/share/X11/locale/georgian-academy/XI18N_OBJS
+/usr/share/X11/locale/georgian-academy/XLC_LOCALE
+/usr/share/X11/locale/georgian-ps
+/usr/share/X11/locale/georgian-ps/Compose
+/usr/share/X11/locale/georgian-ps/XI18N_OBJS
+/usr/share/X11/locale/georgian-ps/XLC_LOCALE
+/usr/share/X11/locale/ibm-cp1133
+/usr/share/X11/locale/ibm-cp1133/Compose
+/usr/share/X11/locale/ibm-cp1133/XI18N_OBJS
+/usr/share/X11/locale/ibm-cp1133/XLC_LOCALE
+/usr/share/X11/locale/iscii-dev
+/usr/share/X11/locale/iscii-dev/Compose
+/usr/share/X11/locale/iscii-dev/XI18N_OBJS
+/usr/share/X11/locale/iscii-dev/XLC_LOCALE
+/usr/share/X11/locale/isiri-3342
+/usr/share/X11/locale/isiri-3342/Compose
+/usr/share/X11/locale/isiri-3342/XI18N_OBJS
+/usr/share/X11/locale/isiri-3342/XLC_LOCALE
+/usr/share/X11/locale/iso8859-1
+/usr/share/X11/locale/iso8859-1/Compose
+/usr/share/X11/locale/iso8859-1/XI18N_OBJS
+/usr/share/X11/locale/iso8859-1/XLC_LOCALE
+/usr/share/X11/locale/iso8859-10
+/usr/share/X11/locale/iso8859-10/Compose
+/usr/share/X11/locale/iso8859-10/XI18N_OBJS
+/usr/share/X11/locale/iso8859-10/XLC_LOCALE
+/usr/share/X11/locale/iso8859-11
+/usr/share/X11/locale/iso8859-11/Compose
+/usr/share/X11/locale/iso8859-11/XI18N_OBJS
+/usr/share/X11/locale/iso8859-11/XLC_LOCALE
+/usr/share/X11/locale/iso8859-13
+/usr/share/X11/locale/iso8859-13/Compose
+/usr/share/X11/locale/iso8859-13/XI18N_OBJS
+/usr/share/X11/locale/iso8859-13/XLC_LOCALE
+/usr/share/X11/locale/iso8859-14
+/usr/share/X11/locale/iso8859-14/Compose
+/usr/share/X11/locale/iso8859-14/XI18N_OBJS
+/usr/share/X11/locale/iso8859-14/XLC_LOCALE
+/usr/share/X11/locale/iso8859-15
+/usr/share/X11/locale/iso8859-15/Compose
+/usr/share/X11/locale/iso8859-15/XI18N_OBJS
+/usr/share/X11/locale/iso8859-15/XLC_LOCALE
+/usr/share/X11/locale/iso8859-2
+/usr/share/X11/locale/iso8859-2/Compose
+/usr/share/X11/locale/iso8859-2/XI18N_OBJS
+/usr/share/X11/locale/iso8859-2/XLC_LOCALE
+/usr/share/X11/locale/iso8859-3
+/usr/share/X11/locale/iso8859-3/Compose
+/usr/share/X11/locale/iso8859-3/XI18N_OBJS
+/usr/share/X11/locale/iso8859-3/XLC_LOCALE
+/usr/share/X11/locale/iso8859-4
+/usr/share/X11/locale/iso8859-4/Compose
+/usr/share/X11/locale/iso8859-4/XI18N_OBJS
+/usr/share/X11/locale/iso8859-4/XLC_LOCALE
+/usr/share/X11/locale/iso8859-5
+/usr/share/X11/locale/iso8859-5/Compose
+/usr/share/X11/locale/iso8859-5/XI18N_OBJS
+/usr/share/X11/locale/iso8859-5/XLC_LOCALE
+/usr/share/X11/locale/iso8859-6
+/usr/share/X11/locale/iso8859-6/Compose
+/usr/share/X11/locale/iso8859-6/XI18N_OBJS
+/usr/share/X11/locale/iso8859-6/XLC_LOCALE
+/usr/share/X11/locale/iso8859-7
+/usr/share/X11/locale/iso8859-7/Compose
+/usr/share/X11/locale/iso8859-7/XI18N_OBJS
+/usr/share/X11/locale/iso8859-7/XLC_LOCALE
+/usr/share/X11/locale/iso8859-8
+/usr/share/X11/locale/iso8859-8/Compose
+/usr/share/X11/locale/iso8859-8/XI18N_OBJS
+/usr/share/X11/locale/iso8859-8/XLC_LOCALE
+/usr/share/X11/locale/iso8859-9
+/usr/share/X11/locale/iso8859-9/Compose
+/usr/share/X11/locale/iso8859-9/XI18N_OBJS
+/usr/share/X11/locale/iso8859-9/XLC_LOCALE
+/usr/share/X11/locale/iso8859-9e
+/usr/share/X11/locale/iso8859-9e/Compose
+/usr/share/X11/locale/iso8859-9e/XI18N_OBJS
+/usr/share/X11/locale/iso8859-9e/XLC_LOCALE
+/usr/share/X11/locale/ja
+/usr/share/X11/locale/ja/Compose
+/usr/share/X11/locale/ja/XI18N_OBJS
+/usr/share/X11/locale/ja/XLC_LOCALE
+/usr/share/X11/locale/ja.JIS
+/usr/share/X11/locale/ja.JIS/Compose
+/usr/share/X11/locale/ja.JIS/XI18N_OBJS
+/usr/share/X11/locale/ja.JIS/XLC_LOCALE
+/usr/share/X11/locale/ja.SJIS
+/usr/share/X11/locale/ja.SJIS/Compose
+/usr/share/X11/locale/ja.SJIS/XI18N_OBJS
+/usr/share/X11/locale/ja.SJIS/XLC_LOCALE
+/usr/share/X11/locale/ja_JP.UTF-8
+/usr/share/X11/locale/ja_JP.UTF-8/Compose
+/usr/share/X11/locale/ja_JP.UTF-8/XI18N_OBJS
+/usr/share/X11/locale/ja_JP.UTF-8/XLC_LOCALE
+/usr/share/X11/locale/km_KH.UTF-8
+/usr/share/X11/locale/km_KH.UTF-8/Compose
+/usr/share/X11/locale/km_KH.UTF-8/XI18N_OBJS
+/usr/share/X11/locale/km_KH.UTF-8/XLC_LOCALE
+/usr/share/X11/locale/ko
+/usr/share/X11/locale/ko/Compose
+/usr/share/X11/locale/ko/XI18N_OBJS
+/usr/share/X11/locale/ko/XLC_LOCALE
+/usr/share/X11/locale/ko_KR.UTF-8
+/usr/share/X11/locale/ko_KR.UTF-8/Compose
+/usr/share/X11/locale/ko_KR.UTF-8/XI18N_OBJS
+/usr/share/X11/locale/ko_KR.UTF-8/XLC_LOCALE
+/usr/share/X11/locale/koi8-c
+/usr/share/X11/locale/koi8-c/Compose
+/usr/share/X11/locale/koi8-c/XI18N_OBJS
+/usr/share/X11/locale/koi8-c/XLC_LOCALE
+/usr/share/X11/locale/koi8-r
+/usr/share/X11/locale/koi8-r/Compose
+/usr/share/X11/locale/koi8-r/XI18N_OBJS
+/usr/share/X11/locale/koi8-r/XLC_LOCALE
+/usr/share/X11/locale/koi8-u
+/usr/share/X11/locale/koi8-u/Compose
+/usr/share/X11/locale/koi8-u/XI18N_OBJS
+/usr/share/X11/locale/koi8-u/XLC_LOCALE
+/usr/share/X11/locale/locale.alias
+/usr/share/X11/locale/locale.dir
+/usr/share/X11/locale/microsoft-cp1251
+/usr/share/X11/locale/microsoft-cp1251/Compose
+/usr/share/X11/locale/microsoft-cp1251/XI18N_OBJS
+/usr/share/X11/locale/microsoft-cp1251/XLC_LOCALE
+/usr/share/X11/locale/microsoft-cp1255
+/usr/share/X11/locale/microsoft-cp1255/Compose
+/usr/share/X11/locale/microsoft-cp1255/XI18N_OBJS
+/usr/share/X11/locale/microsoft-cp1255/XLC_LOCALE
+/usr/share/X11/locale/microsoft-cp1256
+/usr/share/X11/locale/microsoft-cp1256/Compose
+/usr/share/X11/locale/microsoft-cp1256/XI18N_OBJS
+/usr/share/X11/locale/microsoft-cp1256/XLC_LOCALE
+/usr/share/X11/locale/mulelao-1
+/usr/share/X11/locale/mulelao-1/Compose
+/usr/share/X11/locale/mulelao-1/XI18N_OBJS
+/usr/share/X11/locale/mulelao-1/XLC_LOCALE
+/usr/share/X11/locale/nokhchi-1
+/usr/share/X11/locale/nokhchi-1/Compose
+/usr/share/X11/locale/nokhchi-1/XI18N_OBJS
+/usr/share/X11/locale/nokhchi-1/XLC_LOCALE
+/usr/share/X11/locale/pt_BR.UTF-8
+/usr/share/X11/locale/pt_BR.UTF-8/Compose
+/usr/share/X11/locale/pt_BR.UTF-8/XI18N_OBJS
+/usr/share/X11/locale/pt_BR.UTF-8/XLC_LOCALE
+/usr/share/X11/locale/pt_PT.UTF-8
+/usr/share/X11/locale/pt_PT.UTF-8/Compose
+/usr/share/X11/locale/pt_PT.UTF-8/XI18N_OBJS
+/usr/share/X11/locale/pt_PT.UTF-8/XLC_LOCALE
+/usr/share/X11/locale/ru_RU.UTF-8
+/usr/share/X11/locale/ru_RU.UTF-8/Compose
+/usr/share/X11/locale/ru_RU.UTF-8/XI18N_OBJS
+/usr/share/X11/locale/ru_RU.UTF-8/XLC_LOCALE
+/usr/share/X11/locale/sr_RS.UTF-8
+/usr/share/X11/locale/sr_RS.UTF-8/Compose
+/usr/share/X11/locale/sr_RS.UTF-8/XI18N_OBJS
+/usr/share/X11/locale/sr_RS.UTF-8/XLC_LOCALE
+/usr/share/X11/locale/tatar-cyr
+/usr/share/X11/locale/tatar-cyr/Compose
+/usr/share/X11/locale/tatar-cyr/XI18N_OBJS
+/usr/share/X11/locale/tatar-cyr/XLC_LOCALE
+/usr/share/X11/locale/th_TH
+/usr/share/X11/locale/th_TH/Compose
+/usr/share/X11/locale/th_TH/XI18N_OBJS
+/usr/share/X11/locale/th_TH/XLC_LOCALE
+/usr/share/X11/locale/th_TH.UTF-8
+/usr/share/X11/locale/th_TH.UTF-8/Compose
+/usr/share/X11/locale/th_TH.UTF-8/XI18N_OBJS
+/usr/share/X11/locale/th_TH.UTF-8/XLC_LOCALE
+/usr/share/X11/locale/tscii-0
+/usr/share/X11/locale/tscii-0/Compose
+/usr/share/X11/locale/tscii-0/XI18N_OBJS
+/usr/share/X11/locale/tscii-0/XLC_LOCALE
+/usr/share/X11/locale/vi_VN.tcvn
+/usr/share/X11/locale/vi_VN.tcvn/Compose
+/usr/share/X11/locale/vi_VN.tcvn/XI18N_OBJS
+/usr/share/X11/locale/vi_VN.tcvn/XLC_LOCALE
+/usr/share/X11/locale/vi_VN.viscii
+/usr/share/X11/locale/vi_VN.viscii/Compose
+/usr/share/X11/locale/vi_VN.viscii/XI18N_OBJS
+/usr/share/X11/locale/vi_VN.viscii/XLC_LOCALE
+/usr/share/X11/locale/zh_CN
+/usr/share/X11/locale/zh_CN/Compose
+/usr/share/X11/locale/zh_CN/XI18N_OBJS
+/usr/share/X11/locale/zh_CN/XLC_LOCALE
+/usr/share/X11/locale/zh_CN.UTF-8
+/usr/share/X11/locale/zh_CN.UTF-8/Compose
+/usr/share/X11/locale/zh_CN.UTF-8/XI18N_OBJS
+/usr/share/X11/locale/zh_CN.UTF-8/XLC_LOCALE
+/usr/share/X11/locale/zh_CN.gb18030
+/usr/share/X11/locale/zh_CN.gb18030/Compose
+/usr/share/X11/locale/zh_CN.gb18030/XI18N_OBJS
+/usr/share/X11/locale/zh_CN.gb18030/XLC_LOCALE
+/usr/share/X11/locale/zh_CN.gbk
+/usr/share/X11/locale/zh_CN.gbk/Compose
+/usr/share/X11/locale/zh_CN.gbk/XI18N_OBJS
+/usr/share/X11/locale/zh_CN.gbk/XLC_LOCALE
+/usr/share/X11/locale/zh_HK.UTF-8
+/usr/share/X11/locale/zh_HK.UTF-8/Compose
+/usr/share/X11/locale/zh_HK.UTF-8/XI18N_OBJS
+/usr/share/X11/locale/zh_HK.UTF-8/XLC_LOCALE
+/usr/share/X11/locale/zh_HK.big5
+/usr/share/X11/locale/zh_HK.big5/Compose
+/usr/share/X11/locale/zh_HK.big5/XI18N_OBJS
+/usr/share/X11/locale/zh_HK.big5/XLC_LOCALE
+/usr/share/X11/locale/zh_HK.big5hkscs
+/usr/share/X11/locale/zh_HK.big5hkscs/Compose
+/usr/share/X11/locale/zh_HK.big5hkscs/XI18N_OBJS
+/usr/share/X11/locale/zh_HK.big5hkscs/XLC_LOCALE
+/usr/share/X11/locale/zh_TW
+/usr/share/X11/locale/zh_TW/Compose
+/usr/share/X11/locale/zh_TW/XI18N_OBJS
+/usr/share/X11/locale/zh_TW/XLC_LOCALE
+/usr/share/X11/locale/zh_TW.UTF-8
+/usr/share/X11/locale/zh_TW.UTF-8/Compose
+/usr/share/X11/locale/zh_TW.UTF-8/XI18N_OBJS
+/usr/share/X11/locale/zh_TW.UTF-8/XLC_LOCALE
+/usr/share/X11/locale/zh_TW.big5
+/usr/share/X11/locale/zh_TW.big5/Compose
+/usr/share/X11/locale/zh_TW.big5/XI18N_OBJS
+/usr/share/X11/locale/zh_TW.big5/XLC_LOCALE
+/usr/share/doc
+/usr/share/doc/libx11-data
+/usr/share/doc/libx11-data/changelog.Debian.gz
+/usr/share/doc/libx11-data/changelog.gz
+/usr/share/doc/libx11-data/copyright
+/usr/share/man
+/usr/share/man/man5
+/usr/share/man/man5/Compose.5.gz
+/usr/share/man/man5/XCompose.5.gz
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          6d328964331595e3f866eaeda7e9e432  usr/share/X11/XErrorDB
+d41d8cd98f00b204e9800998ecf8427e  usr/share/X11/locale/C/Compose
+bc0443ffae5a06179e9063f36b533860  usr/share/X11/locale/C/XI18N_OBJS
+2bfc6a5fad315280aab0eb9aa438b37b  usr/share/X11/locale/C/XLC_LOCALE
+5929a7dc09d32f7840491d8bd3e6524c  usr/share/X11/locale/am_ET.UTF-8/Compose
+d41d8cd98f00b204e9800998ecf8427e  usr/share/X11/locale/am_ET.UTF-8/XI18N_OBJS
+d41d8cd98f00b204e9800998ecf8427e  usr/share/X11/locale/am_ET.UTF-8/XLC_LOCALE
+f6fc4ad7d172c2407369b84770f779a6  usr/share/X11/locale/armscii-8/Compose
+115b641fffa96c677d518626257d9a83  usr/share/X11/locale/armscii-8/XI18N_OBJS
+10926d171d5be9eac0573fe33a962751  usr/share/X11/locale/armscii-8/XLC_LOCALE
+7b6acbb22e3af3689c164e401fd54b02  usr/share/X11/locale/compose.dir
+4f2168b3546c019b015b2bd9ba3986d0  usr/share/X11/locale/cs_CZ.UTF-8/Compose
+d41d8cd98f00b204e9800998ecf8427e  usr/share/X11/locale/cs_CZ.UTF-8/XI18N_OBJS
+d41d8cd98f00b204e9800998ecf8427e  usr/share/X11/locale/cs_CZ.UTF-8/XLC_LOCALE
+f81b57fc00d746c0d95396b414a66fd1  usr/share/X11/locale/el_GR.UTF-8/Compose
+d41d8cd98f00b204e9800998ecf8427e  usr/share/X11/locale/el_GR.UTF-8/XI18N_OBJS
+d41d8cd98f00b204e9800998ecf8427e  usr/share/X11/locale/el_GR.UTF-8/XLC_LOCALE
+911d25f2c90ebc62fabafad659548e31  usr/share/X11/locale/en_US.UTF-8/Compose
+1bb4b16be622a8898f1b898f8a047f1a  usr/share/X11/locale/en_US.UTF-8/XI18N_OBJS
+5d58e0f76fcf6d1ef850559adc1604ab  usr/share/X11/locale/en_US.UTF-8/XLC_LOCALE
+bf7c194a75b008b1b7a2ad3cee1dc171  usr/share/X11/locale/fi_FI.UTF-8/Compose
+d41d8cd98f00b204e9800998ecf8427e  usr/share/X11/locale/fi_FI.UTF-8/XI18N_OBJS
+d41d8cd98f00b204e9800998ecf8427e  usr/share/X11/locale/fi_FI.UTF-8/XLC_LOCALE
+eab10948a2b7f2a2902a5759fc071eae  usr/share/X11/locale/georgian-academy/Compose
+1403d19ea095b2e41e0d201655318484  usr/share/X11/locale/georgian-academy/XI18N_OBJS
+81b0f803c1246cb15c58d87f119bf6a2  usr/share/X11/locale/georgian-academy/XLC_LOCALE
+b405c4d215bb0d36c3a13fac28a0cd12  usr/share/X11/locale/georgian-ps/Compose
+4dea5b0e2297d792cbc5619d9ed4adcf  usr/share/X11/locale/georgian-ps/XI18N_OBJS
+352e1df900aca453fb124068b3c9b387  usr/share/X11/locale/georgian-ps/XLC_LOCALE
+597760986352648af9ea7fcd308c6483  usr/share/X11/locale/ibm-cp1133/Compose
+12168965928725c27a9312f6509c33ca  usr/share/X11/locale/ibm-cp1133/XI18N_OBJS
+d99addb5ed9769cf20a0adb4c4a3b1f8  usr/share/X11/locale/ibm-cp1133/XLC_LOCALE
+d41d8cd98f00b204e9800998ecf8427e  usr/share/X11/locale/iscii-dev/Compose
+842b532951d57544ef5ce81488b24f11  usr/share/X11/locale/iscii-dev/XI18N_OBJS
+4ad9ae3a850236418880926cc5016dd4  usr/share/X11/locale/iscii-dev/XLC_LOCALE
+d41d8cd98f00b204e9800998ecf8427e  usr/share/X11/locale/isiri-3342/Compose
+c80b79ce4097b08233043826f16121e8  usr/share/X11/locale/isiri-3342/XI18N_OBJS
+16d9b30ebc6338404478520d229b3579  usr/share/X11/locale/isiri-3342/XLC_LOCALE
+73b50d9a5f91b78dfbda32eac5b15597  usr/share/X11/locale/iso8859-1/Compose
+bc0443ffae5a06179e9063f36b533860  usr/share/X11/locale/iso8859-1/XI18N_OBJS
+ad89ac556a9e81f4c0f047f07d80650a  usr/share/X11/locale/iso8859-1/XLC_LOCALE
+bca0e39d0d0267413d6a69017951c302  usr/share/X11/locale/iso8859-10/Compose
+ad9a9dc951fd3625e3a892e2224d88b1  usr/share/X11/locale/iso8859-10/XI18N_OBJS
+a66800cb8f991a54a9d14349c09fea27  usr/share/X11/locale/iso8859-10/XLC_LOCALE
+d41d8cd98f00b204e9800998ecf8427e  usr/share/X11/locale/iso8859-11/Compose
+2e087de45cae828a5aff4cb1bd4cfdf9  usr/share/X11/locale/iso8859-11/XI18N_OBJS
+ac426884815774c95184617e7d8dc030  usr/share/X11/locale/iso8859-11/XLC_LOCALE
+c47c929f3f11f5ad2c7f895facd5edf9  usr/share/X11/locale/iso8859-13/Compose
+df430ba0495815fc0641fa836b4d500d  usr/share/X11/locale/iso8859-13/XI18N_OBJS
+36befa8bc7b6527cb36aa87ded8da795  usr/share/X11/locale/iso8859-13/XLC_LOCALE
+17f51d10172b72515474f3f2350a72b5  usr/share/X11/locale/iso8859-14/Compose
+d9fd9a2e5a12276f4fbaf98980bfe389  usr/share/X11/locale/iso8859-14/XI18N_OBJS
+23b499d7e6427d3216fc37c8fdb9c99a  usr/share/X11/locale/iso8859-14/XLC_LOCALE
+04725b1000e50e204fab796df08a9aaa  usr/share/X11/locale/iso8859-15/Compose
+45ff947fcb4c1bfcce1717c8f51186a7  usr/share/X11/locale/iso8859-15/XI18N_OBJS
+fcfc26c2d8a1d90b23de3a65e5e9b1bb  usr/share/X11/locale/iso8859-15/XLC_LOCALE
+7c3977c008746807b3b6d5c063fa32f7  usr/share/X11/locale/iso8859-2/Compose
+df430ba0495815fc0641fa836b4d500d  usr/share/X11/locale/iso8859-2/XI18N_OBJS
+8f43f2196eb52dcf271d5b67fe8d546f  usr/share/X11/locale/iso8859-2/XLC_LOCALE
+5dcc1773087712f2a7cc6c4e5e614c4c  usr/share/X11/locale/iso8859-3/Compose
+838988f2064e281a621405d7fec77b80  usr/share/X11/locale/iso8859-3/XI18N_OBJS
+57ee75076dedff3fea2d812fafcffece  usr/share/X11/locale/iso8859-3/XLC_LOCALE
+7651792c6499b76a2148cb6db61a5098  usr/share/X11/locale/iso8859-4/Compose
+6808f1f0ed0c6e536926293154686931  usr/share/X11/locale/iso8859-4/XI18N_OBJS
+ec58b6458b84502e89a567919809d545  usr/share/X11/locale/iso8859-4/XLC_LOCALE
+56b5bee192f4e653852a2f060c604347  usr/share/X11/locale/iso8859-5/Compose
+df430ba0495815fc0641fa836b4d500d  usr/share/X11/locale/iso8859-5/XI18N_OBJS
+0debf1ced38bc2ff9ebc2e63c504a644  usr/share/X11/locale/iso8859-5/XLC_LOCALE
+f30c64337047f6ef044498aff0a98b92  usr/share/X11/locale/iso8859-6/Compose
+8746730e8c5554c4c772263631c57213  usr/share/X11/locale/iso8859-6/XI18N_OBJS
+f0c0ac58c04137325cea7670fe9a00ae  usr/share/X11/locale/iso8859-6/XLC_LOCALE
+0fbb9b9032ca9cb34759d0e902b424d5  usr/share/X11/locale/iso8859-7/Compose
+df430ba0495815fc0641fa836b4d500d  usr/share/X11/locale/iso8859-7/XI18N_OBJS
+136592e8685815c6b78b487e50ad020c  usr/share/X11/locale/iso8859-7/XLC_LOCALE
+833841c98c641d470c298090daf8aff5  usr/share/X11/locale/iso8859-8/Compose
+e8c9aa5b6e10c9614bf97df08a085ed5  usr/share/X11/locale/iso8859-8/XI18N_OBJS
+1a0933005661fecb5a29b846a782a0ca  usr/share/X11/locale/iso8859-8/XLC_LOCALE
+73be32e7f5340662af32eb3211545215  usr/share/X11/locale/iso8859-9/Compose
+df430ba0495815fc0641fa836b4d500d  usr/share/X11/locale/iso8859-9/XI18N_OBJS
+d48fc0d516214976acfe6551385f03f4  usr/share/X11/locale/iso8859-9/XLC_LOCALE
+ca966808c4d55461077d8f2bbc0d30a4  usr/share/X11/locale/iso8859-9e/Compose
+4487cf51720d67bd5deb743510cc8466  usr/share/X11/locale/iso8859-9e/XI18N_OBJS
+feeb5f23ce82b88ccffb2dcd2b35592e  usr/share/X11/locale/iso8859-9e/XLC_LOCALE
+d25e1edaaab332859e4b8f11cafbb256  usr/share/X11/locale/ja.JIS/Compose
+0fe34725bd8044902a7b7f13f04e33ba  usr/share/X11/locale/ja.JIS/XI18N_OBJS
+95e0f1dce0c3ba1b6d99b906f966e52a  usr/share/X11/locale/ja.JIS/XLC_LOCALE
+f8b6ca6fa989759c04cf653b2fddad14  usr/share/X11/locale/ja.SJIS/Compose
+2c34cf538be839c551357067cde1f2a4  usr/share/X11/locale/ja.SJIS/XI18N_OBJS
+335b8d4b4f8a07d0901d3fd03e6f54a4  usr/share/X11/locale/ja.SJIS/XLC_LOCALE
+06a8e188393b4820f37449131b33c094  usr/share/X11/locale/ja/Compose
+4beb3cdc6f83cb295c301925a54ded34  usr/share/X11/locale/ja/XI18N_OBJS
+f608aee0d2180c5588b7c7df7778ecae  usr/share/X11/locale/ja/XLC_LOCALE
+2d270350313c89329062b81b2bc28475  usr/share/X11/locale/ja_JP.UTF-8/Compose
+6c96f4a8ba24efdb69613ce58f77ecd3  usr/share/X11/locale/ja_JP.UTF-8/XI18N_OBJS
+4d3df86eecb4c1a6de0c4f98ff063a86  usr/share/X11/locale/ja_JP.UTF-8/XLC_LOCALE
+2d270350313c89329062b81b2bc28475  usr/share/X11/locale/km_KH.UTF-8/Compose
+a3e000bb391b52d19c410b4d2bb4470d  usr/share/X11/locale/km_KH.UTF-8/XI18N_OBJS
+d41d8cd98f00b204e9800998ecf8427e  usr/share/X11/locale/km_KH.UTF-8/XLC_LOCALE
+872dd43b60210f9fc1a226f7010232ff  usr/share/X11/locale/ko/Compose
+b89ca2eb37333fbbaba7c7c3a9db9cd9  usr/share/X11/locale/ko/XI18N_OBJS
+2d368e4912e61b1dcc0d701d3e2b4227  usr/share/X11/locale/ko/XLC_LOCALE
+2d270350313c89329062b81b2bc28475  usr/share/X11/locale/ko_KR.UTF-8/Compose
+e87a1ac199c9faadb5a87395a0456423  usr/share/X11/locale/ko_KR.UTF-8/XI18N_OBJS
+5b59a51e75ee855a1582080271638884  usr/share/X11/locale/ko_KR.UTF-8/XLC_LOCALE
+98f8b42feada28b151bf16f1d184b15a  usr/share/X11/locale/koi8-c/Compose
+353b3f751e821a5e90b07eb7443acb58  usr/share/X11/locale/koi8-c/XI18N_OBJS
+5ffaf95d3fad9cf43c8c90e922880771  usr/share/X11/locale/koi8-c/XLC_LOCALE
+61ab7be6753f27287d2f5b624aa9a2ff  usr/share/X11/locale/koi8-r/Compose
+342dc18b03cc6a253f35a04deb4bd45d  usr/share/X11/locale/koi8-r/XI18N_OBJS
+9b22f70028914c5d52b632576ecd2fbc  usr/share/X11/locale/koi8-r/XLC_LOCALE
+652102c1d9bf6464c3818db237d9383e  usr/share/X11/locale/koi8-u/Compose
+f1bedc33c1475111dac3af759ea78aca  usr/share/X11/locale/koi8-u/XI18N_OBJS
+7da2397c025ff8c43c41cc7153fee44c  usr/share/X11/locale/koi8-u/XLC_LOCALE
+408f863697dfcaf4ec6a7ca1f1b2b62a  usr/share/X11/locale/locale.alias
+ad449c57dfa0a2f7f89db7c15dc3a32c  usr/share/X11/locale/locale.dir
+d41d8cd98f00b204e9800998ecf8427e  usr/share/X11/locale/microsoft-cp1251/Compose
+547f6f367d091769d8e75c77ac0732b5  usr/share/X11/locale/microsoft-cp1251/XI18N_OBJS
+02cee4210a84363bee6acefdde685a91  usr/share/X11/locale/microsoft-cp1251/XLC_LOCALE
+d41d8cd98f00b204e9800998ecf8427e  usr/share/X11/locale/microsoft-cp1255/Compose
+aed4431932762bd3ee06f05a14c12ff2  usr/share/X11/locale/microsoft-cp1255/XI18N_OBJS
+55748889c403eb4444a3972245b76bce  usr/share/X11/locale/microsoft-cp1255/XLC_LOCALE
+d41d8cd98f00b204e9800998ecf8427e  usr/share/X11/locale/microsoft-cp1256/Compose
+4b2569c4e0cf5582d0bc8352a42070da  usr/share/X11/locale/microsoft-cp1256/XI18N_OBJS
+672bd2fa60c6764230e006c36228d883  usr/share/X11/locale/microsoft-cp1256/XLC_LOCALE
+600b28492b8ed125f8c8898b87c10d67  usr/share/X11/locale/mulelao-1/Compose
+63e9400a5389c743f0efa49d1bf2327f  usr/share/X11/locale/mulelao-1/XI18N_OBJS
+e5467dd3a5783de0dc07d760d8d8fd37  usr/share/X11/locale/mulelao-1/XLC_LOCALE
+d41d8cd98f00b204e9800998ecf8427e  usr/share/X11/locale/nokhchi-1/Compose
+ba6e90cde52c3e0324aff1beec106f30  usr/share/X11/locale/nokhchi-1/XI18N_OBJS
+89c7e4d928079b574be03460c583b0d6  usr/share/X11/locale/nokhchi-1/XLC_LOCALE
+d21e0b26ad7d87363afc1a6b1f3f69f9  usr/share/X11/locale/pt_BR.UTF-8/Compose
+43ad17f4090019da2d25579ace4476b5  usr/share/X11/locale/pt_BR.UTF-8/XI18N_OBJS
+aba3b6c4eb25f0d814aa5d9cf1656ca4  usr/share/X11/locale/pt_BR.UTF-8/XLC_LOCALE
+2c4d73fd34ebf5d8be86d5e60416d5df  usr/share/X11/locale/pt_PT.UTF-8/Compose
+4a338d59441f7f750da2999ef51a9e51  usr/share/X11/locale/pt_PT.UTF-8/XI18N_OBJS
+9b6f324b4d3dde51901e59a50413782f  usr/share/X11/locale/pt_PT.UTF-8/XLC_LOCALE
+2d270350313c89329062b81b2bc28475  usr/share/X11/locale/ru_RU.UTF-8/Compose
+fb5f453a0e9833123ae9e6527abdbaed  usr/share/X11/locale/ru_RU.UTF-8/XI18N_OBJS
+7b510bbd23c9389f9816717b50dce00f  usr/share/X11/locale/ru_RU.UTF-8/XLC_LOCALE
+d48454d97d834b89892219e4f94a7f80  usr/share/X11/locale/sr_RS.UTF-8/Compose
+a3e000bb391b52d19c410b4d2bb4470d  usr/share/X11/locale/sr_RS.UTF-8/XI18N_OBJS
+d41d8cd98f00b204e9800998ecf8427e  usr/share/X11/locale/sr_RS.UTF-8/XLC_LOCALE
+d41d8cd98f00b204e9800998ecf8427e  usr/share/X11/locale/tatar-cyr/Compose
+b2350fb81ed02d64f22a6cc61d1f61ba  usr/share/X11/locale/tatar-cyr/XI18N_OBJS
+c000c89c6f7063fffc0f409f814f3048  usr/share/X11/locale/tatar-cyr/XLC_LOCALE
+2d270350313c89329062b81b2bc28475  usr/share/X11/locale/th_TH.UTF-8/Compose
+28a7d15492c8db6143d88e2a77b1bf5e  usr/share/X11/locale/th_TH.UTF-8/XI18N_OBJS
+086a5c8af49bb50b4fa754ff1cb42bf6  usr/share/X11/locale/th_TH.UTF-8/XLC_LOCALE
+d41d8cd98f00b204e9800998ecf8427e  usr/share/X11/locale/th_TH/Compose
+f6768e8186255a62de5dd23efafcd5a2  usr/share/X11/locale/th_TH/XI18N_OBJS
+e758220f81461ca8e227f8fc3096aef3  usr/share/X11/locale/th_TH/XLC_LOCALE
+d41d8cd98f00b204e9800998ecf8427e  usr/share/X11/locale/tscii-0/Compose
+7c32b52365a1226806264026ab56d409  usr/share/X11/locale/tscii-0/XI18N_OBJS
+1a12c1b326985e7ceb8191d38137df52  usr/share/X11/locale/tscii-0/XLC_LOCALE
+e98d51b988718079c76343b0124a2e86  usr/share/X11/locale/vi_VN.tcvn/Compose
+8f406cc64fff882694be4cfcaed2c284  usr/share/X11/locale/vi_VN.tcvn/XI18N_OBJS
+27e04c6bfba33f20ef061e69d2f5cfc2  usr/share/X11/locale/vi_VN.tcvn/XLC_LOCALE
+8b24c36aec19b9a1ca6b0a2c11582f9d  usr/share/X11/locale/vi_VN.viscii/Compose
+a812a709ede9ce7b19243755b2502008  usr/share/X11/locale/vi_VN.viscii/XI18N_OBJS
+fff6d43331d6a9994d15fe1859627b34  usr/share/X11/locale/vi_VN.viscii/XLC_LOCALE
+2d270350313c89329062b81b2bc28475  usr/share/X11/locale/zh_CN.UTF-8/Compose
+fbead6609c11b0d6d6df4caff6e5094a  usr/share/X11/locale/zh_CN.UTF-8/XI18N_OBJS
+525d673088793c70476ed1eaae8aef6b  usr/share/X11/locale/zh_CN.UTF-8/XLC_LOCALE
+99b920cdac02519683f626948b129292  usr/share/X11/locale/zh_CN.gb18030/Compose
+aa0a6716daea4abc4379633114974d06  usr/share/X11/locale/zh_CN.gb18030/XI18N_OBJS
+ead9f7638bfb5519e145b0af9f27c11a  usr/share/X11/locale/zh_CN.gb18030/XLC_LOCALE
+036b2bbf32b3f1fa701b6a67dacbee0a  usr/share/X11/locale/zh_CN.gbk/Compose
+cb7a32080ad5f302dcf797a866cf5756  usr/share/X11/locale/zh_CN.gbk/XI18N_OBJS
+75238ce2f915a31467dbb551a467e460  usr/share/X11/locale/zh_CN.gbk/XLC_LOCALE
+d68a17228c0c2a17da7189ec50ac5f6e  usr/share/X11/locale/zh_CN/Compose
+501f84ee2a649a59efece8e8319836e1  usr/share/X11/locale/zh_CN/XI18N_OBJS
+649bd0357b3d849e81c18b7216f90394  usr/share/X11/locale/zh_CN/XLC_LOCALE
+2d270350313c89329062b81b2bc28475  usr/share/X11/locale/zh_HK.UTF-8/Compose
+a9bbeff73a5449882a4df52d88f87e71  usr/share/X11/locale/zh_HK.UTF-8/XI18N_OBJS
+820f7a463e5b9b4394f378911368d262  usr/share/X11/locale/zh_HK.UTF-8/XLC_LOCALE
+06ef6fc47bdce1c8848a86717e789117  usr/share/X11/locale/zh_HK.big5/Compose
+5db17a600aa66d8a5e159e51ce22cf4d  usr/share/X11/locale/zh_HK.big5/XI18N_OBJS
+e17244e4c8efcd9be80a82671c9012c8  usr/share/X11/locale/zh_HK.big5/XLC_LOCALE
+f2b6b1900f967bd54a6b563817044196  usr/share/X11/locale/zh_HK.big5hkscs/Compose
+813451867b40badacadb07a4f18ee2ae  usr/share/X11/locale/zh_HK.big5hkscs/XI18N_OBJS
+829601d42b62fec60e0d7cb0ed5d08c1  usr/share/X11/locale/zh_HK.big5hkscs/XLC_LOCALE
+2d270350313c89329062b81b2bc28475  usr/share/X11/locale/zh_TW.UTF-8/Compose
+4ed99c616118fcece3725d265f1faf55  usr/share/X11/locale/zh_TW.UTF-8/XI18N_OBJS
+e5ca47a49de1ce07541dd997c6df98c6  usr/share/X11/locale/zh_TW.UTF-8/XLC_LOCALE
+74d5e6627041f698f096f4436d72fc35  usr/share/X11/locale/zh_TW.big5/Compose
+8885c6655ede4a43b78dbe69bc0209f9  usr/share/X11/locale/zh_TW.big5/XI18N_OBJS
+5d7e003465f80b5ea361e659d238ae57  usr/share/X11/locale/zh_TW.big5/XLC_LOCALE
+aea2125f15a1810e3918936021aa208b  usr/share/X11/locale/zh_TW/Compose
+6aa745531f36e329e11e3de6f20cc258  usr/share/X11/locale/zh_TW/XI18N_OBJS
+91eafa5b4020805eec60a87dedfb5b38  usr/share/X11/locale/zh_TW/XLC_LOCALE
+cc1f7a1c3cf5d2ffe492ded41e8364ed  usr/share/doc/libx11-data/changelog.Debian.gz
+a40090dc88de414fb17dcc06026c61cf  usr/share/doc/libx11-data/changelog.gz
+6121e1d103eb0c51500be21cdd73e4b4  usr/share/doc/libx11-data/copyright
+305d120c3c1d72030f5fcd810ecac42a  usr/share/man/man5/Compose.5.gz
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   /.
+/usr
+/usr/lib
+/usr/lib/i386-linux-gnu
+/usr/lib/i386-linux-gnu/libXau.so.6.0.0
+/usr/share
+/usr/share/doc
+/usr/share/doc/libxau6
+/usr/share/doc/libxau6/changelog.Debian.gz
+/usr/share/doc/libxau6/changelog.gz
+/usr/share/doc/libxau6/copyright
+/usr/lib/i386-linux-gnu/libXau.so.6
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          c83fb390af64357aff06574b8a8f9928  usr/lib/i386-linux-gnu/libXau.so.6.0.0
+3fdc0c8caac10b74e005721850e09c4f  usr/share/doc/libxau6/changelog.Debian.gz
+44097e7b116827a4a001924893e790a2  usr/share/doc/libxau6/changelog.gz
+68d1360baf180902ffd5a66615982847  usr/share/doc/libxau6/copyright
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    libXau 6 libxau6 (>= 1:1.0.11)
+udeb: libXau 6 libxau6-udeb (>= 1:1.0.11)
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       # Triggers added by dh_makeshlibs/13.20
+activate-noawait ldconfig
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              /.
+/usr
+/usr/lib
+/usr/lib/i386-linux-gnu
+/usr/lib/i386-linux-gnu/libxcb-render.so.0.0.0
+/usr/share
+/usr/share/doc
+/usr/share/doc/libxcb-render0
+/usr/share/doc/libxcb-render0/changelog.Debian.gz
+/usr/share/doc/libxcb-render0/changelog.Debian.i386.gz
+/usr/share/doc/libxcb-render0/changelog.gz
+/usr/share/doc/libxcb-render0/copyright
+/usr/lib/i386-linux-gnu/libxcb-render.so.0
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         å%  $ libxcb-render0:i386.md5sums æ%  $ libxcb-render0:i386.shlibs  ç%  $ libxcb-render0:i386.symbols è%  $ libxcb-render0:i386.triggersé%    libxcb-shm0:i386.list   ê%    libxcb-shm0:i386.md5sumsë%    libxcb-shm0:i386.shlibs ì%    libxcb-shm0:i386.symbolsí%  $ libxcb-shm0:i386.triggers   î%   libxcb1:i386.list   ï%   libxcb1:i386.md5sumsð%   libxcb1:i386.shlibs ñ%   libxcb1:i386.symbolsò%    libxcb1:i386.triggers   ó%   libxdmcp6:i386.list ô%    libxdmcp6:i386.md5sums  õ%    libxdmcp6:i386.shlibs   ö%    libxdmcp6:i386.triggers ÷%   libxext6:i386.list  ø%    libxext6:i386.md5sums   ù%   libxext6:i386.shlibsú%    libxext6:i386.symbols   û%    libxext6:i386.triggers  ü%    libxrender1:i386.list   ý%    libxrender1:i386.md5sumsþ%    libxrender1:i386.shlibs ÿ%  $ libxrender1:i386.triggers    &   libxxhash0:i386.list&    libxxhash0:i386.md5sums &    libxxhash0:i386.shlibs  &    libxxhash0:i386.symbols &    libxxhash0:i386.triggers&   libzstd1:i386.list  &    libzstd1:i386.md5sums   &   libzstd1:i386.shlibs&    libzstd1:i386.triggers  
+&   login.defs.conffiles&   login.defs.list &   login.defs.md5sums  &   login.defs.postinst &   login.md5sums   &   login.postinst  &   login.postrm&   login.preinst   &   login.prerm &   	mawk.list   &   mawk.md5sums&   mawk.postinst   &   
+mawk.prerm  &    media-types.conffiles   &   media-types.list&   media-types.md5sums &   
+mount.list  &   mount.md5sums   &    ncurses-base.conffiles  &   ncurses-base.list   &   ncurses-base.md5sums &   ncurses-bin.list!&   ncurses-bin.md5sums "&   netbase.conffiles   #&   netbase.list$&   netbase.md5sums %&   netbase.postinst&&   netbase.postrm  '&  $ openssl-provider-legacy.list(&  ( openssl-provider-legacy.md5sums )&   openssl.conffiles   *&   openssl.list+&   openssl.md5sums ,&   openssl.postinst-&   passwd.conffiles.&   passwd.list /&   passwd.md5sums  0&   passwd.postinst 1&   passwd.postrm   2&   passwd.preinst  3&   passwd.prerm4&   perl-base.list  5&   perl-base.md5sums   6&   pinentry-curses.list7&    pinentry-curses.md5sums 8&    pinentry-curses.postinst9&    pinentry-curses.prerm   :&    poppler-data.conffiles  ;&   poppler-data.list   <&   poppler-data.md5sums=&    poppler-data.postinst   >&   poppler-data.prerm  ?&   poppler-utils.list  @&    poppler-utils.md5sums   A&   publicsuffix.list   B&   publicsuffix.md5sumsC&   python3-minimal.listD&    python3-minimal.md5sums E&    python3-minimal.postinstF&    python3-minimal.prerm   G&    python3.13-minimal.list H&  $ python3.13-minimal.md5sums  I&  $ python3.13-minimal.postinst J&  $ python3.13-minimal.postrm   K&  $ python3.13-minimal.preinst  L&    python3.13-minimal.prermM&   python3.13.list N&   python3.13.md5sums  O&   python3.13.postinst P&   python3.13.prermQ&   python3.listR&   python3.md5sums S&   python3.postinstT&   python3.postrm  U&   python3.preinst V&   python3.prerm   W&   readline-common.listX&    readline-common.md5sums Y&    readline-common.postinstZ&    readline-common.postrm  \&   sed.md5sums ]&   sqv.list^&   sqv.md5sums _&   sysvinit-utils.list `&    sysvinit-utils.md5sums  a&   tar.listb&   tar.md5sums c&   tar.postinstd&   	tar.prerm   e&   tzdata.config   f&   tzdata.list g&   tzdata.md5sums  h&   tzdata.postinst i&   tzdata.postrm   j&   tzdata.templatesk&   util-linux.conffilesl&   util-linux.list m&   util-linux.md5sums  n&   util-linux.postinst o&   util-linux.postrm   p&   util-linux.prermq&   zlib1g:i386.listr&   zlib1g:i386.md5sums s&   zlib1g:i386.shlibs  t&   zlib1g:i386.symbols u&  Ä zlib1g:i386.triggers                                                                                                                                                                        fce257034f3f516d5a9676129111c7b2  usr/lib/i386-linux-gnu/libxcb-render.so.0.0.0
+00423891616a45b41437ef972c4346b2  usr/share/doc/libxcb-render0/changelog.Debian.gz
+bc1fc3115ebce6b971d70d93b71c81dc  usr/share/doc/libxcb-render0/changelog.Debian.i386.gz
+dc29c34021a204fa784bb60bfee5683a  usr/share/doc/libxcb-render0/changelog.gz
+618ee90893b45d0d0c19d41a3a3d2e7d  usr/share/doc/libxcb-render0/copyright
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                libxcb-render 0 libxcb-render0 (>= 1.17.0)
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     libxcb-render.so.0 libxcb-render0 #MINVER#
+ xcb_render_add_glyphs@Base 0
+ xcb_render_add_glyphs_checked@Base 0
+ xcb_render_add_glyphs_data@Base 1.12
+ xcb_render_add_glyphs_data_end@Base 1.12
+ xcb_render_add_glyphs_data_length@Base 1.12
+ xcb_render_add_glyphs_glyphids@Base 1.12
+ xcb_render_add_glyphs_glyphids_end@Base 1.12
+ xcb_render_add_glyphs_glyphids_length@Base 1.12
+ xcb_render_add_glyphs_glyphs@Base 1.12
+ xcb_render_add_glyphs_glyphs_iterator@Base 1.12
+ xcb_render_add_glyphs_glyphs_length@Base 1.12
+ xcb_render_add_glyphs_sizeof@Base 1.8
+ xcb_render_add_traps@Base 0
+ xcb_render_add_traps_checked@Base 0
+ xcb_render_add_traps_sizeof@Base 1.8
+ xcb_render_add_traps_traps@Base 1.12
+ xcb_render_add_traps_traps_iterator@Base 1.12
+ xcb_render_add_traps_traps_length@Base 1.12
+ xcb_render_animcursorelt_end@Base 0
+ xcb_render_animcursorelt_next@Base 0
+ xcb_render_change_picture@Base 0
+ xcb_render_change_picture_aux@Base 1.12
+ xcb_render_change_picture_aux_checked@Base 1.12
+ xcb_render_change_picture_checked@Base 0
+ xcb_render_change_picture_sizeof@Base 1.8
+ xcb_render_change_picture_value_list@Base 1.12
+ xcb_render_change_picture_value_list_serialize@Base 1.12
+ xcb_render_change_picture_value_list_sizeof@Base 1.12
+ xcb_render_change_picture_value_list_unpack@Base 1.12
+ xcb_render_color_end@Base 0
+ xcb_render_color_next@Base 0
+ xcb_render_composite@Base 0
+ xcb_render_composite_checked@Base 0
+ xcb_render_composite_glyphs_16@Base 0
+ xcb_render_composite_glyphs_16_checked@Base 0
+ xcb_render_composite_glyphs_16_glyphcmds@Base 1.12
+ xcb_render_composite_glyphs_16_glyphcmds_end@Base 1.12
+ xcb_render_composite_glyphs_16_glyphcmds_length@Base 1.12
+ xcb_render_composite_glyphs_16_sizeof@Base 1.8
+ xcb_render_composite_glyphs_32@Base 0
+ xcb_render_composite_glyphs_32_checked@Base 0
+ xcb_render_composite_glyphs_32_glyphcmds@Base 1.12
+ xcb_render_composite_glyphs_32_glyphcmds_end@Base 1.12
+ xcb_render_composite_glyphs_32_glyphcmds_length@Base 1.12
+ xcb_render_composite_glyphs_32_sizeof@Base 1.8
+ xcb_render_composite_glyphs_8@Base 0
+ xcb_render_composite_glyphs_8_checked@Base 0
+ xcb_render_composite_glyphs_8_glyphcmds@Base 1.12
+ xcb_render_composite_glyphs_8_glyphcmds_end@Base 1.12
+ xcb_render_composite_glyphs_8_glyphcmds_length@Base 1.12
+ xcb_render_composite_glyphs_8_sizeof@Base 1.8
+ xcb_render_create_anim_cursor@Base 0
+ xcb_render_create_anim_cursor_checked@Base 0
+ xcb_render_create_anim_cursor_cursors@Base 1.12
+ xcb_render_create_anim_cursor_cursors_iterator@Base 1.12
+ xcb_render_create_anim_cursor_cursors_length@Base 1.12
+ xcb_render_create_anim_cursor_sizeof@Base 1.8
+ xcb_render_create_conical_gradient@Base 0
+ xcb_render_create_conical_gradient_checked@Base 0
+ xcb_render_create_conical_gradient_colors@Base 1.12
+ xcb_render_create_conical_gradient_colors_iterator@Base 1.12
+ xcb_render_create_conical_gradient_colors_length@Base 1.12
+ xcb_render_create_conical_gradient_sizeof@Base 1.8
+ xcb_render_create_conical_gradient_stops@Base 1.12
+ xcb_render_create_conical_gradient_stops_end@Base 1.12
+ xcb_render_create_conical_gradient_stops_length@Base 1.12
+ xcb_render_create_cursor@Base 0
+ xcb_render_create_cursor_checked@Base 0
+ xcb_render_create_glyph_set@Base 0
+ xcb_render_create_glyph_set_checked@Base 0
+ xcb_render_create_linear_gradient@Base 0
+ xcb_render_create_linear_gradient_checked@Base 0
+ xcb_render_create_linear_gradient_colors@Base 1.12
+ xcb_render_create_linear_gradient_colors_iterator@Base 1.12
+ xcb_render_create_linear_gradient_colors_length@Base 1.12
+ xcb_render_create_linear_gradient_sizeof@Base 1.8
+ xcb_render_create_linear_gradient_stops@Base 1.12
+ xcb_render_create_linear_gradient_stops_end@Base 1.12
+ xcb_render_create_linear_gradient_stops_length@Base 1.12
+ xcb_render_create_picture@Base 0
+ xcb_render_create_picture_aux@Base 1.12
+ xcb_render_create_picture_aux_checked@Base 1.12
+ xcb_render_create_picture_checked@Base 0
+ xcb_render_create_picture_sizeof@Base 1.8
+ xcb_render_create_picture_value_list@Base 1.12
+ xcb_render_create_picture_value_list_serialize@Base 1.12
+ xcb_render_create_picture_value_list_sizeof@Base 1.12
+ xcb_render_create_picture_value_list_unpack@Base 1.12
+ xcb_render_create_radial_gradient@Base 0
+ xcb_render_create_radial_gradient_checked@Base 0
+ xcb_render_create_radial_gradient_colors@Base 1.12
+ xcb_render_create_radial_gradient_colors_iterator@Base 1.12
+ xcb_render_create_radial_gradient_colors_length@Base 1.12
+ xcb_render_create_radial_gradient_sizeof@Base 1.8
+ xcb_render_create_radial_gradient_stops@Base 1.12
+ xcb_render_create_radial_gradient_stops_end@Base 1.12
+ xcb_render_create_radial_gradient_stops_length@Base 1.12
+ xcb_render_create_solid_fill@Base 0
+ xcb_render_create_solid_fill_checked@Base 0
+ xcb_render_directformat_end@Base 0
+ xcb_render_directformat_next@Base 0
+ xcb_render_fill_rectangles@Base 0
+ xcb_render_fill_rectangles_checked@Base 0
+ xcb_render_fill_rectangles_rects@Base 1.12
+ xcb_render_fill_rectangles_rects_iterator@Base 1.12
+ xcb_render_fill_rectangles_rects_length@Base 1.12
+ xcb_render_fill_rectangles_sizeof@Base 1.8
+ xcb_render_fixed_end@Base 0
+ xcb_render_fixed_next@Base 0
+ xcb_render_free_glyph_set@Base 0
+ xcb_render_free_glyph_set_checked@Base 0
+ xcb_render_free_glyphs@Base 0
+ xcb_render_free_glyphs_checked@Base 0
+ xcb_render_free_glyphs_glyphs@Base 1.12
+ xcb_render_free_glyphs_glyphs_end@Base 1.12
+ xcb_render_free_glyphs_glyphs_length@Base 1.12
+ xcb_render_free_glyphs_sizeof@Base 1.8
+ xcb_render_free_picture@Base 0
+ xcb_render_free_picture_checked@Base 0
+ xcb_render_glyph_end@Base 0
+ xcb_render_glyph_next@Base 0
+ xcb_render_glyphinfo_end@Base 0
+ xcb_render_glyphinfo_next@Base 0
+ xcb_render_glyphset_end@Base 0
+ xcb_render_glyphset_next@Base 0
+ xcb_render_id@Base 0
+ xcb_render_indexvalue_end@Base 0
+ xcb_render_indexvalue_next@Base 0
+ xcb_render_linefix_end@Base 0
+ xcb_render_linefix_next@Base 0
+ xcb_render_pictdepth_end@Base 0
+ xcb_render_pictdepth_next@Base 0
+ xcb_render_pictdepth_sizeof@Base 1.8
+ xcb_render_pictdepth_visuals@Base 0
+ xcb_render_pictdepth_visuals_iterator@Base 0
+ xcb_render_pictdepth_visuals_length@Base 0
+ xcb_render_pictformat_end@Base 0
+ xcb_render_pictformat_next@Base 0
+ xcb_render_pictforminfo_end@Base 0
+ xcb_render_pictforminfo_next@Base 0
+ xcb_render_pictscreen_depths_iterator@Base 0
+ xcb_render_pictscreen_depths_length@Base 0
+ xcb_render_pictscreen_end@Base 0
+ xcb_render_pictscreen_next@Base 0
+ xcb_render_pictscreen_sizeof@Base 1.8
+ xcb_render_picture_end@Base 0
+ xcb_render_picture_next@Base 0
+ xcb_render_pictvisual_end@Base 0
+ xcb_render_pictvisual_next@Base 0
+ xcb_render_pointfix_end@Base 0
+ xcb_render_pointfix_next@Base 0
+ xcb_render_query_filters@Base 0
+ xcb_render_query_filters_aliases@Base 0
+ xcb_render_query_filters_aliases_end@Base 0
+ xcb_render_query_filters_aliases_length@Base 0
+ xcb_render_query_filters_filters_iterator@Base 0
+ xcb_render_query_filters_filters_length@Base 0
+ xcb_render_query_filters_reply@Base 0
+ xcb_render_query_filters_sizeof@Base 1.8
+ xcb_render_query_filters_unchecked@Base 0
+ xcb_render_query_pict_formats@Base 0
+ xcb_render_query_pict_formats_formats@Base 0
+ xcb_render_query_pict_formats_formats_iterator@Base 0
+ xcb_render_query_pict_formats_formats_length@Base 0
+ xcb_render_query_pict_formats_reply@Base 0
+ xcb_render_query_pict_formats_screens_iterator@Base 0
+ xcb_render_query_pict_formats_screens_length@Base 0
+ xcb_render_query_pict_formats_sizeof@Base 1.8
+ xcb_render_query_pict_formats_subpixels@Base 0
+ xcb_render_query_pict_formats_subpixels_end@Base 0
+ xcb_render_query_pict_formats_subpixels_length@Base 0
+ xcb_render_query_pict_formats_unchecked@Base 0
+ xcb_render_query_pict_index_values@Base 0
+ xcb_render_query_pict_index_values_reply@Base 0
+ xcb_render_query_pict_index_values_sizeof@Base 1.8
+ xcb_render_query_pict_index_values_unchecked@Base 0
+ xcb_render_query_pict_index_values_values@Base 0
+ xcb_render_query_pict_index_values_values_iterator@Base 0
+ xcb_render_query_pict_index_values_values_length@Base 0
+ xcb_render_query_version@Base 0
+ xcb_render_query_version_reply@Base 0
+ xcb_render_query_version_unchecked@Base 0
+ xcb_render_reference_glyph_set@Base 0
+ xcb_render_reference_glyph_set_checked@Base 0
+ xcb_render_set_picture_clip_rectangles@Base 0
+ xcb_render_set_picture_clip_rectangles_checked@Base 0
+ xcb_render_set_picture_clip_rectangles_rectangles@Base 1.12
+ xcb_render_set_picture_clip_rectangles_rectangles_iterator@Base 1.12
+ xcb_render_set_picture_clip_rectangles_rectangles_length@Base 1.12
+ xcb_render_set_picture_clip_rectangles_sizeof@Base 1.8
+ xcb_render_set_picture_filter@Base 0
+ xcb_render_set_picture_filter_checked@Base 0
+ xcb_render_set_picture_filter_filter@Base 1.12
+ xcb_render_set_picture_filter_filter_end@Base 1.12
+ xcb_render_set_picture_filter_filter_length@Base 1.12
+ xcb_render_set_picture_filter_sizeof@Base 1.8
+ xcb_render_set_picture_filter_values@Base 1.12
+ xcb_render_set_picture_filter_values_end@Base 1.12
+ xcb_render_set_picture_filter_values_length@Base 1.12
+ xcb_render_set_picture_transform@Base 0
+ xcb_render_set_picture_transform_checked@Base 0
+ xcb_render_spanfix_end@Base 0
+ xcb_render_spanfix_next@Base 0
+ xcb_render_transform_end@Base 0
+ xcb_render_transform_next@Base 0
+ xcb_render_trap_end@Base 0
+ xcb_render_trap_next@Base 0
+ xcb_render_trapezoid_end@Base 0
+ xcb_render_trapezoid_next@Base 0
+ xcb_render_trapezoids@Base 0
+ xcb_render_trapezoids_checked@Base 0
+ xcb_render_trapezoids_sizeof@Base 1.8
+ xcb_render_trapezoids_traps@Base 1.12
+ xcb_render_trapezoids_traps_iterator@Base 1.12
+ xcb_render_trapezoids_traps_length@Base 1.12
+ xcb_render_tri_fan@Base 0
+ xcb_render_tri_fan_checked@Base 0
+ xcb_render_tri_fan_points@Base 1.12
+ xcb_render_tri_fan_points_iterator@Base 1.12
+ xcb_render_tri_fan_points_length@Base 1.12
+ xcb_render_tri_fan_sizeof@Base 1.8
+ xcb_render_tri_strip@Base 0
+ xcb_render_tri_strip_checked@Base 0
+ xcb_render_tri_strip_points@Base 1.12
+ xcb_render_tri_strip_points_iterator@Base 1.12
+ xcb_render_tri_strip_points_length@Base 1.12
+ xcb_render_tri_strip_sizeof@Base 1.8
+ xcb_render_triangle_end@Base 0
+ xcb_render_triangle_next@Base 0
+ xcb_render_triangles@Base 0
+ xcb_render_triangles_checked@Base 0
+ xcb_render_triangles_sizeof@Base 1.8
+ xcb_render_triangles_triangles@Base 1.12
+ xcb_render_triangles_triangles_iterator@Base 1.12
+ xcb_render_triangles_triangles_length@Base 1.12
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     # Triggers added by dh_makeshlibs/13.20
+activate-noawait ldconfig
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              /.
+/usr
+/usr/lib
+/usr/lib/i386-linux-gnu
+/usr/lib/i386-linux-gnu/libxcb-shm.so.0.0.0
+/usr/share
+/usr/share/doc
+/usr/share/doc/libxcb-shm0
+/usr/share/doc/libxcb-shm0/changelog.Debian.gz
+/usr/share/doc/libxcb-shm0/changelog.Debian.i386.gz
+/usr/share/doc/libxcb-shm0/changelog.gz
+/usr/share/doc/libxcb-shm0/copyright
+/usr/lib/i386-linux-gnu/libxcb-shm.so.0
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              118a152838c72548eb3eb97a60d6fa0e  usr/lib/i386-linux-gnu/libxcb-shm.so.0.0.0
+bb12836cb7453dbf253cc76146eda928  usr/share/doc/libxcb-shm0/changelog.Debian.gz
+bc1fc3115ebce6b971d70d93b71c81dc  usr/share/doc/libxcb-shm0/changelog.Debian.i386.gz
+dc29c34021a204fa784bb60bfee5683a  usr/share/doc/libxcb-shm0/changelog.gz
+618ee90893b45d0d0c19d41a3a3d2e7d  usr/share/doc/libxcb-shm0/copyright
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               libxcb-shm 0 libxcb-shm0 (>= 1.17.0)
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           libxcb-shm.so.0 libxcb-shm0 #MINVER#
+ xcb_shm_attach@Base 0
+ xcb_shm_attach_checked@Base 0
+ xcb_shm_attach_fd@Base 1.10
+ xcb_shm_attach_fd_checked@Base 1.10
+ xcb_shm_create_pixmap@Base 0
+ xcb_shm_create_pixmap_checked@Base 0
+ xcb_shm_create_segment@Base 1.10
+ xcb_shm_create_segment_reply@Base 1.10
+ xcb_shm_create_segment_reply_fds@Base 1.10
+ xcb_shm_create_segment_unchecked@Base 1.10
+ xcb_shm_detach@Base 0
+ xcb_shm_detach_checked@Base 0
+ xcb_shm_get_image@Base 0
+ xcb_shm_get_image_reply@Base 0
+ xcb_shm_get_image_unchecked@Base 0
+ xcb_shm_id@Base 0
+ xcb_shm_put_image@Base 0
+ xcb_shm_put_image_checked@Base 0
+ xcb_shm_query_version@Base 0
+ xcb_shm_query_version_reply@Base 0
+ xcb_shm_query_version_unchecked@Base 0
+ xcb_shm_seg_end@Base 0
+ xcb_shm_seg_next@Base 0
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               # Triggers added by dh_makeshlibs/13.20
+activate-noawait ldconfig
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              /.
+/usr
+/usr/lib
+/usr/lib/i386-linux-gnu
+/usr/lib/i386-linux-gnu/libxcb.so.1.1.0
+/usr/share
+/usr/share/doc
+/usr/share/doc/libxcb1
+/usr/share/doc/libxcb1/changelog.Debian.gz
+/usr/share/doc/libxcb1/changelog.Debian.i386.gz
+/usr/share/doc/libxcb1/changelog.gz
+/usr/share/doc/libxcb1/copyright
+/usr/lib/i386-linux-gnu/libxcb.so.1
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          4c05cd1ed37b69de53d5ef9a24c5a1f0  usr/lib/i386-linux-gnu/libxcb.so.1.1.0
+b2bb1c22df89bc680314fd0db800f581  usr/share/doc/libxcb1/changelog.Debian.gz
+bc1fc3115ebce6b971d70d93b71c81dc  usr/share/doc/libxcb1/changelog.Debian.i386.gz
+dc29c34021a204fa784bb60bfee5683a  usr/share/doc/libxcb1/changelog.gz
+618ee90893b45d0d0c19d41a3a3d2e7d  usr/share/doc/libxcb1/copyright
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   libxcb 1 libxcb1 (>= 1.12)
+udeb: libxcb 1 libxcb1-udeb (>= 1.12)
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               libxcb.so.1 libxcb1 #MINVER#
+ xcb_alloc_color@Base 0
+ xcb_alloc_color_cells@Base 0
+ xcb_alloc_color_cells_masks@Base 0
+ xcb_alloc_color_cells_masks_end@Base 0
+ xcb_alloc_color_cells_masks_length@Base 0
+ xcb_alloc_color_cells_pixels@Base 0
+ xcb_alloc_color_cells_pixels_end@Base 0
+ xcb_alloc_color_cells_pixels_length@Base 0
+ xcb_alloc_color_cells_reply@Base 0
+ xcb_alloc_color_cells_sizeof@Base 1.8
+ xcb_alloc_color_cells_unchecked@Base 0
+ xcb_alloc_color_planes@Base 0
+ xcb_alloc_color_planes_pixels@Base 0
+ xcb_alloc_color_planes_pixels_end@Base 0
+ xcb_alloc_color_planes_pixels_length@Base 0
+ xcb_alloc_color_planes_reply@Base 0
+ xcb_alloc_color_planes_sizeof@Base 1.8
+ xcb_alloc_color_planes_unchecked@Base 0
+ xcb_alloc_color_reply@Base 0
+ xcb_alloc_color_unchecked@Base 0
+ xcb_alloc_named_color@Base 0
+ xcb_alloc_named_color_reply@Base 0
+ xcb_alloc_named_color_sizeof@Base 1.8
+ xcb_alloc_named_color_unchecked@Base 0
+ xcb_allow_events@Base 0
+ xcb_allow_events_checked@Base 0
+ xcb_arc_end@Base 0
+ xcb_arc_next@Base 0
+ xcb_atom_end@Base 0
+ xcb_atom_next@Base 0
+ xcb_bell@Base 0
+ xcb_bell_checked@Base 0
+ xcb_big_requests_enable@Base 0
+ xcb_big_requests_enable_reply@Base 0
+ xcb_big_requests_enable_unchecked@Base 0
+ xcb_big_requests_id@Base 0
+ xcb_bool32_end@Base 1.12
+ xcb_bool32_next@Base 1.12
+ xcb_button_end@Base 0
+ xcb_button_next@Base 0
+ xcb_change_active_pointer_grab@Base 0
+ xcb_change_active_pointer_grab_checked@Base 0
+ xcb_change_gc@Base 0
+ xcb_change_gc_aux@Base 1.12
+ xcb_change_gc_aux_checked@Base 1.12
+ xcb_change_gc_checked@Base 0
+ xcb_change_gc_sizeof@Base 1.8
+ xcb_change_gc_value_list@Base 1.12
+ xcb_change_gc_value_list_serialize@Base 1.12
+ xcb_change_gc_value_list_sizeof@Base 1.12
+ xcb_change_gc_value_list_unpack@Base 1.12
+ xcb_change_hosts@Base 0
+ xcb_change_hosts_address@Base 1.12
+ xcb_change_hosts_address_end@Base 1.12
+ xcb_change_hosts_address_length@Base 1.12
+ xcb_change_hosts_checked@Base 0
+ xcb_change_hosts_sizeof@Base 1.8
+ xcb_change_keyboard_control@Base 0
+ xcb_change_keyboard_control_aux@Base 1.12
+ xcb_change_keyboard_control_aux_checked@Base 1.12
+ xcb_change_keyboard_control_checked@Base 0
+ xcb_change_keyboard_control_sizeof@Base 1.8
+ xcb_change_keyboard_control_value_list@Base 1.12
+ xcb_change_keyboard_control_value_list_serialize@Base 1.12
+ xcb_change_keyboard_control_value_list_sizeof@Base 1.12
+ xcb_change_keyboard_control_value_list_unpack@Base 1.12
+ xcb_change_keyboard_mapping@Base 0
+ xcb_change_keyboard_mapping_checked@Base 0
+ xcb_change_keyboard_mapping_keysyms@Base 1.12
+ xcb_change_keyboard_mapping_keysyms_end@Base 1.12
+ xcb_change_keyboard_mapping_keysyms_length@Base 1.12
+ xcb_change_keyboard_mapping_sizeof@Base 1.8
+ xcb_change_pointer_control@Base 0
+ xcb_change_pointer_control_checked@Base 0
+ xcb_change_property@Base 0
+ xcb_change_property_checked@Base 0
+ xcb_change_property_data@Base 1.12
+ xcb_change_property_data_end@Base 1.12
+ xcb_change_property_data_length@Base 1.12
+ xcb_change_property_sizeof@Base 1.8
+ xcb_change_save_set@Base 0
+ xcb_change_save_set_checked@Base 0
+ xcb_change_window_attributes@Base 0
+ xcb_change_window_attributes_aux@Base 1.12
+ xcb_change_window_attributes_aux_checked@Base 1.12
+ xcb_change_window_attributes_checked@Base 0
+ xcb_change_window_attributes_sizeof@Base 1.8
+ xcb_change_window_attributes_value_list@Base 1.12
+ xcb_change_window_attributes_value_list_serialize@Base 1.12
+ xcb_change_window_attributes_value_list_sizeof@Base 1.12
+ xcb_change_window_attributes_value_list_unpack@Base 1.12
+ xcb_char2b_end@Base 0
+ xcb_char2b_next@Base 0
+ xcb_charinfo_end@Base 0
+ xcb_charinfo_next@Base 0
+ xcb_circulate_window@Base 0
+ xcb_circulate_window_checked@Base 0
+ xcb_clear_area@Base 0
+ xcb_clear_area_checked@Base 0
+ xcb_client_message_data_end@Base 0
+ xcb_client_message_data_next@Base 0
+ xcb_close_font@Base 0
+ xcb_close_font_checked@Base 0
+ xcb_coloritem_end@Base 0
+ xcb_coloritem_next@Base 0
+ xcb_colormap_end@Base 0
+ xcb_colormap_next@Base 0
+ xcb_configure_window@Base 0
+ xcb_configure_window_aux@Base 1.12
+ xcb_configure_window_aux_checked@Base 1.12
+ xcb_configure_window_checked@Base 0
+ xcb_configure_window_sizeof@Base 1.8
+ xcb_configure_window_value_list@Base 1.12
+ xcb_configure_window_value_list_serialize@Base 1.12
+ xcb_configure_window_value_list_sizeof@Base 1.12
+ xcb_configure_window_value_list_unpack@Base 1.12
+ xcb_connect@Base 0
+ xcb_connect_to_display_with_auth_info@Base 0
+ xcb_connect_to_fd@Base 0
+ xcb_connection_has_error@Base 0
+ xcb_convert_selection@Base 0
+ xcb_convert_selection_checked@Base 0
+ xcb_copy_area@Base 0
+ xcb_copy_area_checked@Base 0
+ xcb_copy_colormap_and_free@Base 0
+ xcb_copy_colormap_and_free_checked@Base 0
+ xcb_copy_gc@Base 0
+ xcb_copy_gc_checked@Base 0
+ xcb_copy_plane@Base 0
+ xcb_copy_plane_checked@Base 0
+ xcb_create_colormap@Base 0
+ xcb_create_colormap_checked@Base 0
+ xcb_create_cursor@Base 0
+ xcb_create_cursor_checked@Base 0
+ xcb_create_gc@Base 0
+ xcb_create_gc_aux@Base 1.12
+ xcb_create_gc_aux_checked@Base 1.12
+ xcb_create_gc_checked@Base 0
+ xcb_create_gc_sizeof@Base 1.8
+ xcb_create_gc_value_list@Base 1.12
+ xcb_create_gc_value_list_serialize@Base 1.12
+ xcb_create_gc_value_list_sizeof@Base 1.12
+ xcb_create_gc_value_list_unpack@Base 1.12
+ xcb_create_glyph_cursor@Base 0
+ xcb_create_glyph_cursor_checked@Base 0
+ xcb_create_pixmap@Base 0
+ xcb_create_pixmap_checked@Base 0
+ xcb_create_window@Base 0
+ xcb_create_window_aux@Base 1.12
+ xcb_create_window_aux_checked@Base 1.12
+ xcb_create_window_checked@Base 0
+ xcb_create_window_sizeof@Base 1.8
+ xcb_create_window_value_list@Base 1.12
+ xcb_create_window_value_list_serialize@Base 1.12
+ xcb_create_window_value_list_sizeof@Base 1.12
+ xcb_create_window_value_list_unpack@Base 1.12
+ xcb_cursor_end@Base 0
+ xcb_cursor_next@Base 0
+ xcb_delete_property@Base 0
+ xcb_delete_property_checked@Base 0
+ xcb_depth_end@Base 0
+ xcb_depth_next@Base 0
+ xcb_depth_sizeof@Base 1.8
+ xcb_depth_visuals@Base 0
+ xcb_depth_visuals_iterator@Base 0
+ xcb_depth_visuals_length@Base 0
+ xcb_destroy_subwindows@Base 0
+ xcb_destroy_subwindows_checked@Base 0
+ xcb_destroy_window@Base 0
+ xcb_destroy_window_checked@Base 0
+ xcb_discard_reply64@Base 1.11.1
+ xcb_discard_reply@Base 1.6
+ xcb_disconnect@Base 0
+ xcb_drawable_end@Base 0
+ xcb_drawable_next@Base 0
+ xcb_fill_poly@Base 0
+ xcb_fill_poly_checked@Base 0
+ xcb_fill_poly_points@Base 1.12
+ xcb_fill_poly_points_iterator@Base 1.12
+ xcb_fill_poly_points_length@Base 1.12
+ xcb_fill_poly_sizeof@Base 1.8
+ xcb_flush@Base 0
+ xcb_font_end@Base 0
+ xcb_font_next@Base 0
+ xcb_fontable_end@Base 0
+ xcb_fontable_next@Base 0
+ xcb_fontprop_end@Base 0
+ xcb_fontprop_next@Base 0
+ xcb_force_screen_saver@Base 0
+ xcb_force_screen_saver_checked@Base 0
+ xcb_format_end@Base 0
+ xcb_format_next@Base 0
+ xcb_free_colormap@Base 0
+ xcb_free_colormap_checked@Base 0
+ xcb_free_colors@Base 0
+ xcb_free_colors_checked@Base 0
+ xcb_free_colors_pixels@Base 1.12
+ xcb_free_colors_pixels_end@Base 1.12
+ xcb_free_colors_pixels_length@Base 1.12
+ xcb_free_colors_sizeof@Base 1.8
+ xcb_free_cursor@Base 0
+ xcb_free_cursor_checked@Base 0
+ xcb_free_gc@Base 0
+ xcb_free_gc_checked@Base 0
+ xcb_free_pixmap@Base 0
+ xcb_free_pixmap_checked@Base 0
+ xcb_gcontext_end@Base 0
+ xcb_gcontext_next@Base 0
+ xcb_generate_id@Base 0
+ xcb_get_atom_name@Base 0
+ xcb_get_atom_name_name@Base 0
+ xcb_get_atom_name_name_end@Base 0
+ xcb_get_atom_name_name_length@Base 0
+ xcb_get_atom_name_reply@Base 0
+ xcb_get_atom_name_sizeof@Base 1.8
+ xcb_get_atom_name_unchecked@Base 0
+ xcb_get_extension_data@Base 0
+ xcb_get_file_descriptor@Base 0
+ xcb_get_font_path@Base 0
+ xcb_get_font_path_path_iterator@Base 0
+ xcb_get_font_path_path_length@Base 0
+ xcb_get_font_path_reply@Base 0
+ xcb_get_font_path_sizeof@Base 1.8
+ xcb_get_font_path_unchecked@Base 0
+ xcb_get_geometry@Base 0
+ xcb_get_geometry_reply@Base 0
+ xcb_get_geometry_unchecked@Base 0
+ xcb_get_image@Base 0
+ xcb_get_image_data@Base 0
+ xcb_get_image_data_end@Base 0
+ xcb_get_image_data_length@Base 0
+ xcb_get_image_reply@Base 0
+ xcb_get_image_sizeof@Base 1.8
+ xcb_get_image_unchecked@Base 0
+ xcb_get_input_focus@Base 0
+ xcb_get_input_focus_reply@Base 0
+ xcb_get_input_focus_unchecked@Base 0
+ xcb_get_keyboard_control@Base 0
+ xcb_get_keyboard_control_reply@Base 0
+ xcb_get_keyboard_control_unchecked@Base 0
+ xcb_get_keyboard_mapping@Base 0
+ xcb_get_keyboard_mapping_keysyms@Base 0
+ xcb_get_keyboard_mapping_keysyms_end@Base 1.2
+ xcb_get_keyboard_mapping_keysyms_length@Base 0
+ xcb_get_keyboard_mapping_reply@Base 0
+ xcb_get_keyboard_mapping_sizeof@Base 1.8
+ xcb_get_keyboard_mapping_unchecked@Base 0
+ xcb_get_maximum_request_length@Base 0
+ xcb_get_modifier_mapping@Base 0
+ xcb_get_modifier_mapping_keycodes@Base 0
+ xcb_get_modifier_mapping_keycodes_end@Base 1.2
+ xcb_get_modifier_mapping_keycodes_length@Base 0
+ xcb_get_modifier_mapping_reply@Base 0
+ xcb_get_modifier_mapping_sizeof@Base 1.8
+ xcb_get_modifier_mapping_unchecked@Base 0
+ xcb_get_motion_events@Base 0
+ xcb_get_motion_events_events@Base 0
+ xcb_get_motion_events_events_iterator@Base 0
+ xcb_get_motion_events_events_length@Base 0
+ xcb_get_motion_events_reply@Base 0
+ xcb_get_motion_events_sizeof@Base 1.8
+ xcb_get_motion_events_unchecked@Base 0
+ xcb_get_pointer_control@Base 0
+ xcb_get_pointer_control_reply@Base 0
+ xcb_get_pointer_control_unchecked@Base 0
+ xcb_get_pointer_mapping@Base 0
+ xcb_get_pointer_mapping_map@Base 0
+ xcb_get_pointer_mapping_map_end@Base 0
+ xcb_get_pointer_mapping_map_length@Base 0
+ xcb_get_pointer_mapping_reply@Base 0
+ xcb_get_pointer_mapping_sizeof@Base 1.8
+ xcb_get_pointer_mapping_unchecked@Base 0
+ xcb_get_property@Base 0
+ xcb_get_property_reply@Base 0
+ xcb_get_property_sizeof@Base 1.8
+ xcb_get_property_unchecked@Base 0
+ xcb_get_property_value@Base 0
+ xcb_get_property_value_end@Base 0
+ xcb_get_property_value_length@Base 0
+ xcb_get_reply_fds@Base 1.9.2
+ xcb_get_screen_saver@Base 0
+ xcb_get_screen_saver_reply@Base 0
+ xcb_get_screen_saver_unchecked@Base 0
+ xcb_get_selection_owner@Base 0
+ xcb_get_selection_owner_reply@Base 0
+ xcb_get_selection_owner_unchecked@Base 0
+ xcb_get_setup@Base 0
+ xcb_get_window_attributes@Base 0
+ xcb_get_window_attributes_reply@Base 0
+ xcb_get_window_attributes_unchecked@Base 0
+ xcb_grab_button@Base 0
+ xcb_grab_button_checked@Base 0
+ xcb_grab_key@Base 0
+ xcb_grab_key_checked@Base 0
+ xcb_grab_keyboard@Base 0
+ xcb_grab_keyboard_reply@Base 0
+ xcb_grab_keyboard_unchecked@Base 0
+ xcb_grab_pointer@Base 0
+ xcb_grab_pointer_reply@Base 0
+ xcb_grab_pointer_unchecked@Base 0
+ xcb_grab_server@Base 0
+ xcb_grab_server_checked@Base 0
+ xcb_host_address@Base 0
+ xcb_host_address_end@Base 0
+ xcb_host_address_length@Base 0
+ xcb_host_end@Base 0
+ xcb_host_next@Base 0
+ xcb_host_sizeof@Base 1.8
+ xcb_image_text_16@Base 0
+ xcb_image_text_16_checked@Base 0
+ xcb_image_text_16_sizeof@Base 1.8
+ xcb_image_text_16_string@Base 1.12
+ xcb_image_text_16_string_iterator@Base 1.12
+ xcb_image_text_16_string_length@Base 1.12
+ xcb_image_text_8@Base 0
+ xcb_image_text_8_checked@Base 0
+ xcb_image_text_8_sizeof@Base 1.8
+ xcb_image_text_8_string@Base 1.12
+ xcb_image_text_8_string_end@Base 1.12
+ xcb_image_text_8_string_length@Base 1.12
+ xcb_install_colormap@Base 0
+ xcb_install_colormap_checked@Base 0
+ xcb_intern_atom@Base 0
+ xcb_intern_atom_reply@Base 0
+ xcb_intern_atom_sizeof@Base 1.8
+ xcb_intern_atom_unchecked@Base 0
+ xcb_keycode32_end@Base 1.12
+ xcb_keycode32_next@Base 1.12
+ xcb_keycode_end@Base 0
+ xcb_keycode_next@Base 0
+ xcb_keysym_end@Base 0
+ xcb_keysym_next@Base 0
+ xcb_kill_client@Base 0
+ xcb_kill_client_checked@Base 0
+ xcb_list_extensions@Base 0
+ xcb_list_extensions_names_iterator@Base 0
+ xcb_list_extensions_names_length@Base 0
+ xcb_list_extensions_reply@Base 0
+ xcb_list_extensions_sizeof@Base 1.8
+ xcb_list_extensions_unchecked@Base 0
+ xcb_list_fonts@Base 0
+ xcb_list_fonts_names_iterator@Base 0
+ xcb_list_fonts_names_length@Base 0
+ xcb_list_fonts_reply@Base 0
+ xcb_list_fonts_sizeof@Base 1.8
+ xcb_list_fonts_unchecked@Base 0
+ xcb_list_fonts_with_info@Base 0
+ xcb_list_fonts_with_info_name@Base 0
+ xcb_list_fonts_with_info_name_end@Base 0
+ xcb_list_fonts_with_info_name_length@Base 0
+ xcb_list_fonts_with_info_properties@Base 0
+ xcb_list_fonts_with_info_properties_iterator@Base 0
+ xcb_list_fonts_with_info_properties_length@Base 0
+ xcb_list_fonts_with_info_reply@Base 0
+ xcb_list_fonts_with_info_sizeof@Base 1.8
+ xcb_list_fonts_with_info_unchecked@Base 0
+ xcb_list_hosts@Base 0
+ xcb_list_hosts_hosts_iterator@Base 0
+ xcb_list_hosts_hosts_length@Base 0
+ xcb_list_hosts_reply@Base 0
+ xcb_list_hosts_sizeof@Base 1.8
+ xcb_list_hosts_unchecked@Base 0
+ xcb_list_installed_colormaps@Base 0
+ xcb_list_installed_colormaps_cmaps@Base 0
+ xcb_list_installed_colormaps_cmaps_end@Base 1.2
+ xcb_list_installed_colormaps_cmaps_length@Base 0
+ xcb_list_installed_colormaps_reply@Base 0
+ xcb_list_installed_colormaps_sizeof@Base 1.8
+ xcb_list_installed_colormaps_unchecked@Base 0
+ xcb_list_properties@Base 0
+ xcb_list_properties_atoms@Base 0
+ xcb_list_properties_atoms_end@Base 1.2
+ xcb_list_properties_atoms_length@Base 0
+ xcb_list_properties_reply@Base 0
+ xcb_list_properties_sizeof@Base 1.8
+ xcb_list_properties_unchecked@Base 0
+ xcb_lookup_color@Base 0
+ xcb_lookup_color_reply@Base 0
+ xcb_lookup_color_sizeof@Base 1.8
+ xcb_lookup_color_unchecked@Base 0
+ xcb_map_subwindows@Base 0
+ xcb_map_subwindows_checked@Base 0
+ xcb_map_window@Base 0
+ xcb_map_window_checked@Base 0
+ xcb_no_operation@Base 0
+ xcb_no_operation_checked@Base 0
+ xcb_open_font@Base 0
+ xcb_open_font_checked@Base 0
+ xcb_open_font_name@Base 1.12
+ xcb_open_font_name_end@Base 1.12
+ xcb_open_font_name_length@Base 1.12
+ xcb_open_font_sizeof@Base 1.8
+ xcb_parse_display@Base 0
+ xcb_pixmap_end@Base 0
+ xcb_pixmap_next@Base 0
+ xcb_point_end@Base 0
+ xcb_point_next@Base 0
+ xcb_poll_for_event@Base 0
+ xcb_poll_for_queued_event@Base 1.8
+ xcb_poll_for_reply64@Base 1.11.1
+ xcb_poll_for_reply@Base 0
+ xcb_poll_for_special_event@Base 1.9.2
+ xcb_poly_arc@Base 0
+ xcb_poly_arc_arcs@Base 1.12
+ xcb_poly_arc_arcs_iterator@Base 1.12
+ xcb_poly_arc_arcs_length@Base 1.12
+ xcb_poly_arc_checked@Base 0
+ xcb_poly_arc_sizeof@Base 1.8
+ xcb_poly_fill_arc@Base 0
+ xcb_poly_fill_arc_arcs@Base 1.12
+ xcb_poly_fill_arc_arcs_iterator@Base 1.12
+ xcb_poly_fill_arc_arcs_length@Base 1.12
+ xcb_poly_fill_arc_checked@Base 0
+ xcb_poly_fill_arc_sizeof@Base 1.8
+ xcb_poly_fill_rectangle@Base 0
+ xcb_poly_fill_rectangle_checked@Base 0
+ xcb_poly_fill_rectangle_rectangles@Base 1.12
+ xcb_poly_fill_rectangle_rectangles_iterator@Base 1.12
+ xcb_poly_fill_rectangle_rectangles_length@Base 1.12
+ xcb_poly_fill_rectangle_sizeof@Base 1.8
+ xcb_poly_line@Base 0
+ xcb_poly_line_checked@Base 0
+ xcb_poly_line_points@Base 1.12
+ xcb_poly_line_points_iterator@Base 1.12
+ xcb_poly_line_points_length@Base 1.12
+ xcb_poly_line_sizeof@Base 1.8
+ xcb_poly_point@Base 0
+ xcb_poly_point_checked@Base 0
+ xcb_poly_point_points@Base 1.12
+ xcb_poly_point_points_iterator@Base 1.12
+ xcb_poly_point_points_length@Base 1.12
+ xcb_poly_point_sizeof@Base 1.8
+ xcb_poly_rectangle@Base 0
+ xcb_poly_rectangle_checked@Base 0
+ xcb_poly_rectangle_rectangles@Base 1.12
+ xcb_poly_rectangle_rectangles_iterator@Base 1.12
+ xcb_poly_rectangle_rectangles_length@Base 1.12
+ xcb_poly_rectangle_sizeof@Base 1.8
+ xcb_poly_segment@Base 0
+ xcb_poly_segment_checked@Base 0
+ xcb_poly_segment_segments@Base 1.12
+ xcb_poly_segment_segments_iterator@Base 1.12
+ xcb_poly_segment_segments_length@Base 1.12
+ xcb_poly_segment_sizeof@Base 1.8
+ xcb_poly_text_16@Base 0
+ xcb_poly_text_16_checked@Base 0
+ xcb_poly_text_16_items@Base 1.12
+ xcb_poly_text_16_items_end@Base 1.12
+ xcb_poly_text_16_items_length@Base 1.12
+ xcb_poly_text_16_sizeof@Base 1.8
+ xcb_poly_text_8@Base 0
+ xcb_poly_text_8_checked@Base 0
+ xcb_poly_text_8_items@Base 1.12
+ xcb_poly_text_8_items_end@Base 1.12
+ xcb_poly_text_8_items_length@Base 1.12
+ xcb_poly_text_8_sizeof@Base 1.8
+ xcb_popcount@Base 0
+ xcb_prefetch_extension_data@Base 0
+ xcb_prefetch_maximum_request_length@Base 0
+ xcb_put_image@Base 0
+ xcb_put_image_checked@Base 0
+ xcb_put_image_data@Base 1.12
+ xcb_put_image_data_end@Base 1.12
+ xcb_put_image_data_length@Base 1.12
+ xcb_put_image_sizeof@Base 1.8
+ xcb_query_best_size@Base 0
+ xcb_query_best_size_reply@Base 0
+ xcb_query_best_size_unchecked@Base 0
+ xcb_query_colors@Base 0
+ xcb_query_colors_colors@Base 0
+ xcb_query_colors_colors_iterator@Base 0
+ xcb_query_colors_colors_length@Base 0
+ xcb_query_colors_reply@Base 0
+ xcb_query_colors_sizeof@Base 1.8
+ xcb_query_colors_unchecked@Base 0
+ xcb_query_extension@Base 0
+ xcb_query_extension_reply@Base 0
+ xcb_query_extension_sizeof@Base 1.8
+ xcb_query_extension_unchecked@Base 0
+ xcb_query_font@Base 0
+ xcb_query_font_char_infos@Base 0
+ xcb_query_font_char_infos_iterator@Base 0
+ xcb_query_font_char_infos_length@Base 0
+ xcb_query_font_properties@Base 0
+ xcb_query_font_properties_iterator@Base 0
+ xcb_query_font_properties_length@Base 0
+ xcb_query_font_reply@Base 0
+ xcb_query_font_sizeof@Base 1.8
+ xcb_query_font_unchecked@Base 0
+ xcb_query_keymap@Base 0
+ xcb_query_keymap_reply@Base 0
+ xcb_query_keymap_unchecked@Base 0
+ xcb_query_pointer@Base 0
+ xcb_query_pointer_reply@Base 0
+ xcb_query_pointer_unchecked@Base 0
+ xcb_query_text_extents@Base 0
+ xcb_query_text_extents_reply@Base 0
+ xcb_query_text_extents_sizeof@Base 1.8
+ xcb_query_text_extents_unchecked@Base 0
+ xcb_query_tree@Base 0
+ xcb_query_tree_children@Base 0
+ xcb_query_tree_children_end@Base 1.2
+ xcb_query_tree_children_length@Base 0
+ xcb_query_tree_reply@Base 0
+ xcb_query_tree_sizeof@Base 1.8
+ xcb_query_tree_unchecked@Base 0
+ xcb_recolor_cursor@Base 0
+ xcb_recolor_cursor_checked@Base 0
+ xcb_rectangle_end@Base 0
+ xcb_rectangle_next@Base 0
+ xcb_register_for_special_xge@Base 1.9.2
+ xcb_reparent_window@Base 0
+ xcb_reparent_window_checked@Base 0
+ xcb_request_check@Base 0
+ xcb_rgb_end@Base 0
+ xcb_rgb_next@Base 0
+ xcb_rotate_properties@Base 0
+ xcb_rotate_properties_atoms@Base 1.12
+ xcb_rotate_properties_atoms_end@Base 1.12
+ xcb_rotate_properties_atoms_length@Base 1.12
+ xcb_rotate_properties_checked@Base 0
+ xcb_rotate_properties_sizeof@Base 1.8
+ xcb_screen_allowed_depths_iterator@Base 0
+ xcb_screen_allowed_depths_length@Base 0
+ xcb_screen_end@Base 0
+ xcb_screen_next@Base 0
+ xcb_screen_sizeof@Base 1.8
+ xcb_segment_end@Base 0
+ xcb_segment_next@Base 0
+ xcb_send_event@Base 0
+ xcb_send_event_checked@Base 0
+ xcb_send_fd@Base 1.9.2
+ xcb_send_request64@Base 1.11.1
+ xcb_send_request@Base 0
+ xcb_send_request_with_fds64@Base 1.12
+ xcb_send_request_with_fds@Base 1.12
+ xcb_set_access_control@Base 0
+ xcb_set_access_control_checked@Base 0
+ xcb_set_clip_rectangles@Base 0
+ xcb_set_clip_rectangles_checked@Base 0
+ xcb_set_clip_rectangles_rectangles@Base 1.12
+ xcb_set_clip_rectangles_rectangles_iterator@Base 1.12
+ xcb_set_clip_rectangles_rectangles_length@Base 1.12
+ xcb_set_clip_rectangles_sizeof@Base 1.8
+ xcb_set_close_down_mode@Base 0
+ xcb_set_close_down_mode_checked@Base 0
+ xcb_set_dashes@Base 0
+ xcb_set_dashes_checked@Base 0
+ xcb_set_dashes_dashes@Base 1.12
+ xcb_set_dashes_dashes_end@Base 1.12
+ xcb_set_dashes_dashes_length@Base 1.12
+ xcb_set_dashes_sizeof@Base 1.8
+ xcb_set_font_path@Base 0
+ xcb_set_font_path_checked@Base 0
+ xcb_set_font_path_font_iterator@Base 1.12
+ xcb_set_font_path_font_length@Base 1.12
+ xcb_set_font_path_sizeof@Base 1.8
+ xcb_set_input_focus@Base 0
+ xcb_set_input_focus_checked@Base 0
+ xcb_set_modifier_mapping@Base 0
+ xcb_set_modifier_mapping_reply@Base 0
+ xcb_set_modifier_mapping_sizeof@Base 1.8
+ xcb_set_modifier_mapping_unchecked@Base 0
+ xcb_set_pointer_mapping@Base 0
+ xcb_set_pointer_mapping_reply@Base 0
+ xcb_set_pointer_mapping_sizeof@Base 1.8
+ xcb_set_pointer_mapping_unchecked@Base 0
+ xcb_set_screen_saver@Base 0
+ xcb_set_screen_saver_checked@Base 0
+ xcb_set_selection_owner@Base 0
+ xcb_set_selection_owner_checked@Base 0
+ xcb_setup_authenticate_end@Base 0
+ xcb_setup_authenticate_next@Base 0
+ xcb_setup_authenticate_reason@Base 0
+ xcb_setup_authenticate_reason_end@Base 0
+ xcb_setup_authenticate_reason_length@Base 0
+ xcb_setup_authenticate_sizeof@Base 1.8
+ xcb_setup_end@Base 0
+ xcb_setup_failed_end@Base 0
+ xcb_setup_failed_next@Base 0
+ xcb_setup_failed_reason@Base 0
+ xcb_setup_failed_reason_end@Base 0
+ xcb_setup_failed_reason_length@Base 0
+ xcb_setup_failed_sizeof@Base 1.8
+ xcb_setup_next@Base 0
+ xcb_setup_pixmap_formats@Base 0
+ xcb_setup_pixmap_formats_iterator@Base 0
+ xcb_setup_pixmap_formats_length@Base 0
+ xcb_setup_request_authorization_protocol_data@Base 0
+ xcb_setup_request_authorization_protocol_data_end@Base 0
+ xcb_setup_request_authorization_protocol_data_length@Base 0
+ xcb_setup_request_authorization_protocol_name@Base 0
+ xcb_setup_request_authorization_pro

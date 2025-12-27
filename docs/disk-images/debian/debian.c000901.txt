@@ -1,0 +1,2178 @@
+/.
+/etc
+/etc/pam.d
+/etc/pam.d/runuser
+/etc/pam.d/runuser-l
+/etc/pam.d/su
+/etc/pam.d/su-l
+/usr
+/usr/bin
+/usr/bin/choom
+/usr/bin/chrt
+/usr/bin/dmesg
+/usr/bin/fallocate
+/usr/bin/findmnt
+/usr/bin/flock
+/usr/bin/getopt
+/usr/bin/hardlink
+/usr/bin/ionice
+/usr/bin/ipcmk
+/usr/bin/ipcrm
+/usr/bin/ipcs
+/usr/bin/lsblk
+/usr/bin/lscpu
+/usr/bin/lsipc
+/usr/bin/lslocks
+/usr/bin/lslogins
+/usr/bin/lsmem
+/usr/bin/lsns
+/usr/bin/mcookie
+/usr/bin/more
+/usr/bin/mountpoint
+/usr/bin/namei
+/usr/bin/nsenter
+/usr/bin/partx
+/usr/bin/prlimit
+/usr/bin/rename.ul
+/usr/bin/rev
+/usr/bin/setarch
+/usr/bin/setpriv
+/usr/bin/setsid
+/usr/bin/setterm
+/usr/bin/su
+/usr/bin/taskset
+/usr/bin/uclampset
+/usr/bin/unshare
+/usr/bin/wdctl
+/usr/bin/whereis
+/usr/lib
+/usr/lib/mime
+/usr/lib/mime/packages
+/usr/lib/mime/packages/util-linux
+/usr/lib/systemd
+/usr/lib/systemd/system
+/usr/lib/systemd/system/fstrim.service
+/usr/lib/systemd/system/fstrim.timer
+/usr/sbin
+/usr/sbin/agetty
+/usr/sbin/blkdiscard
+/usr/sbin/blkid
+/usr/sbin/blkzone
+/usr/sbin/blockdev
+/usr/sbin/chcpu
+/usr/sbin/chmem
+/usr/sbin/findfs
+/usr/sbin/fsck
+/usr/sbin/fsfreeze
+/usr/sbin/fstrim
+/usr/sbin/isosize
+/usr/sbin/ldattach
+/usr/sbin/mkfs
+/usr/sbin/mkswap
+/usr/sbin/pivot_root
+/usr/sbin/readprofile
+/usr/sbin/rtcwake
+/usr/sbin/runuser
+/usr/sbin/sulogin
+/usr/sbin/swaplabel
+/usr/sbin/switch_root
+/usr/sbin/wipefs
+/usr/sbin/zramctl
+/usr/share
+/usr/share/bash-completion
+/usr/share/bash-completion/completions
+/usr/share/bash-completion/completions/blkdiscard
+/usr/share/bash-completion/completions/blkid
+/usr/share/bash-completion/completions/blkzone
+/usr/share/bash-completion/completions/blockdev
+/usr/share/bash-completion/completions/chcpu
+/usr/share/bash-completion/completions/chmem
+/usr/share/bash-completion/completions/chrt
+/usr/share/bash-completion/completions/dmesg
+/usr/share/bash-completion/completions/fallocate
+/usr/share/bash-completion/completions/findfs
+/usr/share/bash-completion/completions/findmnt
+/usr/share/bash-completion/completions/flock
+/usr/share/bash-completion/completions/fsck
+/usr/share/bash-completion/completions/fsfreeze
+/usr/share/bash-completion/completions/fstrim
+/usr/share/bash-completion/completions/getopt
+/usr/share/bash-completion/completions/hardlink
+/usr/share/bash-completion/completions/ionice
+/usr/share/bash-completion/completions/ipcmk
+/usr/share/bash-completion/completions/ipcrm
+/usr/share/bash-completion/completions/ipcs
+/usr/share/bash-completion/completions/isosize
+/usr/share/bash-completion/completions/ldattach
+/usr/share/bash-completion/completions/lsblk
+/usr/share/bash-completion/completions/lscpu
+/usr/share/bash-completion/completions/lsipc
+/usr/share/bash-completion/completions/lslocks
+/usr/share/bash-completion/completions/lslogins
+/usr/share/bash-completion/completions/lsmem
+/usr/share/bash-completion/completions/lsns
+/usr/share/bash-completion/completions/mcookie
+/usr/share/bash-completion/completions/mkfs
+/usr/share/bash-completion/completions/mkswap
+/usr/share/bash-completion/completions/more
+/usr/share/bash-completion/completions/mountpoint
+/usr/share/bash-completion/completions/namei
+/usr/share/bash-completion/completions/nsenter
+/usr/share/bash-completion/completions/partx
+/usr/share/bash-completion/completions/pivot_root
+/usr/share/bash-completion/completions/prlimit
+/usr/share/bash-completion/completions/readprofile
+/usr/share/bash-completion/completions/rename.ul
+/usr/share/bash-completion/completions/rev
+/usr/share/bash-completion/completions/rtcwake
+/usr/share/bash-completion/completions/setarch
+/usr/share/bash-completion/completions/setpriv
+/usr/share/bash-completion/completions/setsid
+/usr/share/bash-completion/completions/setterm
+/usr/share/bash-completion/completions/su
+/usr/share/bash-completion/completions/swaplabel
+/usr/share/bash-completion/completions/taskset
+/usr/share/bash-completion/completions/uclampset
+/usr/share/bash-completion/completions/unshare
+/usr/share/bash-completion/completions/wdctl
+/usr/share/bash-completion/completions/whereis
+/usr/share/bash-completion/completions/wipefs
+/usr/share/bash-completion/completions/zramctl
+/usr/share/doc
+/usr/share/doc/util-linux
+/usr/share/doc/util-linux/00-about-docs.txt
+/usr/share/doc/util-linux/AUTHORS.gz
+/usr/share/doc/util-linux/NEWS.Debian.gz
+/usr/share/doc/util-linux/PAM-configuration.txt
+/usr/share/doc/util-linux/README.Debian
+/usr/share/doc/util-linux/blkid.txt
+/usr/share/doc/util-linux/cal.txt
+/usr/share/doc/util-linux/changelog.Debian.gz
+/usr/share/doc/util-linux/changelog.gz
+/usr/share/doc/util-linux/col.txt
+/usr/share/doc/util-linux/copyright
+/usr/share/doc/util-linux/deprecated.txt
+/usr/share/doc/util-linux/examples
+/usr/share/doc/util-linux/examples/getopt-example.bash
+/usr/share/doc/util-linux/getopt.txt
+/usr/share/doc/util-linux/getopt_changelog.txt
+/usr/share/doc/util-linux/howto-build-sys.txt
+/usr/share/doc/util-linux/howto-compilation.txt
+/usr/share/doc/util-linux/howto-contribute.txt.gz
+/usr/share/doc/util-linux/howto-debug.txt
+/usr/share/doc/util-linux/howto-man-page.txt
+/usr/share/doc/util-linux/howto-pull-request.txt.gz
+/usr/share/doc/util-linux/howto-tests.txt
+/usr/share/doc/util-linux/howto-usage-function.txt.gz
+/usr/share/doc/util-linux/hwclock.txt
+/usr/share/doc/util-linux/modems-with-agetty.txt
+/usr/share/doc/util-linux/mount.txt
+/usr/share/doc/util-linux/parse-date.txt.gz
+/usr/share/doc/util-linux/pg.txt
+/usr/share/doc/util-linux/poeigl.txt.gz
+/usr/share/doc/util-linux/release-schedule.txt
+/usr/share/doc/util-linux/releases
+/usr/share/doc/util-linux/releases/v2.13-ReleaseNotes.gz
+/usr/share/doc/util-linux/releases/v2.14-ReleaseNotes.gz
+/usr/share/doc/util-linux/releases/v2.15-ReleaseNotes.gz
+/usr/share/doc/util-linux/releases/v2.16-ReleaseNotes.gz
+/usr/share/doc/util-linux/releases/v2.17-ReleaseNotes.gz
+/usr/share/doc/util-linux/releases/v2.18-ReleaseNotes.gz
+/usr/share/doc/util-linux/releases/v2.19-ReleaseNotes.gz
+/usr/share/doc/util-linux/releases/v2.20-ReleaseNotes.gz
+/usr/share/doc/util-linux/releases/v2.21-ReleaseNotes.gz
+/usr/share/doc/util-linux/releases/v2.22-ReleaseNotes.gz
+/usr/share/doc/util-linux/releases/v2.23-ReleaseNotes.gz
+/usr/share/doc/util-linux/releases/v2.24-ReleaseNotes.gz
+/usr/share/doc/util-linux/releases/v2.25-ReleaseNotes.gz
+/usr/share/doc/util-linux/releases/v2.26-ReleaseNotes.gz
+/usr/share/doc/util-linux/releases/v2.27-ReleaseNotes.gz
+/usr/share/doc/util-linux/releases/v2.28-ReleaseNotes.gz
+/usr/share/doc/util-linux/releases/v2.29-ReleaseNotes.gz
+/usr/share/doc/util-linux/releases/v2.30-ReleaseNotes.gz
+/usr/share/doc/util-linux/releases/v2.31-ReleaseNotes.gz
+/usr/share/doc/util-linux/releases/v2.32-ReleaseNotes.gz
+/usr/share/doc/util-linux/releases/v2.33-ReleaseNotes.gz
+/usr/share/doc/util-linux/releases/v2.34-ReleaseNotes.gz
+/usr/share/doc/util-linux/releases/v2.35-ReleaseNotes.gz
+/usr/share/doc/util-linux/releases/v2.36-ReleaseNotes.gz
+/usr/share/doc/util-linux/releases/v2.37-ReleaseNotes.gz
+/usr/share/doc/util-linux/releases/v2.38-ReleaseNotes.gz
+/usr/share/doc/util-linux/releases/v2.39-ReleaseNotes.gz
+/usr/share/doc/util-linux/releases/v2.40-ReleaseNotes.gz
+/usr/share/doc/util-linux/releases/v2.41-ReleaseNotes.gz
+/usr/share/lintian
+/usr/share/lintian/overrides
+/usr/share/lintian/overrides/util-linux
+/usr/share/man
+/usr/share/man/man1
+/usr/share/man/man1/choom.1.gz
+/usr/share/man/man1/chrt.1.gz
+/usr/share/man/man1/dmesg.1.gz
+/usr/share/man/man1/fallocate.1.gz
+/usr/share/man/man1/flock.1.gz
+/usr/share/man/man1/getopt.1.gz
+/usr/share/man/man1/hardlink.1.gz
+/usr/share/man/man1/ionice.1.gz
+/usr/share/man/man1/ipcmk.1.gz
+/usr/share/man/man1/ipcrm.1.gz
+/usr/share/man/man1/ipcs.1.gz
+/usr/share/man/man1/lscpu.1.gz
+/usr/share/man/man1/lsipc.1.gz
+/usr/share/man/man1/lslogins.1.gz
+/usr/share/man/man1/lsmem.1.gz
+/usr/share/man/man1/mcookie.1.gz
+/usr/share/man/man1/more.1.gz
+/usr/share/man/man1/mountpoint.1.gz
+/usr/share/man/man1/namei.1.gz
+/usr/share/man/man1/nsenter.1.gz
+/usr/share/man/man1/prlimit.1.gz
+/usr/share/man/man1/rename.ul.1.gz
+/usr/share/man/man1/rev.1.gz
+/usr/share/man/man1/runuser.1.gz
+/usr/share/man/man1/setpriv.1.gz
+/usr/share/man/man1/setsid.1.gz
+/usr/share/man/man1/setterm.1.gz
+/usr/share/man/man1/su.1.gz
+/usr/share/man/man1/taskset.1.gz
+/usr/share/man/man1/uclampset.1.gz
+/usr/share/man/man1/unshare.1.gz
+/usr/share/man/man1/whereis.1.gz
+/usr/share/man/man5
+/usr/share/man/man5/adjtime_config.5.gz
+/usr/share/man/man5/scols-filter.5.gz
+/usr/share/man/man5/terminal-colors.d.5.gz
+/usr/share/man/man8
+/usr/share/man/man8/agetty.8.gz
+/usr/share/man/man8/blkdiscard.8.gz
+/usr/share/man/man8/blkid.8.gz
+/usr/share/man/man8/blkzone.8.gz
+/usr/share/man/man8/blockdev.8.gz
+/usr/share/man/man8/chcpu.8.gz
+/usr/share/man/man8/chmem.8.gz
+/usr/share/man/man8/findfs.8.gz
+/usr/share/man/man8/findmnt.8.gz
+/usr/share/man/man8/fsck.8.gz
+/usr/share/man/man8/fsfreeze.8.gz
+/usr/share/man/man8/fstrim.8.gz
+/usr/share/man/man8/isosize.8.gz
+/usr/share/man/man8/ldattach.8.gz
+/usr/share/man/man8/lsblk.8.gz
+/usr/share/man/man8/lslocks.8.gz
+/usr/share/man/man8/lsns.8.gz
+/usr/share/man/man8/mkfs.8.gz
+/usr/share/man/man8/mkswap.8.gz
+/usr/share/man/man8/partx.8.gz
+/usr/share/man/man8/pivot_root.8.gz
+/usr/share/man/man8/readprofile.8.gz
+/usr/share/man/man8/rtcwake.8.gz
+/usr/share/man/man8/setarch.8.gz
+/usr/share/man/man8/sulogin.8.gz
+/usr/share/man/man8/swaplabel.8.gz
+/usr/share/man/man8/switch_root.8.gz
+/usr/share/man/man8/wdctl.8.gz
+/usr/share/man/man8/wipefs.8.gz
+/usr/share/man/man8/zramctl.8.gz
+/usr/share/util-linux
+/usr/share/util-linux/logcheck
+/usr/share/util-linux/logcheck/ignore.d.server
+/usr/share/util-linux/logcheck/ignore.d.server/util-linux
+/usr/bin/i386
+/usr/bin/linux32
+/usr/bin/linux64
+/usr/sbin/getty
+/usr/share/bash-completion/completions/runuser
+/usr/share/man/man8/getty.8.gz
+/usr/share/man/man8/i386.8.gz
+/usr/share/man/man8/linux32.8.gz
+/usr/share/man/man8/linux64.8.gz
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               fb7967f4632b9c4742a015fa8c1f6840  usr/bin/choom
+4ee377f9fea384528a170d756dcf2f08  usr/bin/chrt
+877f95d68d018758c4bfedf8d4cba848  usr/bin/dmesg
+cf7e9c7797c46db44803e73c3f662f01  usr/bin/fallocate
+0b96876f1d6fdf8d716a13135b898ace  usr/bin/findmnt
+9f52e07dfa6982bf80b10b36eb6248be  usr/bin/flock
+3363217c685f149daeb75a3c0e7d7d59  usr/bin/getopt
+be2765011e20c327e021c46e333dbdc7  usr/bin/hardlink
+ebf37aa5538c9b11a31a30e423cb7670  usr/bin/ionice
+38152ec25b53dccc86f4868b70c3847b  usr/bin/ipcmk
+59db6ecfb5194471ebd5ce652a54d2b7  usr/bin/ipcrm
+5753a65e119920ff1b4dde9031fe046c  usr/bin/ipcs
+3ef1fd3e7b8f99049190a9d2f2d1b59d  usr/bin/lsblk
+c1ae25f59cb672b66117ec2f756942ae  usr/bin/lscpu
+e431fdb85ff695011b4c65a834de12c1  usr/bin/lsipc
+7faf342b3e76132e92fc3c43b31ac947  usr/bin/lslocks
+60d3828170b98331dca16e8c60b35011  usr/bin/lslogins
+cae1a28b40ebcc158ff23fdcf6a9ffec  usr/bin/lsmem
+59761a28f98a0724a2638be0af124da1  usr/bin/lsns
+123bb4a150e055bc8e687a0ac98f9705  usr/bin/mcookie
+07461050c5e1934a8959705f27211ae3  usr/bin/more
+7a2f8f5d7068d0f295cadef220768d12  usr/bin/mountpoint
+29232f58106510b27cf3bad99335702d  usr/bin/namei
+d53319302b8261b67d7c9a0fd2142f0c  usr/bin/nsenter
+06cff92264396ffa11fdc5884c137a72  usr/bin/partx
+52b01b24f48764f903f2b7905ff133ee  usr/bin/prlimit
+b6f5c14c0b35d48ba198035d4dcffb44  usr/bin/rename.ul
+7fd5ac869236e35425fed22d555afb37  usr/bin/rev
+386d29bd51dab24797dfa08c3a711bef  usr/bin/setarch
+235299612ec034ff46f94ec43619b62f  usr/bin/setpriv
+97b26772fa4960d839db7fc659c3f451  usr/bin/setsid
+e4183d3fd25b8ede4ba89c36bf02c08e  usr/bin/setterm
+f9735bc32ef040b167bd0901fef2deff  usr/bin/su
+6beea00ca441693ec4e043c55a8cc0be  usr/bin/taskset
+88e1d811f0a56f499474f6d0245f263d  usr/bin/uclampset
+219f055f7981449891dbe22ae1727583  usr/bin/unshare
+a42a2adb5c5e400fd9ea656d3dec290a  usr/bin/wdctl
+df9d4dacd5c5ba54b44a57236b0ecaa3  usr/bin/whereis
+20ba0e37d8aa11d91a8e776e29591736  usr/lib/mime/packages/util-linux
+c1bbde6f9349415c9c754eccf309ff3f  usr/lib/systemd/system/fstrim.service
+b8df040ea39625048369eed851d40c07  usr/lib/systemd/system/fstrim.timer
+c6cbdc0ed3f00c1220cea9b91a73efb0  usr/sbin/agetty
+efcf31350b4a7336b04b237b31ed143f  usr/sbin/blkdiscard
+f067e6024356e9d2b2ee9ffe8baf94d1  usr/sbin/blkid
+c62183bb89de742fee65b5e99402af54  usr/sbin/blkzone
+6bb4bbe7eb7c5438c275dc216ce84e06  usr/sbin/blockdev
+f55a2a25534d45da955adc117f5c6d19  usr/sbin/chcpu
+cf17680c1f97873a524f58d490409f43  usr/sbin/chmem
+ee6a2d7a6bd58ea34525ce44ee075a61  usr/sbin/findfs
+02b75ee84911797e03fbb1a5f57d837c  usr/sbin/fsck
+2dfe1a7a986e1d34d7793095021529ca  usr/sbin/fsfreeze
+b322b3efe8460792870963f01d119af6  usr/sbin/fstrim
+0bd96831507f4c616641637851237c10  usr/sbin/isosize
+048292f601675c0ee19765550d667589  usr/sbin/ldattach
+f6bfca433a4f5616789bcd27c6e6eb1a  usr/sbin/mkfs
+ddccef252f466a27674b9e798116ee48  usr/sbin/mkswap
+a38308d09ba53b4fa826d42016f83d59  usr/sbin/pivot_root
+e596b168866fa8c770c74541ea4b576c  usr/sbin/readprofile
+48dff717a55c8abf642a8320947cad7e  usr/sbin/rtcwake
+a1fe160ff525497553d7c680f7d25afd  usr/sbin/runuser
+01ec99bc6479e8d40872ef844b1b4f95  usr/sbin/sulogin
+1d5f0c043f49193a640d6dec4801d667  usr/sbin/swaplabel
+0168b904bf2e76a3f654caa7a35e6783  usr/sbin/switch_root
+944a09a8e8f730a1a5746da053b87c52  usr/sbin/wipefs
+7be928802572d674a17533a955e3c347  usr/sbin/zramctl
+8639ca3b535f918fe6f94614ae668ee9  usr/share/bash-completion/completions/blkdiscard
+3c3273035162d75a583d2dd9c3e89615  usr/share/bash-completion/completions/blkid
+67a70ec3641f58dbf504ca9fbc27ef02  usr/share/bash-completion/completions/blkzone
+f9cb028d7aa48636fc81ee43a430a6f2  usr/share/bash-completion/completions/blockdev
+67eccc80f94f42c1f5fe8f3482c5e4ca  usr/share/bash-completion/completions/chcpu
+4138b30d94949a43c9492558131ac749  usr/share/bash-completion/completions/chmem
+e5e26a7716efd36ab0bcf97388d33073  usr/share/bash-completion/completions/chrt
+008aa30ecd175bce51e5bb67b9335d51  usr/share/bash-completion/completions/dmesg
+4d95b7457fc190891a92045f8d036c92  usr/share/bash-completion/completions/fallocate
+1737382da82d4b70b15c40171ecd820e  usr/share/bash-completion/completions/findfs
+28ab52055401acb30477630a917123ad  usr/share/bash-completion/completions/findmnt
+9a0f0ce115b8869b4a75be591d455b8b  usr/share/bash-completion/completions/flock
+453f8a7968e1cf28b7b0596dc200a903  usr/share/bash-completion/completions/fsck
+48a27f7032273b204e63616db07aec25  usr/share/bash-completion/completions/fsfreeze
+439a46ccb09687d1f1cc284c60645ffa  usr/share/bash-completion/completions/fstrim
+4108e4e53c764a63f13edca5cce1b62d  usr/share/bash-completion/completions/getopt
+d43bc9cc3b6daebd9888d9c0f7a56ea7  usr/share/bash-completion/completions/hardlink
+8d8f3564c59586d1f938845fb6d854e8  usr/share/bash-completion/completions/ionice
+6c5e1214f105425b6a4a0856b06cb787  usr/share/bash-completion/completions/ipcmk
+65cb7c891816feb6e6b3fbe96e6f068e  usr/share/bash-completion/completions/ipcrm
+ccb973b1a6bd0b550ac9c06eb31148ca  usr/share/bash-completion/completions/ipcs
+f5b29d1e692a84280d3ffc002d40107b  usr/share/bash-completion/completions/isosize
+541ec3db05bb8f7362f484cbc418545d  usr/share/bash-completion/completions/ldattach
+4f15d0c1d81c0730b22a858fc09e34fa  usr/share/bash-completion/completions/lsblk
+febfdb1e8969d729abdc9085dfe3d661  usr/share/bash-completion/completions/lscpu
+f620fb9c76bfa7ea0f580874fc4e6a08  usr/share/bash-completion/completions/lsipc
+012b764d1d33c32714596bfb31c29fc6  usr/share/bash-completion/completions/lslocks
+2482b2d891280fc0ab2e8e8a73c6573b  usr/share/bash-completion/completions/lslogins
+2d24da8ace7952aca61e16a7a724969e  usr/share/bash-completion/completions/lsmem
+b5dd2e0acb0741c6f9afadedab63a7d5  usr/share/bash-completion/completions/lsns
+edf667c11e7cdf8b7fbc51bbc2b42eb1  usr/share/bash-completion/completions/mcookie
+008885e5a2f49953daac95bb903322c5  usr/share/bash-completion/completions/mkfs
+dac97f5004a43a8a8882f4feffb67fb9  usr/share/bash-completion/completions/mkswap
+4ee305b5f622b3e3ac2bf4b7228ef809  usr/share/bash-completion/completions/more
+36b7c58695e45baece44cfcc281cf32c  usr/share/bash-completion/completions/mountpoint
+cbde0f857141d18d3e92fa6c10a810c7  usr/share/bash-completion/completions/namei
+3cd0ad7e5f007f9eb3d30beb7339309c  usr/share/bash-completion/completions/nsenter
+f7cd7b91055bcf666a1b3dd35aff8bf5  usr/share/bash-completion/completions/partx
+5676a64e6ac089a1fe610cc254a83445  usr/share/bash-completion/completions/pivot_root
+5cd9cfbf7cbe8aa70fb55bbd2332c5e2  usr/share/bash-completion/completions/prlimit
+34b415c5a23e820da70f269f312407cc  usr/share/bash-completion/completions/readprofile
+6f267222d12abe817c35573e50421f8f  usr/share/bash-completion/completions/rename.ul
+f7ae27cc150a860c96bc62f1dbba2c8e  usr/share/bash-completion/completions/rev
+95b48054ab4f6a2cbe9acb1b9361caad  usr/share/bash-completion/completions/rtcwake
+ed28c8342906c24c0e9ad62be275def5  usr/share/bash-completion/completions/setarch
+f7ce9d6bd55fb362b2325734742a346b  usr/share/bash-completion/completions/setpriv
+67d1a78fb6e0a2dbefbe26c6db3aef6a  usr/share/bash-completion/completions/setsid
+8a8030b7c803beeeef30b15f210d1018  usr/share/bash-completion/completions/setterm
+ad3d7f15e849e3717241ecd13dd45330  usr/share/bash-completion/completions/su
+5f8483ea33ba62554b1cd911e107d82d  usr/share/bash-completion/completions/swaplabel
+11f081f4a9573a44cb830580e33e0739  usr/share/bash-completion/completions/taskset
+371390f97ce4a95b37ba13d4fbe02a4a  usr/share/bash-completion/completions/uclampset
+1b02be4cc52094b42e2459b708de191b  usr/share/bash-completion/completions/unshare
+62e826654da6afa39f68a8c1799c1e65  usr/share/bash-completion/completions/wdctl
+e224a5a9025802c7e51892fd6c7e8592  usr/share/bash-completion/completions/whereis
+f4e9b7febaa2f95fade105a7c4fbe7b7  usr/share/bash-completion/completions/wipefs
+d09734c7c517fbbe208b8d87c13ef2e7  usr/share/bash-completion/completions/zramctl
+5dadd5ee4dd290ccba49089e5f12421f  usr/share/doc/util-linux/00-about-docs.txt
+f61e1d75ec2baa0a451975451143ea58  usr/share/doc/util-linux/AUTHORS.gz
+1e30d61b028710436ab4de578d40b422  usr/share/doc/util-linux/NEWS.Debian.gz
+5f4e4c7eb24d92bc5bbfcc7d26ac8bc1  usr/share/doc/util-linux/PAM-configuration.txt
+53ee7049960e859f688d2b642fd14c15  usr/share/doc/util-linux/README.Debian
+f7b723f48494e6e82d5d8bc27b7fae6e  usr/share/doc/util-linux/blkid.txt
+af531da50f2d812c94b54faf9d274e79  usr/share/doc/util-linux/cal.txt
+93082a018889b08d2ea4781613e6435e  usr/share/doc/util-linux/changelog.Debian.gz
+13a1ae4e86572f916333207a508c485f  usr/share/doc/util-linux/changelog.gz
+f5292bbdd8dd1064eb61c553b4d52f67  usr/share/doc/util-linux/col.txt
+e2343d5239d28086275d9d5375c5a66f  usr/share/doc/util-linux/copyright
+8705c6cf33aea66c5a0b035e32443bad  usr/share/doc/util-linux/deprecated.txt
+de17051a7d5936a2e626d71cd621b269  usr/share/doc/util-linux/examples/getopt-example.bash
+bee83181cd8cd189015e5f226951aaa4  usr/share/doc/util-linux/getopt.txt
+bbfeb78b7be3381af6aa2597035e0819  usr/share/doc/util-linux/getopt_changelog.txt
+070c55d3892a745e20d080886c57046f  usr/share/doc/util-linux/howto-build-sys.txt
+6f625a6d407c900e3388f1797fd3e69c  usr/share/doc/util-linux/howto-compilation.txt
+ed261e12307cb12e834ea1dd30d5049c  usr/share/doc/util-linux/howto-contribute.txt.gz
+9ef9dc1aa0c4c2813f5221ff4bb4aa26  usr/share/doc/util-linux/howto-debug.txt
+37b465aa12b4e3afda4e990264e5c22c  usr/share/doc/util-linux/howto-man-page.txt
+3c37efad6b2603be1cf89deab22559b3  usr/share/doc/util-linux/howto-pull-request.txt.gz
+8bbd530fa9adf2cd1a74683568eb7eec  usr/share/doc/util-linux/howto-tests.txt
+05930f73790ed6df5feda7dc97a4274a  usr/share/doc/util-linux/howto-usage-function.txt.gz
+5a3208896aac380e1ca70b7517cdafb5  usr/share/doc/util-linux/hwclock.txt
+e755b2a0caedf559f6229c074e7518f6  usr/share/doc/util-linux/modems-with-agetty.txt
+a57b70b42bf92daae75a130e14c60bc9  usr/share/doc/util-linux/mount.txt
+84c5ba4e483251d234ed5605a8014679  usr/share/doc/util-linux/parse-date.txt.gz
+dc2504b2c2383a63e11e85329d7c33b9  usr/share/doc/util-linux/pg.txt
+3432739f8a165025a16d50fce32a9b05  usr/share/doc/util-linux/poeigl.txt.gz
+9c52160f9249ddf8426cb3dcc5fb7e9a  usr/share/doc/util-linux/release-schedule.txt
+359ccd4099416460acf00e607b8cb83a  usr/share/doc/util-linux/releases/v2.13-ReleaseNotes.gz
+bf3f93b95cbb66eb0308f23c25083d60  usr/share/doc/util-linux/releases/v2.14-ReleaseNotes.gz
+aebbc1184ff895d2cdffa0ca7949558e  usr/share/doc/util-linux/releases/v2.15-ReleaseNotes.gz
+67f0b74607591ff6e61d60de626ddefa  usr/share/doc/util-linux/releases/v2.16-ReleaseNotes.gz
+2a32bd1c43b041dd340f095b0cb3430e  usr/share/doc/util-linux/releases/v2.17-ReleaseNotes.gz
+bcfe0fa1a80ce8961e96b7f2f808851c  usr/share/doc/util-linux/releases/v2.18-ReleaseNotes.gz
+ed565effb80774ca4300b51d7feebe48  usr/share/doc/util-linux/releases/v2.19-ReleaseNotes.gz
+66b575ac8f8ed3976712981a6dff0552  usr/share/doc/util-linux/releases/v2.20-ReleaseNotes.gz
+2b6c2650fd277858621cc8b1cb6b2e91  usr/share/doc/util-linux/releases/v2.21-ReleaseNotes.gz
+bc07c6609b26bfb1d893a59ffeec52e7  usr/share/doc/util-linux/releases/v2.22-ReleaseNotes.gz
+35b9238e08f733f3bca093b8d14c2273  usr/share/doc/util-linux/releases/v2.23-ReleaseNotes.gz
+27bf56808a33f818e765449dc111c44f  usr/share/doc/util-linux/releases/v2.24-ReleaseNotes.gz
+853755460593b22854eba4e258b40396  usr/share/doc/util-linux/releases/v2.25-ReleaseNotes.gz
+598ed754a9c71e1755b007c63e68f871  usr/share/doc/util-linux/releases/v2.26-ReleaseNotes.gz
+1a2bfd5f557664fba71fde85a9357d86  usr/share/doc/util-linux/releases/v2.27-ReleaseNotes.gz
+6504197fa2c2f796afb32779bd8f94ad  usr/share/doc/util-linux/releases/v2.28-ReleaseNotes.gz
+ba762f7433ed71f13ed1742de18959fc  usr/share/doc/util-linux/releases/v2.29-ReleaseNotes.gz
+b4ba1aa3cd4e665978ed66b79dc16331  usr/share/doc/util-linux/releases/v2.30-ReleaseNotes.gz
+a372e981f20d71ebd21224a57ca984f8  usr/share/doc/util-linux/releases/v2.31-ReleaseNotes.gz
+0932505f93d834db8ac3c397956825f9  usr/share/doc/util-linux/releases/v2.32-ReleaseNotes.gz
+05262903f507193ee248e1133f3423aa  usr/share/doc/util-linux/releases/v2.33-ReleaseNotes.gz
+831db72a5fb7a42340bde707e7b93219  usr/share/doc/util-linux/releases/v2.34-ReleaseNotes.gz
+8b80db4086953840bdd44a84dac0bd22  usr/share/doc/util-linux/releases/v2.35-ReleaseNotes.gz
+086d83bda7aebb4304a248b9d7ff5f7b  usr/share/doc/util-linux/releases/v2.36-ReleaseNotes.gz
+73b41eaf9e4642b1795b8e4560307fc9  usr/share/doc/util-linux/releases/v2.37-ReleaseNotes.gz
+627393842c81b574bf5a1c067964ea50  usr/share/doc/util-linux/releases/v2.38-ReleaseNotes.gz
+5212f4176fcbf64e505620650691453b  usr/share/doc/util-linux/releases/v2.39-ReleaseNotes.gz
+f4bd372b04af9a7edd4e3200df512ecf  usr/share/doc/util-linux/releases/v2.40-ReleaseNotes.gz
+0301fec5fd2bf9bbd6722011d296f50e  usr/share/doc/util-linux/releases/v2.41-ReleaseNotes.gz
+80c1e48e9fd84a90e6dc527382bfce4d  usr/share/lintian/overrides/util-linux
+3e803f8ed8f8f95d27657483f0ba6f96  usr/share/man/man1/choom.1.gz
+a2d8425fb3ad538ce18e328592849736  usr/share/man/man1/chrt.1.gz
+de0377a29e7dac42236d20c2489d034a  usr/share/man/man1/dmesg.1.gz
+076bf3f83eec453caf339300ac33e8c2  usr/share/man/man1/fallocate.1.gz
+e1c7189cc10ce92ef8dd9e5a885d2b7a  usr/share/man/man1/flock.1.gz
+04330294f135d89497cd089d414d30c9  usr/share/man/man1/getopt.1.gz
+6aee7f620490ac4995b3390b4e3ecc15  usr/share/man/man1/hardlink.1.gz
+7a592e8a63c3ada900b9d3341303c0a5  usr/share/man/man1/ionice.1.gz
+eac7c9df7fdae6c04cc2515e8113f061  usr/share/man/man1/ipcmk.1.gz
+e6b41ef284bd798ca1644bcfea0a4391  usr/share/man/man1/ipcrm.1.gz
+5efd6dcdf2228e945f8afc888651ad34  usr/share/man/man1/ipcs.1.gz
+007d957bf3d1aab7c00b0fc5c1111c10  usr/share/man/man1/lscpu.1.gz
+6e2eb79414a6beb8fb92881c0be4a5ef  usr/share/man/man1/lsipc.1.gz
+12f2b0b686c61c1934b7b9636852e6e0  usr/share/man/man1/lslogins.1.gz
+410e1931df88336376d476bf4bffc7f0  usr/share/man/man1/lsmem.1.gz
+66c19ed010f1b52ee379d6ee7892ea9e  usr/share/man/man1/mcookie.1.gz
+992cf2e8b140b26bc983876657e71916  usr/share/man/man1/more.1.gz
+c9b77d255f5af340113e3f985e03e7ab  usr/share/man/man1/mountpoint.1.gz
+889408b9b80e09dd38e1451ee2862c54  usr/share/man/man1/namei.1.gz
+1a7df65888ff1d9c4ca848ada23fe1b4  usr/share/man/man1/nsenter.1.gz
+71e798fa6a1fb2e7a80bbbe0aaed7732  usr/share/man/man1/prlimit.1.gz
+ac2384bbd0125082570d8e0c1e787801  usr/share/man/man1/rename.ul.1.gz
+d2ddcaf42be52df4076b85910c30deb3  usr/share/man/man1/rev.1.gz
+416758314ee52712015815f5169bd26b  usr/share/man/man1/runuser.1.gz
+7d86c39d502a3609e9357e076620e614  usr/share/man/man1/setpriv.1.gz
+c7a6d8847be19f96db604c6e865c1b62  usr/share/man/man1/setsid.1.gz
+42676c9d01a65dc003eb4b72c3c1267d  usr/share/man/man1/setterm.1.gz
+070259de99341d8713ba3c58c6019ce6  usr/share/man/man1/su.1.gz
+9ffc2586d76a63cb00b9d91fa25ee6de  usr/share/man/man1/taskset.1.gz
+6819fdb08cb3f60b7ac944819e5a44aa  usr/share/man/man1/uclampset.1.gz
+e1dd9daad89f4062b063461da5bdd7ef  usr/share/man/man1/unshare.1.gz
+7097310e4c001d54277dc1650e251166  usr/share/man/man1/whereis.1.gz
+adfe0bc14319a90519dcfdf90a42c2da  usr/share/man/man5/adjtime_config.5.gz
+f94d0cee324c990086e4b8d584c47fd2  usr/share/man/man5/scols-filter.5.gz
+52233f616338b96d0ffc34925c9acc4b  usr/share/man/man5/terminal-colors.d.5.gz
+5452f2fe72bff9a768be3e6e394fb947  usr/share/man/man8/agetty.8.gz
+275348732c2b299a759e3f9ed120fdfc  usr/share/man/man8/blkdiscard.8.gz
+44ca4fc00a0cd82a1cca3a6b7e837b5c  usr/share/man/man8/blkid.8.gz
+5d0d7666f7b158c962dee1c84e19ce5c  usr/share/man/man8/blkzone.8.gz
+80e575dbc146377fd950c368b0ffd598  usr/share/man/man8/blockdev.8.gz
+08297bbbc8470d494c5ead4d64bb63dc  usr/share/man/man8/chcpu.8.gz
+176fb00d8edb4a9634c602add54a6d29  usr/share/man/man8/chmem.8.gz
+5a6923675f43c9874aa333ab536ee6c8  usr/share/man/man8/findfs.8.gz
+4474513ea8af4a149a148dfdbcf95905  usr/share/man/man8/findmnt.8.gz
+d8a2b11bc1f16d525e20559f733d6e8a  usr/share/man/man8/fsck.8.gz
+22427306caa5a5a7d20b5e3b050730e5  usr/share/man/man8/fsfreeze.8.gz
+c9f7ffe2398147787fa404accaf7549f  usr/share/man/man8/fstrim.8.gz
+d6f010aca33b28ad88b3c1e92f3543f9  usr/share/man/man8/isosize.8.gz
+f8963b0c6b789f1bef5e3fa763105793  usr/share/man/man8/ldattach.8.gz
+820ec925df2dcdab853baa3b39b8d84d  usr/share/man/man8/lsblk.8.gz
+77d59e62749d4ff9a4714c6b4b9cdc22  usr/share/man/man8/lslocks.8.gz
+d196ce78242a818835853b26cd0d7c72  usr/share/man/man8/lsns.8.gz
+df5ce51072c29ed508ea244f669f0e44  usr/share/man/man8/mkfs.8.gz
+a96769b2232ed4f61e27a88c717cded0  usr/share/man/man8/mkswap.8.gz
+7a0990a698f65e8e1cf396f90a13398a  usr/share/man/man8/partx.8.gz
+ddec2e4e02b64013bd65756265b3f6a0  usr/share/man/man8/pivot_root.8.gz
+5bba25c6c95492aae8ecd443c6f83c98  usr/share/man/man8/readprofile.8.gz
+5d9e1ad66b9842b69f7763d109b07130  usr/share/man/man8/rtcwake.8.gz
+7332cb3a46c963ea387d2cd3f0530e17  usr/share/man/man8/setarch.8.gz
+88403b31d3239f6cfc3e36b3875e99d1  usr/share/man/man8/sulogin.8.gz
+fef0efab7b9658ec69e536acedc78e43  usr/share/man/man8/swaplabel.8.gz
+90d9eb95f2d6fd79acb6db7da8c36b60  usr/share/man/man8/switch_root.8.gz
+169d8cde8f081b967339feb4242fab4f  usr/share/man/man8/wdctl.8.gz
+c97a83342367db6c662d6979a4c5565f  usr/share/man/man8/wipefs.8.gz
+eb2b33e145bdc89cb2e5dab9fe2dea86  usr/share/man/man8/zramctl.8.gz
+0d1444e5e8b9f24cf7e87225e63d6cfd  usr/share/util-linux/logcheck/ignore.d.server/util-linux
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        #!/bin/sh
+set -e
+
+update-alternatives --install /usr/bin/pager pager /bin/more 50 \
+	--slave /usr/share/man/man1/pager.1.gz pager.1.gz \
+	/usr/share/man/man1/more.1.gz
+
+# Automatically added by dh_installsystemd/13.24.2
+if [ "$1" = "configure" ] || [ "$1" = "abort-upgrade" ] || [ "$1" = "abort-deconfigure" ] || [ "$1" = "abort-remove" ] ; then
+	# The following line should be removed in trixie or trixie+1
+	deb-systemd-helper unmask 'fstrim.timer' >/dev/null || true
+
+	# was-enabled defaults to true, so new installations run enable.
+	if deb-systemd-helper --quiet was-enabled 'fstrim.timer'; then
+		# Enables the unit on first installation, creates new
+		# symlinks on upgrades if the unit file has changed.
+		deb-systemd-helper enable 'fstrim.timer' >/dev/null || true
+	else
+		# Update the statefile to add new symlinks (if any), which need to be
+		# cleaned up on purge. Also remove old symlinks.
+		deb-systemd-helper update-state 'fstrim.timer' >/dev/null || true
+	fi
+fi
+# End automatically added section
+# Automatically added by dh_installsystemd/13.24.2
+if [ "$1" = "configure" ] || [ "$1" = "abort-upgrade" ] || [ "$1" = "abort-deconfigure" ] || [ "$1" = "abort-remove" ] ; then
+	if [ -d /run/systemd/system ]; then
+		systemctl --system daemon-reload >/dev/null || true
+		if [ -n "$2" ]; then
+			_dh_action=restart
+		else
+			_dh_action=start
+		fi
+		deb-systemd-invoke $_dh_action 'fstrim.timer' >/dev/null || true
+	fi
+fi
+# End automatically added section
+# Automatically added by dh_installsystemd/13.24.2
+if [ "$1" = "configure" ] || [ "$1" = "abort-upgrade" ] || [ "$1" = "abort-deconfigure" ] || [ "$1" = "abort-remove" ] ; then
+	if [ -d /run/systemd/system ]; then
+		systemctl --system daemon-reload >/dev/null || true
+		if [ -n "$2" ]; then
+			_dh_action=restart
+		else
+			_dh_action=start
+		fi
+		deb-systemd-invoke $_dh_action 'fstrim.service' >/dev/null || true
+	fi
+fi
+# End automatically added section
+
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                #!/bin/sh
+set -e
+
+case "$1" in
+	remove)
+		;;
+
+	purge)
+		rm -f /etc/adjtime
+		;;
+
+	*)
+		;;
+esac
+
+# Automatically added by dh_installsystemd/13.24.2
+if [ "$1" = remove ] && [ -d /run/systemd/system ] ; then
+	systemctl --system daemon-reload >/dev/null || true
+fi
+# End automatically added section
+# Automatically added by dh_installsystemd/13.24.2
+if [ "$1" = remove ] && [ -d /run/systemd/system ] ; then
+	systemctl --system daemon-reload >/dev/null || true
+fi
+# End automatically added section
+# Automatically added by dh_installsystemd/13.24.2
+if [ "$1" = "purge" ]; then
+	if [ -x "/usr/bin/deb-systemd-helper" ]; then
+		deb-systemd-helper purge 'fstrim.timer' >/dev/null || true
+	fi
+fi
+# End automatically added section
+
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             #!/bin/sh
+set -e
+
+case "$1" in
+	remove)
+		update-alternatives --remove pager /bin/more
+		;;
+
+	upgrade|failed-upgrade|deconfigure)
+		;;
+
+esac
+
+# Automatically added by dh_installsystemd/13.24.2
+if [ -z "$DPKG_ROOT" ] && [ "$1" = remove ] && [ -d /run/systemd/system ] ; then
+	deb-systemd-invoke stop 'fstrim.service' >/dev/null || true
+fi
+# End automatically added section
+# Automatically added by dh_installsystemd/13.24.2
+if [ -z "$DPKG_ROOT" ] && [ "$1" = remove ] && [ -d /run/systemd/system ] ; then
+	deb-systemd-invoke stop 'fstrim.timer' >/dev/null || true
+fi
+# End automatically added section
+
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       /.
+/usr
+/usr/lib
+/usr/lib/i386-linux-gnu
+/usr/lib/i386-linux-gnu/libz.so.1.3.1
+/usr/share
+/usr/share/doc
+/usr/share/doc/zlib1g
+/usr/share/doc/zlib1g/changelog.Debian.gz
+/usr/share/doc/zlib1g/changelog.Debian.i386.gz
+/usr/share/doc/zlib1g/changelog.gz
+/usr/share/doc/zlib1g/copyright
+/usr/lib/i386-linux-gnu/libz.so.1
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   4080e743d93c19e05aad772066378ace  usr/lib/i386-linux-gnu/libz.so.1.3.1
+2ab9c69e639b5351bf0a51dd120a0b8f  usr/share/doc/zlib1g/changelog.Debian.gz
+75432832fd7863231876ca99963371ac  usr/share/doc/zlib1g/changelog.Debian.i386.gz
+8f24ea14c82f1266dffe904cbe466f99  usr/share/doc/zlib1g/changelog.gz
+d348307d5bf18267bcbada155a715a3e  usr/share/doc/zlib1g/copyright
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         libz 1 zlib1g (>= 1:1.2.3.3.dfsg-1)
+udeb: libz 1 zlib1g-udeb (>= 1:1.2.3.3.dfsg-1)
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             libz.so.1 zlib1g #MINVER#
+ ZLIB_1.2.0.2@ZLIB_1.2.0.2 1:1.2.0.2
+ ZLIB_1.2.0.8@ZLIB_1.2.0.8 1:1.2.0.8
+ ZLIB_1.2.0@ZLIB_1.2.0 1:1.2.0
+ ZLIB_1.2.12@ZLIB_1.2.12 1:1.2.13.dfsg
+ ZLIB_1.2.2.3@ZLIB_1.2.2.3 1:1.2.2.3
+ ZLIB_1.2.2.4@ZLIB_1.2.2.4 1:1.2.2.4
+ ZLIB_1.2.2@ZLIB_1.2.2 1:1.2.2
+ ZLIB_1.2.3.3@ZLIB_1.2.3.3 1:1.2.3.4
+ ZLIB_1.2.3.4@ZLIB_1.2.3.4 1:1.2.3.4
+ ZLIB_1.2.3.5@ZLIB_1.2.3.5 1:1.2.6
+ ZLIB_1.2.5.1@ZLIB_1.2.5.1 1:1.2.6
+ ZLIB_1.2.5.2@ZLIB_1.2.5.2 1:1.2.6
+ ZLIB_1.2.7.1@ZLIB_1.2.7.1 1:1.2.8
+ ZLIB_1.2.9@ZLIB_1.2.9 1:1.2.11.dfsg
+ adler32@Base 1:1.1.4
+ adler32_combine64@ZLIB_1.2.3.3 1:1.2.3.3
+ adler32_combine@ZLIB_1.2.2 1:1.2.2
+ adler32_z@ZLIB_1.2.9 1:1.2.11.dfsg
+ compress2@Base 1:1.1.4
+ compress@Base 1:1.1.4
+ compressBound@ZLIB_1.2.0 1:1.2.0
+ crc32@Base 1:1.1.4
+ crc32_combine64@ZLIB_1.2.3.3 1:1.2.3.3
+ crc32_combine@ZLIB_1.2.2 1:1.2.2
+ crc32_combine_gen64@ZLIB_1.2.12 1:1.2.13.dfsg
+ crc32_combine_gen@ZLIB_1.2.12 1:1.2.13.dfsg
+ crc32_combine_op@ZLIB_1.2.12 1:1.2.13.dfsg
+ crc32_z@ZLIB_1.2.9 1:1.2.11.dfsg
+ deflate@Base 1:1.1.4
+ deflateBound@ZLIB_1.2.0 1:1.2.0
+ deflateCopy@Base 1:1.1.4
+ deflateEnd@Base 1:1.1.4
+ deflateGetDictionary@ZLIB_1.2.9 1:1.2.11.dfsg
+ deflateInit2_@Base 1:1.1.4
+ deflateInit_@Base 1:1.1.4
+ deflateParams@Base 1:1.1.4
+ deflatePending@ZLIB_1.2.5.1 1:1.2.6
+ deflatePrime@ZLIB_1.2.0.8 1:1.2.0.8
+ deflateReset@Base 1:1.1.4
+ deflateResetKeep@ZLIB_1.2.5.2 1:1.2.6
+ deflateSetDictionary@Base 1:1.1.4
+ deflateSetHeader@ZLIB_1.2.2 1:1.2.2
+ deflateTune@ZLIB_1.2.2.3 1:1.2.2.3
+ get_crc_table@Base 1:1.1.4
+ gzbuffer@ZLIB_1.2.3.5 1:1.2.6
+ gzclearerr@ZLIB_1.2.0.2 1:1.2.0.2
+ gzclose@Base 1:1.1.4
+ gzclose_r@ZLIB_1.2.3.5 1:1.2.6
+ gzclose_w@ZLIB_1.2.3.5 1:1.2.6
+ gzdirect@ZLIB_1.2.2.3 1:1.2.2.3
+ gzdopen@Base 1:1.1.4
+ gzeof@Base 1:1.1.4
+ gzerror@Base 1:1.1.4
+ gzflush@Base 1:1.1.4
+ gzfread@ZLIB_1.2.9 1:1.2.11.dfsg
+ gzfwrite@ZLIB_1.2.9 1:1.2.11.dfsg
+ gzgetc@Base 1:1.1.4
+ gzgetc_@ZLIB_1.2.5.2 1:1.2.6
+ gzgets@Base 1:1.1.4
+ gzoffset64@ZLIB_1.2.3.5 1:1.2.6
+ gzoffset@ZLIB_1.2.3.5 1:1.2.6
+ gzopen64@ZLIB_1.2.3.3 1:1.2.3.3
+ gzopen@Base 1:1.1.4
+ gzprintf@Base 1:1.1.4
+ gzputc@Base 1:1.1.4
+ gzputs@Base 1:1.1.4
+ gzread@Base 1:1.1.4
+ gzrewind@Base 1:1.1.4
+ gzseek64@ZLIB_1.2.3.3 1:1.2.3.4
+ gzseek@Base 1:1.1.4
+ gzsetparams@Base 1:1.1.4
+ gztell64@ZLIB_1.2.3.3 1:1.2.3.4
+ gztell@Base 1:1.1.4
+ gzungetc@ZLIB_1.2.0.2 1:1.2.0.2
+ gzvprintf@ZLIB_1.2.7.1 1:1.2.8
+ gzwrite@Base 1:1.1.4
+ inflate@Base 1:1.1.4
+ inflateBack@ZLIB_1.2.0 1:1.2.0
+ inflateBackEnd@ZLIB_1.2.0 1:1.2.0
+ inflateBackInit_@ZLIB_1.2.0 1:1.2.0
+ inflateCodesUsed@ZLIB_1.2.9 1:1.2.11.dfsg
+ inflateCopy@ZLIB_1.2.0 1:1.2.0
+ inflateEnd@Base 1:1.1.4
+ inflateGetDictionary@ZLIB_1.2.7.1 1:1.2.8
+ inflateGetHeader@ZLIB_1.2.2 1:1.2.2
+ inflateInit2_@Base 1:1.1.4
+ inflateInit_@Base 1:1.1.4
+ inflateMark@ZLIB_1.2.3.4 1:1.2.3.4
+ inflatePrime@ZLIB_1.2.2.4 1:1.2.2.4
+ inflateReset2@ZLIB_1.2.3.4 1:1.2.3.4
+ inflateReset@Base 1:1.1.4
+ inflateResetKeep@ZLIB_1.2.5.2 1:1.2.6
+ inflateSetDictionary@Base 1:1.1.4
+ inflateSync@Base 1:1.1.4
+ inflateSyncPoint@Base 1:1.1.4
+ inflateUndermine@ZLIB_1.2.3.3 1:1.2.3.4
+ inflateValidate@ZLIB_1.2.9 1:1.2.11.dfsg
+ uncompress2@ZLIB_1.2.9 1:1.2.11.dfsg
+ uncompress@Base 1:1.1.4
+ zError@Base 1:1.1.4
+ zlibCompileFlags@ZLIB_1.2.0.2 1:1.2.0.2
+ zlibVersion@Base 1:1.1.4
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     # Triggers added by dh_makeshlibs/13.20
+activate-noawait ldconfig
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              x&   .   P#  ô..                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          Package: adduser
+Status: install ok installed
+Priority: important
+Section: admin
+Installed-Size: 428
+Maintainer: Debian Adduser Developers <adduser@packages.debian.org>
+Architecture: all
+Multi-Arch: foreign
+Version: 3.152
+Depends: passwd (>= 1:4.17.2-5)
+Suggests: liblocale-gettext-perl, perl, cron, quota
+Conffiles:
+ /etc/adduser.conf ef23042097ebb0d1075254f888c3c394
+ /etc/deluser.conf 11a06baf8245fd8d690b99024d228c1f
+Description: add and remove users and groups
+ This package includes the 'adduser' and 'deluser' commands for creating
+ and removing users.
+ .
+  - 'adduser' creates new users and groups and adds existing users to
+    existing groups;
+  - 'deluser' removes users and groups and removes users from a given
+    group.
+ .
+ Adding users with 'adduser' is much easier than adding them manually.
+ 'Adduser' will choose UID and GID values that conform to Debian policy,
+ create a home directory, copy skeletal user configuration, and
+ automate setting initial values for the user's password, real name
+ and so on.
+ .
+ 'Deluser' can back up and remove users' home directories
+ and mail spool or all the files they own on the system.
+ .
+ A custom script can be executed after each of the commands.
+ .
+ 'Adduser' and 'Deluser' are intended to be used by the local
+ administrator in lieu of the tools from the 'useradd' suite, and
+ they provide support for easy use from Debian package maintainer
+ scripts, functioning as kind of a policy layer to make those scripts
+ easier and more stable to write and maintain.
+
+Package: apt
+Status: install ok installed
+Priority: required
+Section: admin
+Installed-Size: 4409
+Maintainer: APT Development Team <deity@lists.debian.org>
+Architecture: i386
+Version: 3.0.3
+Replaces: apt-transport-https (<< 1.5~alpha4~), apt-utils (<< 1.3~exp2~)
+Provides: apt-transport-https (= 3.0.3)
+Depends: base-passwd (>= 3.6.1) | adduser, sqv (>= 1.3.0), libapt-pkg7.0 (>= 3.0.3), debian-archive-keyring, libc6 (>= 2.38), libgcc-s1 (>= 4.2), libseccomp2 (>= 2.4.2), libssl3t64 (>= 3.0.0), libstdc++6 (>= 13.1), libsystemd0
+Recommends: ca-certificates
+Suggests: apt-doc, aptitude | synaptic | wajig, dpkg-dev (>= 1.17.2), gnupg | gnupg2 | gnupg1, powermgmt-base
+Breaks: apt-transport-https (<< 1.5~alpha4~), apt-utils (<< 1.3~exp2~), aptitude (<< 0.8.10)
+Conflicts: apt-verify, libnettle8 (<< 3.9.1-2.2~)
+Conffiles:
+ /etc/apt/apt.conf.d/01autoremove 879455db9b938ce287b23383629aedce
+ /etc/cron.daily/apt-compat 1400ab07a4a2905b04c33e3e93d42b7b
+ /etc/logrotate.d/apt 179f2ed4f85cbaca12fa3d69c2a4a1c3
+Description: commandline package manager
+ This package provides commandline tools for searching and
+ managing as well as querying information about packages
+ as a low-level access to all features of the libapt-pkg library.
+ .
+ These include:
+  * apt-get for retrieval of packages and information about them
+    from authenticated sources and for installation, upgrade and
+    removal of packages together with their dependencies
+  * apt-cache for querying available information about installed
+    as well as installable packages
+  * apt-cdrom to use removable media as a source for packages
+  * apt-config as an interface to the configuration settings
+  * apt-extracttemplates is used by debconf to prompt for configuration
+    questions before installation.
+
+Package: base-files
+Essential: yes
+Status: install ok installed
+Priority: required
+Section: admin
+Installed-Size: 348
+Maintainer: Santiago Vila <sanvila@debian.org>
+Architecture: i386
+Multi-Arch: foreign
+Version: 13.8+deb13u2
+Replaces: base, dpkg (<= 1.15.0), miscutils
+Provides: base, usr-is-merged
+Pre-Depends: awk
+Breaks: debian-security-support (<< 2019.04.25), initscripts (<< 2.88dsf-13.3), sendfile (<< 2.1b.20080616-5.2~)
+Conffiles:
+ /etc/debian_version 0dc26e6cc4575b94989da682ed3a081b
+ /etc/dpkg/origins/debian c47b6815f67ad1aeccb0d4529bd0b990
+ /etc/host.conf 4eb63731c9f5e30903ac4fc07a7fe3d6
+ /etc/issue d0c7919a5e2641d60400de08201a49e2
+ /etc/issue.net 37827eb4e7d268f39255c01fc49b009e
+ /etc/update-motd.d/10-uname 9e1b832b7b06f566156e7c9e0548247b
+Description: Debian base system miscellaneous files
+ This package contains the basic filesystem hierarchy of a Debian system, and
+ several important miscellaneous files, such as /etc/debian_version,
+ /etc/host.conf, /etc/issue, /etc/motd, /etc/profile, and others,
+ and the text of several common licenses in use on Debian systems.
+
+Package: base-passwd
+Essential: yes
+Status: install ok installed
+Priority: required
+Section: admin
+Installed-Size: 267
+Maintainer: Shadow package maintainers <pkg-shadow-devel@lists.alioth.debian.org>
+Architecture: i386
+Multi-Arch: foreign
+Version: 3.6.7
+Replaces: base
+Depends: libc6 (>= 2.34), libdebconfclient0 (>= 0.145), libselinux1 (>= 3.1~)
+Recommends: debconf (>= 0.5) | debconf-2.0
+Description: Debian base system master password and group files
+ These are the canonical master copies of the user database files
+ (/etc/passwd and /etc/group), containing the Debian-allocated user and
+ group IDs. The update-passwd tool is provided to keep the system databases
+ synchronized with these master files.
+
+Package: bash
+Essential: yes
+Status: install ok installed
+Priority: required
+Section: shells
+Installed-Size: 7327
+Maintainer: Matthias Klose <doko@debian.org>
+Architecture: i386
+Multi-Arch: foreign
+Source: bash (5.2.37-2)
+Version: 5.2.37-2+b5
+Depends: base-files (>= 2.1.12), debianutils (>= 5.6-0.1)
+Pre-Depends: libc6 (>= 2.38), libtinfo6 (>= 6)
+Recommends: bash-completion
+Suggests: bash-doc
+Conffiles:
+ /etc/bash.bashrc 72d453119aaa1e96c7c8a7a8fedcf582
+ /etc/skel/.bash_logout 22bfb8c1dd94b5f3813a2b25da67463f
+ /etc/skel/.bashrc ee35a240758f374832e809ae0ea4883a
+ /etc/skel/.profile f4e81ade7d6f9fb342541152d08e7a97
+Description: GNU Bourne Again SHell
+ Bash is an sh-compatible command language interpreter that executes
+ commands read from the standard input or from a file.  Bash also
+ incorporates useful features from the Korn and C shells (ksh and csh).
+ .
+ Bash is ultimately intended to be a conformant implementation of the
+ IEEE POSIX Shell and Tools specification (IEEE Working Group 1003.2).
+ .
+ The Programmable Completion Code, by Ian Macdonald, is now found in
+ the bash-completion package.
+Homepage: http://tiswww.case.edu/php/chet/bash/bashtop.html
+
+Package: bsdutils
+Essential: yes
+Status: install ok installed
+Priority: required
+Section: utils
+Installed-Size: 411
+Maintainer: Chris Hofstaedtler <zeha@debian.org>
+Architecture: i386
+Multi-Arch: foreign
+Source: util-linux (2.41-5)
+Version: 1:2.41-5
+Pre-Depends: libc6 (>= 2.38), libsystemd0 (>= 254)
+Recommends: bsdextrautils
+Description: basic utilities from 4.4BSD-Lite
+ This package contains the bare minimum of BSD utilities needed for a Debian
+ system: logger, renice, script, scriptlive, scriptreplay and wall. The
+ remaining standard BSD utilities are provided by bsdextrautils.
+Homepage: https://github.com/util-linux/util-linux
+
+Package: ca-certificates
+Status: install ok installed
+Priority: standard
+Section: misc
+Installed-Size: 390
+Maintainer: Julien Cristau <jcristau@debian.org>
+Architecture: all
+Multi-Arch: foreign
+Version: 20250419
+Depends: openssl (>= 1.1.1), debconf (>= 0.5) | debconf-2.0
+Breaks: ca-certificates-java (<< 20121112+nmu1)
+Enhances: openssl
+Description: Common CA certificates
+ Contains the certificate authorities shipped with Mozilla's browser to allow
+ SSL-based applications to check for the authenticity of SSL connections.
+ .
+ Please note that Debian can neither confirm nor deny whether the
+ certificate authorities whose certificates are included in this package
+ have in any way been audited for trustworthiness or RFC 3647 compliance.
+ Full responsibility to assess them belongs to the local system
+ administrator.
+
+Package: coreutils
+Essential: yes
+Status: install ok installed
+Priority: required
+Section: utils
+Installed-Size: 18739
+Maintainer: Michael Stone <mstone@debian.org>
+Architecture: i386
+Multi-Arch: foreign
+Version: 9.7-3
+Pre-Depends: libacl1 (>= 2.2.23), libattr1 (>= 1:2.4.48), libc6 (>= 2.38), libcap2 (>= 1:2.10), libgmp10 (>= 2:6.3.0+dfsg), libselinux1 (>= 3.1~), libssl3t64 (>= 3.0.0), libsystemd0 (>= 254)
+Description: GNU core utilities
+ This package contains the basic file, shell and text manipulation
+ utilities which are expected to exist on every operating system.
+ .
+ Specifically, this package includes:
+ arch base64 basename cat chcon chgrp chmod chown chroot cksum comm cp
+ csplit cut date dd df dir dircolors dirname du echo env expand expr
+ factor false flock fmt fold groups head hostid id install join link ln
+ logname ls md5sum mkdir mkfifo mknod mktemp mv nice nl nohup nproc numfmt
+ od paste pathchk pinky pr printenv printf ptx pwd readlink realpath rm
+ rmdir runcon sha*sum seq shred sleep sort split stat stty sum sync tac
+ tail tee test timeout touch tr true truncate tsort tty uname unexpand
+ uniq unlink users vdir wc who whoami yes
+Homepage: https://gnu.org/software/coreutils
+
+Package: dash
+Essential: yes
+Status: install ok installed
+Priority: required
+Section: shells
+Installed-Size: 214
+Maintainer: Andrej Shadura <andrewsh@debian.org>
+Architecture: i386
+Multi-Arch: foreign
+Version: 0.5.12-12
+Depends: debianutils (>= 5.6-0.1)
+Pre-Depends: libc6 (>= 2.38)
+Description: POSIX-compliant shell
+ The Debian Almquist Shell (dash) is a POSIX-compliant shell derived
+ from ash.
+ .
+ Since it executes scripts faster than bash, and has fewer library
+ dependencies (making it more robust against software or hardware
+ failures), it is used as the default system shell on Debian systems.
+Homepage: http://gondor.apana.org.au/~herbert/dash/
+
+Package: debconf
+Status: install ok installed
+Priority: required
+Section: admin
+Installed-Size: 497
+Maintainer: Debconf Developers <debconf-devel@lists.alioth.debian.org>
+Architecture: all
+Multi-Arch: foreign
+Version: 1.5.91
+Replaces: debconf-tiny
+Provides: debconf-2.0
+Recommends: apt (>= 2.9.11~) | apt-utils, debconf-i18n
+Suggests: debconf-doc, debconf-kde-helper, debconf-utils, libgtk3-perl, libnet-ldap-perl, libterm-readline-gnu-perl, perl, whiptail | dialog
+Conflicts: debconf-tiny, whiptail-utf8 (<= 0.50.17-13)
+Conffiles:
+ /etc/apt/apt.conf.d/70debconf 7e9d09d5801a42b4926b736b8eeabb73
+ /etc/debconf.conf 1cd82ead5651f0753b1ff6d9b31bd235
+Description: Debian configuration management system
+ Debconf is a configuration management system for debian packages. Packages
+ use Debconf to ask questions when they are installed.
+
+Package: debian-archive-keyring
+Status: install ok installed
+Priority: important
+Section: misc
+Installed-Size: 302
+Maintainer: Debian Release Team <packages@release.debian.org>
+Architecture: all
+Multi-Arch: foreign
+Version: 2025.1
+Conffiles:
+ /etc/apt/trusted.gpg.d/debian-archive-bookworm-automatic.asc 55eec060916a9d4a0db7560ab4d7bdce
+ /etc/apt/trusted.gpg.d/debian-archive-bookworm-security-automatic.asc bec0a1224f667bcd1e231b874db9bc4f
+ /etc/apt/trusted.gpg.d/debian-archive-bookworm-stable.asc fac2ec9faba2c2d82c70a6e2805c5b79
+ /etc/apt/trusted.gpg.d/debian-archive-bullseye-automatic.asc 1f30ce1ba8532d523017acb1a69c106a
+ /etc/apt/trusted.gpg.d/debian-archive-bullseye-security-automatic.asc 9fbe7b0d8ebb38e240aeec6b0830ac7b
+ /etc/apt/trusted.gpg.d/debian-archive-bullseye-stable.asc 85a4c0e5c747a38509b33562d4c950be
+ /etc/apt/trusted.gpg.d/debian-archive-trixie-automatic.asc 556202307f6f23e343c1ba12790507be
+ /etc/apt/trusted.gpg.d/debian-archive-trixie-security-automatic.asc f421db9e00d9a98c66c396b2a210f52c
+ /etc/apt/trusted.gpg.d/debian-archive-trixie-stable.asc 91c5c0b4f6878239622087c64866c909
+Description: OpenPGP archive certificates of the Debian archive
+ The Debian project digitally signs its Release files. This package
+ contains the archive certificates used for that.
+
+Package: debianutils
+Essential: yes
+Status: install ok installed
+Priority: required
+Section: utils
+Installed-Size: 218
+Maintainer: Ileana Dumitrescu <ileanadumitrescu95@gmail.com>
+Architecture: i386
+Multi-Arch: foreign
+Version: 5.23.2
+Pre-Depends: libc6 (>= 2.38)
+Breaks: ifupdown (<< 0.8.36+nmu1), printer-driver-pnm2ppa (<< 1.13-12), x11-common (<< 1:7.7+23~)
+Description: Miscellaneous utilities specific to Debian
+ This package provides a number of small utilities which are used
+ primarily by the installation scripts of Debian packages, although
+ you may use them directly.
+ .
+ The specific utilities included are:
+ add-shell installkernel ischroot remove-shell run-parts savelog
+ update-shells which
+
+Package: diffutils
+Essential: yes
+Status: install ok installed
+Priority: required
+Section: utils
+Installed-Size: 1786
+Maintainer: Santiago Vila <sanvila@debian.org>
+Architecture: i386
+Version: 1:3.10-4
+Replaces: diff
+Pre-Depends: libc6 (>= 2.38)
+Suggests: diffutils-doc, wdiff
+Description: File comparison utilities
+ The diffutils package provides the diff, diff3, sdiff, and cmp programs.
+ .
+ `diff' shows differences between two files, or each corresponding file
+ in two directories.  `cmp' shows the offsets and line numbers where
+ two files differ.  `cmp' can also show all the characters that
+ differ between the two files, side by side.  `diff3' shows differences
+ among three files.  `sdiff' merges two files interactively.
+ .
+ The set of differences produced by `diff' can be used to distribute
+ updates to text files (such as program source code) to other people.
+ This method is especially useful when the differences are small compared
+ to the complete files.  Given `diff' output, the `patch' program can
+ update, or "patch", a copy of the file.
+Homepage: https://www.gnu.org/software/diffutils/
+
+Package: dirmngr
+Status: install ok installed
+Priority: optional
+Section: utils
+Installed-Size: 1067
+Maintainer: Debian GnuPG Maintainers <pkg-gnupg-maint@lists.alioth.debian.org>
+Architecture: i386
+Multi-Arch: foreign
+Source: gnupg2 (2.4.7-21)
+Version: 2.4.7-21+b3
+Depends: adduser, gpgconf (= 2.4.7-21+b3), init-system-helpers (>= 1.52), libassuan9 (>= 2.5.0), libc6 (>= 2.38), libgcrypt20 (>= 1.11.0), libgnutls30t64 (>= 3.8.1), libgpg-error0 (>= 1.49), libksba8 (>= 1.6.3), libldap2 (>= 2.6.2), libnpth0t64 (>= 1.8)
+Recommends: gnupg (= 2.4.7-21)
+Suggests: dbus-user-session, libpam-systemd, pinentry-gnome3, tor
+Enhances: gpg, gpgsm, squid
+Description: GNU privacy guard - network certificate management service
+ dirmngr is a server for managing and downloading OpenPGP and X.509
+ certificates, as well as updates and status signals related to those
+ certificates.  For OpenPGP, this means pulling from the public
+ HKP/HKPS keyservers, or from LDAP servers.  For X.509 this includes
+ Certificate Revocation Lists (CRLs) and Online Certificate Status
+ Protocol updates (OCSP).  It is capable of using Tor for network
+ access.
+ .
+ dirmngr is used for network access by gpg, gpgsm, and dirmngr-client,
+ among other tools.  Unless this package is installed, the parts of
+ the GnuPG suite that try to interact with the network will fail.
+Homepage: https://www.gnupg.org/
+
+Package: dpkg
+Essential: yes
+Status: install ok installed
+Priority: required
+Section: admin
+Installed-Size: 6708
+Maintainer: Dpkg Developers <debian-dpkg@lists.debian.org>
+Architecture: i386
+Multi-Arch: foreign
+Version: 1.22.21
+Depends: tar (>= 1.28-1)
+Pre-Depends: libbz2-1.0, libc6 (>= 2.38), liblzma5 (>= 5.4.0), libmd0 (>= 0.0.0), libselinux1 (>= 3.1~), libzstd1 (>= 1.5.5), zlib1g (>= 1:1.1.4)
+Suggests: apt, debsig-verify
+Breaks: libapt-pkg5.0 (<< 1.7~b), lsb-base (<< 10.2019031300)
+Conffiles:
+ /etc/alternatives/README 7be88b21f7e386c8d5a8790c2461c92b
+ /etc/cron.daily/dpkg 94bb6c1363245e46256908a5d52ba4fb
+ /etc/dpkg/dpkg.cfg f4413ffb515f8f753624ae3bb365b81b
+ /etc/logrotate.d/alternatives 5fe0af6ce1505fefdc158d9e5dbf6286
+ /etc/logrotate.d/dpkg 9e25c8505966b5829785f34a548ae11f
+Description: Debian package management system
+ This package provides the low-level infrastructure for handling the
+ installation and removal of Debian software packages.
+ .
+ For Debian package development tools, install dpkg-dev.
+Homepage: https://wiki.debian.org/Teams/Dpkg
+
+Package: findutils
+Essential: yes
+Status: install ok installed
+Priority: required
+Section: utils
+Installed-Size: 2194
+Maintainer: Andreas Metzler <ametzler@debian.org>
+Architecture: i386
+Multi-Arch: foreign
+Version: 4.10.0-3
+Pre-Depends: libc6 (>= 2.38), libselinux1 (>= 3.1~)
+Breaks: binstats (<< 1.08-8.1), guilt (<< 0.36-0.2), libpython3.4-minimal (<< 3.4.4-2), libpython3.5-minimal (<< 3.5.1-3), lsat (<< 0.9.7.1-2.1), mc (<< 3:4.8.11-1), switchconf (<< 0.0.9-2.1)
+Description: utilities for finding files--find, xargs
+ GNU findutils provides utilities to find files meeting specified
+ criteria and perform various actions on the files which are found.
+ This package contains 'find' and 'xargs'; however, 'locate' has
+ been split off into a separate package.
+Homepage: https://savannah.gnu.org/projects/findutils/
+
+Package: fontconfig-config
+Status: install ok installed
+Priority: optional
+Section: fonts
+Installed-Size: 533
+Maintainer: Debian freedesktop.org maintainers <pkg-freedesktop-maintainers@lists.alioth.debian.org>
+Architecture: i386
+Multi-Arch: foreign
+Source: fontconfig
+Version: 2.15.0-2.3
+Depends: debconf (>= 0.5) | debconf-2.0, fonts-dejavu-core | fonts-liberation | fonts-croscore | fonts-freefont-otf | fonts-freefont-ttf | fonts-urw-base35 | fonts-texgyre | fonts-noto-core
+Breaks: libfontconfig1 (<< 2.13.0)
+Conffiles:
+ /etc/fonts/conf.d/README ad6182d0b838d9d8f39219a37b88b24d
+ /etc/fonts/fonts.conf 9632eb1c8b4d81e0e300cd733a4beefe
+Description: generic font configuration library - configuration
+ Fontconfig is a font configuration and customization library, which
+ does not depend on the X Window System. It is designed to locate
+ fonts within the system and select them according to requirements
+ specified by applications.
+ .
+ This package contains the configuration files and scripts for fontconfig.
+Homepage: https://www.freedesktop.org/wiki/Software/fontconfig/
+
+Package: fonts-dejavu-core
+Status: install ok installed
+Priority: optional
+Section: fonts
+Installed-Size: 2292
+Maintainer: Debian Fonts Task Force <debian-fonts@lists.debian.org>
+Architecture: all
+Multi-Arch: foreign
+Source: fonts-dejavu
+Version: 2.37-8
+Depends: fonts-dejavu-mono
+Conffiles:
+ /etc/fonts/conf.avail/20-unhint-small-dejavu-lgc-sans.conf 6488b24401e477e35aa71237054c8ada
+ /etc/fonts/conf.avail/20-unhint-small-dejavu-lgc-serif.conf 0b01522fe76b4e5b8ab3d12383371348
+ /etc/fonts/conf.avail/20-unhint-small-dejavu-sans.conf f7df7bba810dd953dd78212900f4dcad
+ /etc/fonts/conf.avail/20-unhint-small-dejavu-serif.conf e90c678d46f49bb9d6ba469b64e80c0c
+ /etc/fonts/conf.avail/57-dejavu-sans.conf 2156c2353cfcc81f33150cf889193c28
+ /etc/fonts/conf.avail/57-dejavu-serif.conf 2604487cb2eee1bdb7010ea716faf408
+ /etc/fonts/conf.avail/58-dejavu-lgc-sans.conf b4a8f51e45aa24fdee47b3f838cc0205
+ /etc/fonts/conf.avail/58-dejavu-lgc-serif.conf 5f0b00e681b1f40b65dd336696ee0bbb
+Description: Vera font family derivate with additional characters
+ DejaVu provides an expanded version of the Vera font family aiming for
+ quality and broader Unicode coverage while retaining the original Vera
+ style. DejaVu currently works towards conformance with the Multilingual
+ European Standards (MES-1 and MES-2) for Unicode coverage. The DejaVu
+ fonts provide serif, sans and monospaced variants.
+ .
+ This package only contains the sans, sans-bold, serif and serif-bold
+ variants. For additional variants, see the fonts-dejavu-mono and
+ fonts-dejavu-extra packages.
+ .
+ DejaVu fonts are intended for use on low-resolution devices (mainly
+ computer screens) but can be used in printing as well.
+Homepage: https://dejavu-fonts.github.io/
+
+Package: fonts-dejavu-mono
+Status: install ok installed
+Priority: optional
+Section: fonts
+Installed-Size: 1281
+Maintainer: Debian Fonts Task Force <debian-fonts@lists.debian.org>
+Architecture: all
+Multi-Arch: foreign
+Source: fonts-dejavu
+Version: 2.37-8
+Replaces: fonts-dejavu-core (<< 2.37-7~), fonts-dejavu-extra (<< 2.37-7~)
+Breaks: fonts-dejavu-core (<< 2.37-7~), fonts-dejavu-extra (<< 2.37-7~)
+Conffiles:
+ /etc/fonts/conf.avail/20-unhint-small-dejavu-lgc-sans-mono.conf 10d6f2176d76ee9b89a19a17811257f2
+ /etc/fonts/conf.avail/20-unhint-small-dejavu-sans-mono.conf 0cbf30e4580c5a8570da071ab12c5e4d
+ /etc/fonts/conf.avail/57-dejavu-sans-mono.conf b9a76edd2aeb35cd1095e378963e2cdd
+ /etc/fonts/conf.avail/58-dejavu-lgc-sans-mono.conf d2ee39274982cb4f831783cff742c8bc
+Description: Vera font family derivate with additional characters
+ DejaVu provides an expanded version of the Vera font family aiming for
+ quality and broader Unicode coverage while retaining the original Vera
+ style. DejaVu currently works towards conformance with the Multilingual
+ European Standards (MES-1 and MES-2) for Unicode coverage. The DejaVu
+ fonts provide serif, sans and monospaced variants.
+ .
+ This package only contains the monospaced variants. For additional
+ variants, see the fonts-dejavu-core and fonts-dejavu-extra packages.
+ .
+ DejaVu fonts are intended for use on low-resolution devices (mainly
+ computer screens) but can be used in printing as well.
+Homepage: https://dejavu-fonts.github.io/
+
+Package: gcc-14-base
+Status: install ok installed
+Priority: optional
+Section: libs
+Installed-Size: 112
+Maintainer: Debian GCC Maintainers <debian-gcc@lists.debian.org>
+Architecture: i386
+Multi-Arch: same
+Source: gcc-14
+Version: 14.2.0-19
+Breaks: gnat (<< 7)
+Description: GCC, the GNU Compiler Collection (base package)
+ This package contains files common to all languages and libraries
+ contained in the GNU Compiler Collection (GCC).
+Homepage: http://gcc.gnu.org/
+
+Package: gnupg
+Status: install ok installed
+Priority: optional
+Section: metapackages
+Installed-Size: 468
+Maintainer: Debian GnuPG Maintainers <pkg-gnupg-maint@lists.alioth.debian.org>
+Architecture: all
+Multi-Arch: foreign
+Source: gnupg2
+Version: 2.4.7-21
+Depends: dirmngr (<< 2.4.7-21.1~), dirmngr (>= 2.4.7-21), gnupg-l10n (= 2.4.7-21), gpg (<< 2.4.7-21.1~), gpg (>= 2.4.7-21), gpg-agent (<< 2.4.7-21.1~), gpg-agent (>= 2.4.7-21), gpgsm (<< 2.4.7-21.1~), gpgsm (>= 2.4.7-21)
+Recommends: gnupg-utils (<< 2.4.7-21.1~), gnupg-utils (>= 2.4.7-21), gpg-wks-client (<< 2.4.7-21.1~), gpg-wks-client (>= 2.4.7-21), gpgv (<< 2.4.7-21.1~), gpgv (>= 2.4.7-21)
+Suggests: gpg-wks-server (<< 2.4.7-21.1~), gpg-wks-server (>= 2.4.7-21), parcimonie, xloadimage
+Breaks: debsig-verify (<< 0.15), dirmngr (<< 2.4.7-21), libgnupg-interface-perl (<< 0.52-3), libgnupg-perl (<= 0.19-1), libmail-gnupg-perl (<= 0.22-1), monkeysphere (<< 0.38~), php-crypt-gpg (<= 1.4.1-1), python-apt (<= 1.1.0~beta4), python-gnupg (<< 0.3.8-3), python3-apt (<= 1.1.0~beta4)
+Description: GNU privacy guard - a free PGP replacement
+ GnuPG is GNU's tool for secure communication and data storage.
+ It can be used to encrypt data and to create digital signatures.
+ It includes an advanced key management facility and is compliant
+ with the proposed OpenPGP Internet standard as described in RFC4880.
+ .
+ This package contains the full suite of GnuPG tools for cryptographic
+ communications and data storage.
+Homepage: https://www.gnupg.org/
+
+Package: gnupg-l10n
+Status: install ok installed
+Priority: optional
+Section: localization
+Installed-Size: 5010
+Maintainer: Debian GnuPG Maintainers <pkg-gnupg-maint@lists.alioth.debian.org>
+Architecture: all
+Multi-Arch: foreign
+Source: gnupg2
+Version: 2.4.7-21
+Enhances: dirmngr, gpg, gpg-agent
+Description: GNU privacy guard - localization files
+ GnuPG is GNU's tool for secure communication and data storage.
+ It can be used to encrypt data and to create digital signatures.
+ It includes an advanced key management facility and is compliant
+ with the proposed OpenPGP Internet standard as described in RFC 4880.
+ .
+ This package contains the translation files for the use of GnuPG in
+ non-English locales.
+Homepage: https://www.gnupg.org/
+
+Package: gnupg-utils
+Status: install ok installed
+Priority: optional
+Section: utils
+Installed-Size: 798
+Maintainer: Debian GnuPG Maintainers <pkg-gnupg-maint@lists.alioth.debian.org>
+Architecture: i386
+Multi-Arch: foreign
+Source: gnupg2 (2.4.7-21)
+Version: 2.4.7-21+b3
+Replaces: gnupg (<< 2.1.21-4), gnupg-agent (<< 2.1.21-4)
+Depends: libbz2-1.0, libc6 (>= 2.38), libgcrypt20 (>= 1.11.0), libgpg-error0 (>= 1.50), libksba8 (>= 1.6.3), zlib1g (>= 1:1.1.4)
+Recommends: gpg, gpg-agent, gpgconf, gpgsm
+Breaks: gnupg (<< 2.1.21-4), gnupg-agent (<< 2.1.21-4)
+Description: GNU privacy guard - utility programs
+ GnuPG is GNU's tool for secure communication and data storage.
+ .
+ This package contains several useful utilities for manipulating
+ OpenPGP data and other related cryptographic elements.  It includes:
+ .
+  * addgnupghome -- create .gnupg home directories
+  * applygnupgdefaults -- run gpgconf --apply-defaults for all users
+  * gpgparsemail -- parse an e-mail message into annotated format
+  * gpgsplit -- split a sequence of OpenPGP packets into files
+  * gpgtar -- encrypt or sign files in an archive
+  * kbxutil -- list, export, import Keybox data
+  * lspgpot -- convert PGP ownertrust values to GnuPG
+  * migrate-pubring-from-classic-gpg -- use only "modern" formats
+  * symcryptrun -- use simple symmetric encryption tool in GnuPG framework
+  * watchgnupg -- watch socket-based logs
+Homepage: https://www.gnupg.org/
+
+Package: gpg
+Status: install ok installed
+Priority: optional
+Section: utils
+Installed-Size: 1819
+Maintainer: Debian GnuPG Maintainers <pkg-gnupg-maint@lists.alioth.debian.org>
+Architecture: i386
+Multi-Arch: foreign
+Source: gnupg2 (2.4.7-21)
+Version: 2.4.7-21+b3
+Replaces: gnupg (<< 2.1.21-4), keyboxd (<< 2.4.7-4)
+Provides: keyboxd (= 2.4.7-21+b3)
+Depends: gpgconf (= 2.4.7-21+b3), init-system-helpers (>= 1.52), libassuan9 (>= 2.5.1), libbz2-1.0, libc6 (>= 2.38), libgcrypt20 (>= 1.11.0), libgpg-error0 (>= 1.49), libksba8 (>= 1.6.3), libnpth0t64 (>= 1.2), libreadline8t64 (>= 6.0), libsqlite3-0 (>= 3.14.0), zlib1g (>= 1:1.1.4)
+Recommends: gnupg (= 2.4.7-21)
+Breaks: gnupg (<< 2.1.21-4), keyboxd (<< 2.4.7-4)
+Description: GNU Privacy Guard -- minimalist public key operations
+ GnuPG is GNU's tool for secure communication and data storage.
+ It can be used to encrypt data and to create digital signatures.
+ It includes an advanced key management facility and is compliant
+ with the proposed OpenPGP Internet standard as described in RFC4880.
+ .
+ This package contains /usr/bin/gpg itself, and is useful on its own
+ only for public key operations (encryption, signature verification,
+ listing OpenPGP certificates, etc).  If you want full capabilities
+ (including secret key operations, network access, etc), please
+ install the "gnupg" package, which pulls in the full suite of tools.
+Homepage: https://www.gnupg.org/
+
+Package: gpg-agent
+Status: install ok installed
+Priority: optional
+Section: utils
+Installed-Size: 985
+Maintainer: Debian GnuPG Maintainers <pkg-gnupg-maint@lists.alioth.debian.org>
+Architecture: i386
+Multi-Arch: foreign
+Source: gnupg2 (2.4.7-21)
+Version: 2.4.7-21+b3
+Replaces: gnupg-agent (<< 2.1.21-4)
+Provides: gnupg-agent
+Depends: gpgconf (= 2.4.7-21+b3), pinentry-curses | pinentry, init-system-helpers (>= 1.52), libassuan9 (>= 2.5.1), libc6 (>= 2.38), libgcrypt20 (>= 1.11.0), libgpg-error0 (>= 1.49), libnpth0t64 (>= 1.2)
+Recommends: gnupg (= 2.4.7-21)
+Suggests: dbus-user-session, libpam-systemd, pinentry-gnome3, scdaemon, tpm2daemon
+Breaks: gnupg-agent (<< 2.1.21-4)
+Conffiles:
+ /etc/X11/Xsession.d/90gpg-agent 444b1f7d2bc0f05b8fff51f58bd99ed9
+ /etc/logcheck/ignore.d.server/gpg-agent 2d0fbc91a955ba69408ca033d7ae2455
+Description: GNU privacy guard - cryptographic agent
+ GnuPG is GNU's tool for secure communication and data storage.
+ It can be used to encrypt data and to create digital signatures.
+ It includes an advanced key management facility and is compliant
+ with the proposed OpenPGP Internet standard as described in RFC4880.
+ .
+ This package contains the agent program gpg-agent which handles all
+ secret key material for OpenPGP and S/MIME use.  The agent also
+ provides a passphrase cache, which is used by pre-2.1 versions of
+ GnuPG for OpenPGP operations.  Without this package, trying to do
+ secret-key operations with any part of the modern GnuPG suite will
+ fail.
+Homepage: https://www.gnupg.org/
+
+Package: gpg-wks-client
+Status: install ok installed
+Priority: optional
+Section: utils
+Installed-Size: 289
+Maintainer: Debian GnuPG Maintainers <pkg-gnupg-maint@lists.alioth.debian.org>
+Architecture: i386
+Multi-Arch: foreign
+Source: gnupg2 (2.4.7-21)
+Version: 2.4.7-21+b3
+Depends: dirmngr (= 2.4.7-21+b3), gpg (= 2.4.7-21+b3), gpg-agent (= 2.4.7-21+b3), libassuan9 (>= 2.5.0), libc6 (>= 2.38), libgcrypt20 (>= 1.11.0), libgpg-error0 (>= 1.48)
+Recommends: gnupg (= 2.4.7-21)
+Description: GNU privacy guard - Web Key Service client
+ GnuPG is GNU's tool for secure communication and data storage.
+ It can be used to encrypt data and to create digital signatures.
+ It includes an advanced key management facility and is compliant
+ with the proposed OpenPGP Internet standard as described in RFC4880.
+ .
+ This package provides the GnuPG client for the Web Key Service
+ protocol.
+ .
+ A Web Key Service is a service that allows users to upload keys per
+ mail to be verified over https as described in
+ https://tools.ietf.org/html/draft-koch-openpgp-webkey-service
+ .
+ For more information see: https://wiki.gnupg.org/WKS
+Homepage: https://www.gnupg.org/
+
+Package: gpgconf
+Status: install ok installed
+Priority: optional
+Section: utils
+Installed-Size: 391
+Maintainer: Debian GnuPG Maintainers <pkg-gnupg-maint@lists.alioth.debian.org>
+Architecture: i386
+Multi-Arch: foreign
+Source: gnupg2 (2.4.7-21)
+Version: 2.4.7-21+b3
+Replaces: gnupg (<< 2.1.21-4), gnupg-agent (<< 2.1.21-4)
+Depends: libassuan9 (>= 2.5.0), libc6 (>= 2.38), libgcrypt20 (>= 1.11.0), libgpg-error0 (>= 1.48), libreadline8t64 (>= 6.0)
+Breaks: gnupg (<< 2.1.21-4), gnupg-agent (<< 2.1.21-4)
+Description: GNU privacy guard - core configuration utilities
+ GnuPG is GNU's tool for secure communication and data storage.
+ .
+ This package contains core utilities used by different tools in the
+ suite offered by GnuPG.  It can be used to programmatically edit
+ config files for tools in the GnuPG suite, to launch or terminate
+ per-user daemons (if installed), etc.
+Homepage: https://www.gnupg.org/
+
+Package: gpgsm
+Status: install ok installed
+Priority: optional
+Section: utils
+Installed-Size: 752
+Maintainer: Debian GnuPG Maintainers <pkg-gnupg-maint@lists.alioth.debian.org>
+Architecture: i386
+Multi-Arch: foreign
+Source: gnupg2 (2.4.7-21)
+Version: 2.4.7-21+b3
+Depends: gpgconf (= 2.4.7-21+b3), libassuan9 (>= 2.5.0), libc6 (>= 2.38), libgcrypt20 (>= 1.11.0), libgpg-error0 (>= 1.49), libksba8 (>= 1.6.3), libnpth0t64 (>= 1.2), libreadline8t64 (>= 6.0)
+Recommends: gnupg (= 2.4.7-21)
+Description: GNU privacy guard - S/MIME version
+ GnuPG is GNU's tool for secure communication and data storage.
+ It can be used to encrypt data and to create digital signatures.
+ It includes an advanced key management facility and is compliant
+ with the proposed OpenPGP Internet standard as described in RFC4880.
+ .
+ This package contains the gpgsm program. gpgsm is a tool to provide
+ digital encryption and signing services on X.509 certificates and the
+ CMS protocol. gpgsm includes complete certificate management.
+Homepage: https://www.gnupg.org/
+
+Package: gpgv
+Status: install ok installed
+Priority: important
+Section: utils
+Installed-Size: 642
+Maintainer: Debian GnuPG Maintainers <pkg-gnupg-maint@lists.alioth.debian.org>
+Architecture: i386
+Multi-Arch: foreign
+Source: gnupg2 (2.4.7-21)
+Version: 2.4.7-21+b3
+Depends: libbz2-1.0, libc6 (>= 2.38), libgcrypt20 (>= 1.11.0), libgpg-error0 (>= 1.49), zlib1g (>= 1:1.1.4)
+Suggests: gnupg
+Breaks: python-debian (<< 0.1.29)
+Description: GNU privacy guard - signature verification tool
+ GnuPG is GNU's tool for secure communication and data storage.
+ .
+ gpgv is actually a stripped-down version of gpg which is only able
+ to check signatures. It is somewhat smaller than the fully-blown gpg
+ and uses a different (and simpler) way to check that the public keys
+ used to make the signature are valid. There are no configuration
+ files and only a few options are implemented.
+Homepage: https://www.gnupg.org/
+
+Package: grep
+Essential: yes
+Status: install ok installed
+Priority: required
+Section: utils
+Installed-Size: 1281
+Maintainer: Anibal Monsalve Salazar <anibal@debian.org>
+Architecture: i386
+Multi-Arch: foreign
+Version: 3.11-4
+Provides: rgrep
+Pre-Depends: libc6 (>= 2.34), libpcre2-8-0 (>= 10.32)
+Conflicts: rgrep
+Description: GNU grep, egrep and fgrep
+ 'grep' is a utility to search for text in files; it can be used from the
+ command line or in scripts.  Even if you don't want to use it, other packages
+ on your system probably will.
+ .
+ The GNU family of grep utilities may be the "fastest grep in the west".
+ GNU grep is based on a fast lazy-state deterministic matcher (about
+ twice as fast as stock Unix egrep) hybridized with a Boyer-Moore-Gosper
+ search for a fixed string that eliminates impossible text from being
+ considered by the full regexp matcher without necessarily having to
+ look at every character. The result is typically many times faster
+ than Unix grep or egrep. (Regular expressions containing backreferencing
+ will run more slowly, however.)
+Homepage: https://www.gnu.org/software/grep/
+
+Package: gzip
+Essential: yes
+Status: install ok installed
+Priority: required
+Section: utils
+Installed-Size: 259
+Maintainer: Milan Kupcevic <milan@debian.org>
+Architecture: i386
+Version: 1.13-1
+Pre-Depends: libc6 (>= 2.38)
+Suggests: less
+Conflicts: zutils (<< 1.13-2~)
+Description: GNU compression utilities
+ This package provides the standard GNU file compression utilities, which
+ are also the default compression tools for Debian.  They typically operate
+ on files with names ending in '.gz', but can also decompress files ending
+ in '.Z' created with 'compress'.
+Homepage: https://www.gnu.org/software/gzip/
+
+Package: hostname
+Essential: yes
+Status: install ok installed
+Priority: required
+Section: admin
+Installed-Size: 45
+Maintainer: Michael Meskes <meskes@debian.org>
+Architecture: i386
+Version: 3.25
+Replaces: nis (<< 3.17-30)
+Pre-Depends: libc6 (>= 2.34)
+Breaks: nis (<< 3.17-30)
+Description: utility to set/show the host name or domain name
+ This package provides commands which can be used to display the system's
+ DNS name, and to display or set its hostname or NIS domain name.
+
+Package: init-system-helpers
+Essential: yes
+Status: install ok installed
+Priority: required
+Section: admin
+Installed-Size: 133
+Maintainer: Debian systemd Maintainers <pkg-systemd-maintainers@lists.alioth.debian.org>
+Architecture: all
+Multi-Arch: foreign
+Version: 1.69~deb13u1
+Description: helper tools for all init systems
+ This package contains helper tools that are necessary for switching between
+ the various init systems that Debian contains (e. g. sysvinit or
+ systemd). An example is deb-systemd-helper, a script that enables systemd unit
+ files without depending on a running systemd.
+ .
+ It also includes the "service", "invoke-rc.d", and "update-rc.d" scripts which
+ provide an abstraction for enabling, disabling, starting, and stopping
+ services for all supported Debian init systems as specified by the policy.
+ .
+ While this package is maintained by pkg-systemd-maintainers, it is NOT
+ specific to systemd at all. Maintainers of other init systems are welcome to
+ include their helpers in this package.
+
+Package: krb5-locales
+Status: install ok installed
+Priority: optional
+Section: localization
+Installed-Size: 584
+Maintainer: Sam Hartman <hartmans@debian.org>
+Architecture: all
+Multi-Arch: foreign
+Source: krb5
+Version: 1.21.3-5
+Description: internationalization support for MIT Kerberos
+ Kerberos is a system for authenticating users and services on a network.
+ Kerberos is a trusted third-party service.  That means that there is a
+ third party (the Kerberos server) that is trusted by all the entities on
+ the network (users and services, usually called "principals").
+ .
+ This is the MIT reference implementation of Kerberos V5.
+ .
+ This package contains internationalized messages for MIT Kerberos.
+Homepage: https://web.mit.edu/kerberos/
+
+Package: libacl1
+Status: install ok installed
+Priority: optional
+Section: libs
+Installed-Size: 78
+Maintainer: Guillem Jover <guillem@debian.org>
+Architecture: i386
+Multi-Arch: same
+Source: acl (2.3.2-2)
+Version: 2.3.2-2+b1
+Depends: libc6 (>= 2.38)
+Description: access control list - shared library
+ This package contains the shared library containing the POSIX 1003.1e
+ draft standard 17 functions for manipulating access control lists.
+Homepage: https://savannah.nongnu.org/projects/acl/
+
+Package: libapt-pkg7.0
+Status: install ok installed
+Priority: optional
+Section: libs
+Installed-Size: 3917
+Maintainer: APT Development Team <deity@lists.debian.org>
+Architecture: i386
+Multi-Arch: same
+Source: apt
+Version: 3.0.3
+Provides: libapt-pkg (= 3.0.3)
+Depends: libbz2-1.0, libc6 (>= 2.38), libgcc-s1 (>= 7), liblz4-1 (>= 0.0~r127), liblzma5 (>= 5.1.1alpha+20120614), libssl3t64 (>= 3.0.0), libstdc++6 (>= 14), libsystemd0 (>= 221), libudev1 (>= 183), libxxhash0 (>= 0.8), libzstd1 (>= 1.5.5), zlib1g (>= 1:1.2.3.4)
+Recommends: apt (>= 3.0.3)
+Breaks: appstream (<< 0.9.0-3~), apt (<< 1.6~), aptitude (<< 0.8.9), dpkg (<< 1.20.8), libapt-inst1.5 (<< 0.9.9~)
+Conflicts: libnettle8 (<< 3.9.1-2.2~)
+Description: package management runtime library
+ This library provides the common functionality for searching and
+ managing packages as well as information about packages.
+ Higher-level package managers can depend upon this library.
+ .
+ This includes:
+  * retrieval of information about packages from multiple sources
+  * retrieval of packages and all dependent packages
+    needed to satisfy a request either through an internal
+    solver or by interfacing with an external one
+  * authenticating the sources and validating the retrieved data
+  * installation and removal of packages in the system
+  * providing different transports to retrieve data over cdrom and
+    http(s) as well as an interface to add more transports like
+    tor+http(s) (apt-transport-tor).
+
+Package: libassuan9
+Status: install ok installed
+Priority: optional
+Section: libs
+Installed-Size: 143
+Maintainer: Debian GnuPG-Maintainers <pkg-gnupg-maint@lists.alioth.debian.org>
+Architecture: i386
+Multi-Arch: same
+Source: libassuan
+Version: 3.0.2-2
+Depends: libc6 (>= 2.38), libgpg-error0 (>= 1.33)
+Description: IPC library for the GnuPG components
+ Libassuan is a small library implementing the so-called "Assuan
+ protocol". This protocol is used for IPC between most newer GnuPG
+ components. Both server and client side functions are provided.
+Homepage: https://www.gnupg.org/related_software/libassuan/index.html
+
+Package: libattr1
+Status: install ok installed
+Priority: optional
+Section: libs
+Installed-Size: 56
+Maintainer: Guillem Jover <guillem@debian.org>
+Architecture: i386
+Multi-Arch: same
+Source: attr
+Version: 1:2.5.2-3
+Depends: libc6 (>= 2.4)
+Conffiles:
+ /etc/xattr.conf 743ca3f83ea263f1f56ad1f63f907bdb
+Description: extended attribute handling - shared library
+ Contains the runtime environment required by programs that make use
+ of extended attributes.
+Homepage: https://savannah.nongnu.org/projects/attr/
+
+Package: libaudit-common
+Status: install ok installed
+Priority: optional
+Section: libs
+Installed-Size: 25
+Maintainer: Laurent Bigonville <bigon@debian.org>
+Architecture: all
+Multi-Arch: foreign
+Source: audit
+Version: 1:4.0.2-2
+Conffiles:
+ /etc/libaudit.conf cdc703f9d27f0d980271a9e95d0f18b2
+Description: Dynamic library for security auditing - common files
+ The audit-libs package contains the dynamic libraries needed for
+ applications to use the audit framework. It is used to monitor systems for
+ security related events.
+ .
+ This package contains the libaudit.conf configuration file and the associated
+ manpage.
+Homepage: https://people.redhat.com/sgrubb/audit/
+
+Package: libaudit1
+Status: install ok installed
+Priority: optional
+Section: libs
+Installed-Size: 171
+Maintainer: Laurent Bigonville <bigon@debian.org>
+Architecture: i386
+Multi-Arch: same
+Source: audit (1:4.0.2-2)
+Version: 1:4.0.2-2+b2
+Depends: libaudit-common (>= 1:4.0.2-2), libc6 (>= 2.38), libcap-ng0 (>= 0.7.9)
+Description: Dynamic library for security auditing
+ The audit-libs package contains the dynamic libraries needed for
+ applications to use the audit framework. It is used to monitor systems for
+ security related events.
+Homepage: https://people.redhat.com/sgrubb/audit/
+
+Package: libblkid1
+Status: install ok installed
+Priority: optional
+Section: libs
+Installed-Size: 488
+Maintainer: Chris Hofstaedtler <zeha@debian.org>
+Architecture: i386
+Multi-Arch: same
+Source: util-linux
+Version: 2.41-5
+Depends: libc6 (>= 2.38)
+Description: block device ID library
+ The blkid library allows system programs such as fsck and mount to
+ quickly and easily find block devices by filesystem UUID or label.
+ This allows system administrators to avoid specifying filesystems by
+ hard-coded device names and use a logical naming system instead.
+Homepage: https://github.com/util-linux/util-linux
+
+Package: libbrotli1
+Status: install ok installed
+Priority: optional
+Section: libs
+Installed-Size: 871
+Maintainer: Tomasz Buchert <tomasz@debian.org>
+Architecture: i386
+Multi-Arch: same
+Source: brotli (1.1.0-2)
+Version: 1.1.0-2+b7
+Depends: libc6 (>= 2.29)
+Description: library implementing brotli encoder and decoder (shared libraries)
+ Brotli is a generic-purpose lossless compression algorithm
+ that compresses data using a combination of a modern variant
+ of the LZ77 algorithm, Huffman coding and 2nd order context modeling,
+ with a compression ratio comparable to the best currently available
+ general-purpose compression methods. It is similar in speed with
+ deflate but offers more dense compression.
+ .
+ This package installs shared libraries.
+Homepage: https://github.com/google/brotli
+
+Package: libbsd0
+Status: install ok installed
+Priority: optional
+Section: libs
+Installed-Size: 213
+Maintainer: Guillem Jover <guillem@debian.org>
+Architecture: i386
+Multi-Arch: same
+Source: libbsd
+Version: 0.12.2-2
+Depends: libc6 (>= 2.38), libmd0 (>= 1.0.3-2)
+Description: utility functions from BSD systems - shared library
+ This library provides some C functions such as strlcpy() that are commonly
+ available on BSD systems but not on others like GNU systems.
+ .
+ For a detailed list of the provided functions, please see the libbsd-dev
+ package description.
+Homepage: https://libbsd.freedesktop.org/
+
+Package: libbz2-1.0
+Status: install ok installed
+Priority: optional
+Section: libs
+Installed-Size: 100
+Maintainer: Anibal Monsalve Salazar <anibal@debian.org>
+Architecture: i386
+Multi-Arch: same
+Source: bzip2
+Version: 1.0.8-6
+Depends: libc6 (>= 2.4)
+Description: high-quality block-sorting file compressor library - runtime
+ This package contains libbzip2 which is used by the bzip2 compressor.
+ .
+ bzip2 is a freely available, patent free, data compressor.
+ .
+ bzip2 compresses files using the Burrows-Wheeler block-sorting text
+ compression algorithm, and Huffman coding.  Compression is generally
+ considerably better than that achieved by more conventional
+ LZ77/LZ78-based compressors, and approaches the performance of the PPM
+ family of statistical compressors.
+ .
+ The archive file format of bzip2 (.bz2) is incompatible with that of its
+ predecessor, bzip (.bz).
+Homepage: https://sourceware.org/bzip2/
+
+Package: libc-bin
+Essential: yes
+Status: install ok installed
+Priority: required
+Section: libs
+Installed-Size: 2147
+Maintainer: GNU Libc Maintainers <debian-glibc@lists.debian.org>
+Architecture: i386
+Multi-Arch: foreign
+Source: glibc
+Version: 2.41-12
+Depends: libc6 (>> 2.41), libc6 (<< 2.42)
+Recommends: manpages
+Breaks: dh-lua (<< 27+nmu1~)
+Conffiles:
+ /etc/bindresvport.blacklist 4c09213317e4e3dd3c71d74404e503c5
+ /etc/default/nss d6d5d6f621fb3ead2548076ce81e309c
+ /etc/gai.conf 28fa76ff5a9e0566eaa1e11f1ce51f09
+ /etc/ld.so.conf 4317c6de8564b68d628c21efa96b37e4
+ /etc/ld.so.conf.d/libc.conf d4d833fd095fb7b90e1bb4a547f16de6
+Description: GNU C Library: Binaries
+ This package contains utility programs related to the GNU C Library.
+ .
+  * getconf: query system configuration variables
+  * getent: get entries from administrative databases
+  * iconv, iconvconfig: convert between character encodings
+  * ldd, ldconfig: print/configure shared library dependencies
+  * locale, localedef: show/generate locale definitions
+  * tzselect, zdump, zic: select/dump/compile time zones
+Homepage: https://www.gnu.org/software/libc/libc.html
+
+Package: libc6
+Status: install ok installed
+Priority: optional
+Section: libs
+Installed-Size: 12444
+Maintainer: GNU Libc Maintainers <debian-glibc@lists.debian.org>
+Architecture: i386
+Multi-Arch: same
+Source: glibc
+Version: 2.41-12
+Replaces: libc6-i386, libc6-i686
+Provides: libc6-i686
+Depends: libgcc-s1
+Recommends: libidn2-0 (>= 2.0.5~)
+Suggests: glibc-doc, debconf | debconf-2.0, libc-l10n, locales, libnss-nis, libnss-nisplus
+Breaks: base-files (<< 13.3~), chrony (<< 4.2-3~), dhcpcd (<< 1:10.1.0-7~), fakechroot (<< 2.19-3.5), firefox (<< 91~), firefox-esr (<< 91~), gnumach-image-1.8-486 (<< 2:1.8+git20210923~), gnumach-image-1.8-486-dbg (<< 2:1.8+git20210923~), gnumach-image-1.8-xen-486 (<< 2:1.8+git20210923~), gnumach-image-1.8-xen-486-dbg (<< 2:1.8+git20210923~), hurd (<< 1:0.9.git20220301-2), libamdhip64-5 (<< 5.7.1-5+b1), libfec0 (<< 1.0-26-gc5d935f-1+b3), libhiprtc-builtins5 (<< 5.7.1-5+b1), libqt6webenginecore6 (<< 6.8.2+dfsg-3), librccl1 (<< 5.4.3-3+b1), libswupdate0.1 (<< 2024.12.1+dfsg-1+b3), locales (<< 2.41), locales-all (<< 2.41), lua-swupdate (<< 2024.12.1+dfsg-1+b3), nscd (<< 2.41), pd-scaf (<< 1:0.14.1+darcs20180201-6+b4), postgresql-15-pllua (<< 1:2.0.12-4), postgresql-17-pllua (<< 1:2.0.12-3+b2), python3-iptables (<< 1.0.0-2), python3-mrgingham (<< 1.25-1), python3-onnxruntime (<< 1.20.1+dfsg-2~), sysvinit (<< 3.09-2~), sysvinit-core (<< 3.09-2~), tinydns (<< 1:1.05-14), uwsgi-plugin-pypy3 (<< 0.0.2+b1), valgrind (<< 1:3.19.0-1~)
+Conflicts: libc6-i686
+Conffiles:
+ /etc/ld.so.conf.d/i386-linux-gnu.conf f0822fd4d6027e0e8276fefafe371c54
+Description: GNU C Library: Shared libraries
+ Contains the standard libraries that are used by nearly all programs on
+ the system. This package includes shared versions of the standard C library
+ and the standard math library, as well as many others.
+Homepage: https://www.gnu.org/software/libc/libc.html
+
+Package: libcairo2
+Status: install ok installed
+Priority: optional
+Section: libs
+Installed-Size: 1589
+Maintainer: Debian GNOME Maintainers <pkg-gnome-maintainers@lists.alioth.debian.org>
+Architecture: i386
+Multi-Arch: same
+Source: cairo (1.18.4-1)
+Version: 1.18.4-1+b1
+Depends: libc6 (>= 2.38), libfontconfig1 (>= 2.12.6), libfreetype6 (>= 2.11.1), libpixman-1-0 (>= 0.40.0), libpng16-16t64 (>= 1.6.46), libx11-6, libxcb-render0, libxcb-shm0, libxcb1 (>= 1.6), libxext6, libxrender1, zlib1g (>= 1:1.1.4)
+Description: Cairo 2D vector graphics library
+ Cairo is a multi-platform library providing anti-aliased
+ vector-based rendering for multiple target backends. Paths consist
+ of line segments and cubic splines and can be rendered at any width
+ with various join and cap styles. All colors may be specified with
+ optional translucence (opacity/alpha) and combined using the
+ extended Porter/Duff compositing algebra as found in the X Render
+ Extension.
+ .
+ Cairo exports a stateful rendering API similar in spirit to the path
+ construction, text, and painting operators of PostScript, (with the
+ significant addition of translucence in the imaging model). When
+ complete, the API is intended to support the complete imaging model of
+ PDF 1.4.
+ .
+ This package contains the shared libraries.
+Homepage: https://cairographics.org/
+
+Package: libcap-ng0
+Status: install ok installed
+Priority: optional
+Section: libs
+Installed-Size: 62
+Maintainer: HÃ¥vard F. Aasen <havard.f.aasen@pfft.no>
+Architecture: i386
+Multi-Arch: same
+Source: libcap-ng (0.8.5-4)
+Version: 0.8.5-4+b1
+Depends: libc6 (>= 2.38)
+Description: alternate POSIX capabilities library
+ This library implements the user-space interfaces to the POSIX
+ 1003.1e capabilities available in Linux kernels.  These capabilities are
+ a partitioning of the all powerful root privilege into a set of distinct
+ privileges.
+ .
+ The libcap-ng library is intended to make programming with POSIX
+ capabilities much easier than the traditional libcap library.
+ .
+ This package contains dynamic libraries for libcap-ng.
+Homepage: https://people.redhat.com/sgrubb/libcap-ng
+
+Package: libcap2
+Status: install ok installed
+Priority: optional
+Section: libs
+Installed-Size: 90
+Maintainer: Christian Kastner <ckk@debian.org>
+Architecture: i386
+Multi-Arch: same
+Source: libcap2 (1:2.75-10)
+Version: 1:2.75-10+b1
+Depends: libc6 (>= 2.38)
+Description: POSIX 1003.1e capabilities (library)
+ Libcap implements the user-space interfaces to the POSIX 1003.1e capabilities
+ available in Linux kernels. These capabilities are a partitioning of the all
+ powerful root privilege into a set of distinct privileges.
+ .
+ This package contains the shared library.
+Homepage: https://sites.google.com/site/fullycapable/
+
+Package: libcom-err2
+Status: install ok >  ?  @  A  B  C  D  E  F  G  H  I  J  K  L  M  N  O  P  Q  R  S  T  U  V  W                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          installed
+Priority: optional
+Section: libs
+Installed-Size: 60
+Maintainer: Theodore Y. Ts'o <tytso@mit.edu>
+Architecture: i386
+Multi-Arch: same
+Source: e2fsprogs (1.47.2-3)
+Version: 1.47.2-3+b3
+Replaces: libcom-err2t64, libcomerr2 (<< 1.43.9-1~)
+Provides: libcom-err2t64 (= 1.47.2-3+b3), libcomerr2 (= 1.47.2-3+b3)
+Depends: libc6 (>= 2.38)
+Breaks: libcom-err2t64 (<< 1.47.0-2.4~exp1~), libcomerr2 (<< 1.43.9-1~)
+Description: common error description library
+ libcomerr is an attempt to present a common error-handling mechanism to
+ manipulate the most common form of error code in a fashion that does not
+ have the problems identified with mechanisms commonly in use.
+Homepage: http://e2fsprogs.sourceforge.net
+
+Package: libcrypt1
+Status: install ok installed
+Priority: optional
+Section: libs
+Installed-Size: 254
+Maintainer: Marco d'Itri <md@linux.it>
+Architecture: i386
+Multi-Arch: same
+Source: libxcrypt
+Version: 1:4.4.38-1
+Replaces: libc6 (<< 2.29-4)
+Depends: libc6 (>= 2.38)
+Conflicts: libpam0g (<< 1.4.0-10)
+Description: libcrypt shared library
+ libxcrypt is a modern library for one-way hashing of passwords.
+ It supports DES, MD5, NTHASH, SUNMD5, SHA-2-256, SHA-2-512, and
+ bcrypt-based password hashes
+ It provides the traditional Unix 'crypt' and 'crypt_r' interfaces,
+ as well as a set of extended interfaces like 'crypt_gensalt'.
+
+Package: libcurl3t64-gnutls
+Status: install ok installed
+Priority: optional
+Section: libs
+Installed-Size: 1102
+Maintainer: Debian Curl Maintainers <team+curl@tracker.debian.org>
+Architecture: i386
+Multi-Arch: same
+Source: curl
+Version: 8.14.1-2+deb13u2
+Replaces: libcurl3-gnutls
+Provides: libcurl3-gnutls (= 8.14.1-2+deb13u2)
+Depends: libbrotli1 (>= 0.6.0), libc6 (>= 2.38), libgnutls30t64 (>= 3.8.6), libgssapi-krb5-2 (>= 1.17), libidn2-0 (>= 2.0.0), libldap2 (>= 2.6.2), libnettle8t64, libnghttp2-14 (>= 1.50.0), libnghttp3-9 (>= 0.15.0), libngtcp2-16 (>= 1.1.0), libngtcp2-crypto-gnutls8 (>= 1.1.0), libpsl5t64 (>= 0.16.0), librtmp1 (>= 2.3), libssh2-1t64 (>= 1.11.1), libzstd1 (>= 1.5.5), zlib1g (>= 1:1.2.3.4)
+Recommends: ca-certificates
+Breaks: libcurl3-gnutls (<< 8.14.1-2+deb13u2)
+Description: easy-to-use client-side URL transfer library (GnuTLS flavour)
+ libcurl is an easy-to-use client-side URL transfer library, supporting DICT,
+ FILE, FTP, FTPS, GOPHER, HTTP, HTTPS, IMAP, IMAPS, LDAP, LDAPS, POP3, POP3S,
+ RTMP, RTSP, SCP, SFTP, SMTP, SMTPS, TELNET and TFTP.
+ .
+ libcurl supports SSL certificates, HTTP POST, HTTP PUT, FTP uploading, HTTP
+ form based upload, proxies, cookies, user+password authentication (Basic,
+ Digest, NTLM, Negotiate, Kerberos), file transfer resume, http proxy tunneling
+ and more!
+ .
+ libcurl is free, thread-safe, IPv6 compatible, feature rich, well supported,
+ fast, thoroughly documented and is already used by many known, big and
+ successful companies and numerous applications.
+ .
+ SSL support is provided by GnuTLS.
+Homepage: https://curl.se/
+
+Package: libdb5.3t64
+Status: install ok installed
+Priority: optional
+Section: libs
+Installed-Size: 2080
+Maintainer: Debian QA Group <packages@qa.debian.org>
+Architecture: i386
+Multi-Arch: same
+Source: db5.3
+Version: 5.3.28+dfsg2-9
+Replaces: libdb5.3
+Provides: libdb5.3 (= 5.3.28+dfsg2-9)
+Depends: libc6 (>= 2.38)
+Breaks: libdb5.3 (<< 5.3.28+dfsg2-9)
+Description: Berkeley v5.3 Database Libraries [runtime]
+ This is the runtime package for programs that use the v5.3 Berkeley
+ database library.
+Homepage: http://www.oracle.com/technetwork/database/database-technologies/berkeleydb/overview/index.html
+
+Package: libdebconfclient0
+Status: install ok installed
+Priority: optional
+Section: libs
+Installed-Size: 37
+Maintainer: Debian Install System Team <debian-boot@lists.debian.org>
+Architecture: i386
+Multi-Arch: same
+Source: cdebconf
+Version: 0.280
+Depends: libc6 (>= 2.38)
+Description: Debian Configuration Management System (C-implementation library)
+ Debconf is a configuration management system for Debian packages. It is
+ used by some packages to prompt you for information before they are
+ installed. cdebconf is a reimplementation of the original debconf in C.
+ .
+ This library allows C programs to interface with cdebconf.
+
+Package: libdeflate0
+Status: install ok installed
+Priority: optional
+Section: libs
+Installed-Size: 106
+Maintainer: Deflate Team <libdeflate@packages.debian.org>
+Architecture: i386
+Multi-Arch: same
+Source: libdeflate
+Version: 1.23-2
+Depends: libc6 (>= 2.4)
+Description: fast, whole-buffer DEFLATE-based compression and decompression
+ The supported formats are:
+  * DEFLATE (raw)
+  * zlib (a.k.a. DEFLATE with a zlib wrapper)
+  * gzip (a.k.a. DEFLATE with a gzip wrapper)
+ .
+ libdeflate is heavily optimized. It is significantly faster than the zlib
+ library, both for compression and decompression, and especially on x86
+ processors. In addition, libdeflate provides optional high compression modes
+ that provide a better compression ratio than the zlib's "level 9".
+Homepage: https://github.com/ebiggers/libdeflate
+
+Package: libexpat1
+Status: install ok installed
+Priority: optional
+Section: libs
+Installed-Size: 390
+Maintainer: Laszlo Boszormenyi (GCS) <gcs@debian.org>
+Architecture: i386
+Multi-Arch: same
+Source: expat
+Version: 2.7.1-2
+Pre-Depends: libc6 (>= 2.38)
+Description: XML parsing C library - runtime library
+ This package contains the runtime, shared library of expat, the C
+ library for parsing XML. Expat is a stream-oriented parser in
+ which an application registers handlers for things the parser
+ might find in the XML document (like start tags).
+Homepage: https://libexpat.github.io/
+
+Package: libffi8
+Status: install ok installed
+Priority: optional
+Section: libs
+Installed-Size: 59
+Maintainer: Debian GCC Maintainers <debian-gcc@lists.debian.org>
+Architecture: i386
+Multi-Arch: same
+Source: libffi
+Version: 3.4.8-2
+Replaces: libffi8ubuntu1 (<< 3.4.2-1)
+Provides: libffi8ubuntu1 (= 3.4.8-2)
+Depends: libc6 (>= 2.34)
+Breaks: libffi8ubuntu1 (<< 3.4.2-1)
+Description: Foreign Function Interface library runtime
+ A foreign function interface is the popular name for the interface that
+ allows code written in one language to call code written in another
+ language.
+Homepage: https://sourceware.org/libffi/
+
+Package: libfontconfig1
+Status: install ok installed
+Priority: optional
+Section: libs
+Installed-Size: 620
+Maintainer: Debian freedesktop.org maintainers <pkg-freedesktop-maintainers@lists.alioth.debian.org>
+Architecture: i386
+Multi-Arch: same
+Source: fontconfig
+Version: 2.15.0-2.3
+Provides: libfontconfig
+Depends: libc6 (>= 2.38), libexpat1 (>= 2.0.1), libfreetype6 (>= 2.9.1), fontconfig-config (>= 2.15.0-2.3)
+Breaks: xpdf (<= 3.03-11)
+Description: generic font configuration library - runtime
+ Fontconfig is a font configuration and customization library, which
+ does not depend on the X Window System. It is designed to locate
+ fonts within the system and select them according to requirements
+ specified by applications.
+ .
+ This package contains the runtime library needed to launch applications
+ using fontconfig.
+Homepage: https://www.freedesktop.org/wiki/Software/fontconfig/
+
+Package: libfreetype6
+Status: install ok installed
+Priority: optional
+Section: libs
+Installed-Size: 982
+Maintainer: Hugh McMaster <hmc@debian.org>
+Architecture: i386
+Multi-Arch: same
+Source: freetype
+Version: 2.13.3+dfsg-1
+Depends: libbrotli1 (>= 0.6.0), libbz2-1.0, libc6 (>= 2.33), libpng16-16t64 (>= 1.6.2), zlib1g (>= 1:1.1.4)
+Description: FreeType 2 font engine, shared library files
+ The FreeType project is a team of volunteers who develop free,
+ portable and high-quality software solutions for digital typography.
+ They specifically target embedded systems and focus on providing small,
+ efficient and ubiquitous products.
+ .
+ The FreeType 2 library is their new software font engine.  It has been
+ designed to provide the following important features:
+  * A universal and simple API to manage font files
+  * Support for several font formats through loadable modules
+  * High-quality anti-aliasing
+  * High portability & performance
+ .
+ Supported font formats include:
+  * TrueType files (.ttf) and collections (.ttc)
+  * Type 1 font files both in ASCII (.pfa) or binary (.pfb) format
+  * Type 1 Multiple Master fon

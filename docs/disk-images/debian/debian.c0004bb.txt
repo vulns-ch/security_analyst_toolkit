@@ -1,0 +1,2967 @@
+tes and include
+#     a {digest} prefix on it with
+#     their preferred HMAC digest.
+#     Legacy ones send ==20 bytes.
+# 3.  send 4 byte length (net order)
+#     prefix followed by:
+#       b'#CHALLENGE#' + MESSAGE
+# 4.                                  Receive 4 bytes, parse as network byte
+#                                     order integer. If it is -1, receive an
+#                                     additional 8 bytes, parse that as network
+#                                     byte order. The result is the length of
+#                                     the data that follows -> SIZE.
+# 5.                                  Receive min(SIZE, 256) bytes -> M1
+# 6.                                  Assert that M1 starts with:
+#                                       b'#CHALLENGE#'
+# 7.                                  Strip that prefix from M1 into -> M2
+# 7.1.                                Parse M2: if it is exactly 20 bytes in
+#                                     length this indicates a legacy server
+#                                     supporting only HMAC-MD5. Otherwise the
+# 7.2.                                preferred digest is looked up from an
+#                                     expected "{digest}" prefix on M2. No prefix
+#                                     or unsupported digest? <- AuthenticationError
+# 7.3.                                Put divined algorithm name in -> D_NAME
+# 8.                                  Compute HMAC-D_NAME of AUTHKEY, M2 -> C_DIGEST
+# 9.                                  Send 4 byte length prefix (net order)
+#                                     followed by C_DIGEST bytes.
+# 10. Receive 4 or 4+8 byte length
+#     prefix (#4 dance) -> SIZE.
+# 11. Receive min(SIZE, 256) -> C_D.
+# 11.1. Parse C_D: legacy servers
+#     accept it as is, "md5" -> D_NAME
+# 11.2. modern servers check the length
+#     of C_D, IF it is 16 bytes?
+# 11.2.1. "md5" -> D_NAME
+#         and skip to step 12.
+# 11.3. longer? expect and parse a "{digest}"
+#     prefix into -> D_NAME.
+#     Strip the prefix and store remaining
+#     bytes in -> C_D.
+# 11.4. Don't like D_NAME? <- AuthenticationError
+# 12. Compute HMAC-D_NAME of AUTHKEY,
+#     MESSAGE into -> M_DIGEST.
+# 13. Compare M_DIGEST == C_D:
+# 14a: Match? Send length prefix &
+#       b'#WELCOME#'
+#    <- RETURN
+# 14b: Mismatch? Send len prefix &
+#       b'#FAILURE#'
+#    <- CLOSE & AuthenticationError
+# 15.                                 Receive 4 or 4+8 byte length prefix (net
+#                                     order) again as in #4 into -> SIZE.
+# 16.                                 Receive min(SIZE, 256) bytes -> M3.
+# 17.                                 Compare M3 == b'#WELCOME#':
+# 17a.                                Match? <- RETURN
+# 17b.                                Mismatch? <- CLOSE & AuthenticationError
+#
+# If this RETURNed, the connection remains open: it has been authenticated.
+#
+# Length prefixes are used consistently. Even on the legacy protocol, this
+# was good fortune and allowed us to evolve the protocol by using the length
+# of the opening challenge or length of the returned digest as a signal as
+# to which protocol the other end supports.
+
+_ALLOWED_DIGESTS = frozenset(
+        {b'md5', b'sha256', b'sha384', b'sha3_256', b'sha3_384'})
+_MAX_DIGEST_LEN = max(len(_) for _ in _ALLOWED_DIGESTS)
+
+# Old hmac-md5 only server versions from Python <=3.11 sent a message of this
+# length. It happens to not match the length of any supported digest so we can
+# use a message of this length to indicate that we should work in backwards
+# compatible md5-only mode without a {digest_name} prefix on our response.
+_MD5ONLY_MESSAGE_LENGTH = 20
+_MD5_DIGEST_LEN = 16
+_LEGACY_LENGTHS = (_MD5ONLY_MESSAGE_LENGTH, _MD5_DIGEST_LEN)
+
+
+def _get_digest_name_and_payload(message):  # type: (bytes) -> tuple[str, bytes]
+    """Returns a digest name and the payload for a response hash.
+
+    If a legacy protocol is detected based on the message length
+    or contents the digest name returned will be empty to indicate
+    legacy mode where MD5 and no digest prefix should be sent.
+    """
+    # modern message format: b"{digest}payload" longer than 20 bytes
+    # legacy message format: 16 or 20 byte b"payload"
+    if len(message) in _LEGACY_LENGTHS:
+        # Either this was a legacy server challenge, or we're processing
+        # a reply from a legacy client that sent an unprefixed 16-byte
+        # HMAC-MD5 response. All messages using the modern protocol will
+        # be longer than either of these lengths.
+        return '', message
+    if (message.startswith(b'{') and
+        (curly := message.find(b'}', 1, _MAX_DIGEST_LEN+2)) > 0):
+        digest = message[1:curly]
+        if digest in _ALLOWED_DIGESTS:
+            payload = message[curly+1:]
+            return digest.decode('ascii'), payload
+    raise AuthenticationError(
+            'unsupported message length, missing digest prefix, '
+            f'or unsupported digest: {message=}')
+
+
+def _create_response(authkey, message):
+    """Create a MAC based on authkey and message
+
+    The MAC algorithm defaults to HMAC-MD5, unless MD5 is not available or
+    the message has a '{digest_name}' prefix. For legacy HMAC-MD5, the response
+    is the raw MAC, otherwise the response is prefixed with '{digest_name}',
+    e.g. b'{sha256}abcdefg...'
+
+    Note: The MAC protects the entire message including the digest_name prefix.
+    """
+    import hmac
+    digest_name = _get_digest_name_and_payload(message)[0]
+    # The MAC protects the entire message: digest header and payload.
+    if not digest_name:
+        # Legacy server without a {digest} prefix on message.
+        # Generate a legacy non-prefixed HMAC-MD5 reply.
+        try:
+            return hmac.new(authkey, message, 'md5').digest()
+        except ValueError:
+            # HMAC-MD5 is not available (FIPS mode?), fall back to
+            # HMAC-SHA2-256 modern protocol. The legacy server probably
+            # doesn't support it and will reject us anyways. :shrug:
+            digest_name = 'sha256'
+    # Modern protocol, indicate the digest used in the reply.
+    response = hmac.new(authkey, message, digest_name).digest()
+    return b'{%s}%s' % (digest_name.encode('ascii'), response)
+
+
+def _verify_challenge(authkey, message, response):
+    """Verify MAC challenge
+
+    If our message did not include a digest_name prefix, the client is allowed
+    to select a stronger digest_name from _ALLOWED_DIGESTS.
+
+    In case our message is prefixed, a client cannot downgrade to a weaker
+    algorithm, because the MAC is calculated over the entire message
+    including the '{digest_name}' prefix.
+    """
+    import hmac
+    response_digest, response_mac = _get_digest_name_and_payload(response)
+    response_digest = response_digest or 'md5'
+    try:
+        expected = hmac.new(authkey, message, response_digest).digest()
+    except ValueError:
+        raise AuthenticationError(f'{response_digest=} unsupported')
+    if len(expected) != len(response_mac):
+        raise AuthenticationError(
+                f'expected {response_digest!r} of length {len(expected)} '
+                f'got {len(response_mac)}')
+    if not hmac.compare_digest(expected, response_mac):
+        raise AuthenticationError('digest received was wrong')
+
+
+def deliver_challenge(connection, authkey: bytes, digest_name='sha256'):
+    if not isinstance(authkey, bytes):
+        raise ValueError(
+            "Authkey must be bytes, not {0!s}".format(type(authkey)))
+    assert MESSAGE_LENGTH > _MD5ONLY_MESSAGE_LENGTH, "protocol constraint"
+    message = os.urandom(MESSAGE_LENGTH)
+    message = b'{%s}%s' % (digest_name.encode('ascii'), message)
+    # Even when sending a challenge to a legacy client that does not support
+    # digest prefixes, they'll take the entire thing as a challenge and
+    # respond to it with a raw HMAC-MD5.
+    connection.send_bytes(_CHALLENGE + message)
+    response = connection.recv_bytes(256)        # reject large message
+    try:
+        _verify_challenge(authkey, message, response)
+    except AuthenticationError:
+        connection.send_bytes(_FAILURE)
+        raise
+    else:
+        connection.send_bytes(_WELCOME)
+
+
+def answer_challenge(connection, authkey: bytes):
+    if not isinstance(authkey, bytes):
+        raise ValueError(
+            "Authkey must be bytes, not {0!s}".format(type(authkey)))
+    message = connection.recv_bytes(256)         # reject large message
+    if not message.startswith(_CHALLENGE):
+        raise AuthenticationError(
+                f'Protocol error, expected challenge: {message=}')
+    message = message[len(_CHALLENGE):]
+    if len(message) < _MD5ONLY_MESSAGE_LENGTH:
+        raise AuthenticationError(f'challenge too short: {len(message)} bytes')
+    digest = _create_response(authkey, message)
+    connection.send_bytes(digest)
+    response = connection.recv_bytes(256)        # reject large message
+    if response != _WELCOME:
+        raise AuthenticationError('digest sent was rejected')
+
+#
+# Support for using xmlrpclib for serialization
+#
+
+class ConnectionWrapper(object):
+    def __init__(self, conn, dumps, loads):
+        self._conn = conn
+        self._dumps = dumps
+        self._loads = loads
+        for attr in ('fileno', 'close', 'poll', 'recv_bytes', 'send_bytes'):
+            obj = getattr(conn, attr)
+            setattr(self, attr, obj)
+    def send(self, obj):
+        s = self._dumps(obj)
+        self._conn.send_bytes(s)
+    def recv(self):
+        s = self._conn.recv_bytes()
+        return self._loads(s)
+
+def _xml_dumps(obj):
+    return xmlrpclib.dumps((obj,), None, None, None, 1).encode('utf-8')
+
+def _xml_loads(s):
+    (obj,), method = xmlrpclib.loads(s.decode('utf-8'))
+    return obj
+
+class XmlListener(Listener):
+    def accept(self):
+        global xmlrpclib
+        import xmlrpc.client as xmlrpclib
+        obj = Listener.accept(self)
+        return ConnectionWrapper(obj, _xml_dumps, _xml_loads)
+
+def XmlClient(*args, **kwds):
+    global xmlrpclib
+    import xmlrpc.client as xmlrpclib
+    return ConnectionWrapper(Client(*args, **kwds), _xml_dumps, _xml_loads)
+
+#
+# Wait
+#
+
+if sys.platform == 'win32':
+
+    def _exhaustive_wait(handles, timeout):
+        # Return ALL handles which are currently signalled.  (Only
+        # returning the first signalled might create starvation issues.)
+        L = list(handles)
+        ready = []
+        # Windows limits WaitForMultipleObjects at 64 handles, and we use a
+        # few for synchronisation, so we switch to batched waits at 60.
+        if len(L) > 60:
+            try:
+                res = _winapi.BatchedWaitForMultipleObjects(L, False, timeout)
+            except TimeoutError:
+                return []
+            ready.extend(L[i] for i in res)
+            if res:
+                L = [h for i, h in enumerate(L) if i > res[0] & i not in res]
+            timeout = 0
+        while L:
+            short_L = L[:60] if len(L) > 60 else L
+            res = _winapi.WaitForMultipleObjects(short_L, False, timeout)
+            if res == WAIT_TIMEOUT:
+                break
+            elif WAIT_OBJECT_0 <= res < WAIT_OBJECT_0 + len(L):
+                res -= WAIT_OBJECT_0
+            elif WAIT_ABANDONED_0 <= res < WAIT_ABANDONED_0 + len(L):
+                res -= WAIT_ABANDONED_0
+            else:
+                raise RuntimeError('Should not get here')
+            ready.append(L[res])
+            L = L[res+1:]
+            timeout = 0
+        return ready
+
+    _ready_errors = {_winapi.ERROR_BROKEN_PIPE, _winapi.ERROR_NETNAME_DELETED}
+
+    def wait(object_list, timeout=None):
+        '''
+        Wait till an object in object_list is ready/readable.
+
+        Returns list of those objects in object_list which are ready/readable.
+        '''
+        if timeout is None:
+            timeout = INFINITE
+        elif timeout < 0:
+            timeout = 0
+        else:
+            timeout = int(timeout * 1000 + 0.5)
+
+        object_list = list(object_list)
+        waithandle_to_obj = {}
+        ov_list = []
+        ready_objects = set()
+        ready_handles = set()
+
+        try:
+            for o in object_list:
+                try:
+                    fileno = getattr(o, 'fileno')
+                except AttributeError:
+                    waithandle_to_obj[o.__index__()] = o
+                else:
+                    # start an overlapped read of length zero
+                    try:
+                        ov, err = _winapi.ReadFile(fileno(), 0, True)
+                    except OSError as e:
+                        ov, err = None, e.winerror
+                        if err not in _ready_errors:
+                            raise
+                    if err == _winapi.ERROR_IO_PENDING:
+                        ov_list.append(ov)
+                        waithandle_to_obj[ov.event] = o
+                    else:
+                        # If o.fileno() is an overlapped pipe handle and
+                        # err == 0 then there is a zero length message
+                        # in the pipe, but it HAS NOT been consumed...
+                        if ov and sys.getwindowsversion()[:2] >= (6, 2):
+                            # ... except on Windows 8 and later, where
+                            # the message HAS been consumed.
+                            try:
+                                _, err = ov.GetOverlappedResult(False)
+                            except OSError as e:
+                                err = e.winerror
+                            if not err and hasattr(o, '_got_empty_message'):
+                                o._got_empty_message = True
+                        ready_objects.add(o)
+                        timeout = 0
+
+            ready_handles = _exhaustive_wait(waithandle_to_obj.keys(), timeout)
+        finally:
+            # request that overlapped reads stop
+            for ov in ov_list:
+                ov.cancel()
+
+            # wait for all overlapped reads to stop
+            for ov in ov_list:
+                try:
+                    _, err = ov.GetOverlappedResult(True)
+                except OSError as e:
+                    err = e.winerror
+                    if err not in _ready_errors:
+                        raise
+                if err != _winapi.ERROR_OPERATION_ABORTED:
+                    o = waithandle_to_obj[ov.event]
+                    ready_objects.add(o)
+                    if err == 0:
+                        # If o.fileno() is an overlapped pipe handle then
+                        # a zero length message HAS been consumed.
+                        if hasattr(o, '_got_empty_message'):
+                            o._got_empty_message = True
+
+        ready_objects.update(waithandle_to_obj[h] for h in ready_handles)
+        return [o for o in object_list if o in ready_objects]
+
+else:
+
+    import selectors
+
+    # poll/select have the advantage of not requiring any extra file
+    # descriptor, contrarily to epoll/kqueue (also, they require a single
+    # syscall).
+    if hasattr(selectors, 'PollSelector'):
+        _WaitSelector = selectors.PollSelector
+    else:
+        _WaitSelector = selectors.SelectSelector
+
+    def wait(object_list, timeout=None):
+        '''
+        Wait till an object in object_list is ready/readable.
+
+        Returns list of those objects in object_list which are ready/readable.
+        '''
+        with _WaitSelector() as selector:
+            for obj in object_list:
+                selector.register(obj, selectors.EVENT_READ)
+
+            if timeout is not None:
+                deadline = time.monotonic() + timeout
+
+            while True:
+                ready = selector.select(timeout)
+                if ready:
+                    return [key.fileobj for (key, events) in ready]
+                else:
+                    if timeout is not None:
+                        timeout = deadline - time.monotonic()
+                        if timeout < 0:
+                            return ready
+
+#
+# Make connection and socket objects shareable if possible
+#
+
+if sys.platform == 'win32':
+    def reduce_connection(conn):
+        handle = conn.fileno()
+        with socket.fromfd(handle, socket.AF_INET, socket.SOCK_STREAM) as s:
+            from . import resource_sharer
+            ds = resource_sharer.DupSocket(s)
+            return rebuild_connection, (ds, conn.readable, conn.writable)
+    def rebuild_connection(ds, readable, writable):
+        sock = ds.detach()
+        return Connection(sock.detach(), readable, writable)
+    reduction.register(Connection, reduce_connection)
+
+    def reduce_pipe_connection(conn):
+        access = ((_winapi.FILE_GENERIC_READ if conn.readable else 0) |
+                  (_winapi.FILE_GENERIC_WRITE if conn.writable else 0))
+        dh = reduction.DupHandle(conn.fileno(), access)
+        return rebuild_pipe_connection, (dh, conn.readable, conn.writable)
+    def rebuild_pipe_connection(dh, readable, writable):
+        handle = dh.detach()
+        return PipeConnection(handle, readable, writable)
+    reduction.register(PipeConnection, reduce_pipe_connection)
+
+else:
+    def reduce_connection(conn):
+        df = reduction.DupFd(conn.fileno())
+        return rebuild_connection, (df, conn.readable, conn.writable)
+    def rebuild_connection(df, readable, writable):
+        fd = df.detach()
+        return Connection(fd, readable, writable)
+    reduction.register(Connection, reduce_connection)
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                import os
+import sys
+import threading
+
+from . import process
+from . import reduction
+
+__all__ = ()
+
+#
+# Exceptions
+#
+
+class ProcessError(Exception):
+    pass
+
+class BufferTooShort(ProcessError):
+    pass
+
+class TimeoutError(ProcessError):
+    pass
+
+class AuthenticationError(ProcessError):
+    pass
+
+#
+# Base type for contexts. Bound methods of an instance of this type are included in __all__ of __init__.py
+#
+
+class BaseContext(object):
+
+    ProcessError = ProcessError
+    BufferTooShort = BufferTooShort
+    TimeoutError = TimeoutError
+    AuthenticationError = AuthenticationError
+
+    current_process = staticmethod(process.current_process)
+    parent_process = staticmethod(process.parent_process)
+    active_children = staticmethod(process.active_children)
+
+    def cpu_count(self):
+        '''Returns the number of CPUs in the system'''
+        num = os.cpu_count()
+        if num is None:
+            raise NotImplementedError('cannot determine number of cpus')
+        else:
+            return num
+
+    def Manager(self):
+        '''Returns a manager associated with a running server process
+
+        The managers methods such as `Lock()`, `Condition()` and `Queue()`
+        can be used to create shared objects.
+        '''
+        from .managers import SyncManager
+        m = SyncManager(ctx=self.get_context())
+        m.start()
+        return m
+
+    def Pipe(self, duplex=True):
+        '''Returns two connection object connected by a pipe'''
+        from .connection import Pipe
+        return Pipe(duplex)
+
+    def Lock(self):
+        '''Returns a non-recursive lock object'''
+        from .synchronize import Lock
+        return Lock(ctx=self.get_context())
+
+    def RLock(self):
+        '''Returns a recursive lock object'''
+        from .synchronize import RLock
+        return RLock(ctx=self.get_context())
+
+    def Condition(self, lock=None):
+        '''Returns a condition object'''
+        from .synchronize import Condition
+        return Condition(lock, ctx=self.get_context())
+
+    def Semaphore(self, value=1):
+        '''Returns a semaphore object'''
+        from .synchronize import Semaphore
+        return Semaphore(value, ctx=self.get_context())
+
+    def BoundedSemaphore(self, value=1):
+        '''Returns a bounded semaphore object'''
+        from .synchronize import BoundedSemaphore
+        return BoundedSemaphore(value, ctx=self.get_context())
+
+    def Event(self):
+        '''Returns an event object'''
+        from .synchronize import Event
+        return Event(ctx=self.get_context())
+
+    def Barrier(self, parties, action=None, timeout=None):
+        '''Returns a barrier object'''
+        from .synchronize import Barrier
+        return Barrier(parties, action, timeout, ctx=self.get_context())
+
+    def Queue(self, maxsize=0):
+        '''Returns a queue object'''
+        from .queues import Queue
+        return Queue(maxsize, ctx=self.get_context())
+
+    def JoinableQueue(self, maxsize=0):
+        '''Returns a queue object'''
+        from .queues import JoinableQueue
+        return JoinableQueue(maxsize, ctx=self.get_context())
+
+    def SimpleQueue(self):
+        '''Returns a queue object'''
+        from .queues import SimpleQueue
+        return SimpleQueue(ctx=self.get_context())
+
+    def Pool(self, processes=None, initializer=None, initargs=(),
+             maxtasksperchild=None):
+        '''Returns a process pool object'''
+        from .pool import Pool
+        return Pool(processes, initializer, initargs, maxtasksperchild,
+                    context=self.get_context())
+
+    def RawValue(self, typecode_or_type, *args):
+        '''Returns a shared object'''
+        from .sharedctypes import RawValue
+        return RawValue(typecode_or_type, *args)
+
+    def RawArray(self, typecode_or_type, size_or_initializer):
+        '''Returns a shared array'''
+        from .sharedctypes import RawArray
+        return RawArray(typecode_or_type, size_or_initializer)
+
+    def Value(self, typecode_or_type, *args, lock=True):
+        '''Returns a synchronized shared object'''
+        from .sharedctypes import Value
+        return Value(typecode_or_type, *args, lock=lock,
+                     ctx=self.get_context())
+
+    def Array(self, typecode_or_type, size_or_initializer, *, lock=True):
+        '''Returns a synchronized shared array'''
+        from .sharedctypes import Array
+        return Array(typecode_or_type, size_or_initializer, lock=lock,
+                     ctx=self.get_context())
+
+    def freeze_support(self):
+        '''Check whether this is a fake forked process in a frozen executable.
+        If so then run code specified by commandline and exit.
+        '''
+        if self.get_start_method() == 'spawn' and getattr(sys, 'frozen', False):
+            from .spawn import freeze_support
+            freeze_support()
+
+    def get_logger(self):
+        '''Return package logger -- if it does not already exist then
+        it is created.
+        '''
+        from .util import get_logger
+        return get_logger()
+
+    def log_to_stderr(self, level=None):
+        '''Turn on logging and add a handler which prints to stderr'''
+        from .util import log_to_stderr
+        return log_to_stderr(level)
+
+    def allow_connection_pickling(self):
+        '''Install support for sending connections and sockets
+        between processes
+        '''
+        # This is undocumented.  In previous versions of multiprocessing
+        # its only effect was to make socket objects inheritable on Windows.
+        from . import connection
+
+    def set_executable(self, executable):
+        '''Sets the path to a python.exe or pythonw.exe binary used to run
+        child processes instead of sys.executable when using the 'spawn'
+        start method.  Useful for people embedding Python.
+        '''
+        from .spawn import set_executable
+        set_executable(executable)
+
+    def set_forkserver_preload(self, module_names):
+        '''Set list of module names to try to load in forkserver process.
+        This is really just a hint.
+        '''
+        from .forkserver import set_forkserver_preload
+        set_forkserver_preload(module_names)
+
+    def get_context(self, method=None):
+        if method is None:
+            return self
+        try:
+            ctx = _concrete_contexts[method]
+        except KeyError:
+            raise ValueError('cannot find context for %r' % method) from None
+        ctx._check_available()
+        return ctx
+
+    def get_start_method(self, allow_none=False):
+        return self._name
+
+    def set_start_method(self, method, force=False):
+        raise ValueError('cannot set start method of concrete context')
+
+    @property
+    def reducer(self):
+        '''Controls how objects will be reduced to a form that can be
+        shared with other processes.'''
+        return globals().get('reduction')
+
+    @reducer.setter
+    def reducer(self, reduction):
+        globals()['reduction'] = reduction
+
+    def _check_available(self):
+        pass
+
+#
+# Type of default context -- underlying context can be set at most once
+#
+
+class Process(process.BaseProcess):
+    _start_method = None
+    @staticmethod
+    def _Popen(process_obj):
+        return _default_context.get_context().Process._Popen(process_obj)
+
+    @staticmethod
+    def _after_fork():
+        return _default_context.get_context().Process._after_fork()
+
+class DefaultContext(BaseContext):
+    Process = Process
+
+    def __init__(self, context):
+        self._default_context = context
+        self._actual_context = None
+
+    def get_context(self, method=None):
+        if method is None:
+            if self._actual_context is None:
+                self._actual_context = self._default_context
+            return self._actual_context
+        else:
+            return super().get_context(method)
+
+    def set_start_method(self, method, force=False):
+        if self._actual_context is not None and not force:
+            raise RuntimeError('context has already been set')
+        if method is None and force:
+            self._actual_context = None
+            return
+        self._actual_context = self.get_context(method)
+
+    def get_start_method(self, allow_none=False):
+        if self._actual_context is None:
+            if allow_none:
+                return None
+            self._actual_context = self._default_context
+        return self._actual_context._name
+
+    def get_all_start_methods(self):
+        """Returns a list of the supported start methods, default first."""
+        if sys.platform == 'win32':
+            return ['spawn']
+        else:
+            methods = ['spawn', 'fork'] if sys.platform == 'darwin' else ['fork', 'spawn']
+            if reduction.HAVE_SEND_HANDLE:
+                methods.append('forkserver')
+            return methods
+
+
+#
+# Context types for fixed start method
+#
+
+if sys.platform != 'win32':
+
+    class ForkProcess(process.BaseProcess):
+        _start_method = 'fork'
+        @staticmethod
+        def _Popen(process_obj):
+            from .popen_fork import Popen
+            return Popen(process_obj)
+
+    class SpawnProcess(process.BaseProcess):
+        _start_method = 'spawn'
+        @staticmethod
+        def _Popen(process_obj):
+            from .popen_spawn_posix import Popen
+            return Popen(process_obj)
+
+        @staticmethod
+        def _after_fork():
+            # process is spawned, nothing to do
+            pass
+
+    class ForkServerProcess(process.BaseProcess):
+        _start_method = 'forkserver'
+        @staticmethod
+        def _Popen(process_obj):
+            from .popen_forkserver import Popen
+            return Popen(process_obj)
+
+    class ForkContext(BaseContext):
+        _name = 'fork'
+        Process = ForkProcess
+
+    class SpawnContext(BaseContext):
+        _name = 'spawn'
+        Process = SpawnProcess
+
+    class ForkServerContext(BaseContext):
+        _name = 'forkserver'
+        Process = ForkServerProcess
+        def _check_available(self):
+            if not reduction.HAVE_SEND_HANDLE:
+                raise ValueError('forkserver start method not available')
+
+    _concrete_contexts = {
+        'fork': ForkContext(),
+        'spawn': SpawnContext(),
+        'forkserver': ForkServerContext(),
+    }
+    if sys.platform == 'darwin':
+        # bpo-33725: running arbitrary code after fork() is no longer reliable
+        # on macOS since macOS 10.14 (Mojave). Use spawn by default instead.
+        _default_context = DefaultContext(_concrete_contexts['spawn'])
+    else:
+        _default_context = DefaultContext(_concrete_contexts['fork'])
+
+else:
+
+    class SpawnProcess(process.BaseProcess):
+        _start_method = 'spawn'
+        @staticmethod
+        def _Popen(process_obj):
+            from .popen_spawn_win32 import Popen
+            return Popen(process_obj)
+
+        @staticmethod
+        def _after_fork():
+            # process is spawned, nothing to do
+            pass
+
+    class SpawnContext(BaseContext):
+        _name = 'spawn'
+        Process = SpawnProcess
+
+    _concrete_contexts = {
+        'spawn': SpawnContext(),
+    }
+    _default_context = DefaultContext(_concrete_contexts['spawn'])
+
+#
+# Force the start method
+#
+
+def _force_start_method(method):
+    _default_context._actual_context = _concrete_contexts[method]
+
+#
+# Check that the current thread is spawning a child process
+#
+
+_tls = threading.local()
+
+def get_spawning_popen():
+    return getattr(_tls, 'spawning_popen', None)
+
+def set_spawning_popen(popen):
+    _tls.spawning_popen = popen
+
+def assert_spawning(obj):
+    if get_spawning_popen() is None:
+        raise RuntimeError(
+            '%s objects should only be shared between processes'
+            ' through inheritance' % type(obj).__name__
+            )
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               .   e   ..  Ä   __init__.py Å   __pycache__ Ñ  ¿connection.py                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           #
+# Support for the API of the multiprocessing package using threads
+#
+# multiprocessing/dummy/__init__.py
+#
+# Copyright (c) 2006-2008, R Oudkerk
+# Licensed to PSF under a Contributor Agreement.
+#
+
+__all__ = [
+    'Process', 'current_process', 'active_children', 'freeze_support',
+    'Lock', 'RLock', 'Semaphore', 'BoundedSemaphore', 'Condition',
+    'Event', 'Barrier', 'Queue', 'Manager', 'Pipe', 'Pool', 'JoinableQueue'
+    ]
+
+#
+# Imports
+#
+
+import threading
+import sys
+import weakref
+import array
+
+from .connection import Pipe
+from threading import Lock, RLock, Semaphore, BoundedSemaphore
+from threading import Event, Condition, Barrier
+from queue import Queue
+
+#
+#
+#
+
+class DummyProcess(threading.Thread):
+
+    def __init__(self, group=None, target=None, name=None, args=(), kwargs={}):
+        threading.Thread.__init__(self, group, target, name, args, kwargs)
+        self._pid = None
+        self._children = weakref.WeakKeyDictionary()
+        self._start_called = False
+        self._parent = current_process()
+
+    def start(self):
+        if self._parent is not current_process():
+            raise RuntimeError(
+                "Parent is {0!r} but current_process is {1!r}".format(
+                    self._parent, current_process()))
+        self._start_called = True
+        if hasattr(self._parent, '_children'):
+            self._parent._children[self] = None
+        threading.Thread.start(self)
+
+    @property
+    def exitcode(self):
+        if self._start_called and not self.is_alive():
+            return 0
+        else:
+            return None
+
+#
+#
+#
+
+Process = DummyProcess
+current_process = threading.current_thread
+current_process()._children = weakref.WeakKeyDictionary()
+
+def active_children():
+    children = current_process()._children
+    for p in list(children):
+        if not p.is_alive():
+            children.pop(p, None)
+    return list(children)
+
+def freeze_support():
+    pass
+
+#
+#
+#
+
+class Namespace(object):
+    def __init__(self, /, **kwds):
+        self.__dict__.update(kwds)
+    def __repr__(self):
+        items = list(self.__dict__.items())
+        temp = []
+        for name, value in items:
+            if not name.startswith('_'):
+                temp.append('%s=%r' % (name, value))
+        temp.sort()
+        return '%s(%s)' % (self.__class__.__name__, ', '.join(temp))
+
+dict = dict
+list = list
+
+def Array(typecode, sequence, lock=True):
+    return array.array(typecode, sequence)
+
+class Value(object):
+    def __init__(self, typecode, value, lock=True):
+        self._typecode = typecode
+        self._value = value
+
+    @property
+    def value(self):
+        return self._value
+
+    @value.setter
+    def value(self, value):
+        self._value = value
+
+    def __repr__(self):
+        return '<%s(%r, %r)>'%(type(self).__name__,self._typecode,self._value)
+
+def Manager():
+    return sys.modules[__name__]
+
+def shutdown():
+    pass
+
+def Pool(processes=None, initializer=None, initargs=()):
+    from ..pool import ThreadPool
+    return ThreadPool(processes, initializer, initargs)
+
+JoinableQueue = Queue
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           Å   .      ..  Ç    __init__.cpython-313.pycÉ  »connection.cpython-313.pyc                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      Û
+    F\hı  „                   ÛP  ï / S Qr SSKrSSKrSSKrSSKrSSKJr  SSKJrJrJ	r	J
+r
+  SSKJrJrJr  SSKJr   " S S	\R                   5      r\r\R&                  r\R*                  " 5       \" 5       l        S
+ rS r " S S\5      r\r\rSS jr " S S\5      rS rS r SS jr!\r"g))⁄Process⁄current_process⁄active_children⁄freeze_support⁄Lock⁄RLock⁄	Semaphore⁄BoundedSemaphore⁄	Condition⁄Event⁄Barrier⁄Queue⁄Manager⁄Pipe⁄Pool⁄JoinableQueueÈ    NÈ   )r   )r   r   r   r	   )r   r
+   r   )r   c                   Û>   ï \ rS rSrSSSS0 4S jrS r\S 5       rSrg)⁄DummyProcessÈ"   N© c                 Û¥   ï [         R                  R                  XX#XE5        S U l        [        R
+                  " 5       U l        SU l        [        5       U l	        g )NF)
+⁄	threading⁄Thread⁄__init__⁄_pid⁄weakref⁄WeakKeyDictionary⁄	_children⁄_start_calledr   ⁄_parent)⁄self⁄group⁄target⁄name⁄args⁄kwargss         ⁄5/usr/lib/python3.13/multiprocessing/dummy/__init__.pyr   ⁄DummyProcess.__init__$   sC   Ä ‹◊—◊!—!†$®v∏T‘Jÿàå	‹ ◊2“2”4àåÿ"à‘‹&”(àçÛ    c                 Û@  ï U R                   [        5       La-  [        SR                  U R                   [        5       5      5      eSU l        [        U R                   S5      (       a  S U R                   R                  U '   [        R                  R                  U 5        g )Nz,Parent is {0!r} but current_process is {1!r}Tr   )
+r!   r   ⁄RuntimeError⁄formatr    ⁄hasattrr   r   r   ⁄start©r"   s    r(   r/   ⁄DummyProcess.start+   s{   Ä ÿè<â<ú”0“0‹ÿ>◊E—EÿóLëL§/”"3Û5Û6 6 "à‘‹ê4ó<ë<†◊-—-ÿ+/àDèLâL◊"—"†4—(‹◊—◊—òt’$r*   c                 ÛR   ï U R                   (       a  U R                  5       (       d  gg )Nr   )r    ⁄is_aliver0   s    r(   ⁄exitcode⁄DummyProcess.exitcode5   s   Ä ‡◊◊†dßm°mßo°oÿ‡r*   )r   r!   r   r    )	⁄__name__⁄
+__module__⁄__qualname__⁄__firstlineno__r   r/   ⁄propertyr4   ⁄__static_attributes__r   r*   r(   r   r   "   s+   Ü ‡!®$∞T¿»2Ù )Ú% ÒÛ Ûr*   r   c                  Û∂   ï [        5       R                  n [        U 5       H,  nUR                  5       (       a  M  U R	                  US 5        M.     [        U 5      $ ©N)r   r   ⁄listr3   ⁄pop)⁄children⁄ps     r(   r   r   D   sC   Ä ‹” ◊*—*ÄH‹ê(é^àÿèzâzè|ã|ÿèLâLòòD÷!Ò Ù êã>–r*   c                  Û   ï g r=   r   r   r*   r(   r   r   K   Û   Ä ÿr*   c                   Û    ï \ rS rSrS rS rSrg)⁄	NamespaceÈR   c                Û:   ï U R                   R                  U5        g r=   )⁄__dict__⁄update)r"   ⁄kwdss     r(   r   ⁄Namespace.__init__S   s   Ä ÿèâ◊—òT’"r*   c                 Û<  ï [        U R                  R                  5       5      n/ nU H5  u  p4UR                  S5      (       a  M  UR	                  U< SU< 35        M7     UR                  5         U R                  R                  < SSR                  U5      < S3$ )N⁄_⁄=⁄(˙, ⁄))	r>   rH   ⁄items⁄
+startswith⁄append⁄sort⁄	__class__r6   ⁄join)r"   rR   ⁄tempr%   ⁄values        r(   ⁄__repr__⁄Namespace.__repr__U   sr   Ä ‹êTó]ë]◊(—(”*”+àÿà€ âKàDÿó?ë?†3◊'”'ÿóë£t™U–3÷4Ò ! 	è	â	åÿü>ô>◊2‘2∞D∑I±I∏d∂O–D–Dr*   r   N)r6   r7   r8   r9   r   rZ   r;   r   r*   r(   rE   rE   R   s   Ü Ú#ıEr*   rE   c                 Û.   ï [         R                   " X5      $ r=   )⁄array)⁄typecode⁄sequence⁄locks      r(   ⁄Arrayra   a   s   Ä ‹è;ä;êx”*–*r*   c                   ÛX   ï \ rS rSrSS jr\S 5       r\R                  S 5       rS rSr	g)	⁄ValueÈd   c                 Û   ï Xl         X l        g r=   ©⁄	_typecode⁄_value)r"   r^   rY   r`   s       r(   r   ⁄Value.__init__e   s   Ä ÿ!åÿçr*   c                 Û   ï U R                   $ r=   ©rh   r0   s    r(   rY   ⁄Value.valuei   s   Ä ‡è{â{–r*   c                 Û   ï Xl         g r=   rk   )r"   rY   s     r(   rY   rl   m   s   Ä ‡çr*   c                 Ûn   ï S[        U 5      R                  < SU R                  < SU R                  < S3$ )N⁄<rO   rP   z)>)⁄typer6   rg   rh   r0   s    r(   rZ   ⁄Value.__repr__q   s!   Å ‹#†Dõz◊2‘2∞4∑>¥>¿$«+ƒ+–N–Nr*   rf   N©T)
+r6   r7   r8   r9   r   r:   rY   ⁄setterrZ   r;   r   r*   r(   rc   rc   d   s9   Ü Ù ÒÛ  á\Å\ÒÛ ıOr*   rc   c                  Û0   ï [         R                  [           $ r=   )⁄sys⁄modulesr6   r   r*   r(   r   r   t   s   Ä ‹è;â;îx— – r*   c                  Û   ï g r=   r   r   r*   r(   ⁄shutdownrx   w   rC   r*   c                 Û    ï SSK Jn  U" XU5      $ )NÈ   )⁄
+ThreadPool)⁄poolr{   )⁄	processes⁄initializer⁄initargsr{   s       r(   r   r   z   s   Ä ›!Ÿêi®h”7–7r*   rr   )NNr   )#⁄__all__r   ru   r   r]   ⁄
+connectionr   r   r   r   r	   r   r
+   r   ⁄queuer   r   r   r   ⁄current_threadr   r   r   r   r   ⁄objectrE   ⁄dictr>   ra   rc   r   rx   r   r   r   r*   r(   ⁄<module>rÜ      s±   ÚÄÛ € 
+€ € Â ﬂ >” >ﬂ /— /› Ùê9◊#—#Ù < Äÿ◊*—*Äÿ%◊7“7”9Å” ‘ ÚÚ	Ù
+EêÙ 
+E ÄÿÄÙ+ÙOàFÙ OÚ !Ú	Ù8 År*                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                Û
+    F\h>  „                   ÛZ   ï / S Qr SSKJr  S/r " S S\5      rS rS
+S jr " S S	\5      rg))⁄Client⁄Listener⁄PipeÈ    )⁄QueueNc                   ÛF   ï \ rS rSrS
+S jrS rS r\S 5       rS r	S r
+S	rg)r   È   Nc                 Û$   ï [        U5      U l        g ©N)r   ⁄_backlog_queue)⁄self⁄address⁄family⁄backlogs       ⁄7/usr/lib/python3.13/multiprocessing/dummy/connection.py⁄__init__⁄Listener.__init__   s   Ä ‹#†Gõnà’Û    c                 ÛB   ï [        U R                  R                  5       6 $ r
+   )⁄
+Connectionr   ⁄get©r   s    r   ⁄accept⁄Listener.accept   s   Ä ‹ò4◊.—.◊2—2”4–5–5r   c                 Û   ï S U l         g r
+   ©r   r   s    r   ⁄close⁄Listener.close   s
+   Ä ÿ"à’r   c                 Û   ï U R                   $ r
+   r   r   s    r   r   ⁄Listener.address   s   Ä ‡◊"—"–"r   c                 Û   ï U $ r
+   © r   s    r   ⁄	__enter__⁄Listener.__enter__!   Û   Ä ÿàr   c                 Û$   ï U R                  5         g r
+   ©r   ©r   ⁄exc_type⁄	exc_value⁄exc_tbs       r   ⁄__exit__⁄Listener.__exit__$   Û   Ä ÿè
+â
+çr   r   )NNÈ   )⁄__name__⁄
+__module__⁄__qualname__⁄__firstlineno__r   r   r   ⁄propertyr   r"   r+   ⁄__static_attributes__r!   r   r   r   r      s/   Ü Ù-Ú6Ú# Ò#Û #Úır   r   c                 Ûb   ï [        5       [        5       p!U R                  X!45        [        X5      $ r
+   )r   ⁄putr   )r   ⁄_in⁄_outs      r   r   r   (   s&   Ä ‹ìúõàÿáKÅKêê‘‹êc” – r   c                 ÛT   ï [        5       [        5       p![        X5      [        X!5      4$ r
+   )r   r   )⁄duplex⁄a⁄bs      r   r   r   .   s"   Ä ‹ã7îEìGÄq‹êa”úZ®”-–-–-r   c                   Û6   ï \ rS rSrS rS	S jrS rS rS rSr	g)
+r   È3   c                 Û|   ï X l         Xl        UR                  =U l        U l        UR
+                  =U l        U l        g r
+   )r8   r7   r6   ⁄send⁄
+send_bytesr   ⁄recv⁄
+recv_bytes)r   r7   r8   s      r   r   ⁄Connection.__init__5   s0   Ä ÿå	ÿåÿ&*ßh°h–.àå	êDîOÿ&)ßg°g–-àå	êDïOr   c                 Û2  ï U R                   R                  5       S:î  a  gUS::  a  gU R                   R                     U R                   R                  R                  U5        S S S 5        U R                   R                  5       S:Ñ  $ ! , (       d  f       N+= f)Nr   TÁ        F)r7   ⁄qsize⁄	not_empty⁄wait)r   ⁄timeouts     r   ⁄poll⁄Connection.poll;   sk   Ä ÿè8â8è>â>”òa”ÿÿêcã>ÿÿèXâX◊”ÿèHâH◊—◊#—#†G‘,˜  ‡èxâxè~â~”†!—#–#˜  ’˙s   Ω&B¬
+Bc                 Û   ï g r
+   r!   r   s    r   r   ⁄Connection.closeD   s   Ä ÿr   c                 Û   ï U $ r
+   r!   r   s    r   r"   ⁄Connection.__enter__G   r$   r   c                 Û$   ï U R                  5         g r
+   r&   r'   s       r   r+   ⁄Connection.__exit__J   r-   r   )r7   r8   rB   rC   r@   rA   N)rF   )
+r/   r0   r1   r2   r   rK   r   r"   r+   r4   r!   r   r   r   r   3   s   Ü Ú.Ù$ÚÚır   r   )T)	⁄__all__⁄queuer   ⁄families⁄objectr   r   r   r   r!   r   r   ⁄<module>rW      s:   Ú +ÄÂ  à6ÄÙàvÙ Ú,!Ù.Ù
+êı r                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              #
+# Analogue of `multiprocessing.connection` which uses queues instead of sockets
+#
+# multiprocessing/dummy/connection.py
+#
+# Copyright (c) 2006-2008, R Oudkerk
+# Licensed to PSF under a Contributor Agreement.
+#
+
+__all__ = [ 'Client', 'Listener', 'Pipe' ]
+
+from queue import Queue
+
+
+families = [None]
+
+
+class Listener(object):
+
+    def __init__(self, address=None, family=None, backlog=1):
+        self._backlog_queue = Queue(backlog)
+
+    def accept(self):
+        return Connection(*self._backlog_queue.get())
+
+    def close(self):
+        self._backlog_queue = None
+
+    @property
+    def address(self):
+        return self._backlog_queue
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_value, exc_tb):
+        self.close()
+
+
+def Client(address):
+    _in, _out = Queue(), Queue()
+    address.put((_out, _in))
+    return Connection(_in, _out)
+
+
+def Pipe(duplex=True):
+    a, b = Queue(), Queue()
+    return Connection(a, b), Connection(b, a)
+
+
+class Connection(object):
+
+    def __init__(self, _in, _out):
+        self._out = _out
+        self._in = _in
+        self.send = self.send_bytes = _out.put
+        self.recv = self.recv_bytes = _in.get
+
+    def poll(self, timeout=0.0):
+        if self._in.qsize() > 0:
+            return True
+        if timeout <= 0.0:
+            return False
+        with self._in.not_empty:
+            self._in.not_empty.wait(timeout)
+        return self._in.qsize() > 0
+
+    def close(self):
+        pass
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_value, exc_tb):
+        self.close()
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  import atexit
+import errno
+import os
+import selectors
+import signal
+import socket
+import struct
+import sys
+import threading
+import warnings
+
+from . import connection
+from . import process
+from .context import reduction
+from . import resource_tracker
+from . import spawn
+from . import util
+
+__all__ = ['ensure_running', 'get_inherited_fds', 'connect_to_new_process',
+           'set_forkserver_preload']
+
+#
+#
+#
+
+MAXFDS_TO_SEND = 256
+SIGNED_STRUCT = struct.Struct('q')     # large enough for pid_t
+
+#
+# Forkserver class
+#
+
+class ForkServer(object):
+
+    def __init__(self):
+        self._forkserver_address = None
+        self._forkserver_alive_fd = None
+        self._forkserver_pid = None
+        self._inherited_fds = None
+        self._lock = threading.Lock()
+        self._preload_modules = ['__main__']
+
+    def _stop(self):
+        # Method used by unit tests to stop the server
+        with self._lock:
+            self._stop_unlocked()
+
+    def _stop_unlocked(self):
+        if self._forkserver_pid is None:
+            return
+
+        # close the "alive" file descriptor asks the server to stop
+        os.close(self._forkserver_alive_fd)
+        self._forkserver_alive_fd = None
+
+        os.waitpid(self._forkserver_pid, 0)
+        self._forkserver_pid = None
+
+        if not util.is_abstract_socket_namespace(self._forkserver_address):
+            os.unlink(self._forkserver_address)
+        self._forkserver_address = None
+
+    def set_forkserver_preload(self, modules_names):
+        '''Set list of module names to try to load in forkserver process.'''
+        if not all(type(mod) is str for mod in modules_names):
+            raise TypeError('module_names must be a list of strings')
+        self._preload_modules = modules_names
+
+    def get_inherited_fds(self):
+        '''Return list of fds inherited from parent process.
+
+        This returns None if the current process was not started by fork
+        server.
+        '''
+        return self._inherited_fds
+
+    def connect_to_new_process(self, fds):
+        '''Request forkserver to create a child process.
+
+        Returns a pair of fds (status_r, data_w).  The calling process can read
+        the child process's pid and (eventually) its returncode from status_r.
+        The calling process should write to data_w the pickled preparation and
+        process data.
+        '''
+        self.ensure_running()
+        if len(fds) + 4 >= MAXFDS_TO_SEND:
+            raise ValueError('too many fds')
+        with socket.socket(socket.AF_UNIX) as client:
+            client.connect(self._forkserver_address)
+            parent_r, child_w = os.pipe()
+            child_r, parent_w = os.pipe()
+            allfds = [child_r, child_w, self._forkserver_alive_fd,
+                      resource_tracker.getfd()]
+            allfds += fds
+            try:
+                reduction.sendfds(client, allfds)
+                return parent_r, parent_w
+            except:
+                os.close(parent_r)
+                os.close(parent_w)
+                raise
+            finally:
+                os.close(child_r)
+                os.close(child_w)
+
+    def ensure_running(self):
+        '''Make sure that a fork server is running.
+
+        This can be called from any process.  Note that usually a child
+        process will just reuse the forkserver started by its parent, so
+        ensure_running() will do nothing.
+        '''
+        with self._lock:
+            resource_tracker.ensure_running()
+            if self._forkserver_pid is not None:
+                # forkserver was launched before, is it still running?
+                pid, status = os.waitpid(self._forkserver_pid, os.WNOHANG)
+                if not pid:
+                    # still alive
+                    return
+                # dead, launch it again
+                os.close(self._forkserver_alive_fd)
+                self._forkserver_address = None
+                self._forkserver_alive_fd = None
+                self._forkserver_pid = None
+
+            cmd = ('from multiprocessing.forkserver import main; ' +
+                   'main(%d, %d, %r, **%r)')
+
+            if self._preload_modules:
+                desired_keys = {'main_path', 'sys_path'}
+                data = spawn.get_preparation_data('ignore')
+                data = {x: y for x, y in data.items() if x in desired_keys}
+            else:
+                data = {}
+
+            with socket.socket(socket.AF_UNIX) as listener:
+                address = connection.arbitrary_address('AF_UNIX')
+                listener.bind(address)
+                if not util.is_abstract_socket_namespace(address):
+                    os.chmod(address, 0o600)
+                listener.listen()
+
+                # all client processes own the write end of the "alive" pipe;
+                # when they all terminate the read end becomes ready.
+                alive_r, alive_w = os.pipe()
+                try:
+                    fds_to_pass = [listener.fileno(), alive_r]
+                    cmd %= (listener.fileno(), alive_r, self._preload_modules,
+                            data)
+                    exe = spawn.get_executable()
+                    args = [exe] + util._args_from_interpreter_flags()
+                    args += ['-c', cmd]
+                    pid = util.spawnv_passfds(exe, args, fds_to_pass)
+                except:
+                    os.close(alive_w)
+                    raise
+                finally:
+                    os.close(alive_r)
+                self._forkserver_address = address
+                self._forkserver_alive_fd = alive_w
+                self._forkserver_pid = pid
+
+#
+#
+#
+
+def main(listener_fd, alive_r, preload, main_path=None, sys_path=None):
+    '''Run forkserver.'''
+    if preload:
+        if sys_path is not None:
+            sys.path[:] = sys_path
+        if '__main__' in preload and main_path is not None:
+            process.current_process()._inheriting = True
+            try:
+                spawn.import_main_path(main_path)
+            finally:
+                del process.current_process()._inheriting
+        for modname in preload:
+            try:
+                __import__(modname)
+            except ImportError:
+                pass
+
+    util._close_stdin()
+
+    sig_r, sig_w = os.pipe()
+    os.set_blocking(sig_r, False)
+    os.set_blocking(sig_w, False)
+
+    def sigchld_handler(*_unused):
+        # Dummy signal handler, doesn't do anything
+        pass
+
+    handlers = {
+        # unblocking SIGCHLD allows the wakeup fd to notify our event loop
+        signal.SIGCHLD: sigchld_handler,
+        # protect the process from ^C
+        signal.SIGINT: signal.SIG_IGN,
+        }
+    old_handlers = {sig: signal.signal(sig, val)
+                    for (sig, val) in handlers.items()}
+
+    # calling os.write() in the Python signal handler is racy
+    signal.set_wakeup_fd(sig_w)
+
+    # map child pids to client fds
+    pid_to_fd = {}
+
+    with socket.socket(socket.AF_UNIX, fileno=listener_fd) as listener, \
+         selectors.DefaultSelector() as selector:
+        _forkserver._forkserver_address = listener.getsockname()
+
+        selector.register(listener, selectors.EVENT_READ)
+        selector.register(alive_r, selectors.EVENT_READ)
+        selector.register(sig_r, selectors.EVENT_READ)
+
+        while True:
+            try:
+                while True:
+                    rfds = [key.fileobj for (key, events) in selector.select()]
+                    if rfds:
+                        break
+
+                if alive_r in rfds:
+                    # EOF because no more client processes left
+                    assert os.read(alive_r, 1) == b'', "Not at EOF?"
+                    raise SystemExit
+
+                if sig_r in rfds:
+                    # Got SIGCHLD
+                    os.read(sig_r, 65536)  # exhaust
+                    while True:
+                        # Scan for child processes
+                        try:
+                            pid, sts = os.waitpid(-1, os.WNOHANG)
+                        except ChildProcessError:
+                            break
+                        if pid == 0:
+                            break
+                        child_w = pid_to_fd.pop(pid, None)
+                        if child_w is not None:
+                            returncode = os.waitstatus_to_exitcode(sts)
+
+                            # Send exit code to client process
+                            try:
+                                write_signed(child_w, returncode)
+                            except BrokenPipeError:
+                                # client vanished
+                                pass
+                            os.close(child_w)
+                        else:
+                            # This shouldn't happen really
+                            warnings.warn('forkserver: waitpid returned '
+                                          'unexpected pid %d' % pid)
+
+                if listener in rfds:
+                    # Incoming fork request
+                    with listener.accept()[0] as s:
+                        # Receive fds from client
+                        fds = reduction.recvfds(s, MAXFDS_TO_SEND + 1)
+                        if len(fds) > MAXFDS_TO_SEND:
+                            raise RuntimeError(
+                                "Too many ({0:n}) fds to send".format(
+                                    len(fds)))
+                        child_r, child_w, *fds = fds
+                        s.close()
+                        pid = os.fork()
+                        if pid == 0:
+                            # Child
+                            code = 1
+                            try:
+                                listener.close()
+                                selector.close()
+                                unused_fds = [alive_r, child_w, sig_r, sig_w]
+                                unused_fds.extend(pid_to_fd.values())
+                                atexit._clear()
+                                atexit.register(util._exit_function)
+                                code = _serve_one(child_r, fds,
+                                                  unused_fds,
+                                                  old_handlers)
+                            except Exception:
+                                sys.excepthook(*sys.exc_info())
+                                sys.stderr.flush()
+                            finally:
+                                atexit._run_exitfuncs()
+                                os._exit(code)
+                        else:
+                            # Send pid to client process
+                            try:
+                                write_signed(child_w, pid)
+                            except BrokenPipeError:
+                                # client vanished
+                                pass
+                            pid_to_fd[pid] = child_w
+                            os.close(child_r)
+                            for fd in fds:
+                                os.close(fd)
+
+            except OSError as e:
+                if e.errno != errno.ECONNABORTED:
+                    raise
+
+
+def _serve_one(child_r, fds, unused_fds, handlers):
+    # close unnecessary stuff and reset signal handlers
+    signal.set_wakeup_fd(-1)
+    for sig, val in handlers.items():
+        signal.signal(sig, val)
+    for fd in unused_fds:
+        os.close(fd)
+
+    (_forkserver._forkserver_alive_fd,
+     resource_tracker._resource_tracker._fd,
+     *_forkserver._inherited_fds) = fds
+
+    # Run process object received over pipe
+    parent_sentinel = os.dup(child_r)
+    code = spawn._main(child_r, parent_sentinel)
+
+    return code
+
+
+#
+# Read and write signed numbers
+#
+
+def read_signed(fd):
+    data = b''
+    length = SIGNED_STRUCT.size
+    while len(data) < length:
+        s = os.read(fd, length - len(data))
+        if not s:
+            raise EOFError('unexpected EOF')
+        data += s
+    return SIGNED_STRUCT.unpack(data)[0]
+
+def write_signed(fd, n):
+    msg = SIGNED_STRUCT.pack(n)
+    while msg:
+        nbytes = os.write(fd, msg)
+        if nbytes == 0:
+            raise RuntimeError('should not get here')
+        msg = msg[nbytes:]
+
+#
+#
+#
+
+_forkserver = ForkServer()
+ensure_running = _forkserver.ensure_running
+get_inherited_fds = _forkserver.get_inherited_fds
+connect_to_new_process = _forkserver.connect_to_new_process
+set_forkserver_preload = _forkserver.set_forkserver_preload
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           #
+# Module which supports allocation of memory from an mmap
+#
+# multiprocessing/heap.py
+#
+# Copyright (c) 2006-2008, R Oudkerk
+# Licensed to PSF under a Contributor Agreement.
+#
+
+import bisect
+from collections import defaultdict
+import mmap
+import os
+import sys
+import tempfile
+import threading
+
+from .context import reduction, assert_spawning
+from . import util
+
+__all__ = ['BufferWrapper']
+
+#
+# Inheritable class which wraps an mmap, and from which blocks can be allocated
+#
+
+if sys.platform == 'win32':
+
+    import _winapi
+
+    class Arena(object):
+        """
+        A shared memory area backed by anonymous memory (Windows).
+        """
+
+        _rand = tempfile._RandomNameSequence()
+
+        def __init__(self, size):
+            self.size = size
+            for i in range(100):
+                name = 'pym-%d-%s' % (os.getpid(), next(self._rand))
+                buf = mmap.mmap(-1, size, tagname=name)
+                if _winapi.GetLastError() == 0:
+                    break
+                # We have reopened a preexisting mmap.
+                buf.close()
+            else:
+                raise FileExistsError('Cannot find name for new mmap')
+            self.name = name
+            self.buffer = buf
+            self._state = (self.size, self.name)
+
+        def __getstate__(self):
+            assert_spawning(self)
+            return self._state
+
+        def __setstate__(self, state):
+            self.size, self.name = self._state = state
+            # Reopen existing mmap
+            self.buffer = mmap.mmap(-1, self.size, tagname=self.name)
+            # XXX Temporarily preventing buildbot failures while determining
+            # XXX the correct long-term fix. See issue 23060
+            #assert _winapi.GetLastError() == _winapi.ERROR_ALREADY_EXISTS
+
+else:
+
+    class Arena(object):
+        """
+        A shared memory area backed by a temporary file (POSIX).
+        """
+
+        if sys.platform == 'linux':
+            _dir_candidates = ['/dev/shm']
+        else:
+            _dir_candidates = []
+
+        def __init__(self, size, fd=-1):
+            self.size = size
+            self.fd = fd
+            if fd == -1:
+                # Arena is created anew (if fd != -1, it means we're coming
+                # from rebuild_arena() below)
+                self.fd, name = tempfile.mkstemp(
+                     prefix='pym-%d-'%os.getpid(),
+                     dir=self._choose_dir(size))
+                os.unlink(name)
+                util.Finalize(self, os.close, (self.fd,))
+                os.ftruncate(self.fd, size)
+            self.buffer = mmap.mmap(self.fd, self.size)
+
+        def _choose_dir(self, size):
+            # Choose a non-storage backed directory if possible,
+            # to improve performance
+            for d in self._dir_candidates:
+                st = os.statvfs(d)
+                if st.f_bavail * st.f_frsize >= size:  # enough free space?
+                    return d
+            return util.get_temp_dir()
+
+    def reduce_arena(a):
+        if a.fd == -1:
+            raise ValueError('Arena is unpicklable because '
+                             'forking was enabled when it was created')
+        return rebuild_arena, (a.size, reduction.DupFd(a.fd))
+
+    def rebuild_arena(size, dupfd):
+        return Arena(size, dupfd.detach())
+
+    reduction.register(Arena, reduce_arena)
+
+#
+# Class allowing allocation of chunks of memory from arenas
+#
+
+class Heap(object):
+
+    # Minimum malloc() alignment
+    _alignment = 8
+
+    _DISCARD_FREE_SPACE_LARGER_THAN = 4 * 1024 ** 2  # 4 MB
+    _DOUBLE_ARENA_SIZE_UNTIL = 4 * 1024 ** 2
+
+    def __init__(self, size=mmap.PAGESIZE):
+        self._lastpid = os.getpid()
+        self._lock = threading.Lock()
+        # Current arena allocation size
+        self._size = size
+        # A sorted list of available block sizes in arenas
+        self._lengths = []
+
+        # Free block management:
+        # - map each block size to a list of `(Arena, start, stop)` blocks
+        self._len_to_seq = {}
+        # - map `(Arena, start)` tuple to the `(Arena, start, stop)` block
+        #   starting at that offset
+        self._start_to_block = {}
+        # - map `(Arena, stop)` tuple to the `(Arena, start, stop)` block
+        #   ending at that offset
+        self._stop_to_block = {}
+
+        # Map arenas to their `(Arena, start, stop)` blocks in use
+        self._allocated_blocks = defaultdict(set)
+        self._arenas = []
+
+        # List of pending blocks to free - see comment in free() below
+        self._pending_free_blocks = []
+
+        # Statistics
+        self._n_mallocs = 0
+        self._n_frees = 0
+
+    @staticmethod
+    def _roundup(n, alignment):
+        # alignment must be a power of 2
+        mask = alignment - 1
+        return (n + mask) & ~mask
+
+    def _new_arena(self, size):
+        # Create a new arena with at least the given *size*
+        length = self._roundup(max(self._size, size), mmap.PAGESIZE)
+        # We carve larger and larger arenas, for efficiency, until we
+        # reach a large-ish size (roughly L3 cache-sized)
+        if self._size < self._DOUBLE_ARENA_SIZE_UNTIL:
+            self._size *= 2
+        util.info('allocating a new mmap of length %d', length)
+        arena = Arena(length)
+        self._arenas.append(arena)
+        return (arena, 0, length)
+
+    def _discard_arena(self, arena):
+        # Possibly delete the given (unused) arena
+        length = arena.size
+        # Reusing an existing arena is faster than creating a new one, so
+        # we only reclaim space if it's large enough.
+        if length < self._DISCARD_FREE_SPACE_LARGER_THAN:
+            return
+        blocks = self._allocated_blocks.pop(arena)
+        assert not blocks
+        del self._start_to_block[(arena, 0)]
+        del self._stop_to_block[(arena, length)]
+        self._arenas.remove(arena)
+        seq = self._len_to_seq[length]
+        seq.remove((arena, 0, length))
+        if not seq:
+            del self._len_to_seq[length]
+            self._lengths.remove(length)
+
+    def _malloc(self, size):
+        # returns a large enough block -- it might be much larger
+        i = bisect.bisect_left(self._lengths, size)
+        if i == len(self._lengths):
+            return self._new_arena(size)
+        else:
+            length = self._lengths[i]
+            seq = self._len_to_seq[length]
+            block = seq.pop()
+            if not seq:
+                del self._len_to_seq[length], self._lengths[i]
+
+        (arena, start, stop) = block
+        del self._start_to_block[(arena, start)]
+        del self._stop_to_block[(arena, stop)]
+        return block
+
+    def _add_free_block(self, block):
+        # make block available and try to merge with its neighbours in the arena
+        (arena, start, stop) = block
+
+        try:
+            prev_block = self._stop_to_block[(arena, start)]
+        except KeyError:
+            pass
+        else:
+            start, _ = self._absorb(prev_block)
+
+        try:
+            next_block = self._start_to_block[(arena, stop)]
+        except KeyError:
+            pass
+        else:
+            _, stop = self._absorb(next_block)
+
+        block = (arena, start, stop)
+        length = stop - start
+
+        try:
+            self._len_to_seq[length].append(block)
+        except KeyError:
+            self._len_to_seq[length] = [block]
+            bisect.insort(self._lengths, length)
+
+        self._start_to_block[(arena, start)] = block
+        self._stop_to_block[(arena, stop)] = block
+
+    def _absorb(self, block):
+        # deregister this block so it can be merged with a neighbour
+        (arena, start, stop) = block
+        del self._start_to_block[(arena, start)]
+        del self._stop_to_block[(arena, stop)]
+
+        length = stop - start
+        seq = self._len_to_seq[length]
+        seq.remove(block)
+        if not seq:
+            del self._len_to_seq[length]
+            self._lengths.remove(length)
+
+        return start, stop
+
+    def _remove_allocated_block(self, block):
+        arena, start, stop = block
+        blocks = self._allocated_blocks[arena]
+        blocks.remove((start, stop))
+        if not blocks:
+            # Arena is entirely free, discard it from this process
+            self._discard_arena(arena)
+
+    def _free_pending_blocks(self):
+        # Free all the blocks in the pending list - called with the lock held.
+        while True:
+            try:
+                block = self._pending_free_blocks.pop()
+            except IndexError:
+                break
+            self._add_free_block(block)
+            self._remove_allocated_block(block)
+
+    def free(self, block):
+        # free a block returned by malloc()
+        # Since free() can be called asynchronously by the GC, it could happen
+        # that it's called while self._lock is held: in that case,
+        # self._lock.acquire() would deadlock (issue #12352). To avoid that, a
+        # trylock is used instead, and if the lock can't be acquired
+        # immediately, the block is added to a list of blocks to be freed
+        # synchronously sometimes later from malloc() or free(), by calling
+        # _free_pending_blocks() (appending and retrieving from a list is not
+        # strictly thread-safe but under CPython it's atomic thanks to the GIL).
+        if os.getpid() != self._lastpid:
+            raise ValueError(
+                "My pid ({0:n}) is not last pid {1:n}".format(
+                    os.getpid(),self._lastpid))
+        if not self._lock.acquire(False):
+            # can't acquire the lock right now, add the block to the list of
+            # pending blocks to free
+            self._pending_free_blocks.append(block)
+        else:
+            # we hold the lock
+            try:
+                self._n_frees += 1
+                self._free_pending_blocks()
+                self._add_free_block(block)
+                self._remove_allocated_block(block)
+            finally:
+                self._lock.release()
+
+    def malloc(self, size):
+        # return a block of right size (possibly rounded up)
+        if size < 0:
+            raise ValueError("Size {0:n} out of range".format(size))
+        if sys.maxsize <= size:
+            raise OverflowError("Size {0:n} too large".format(size))
+        if os.getpid() != self._lastpid:
+            self.__init__()                     # reinitialize after fork
+        with self._lock:
+            self._n_mallocs += 1
+            # allow pending blocks to be marked available
+            self._free_pending_blocks()
+            size = self._roundup(max(size, 1), self._alignment)
+            (arena, start, stop) = self._malloc(size)
+            real_stop = start + size
+            if real_stop < stop:
+                # if the returned block is larger than necessary, mark
+                # the remainder available
+                self._add_free_block((arena, real_stop, stop))
+            self._allocated_blocks[arena].add((start, real_stop))
+            return (arena, start, real_stop)
+
+#
+# Class wrapping a block allocated out of a Heap -- can be inherited by child process
+#
+
+class BufferWrapper(object):
+
+    _heap = Heap()
+
+    def __init__(self, size):
+        if size < 0:
+            raise ValueError("Size {0:n} out of range".format(size))
+        if sys.maxsize <= size:
+            raise OverflowError("Size {0:n} too large".format(size))
+        block = BufferWrapper._heap.malloc(size)
+        self._state = (block, size)
+        util.Finalize(self, BufferWrapper._heap.free, args=(block,))
+
+    def create_memoryview(self):
+        (arena, start, stop), size = self._state
+        return memoryview(arena.buffer)[start:start+size]
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      #
+# Module providing manager classes for dealing
+# with shared objects
+#
+# multiprocessing/managers.py
+#
+# Copyright (c) 2006-2008, R Oudkerk
+# Licensed to PSF under a Contributor Agreement.
+#
+
+__all__ = [ 'BaseManager', 'SyncManager', 'BaseProxy', 'Token' ]
+
+#
+# Imports
+#
+
+import sys
+import threading
+import signal
+import array
+import queue
+import time
+import types
+import os
+from os import getpid
+
+from traceback import format_exc
+
+from . import connection
+from .context import reduction, get_spawning_popen, ProcessError
+from . import pool
+from . import process
+from . import util
+from . import get_context
+try:
+    from . import shared_memory
+except ImportError:
+    HAS_SHMEM = False
+else:
+    HAS_SHMEM = True
+    __all__.append('SharedMemoryManager')
+
+#
+# Register some things for pickling
+#
+
+def reduce_array(a):
+    return array.array, (a.typecode, a.tobytes())
+reduction.register(array.array, reduce_array)
+
+view_types = [type(getattr({}, name)()) for name in ('items','keys','values')]
+def rebuild_as_list(obj):
+    return list, (list(obj),)
+for view_type in view_types:
+    reduction.register(view_type, rebuild_as_list)
+del view_type, view_types
+
+#
+# Type for identifying shared objects
+#
+
+class Token(object):
+    '''
+    Type to uniquely identify a shared object
+    '''
+    __slots__ = ('typeid', 'address', 'id')
+
+    def __init__(self, typeid, address, id):
+        (self.typeid, self.address, self.id) = (typeid, address, id)
+
+    def __getstate__(self):
+        return (self.typeid, self.address, self.id)
+
+    def __setstate__(self, state):
+        (self.typeid, self.address, self.id) = state
+
+    def __repr__(self):
+        return '%s(typeid=%r, address=%r, id=%r)' % \
+               (self.__class__.__name__, self.typeid, self.address, self.id)
+
+#
+# Function for communication with a manager's server process
+#
+
+def dispatch(c, id, methodname, args=(), kwds={}):
+    '''
+    Send a message to manager using connection `c` and return response
+    '''
+    c.send((id, methodname, args, kwds))
+    kind, result = c.recv()
+    if kind == '#RETURN':
+        return result
+    try:
+        raise convert_to_error(kind, result)
+    finally:
+        del result  # break reference cycle
+
+def convert_to_error(kind, result):
+    if kind == '#ERROR':
+        return result
+    elif kind in ('#TRACEBACK', '#UNSERIALIZABLE'):
+        if not isinstance(result, str):
+            raise TypeError(
+                "Result {0!r} (kind '{1}') type is {2}, not str".format(
+                    result, kind, type(result)))
+        if kind == '#UNSERIALIZABLE':
+            return RemoteError('Unserializable message: %s\n' % result)
+        else:
+            return RemoteError(result)
+    else:
+        return ValueError('Unrecognized message type {!r}'.format(kind))
+
+class RemoteError(Exception):
+    def __str__(self):
+        return ('\n' + '-'*75 + '\n' + str(self.args[0]) + '-'*75)
+
+#
+# Functions for finding the method names of an object
+#
+
+def all_methods(obj):
+    '''
+    Return a list of names of methods of `obj`
+    '''
+    temp = []
+    for name in dir(obj):
+        func = getattr(obj, name)
+        if callable(func):
+            temp.append(name)
+    return temp
+
+def public_methods(obj):
+    '''
+    Return a list of names of methods of `obj` which do not start with '_'
+    '''
+    return [name for name in all_methods(obj) if name[0] != '_']
+
+#
+# Server which is run in a process controlled by a manager
+#
+
+class Server(object):
+    '''
+    Server class which runs in a process controlled by a manager object
+    '''
+    public = ['shutdown', 'create', 'accept_connection', 'get_methods',
+              'debug_info', 'number_of_objects', 'dummy', 'incref', 'decref']
+
+    def __init__(self, registry, address, authkey, serializer):
+        if not isinstance(authkey, bytes):
+            raise TypeError(
+                "Authkey {0!r} is type {1!s}, not bytes".format(
+                    authkey, type(authkey)))
+        self.registry = registry
+        self.authkey = process.AuthenticationString(authkey)
+        Listener, Client = listener_client[serializer]
+
+        # do authentication later
+        self.listener = Listener(address=address, backlog=128)
+        self.address = self.listener.address
+
+        self.id_to_obj = {'0': (None, ())}
+        self.id_to_refcount = {}
+        self.id_to_local_proxy_obj = {}
+        self.mutex = threading.Lock()
+
+    def serve_forever(self):
+        '''
+        Run the server forever
+        '''
+        self.stop_event = threading.Event()
+        process.current_process()._manager_server = self
+        try:
+            accepter = threading.Thread(target=self.accepter)
+            accepter.daemon = True
+            accepter.start()
+            try:
+                while not self.stop_event.is_set():
+                    self.stop_event.wait(1)
+            except (KeyboardInterrupt, SystemExit):
+                pass
+        finally:
+            if sys.stdout != sys.__stdout__: # what about stderr?
+                util.debug('resetting stdout, stderr')
+                sys.stdout = sys.__stdout__
+                sys.stderr = sys.__stderr__
+            sys.exit(0)
+
+    def accepter(self):
+        while True:
+            try:
+                c = self.listener.accept()
+            except OSError:
+                continue
+            t = threading.Thread(target=self.handle_request, args=(c,))
+            t.daemon = True
+            t.start()
+
+    def _handle_request(self, c):
+        request = None
+        try:
+            connection.deliver_challenge(c, self.authkey)
+            connection.answer_challenge(c, self.authkey)
+            request = c.recv()
+            ignore, funcname, args, kwds = request
+            assert funcname in self.public, '%r unrecognized' % funcname
+            func = getattr(self, funcname)
+        except Exception:
+            msg = ('#TRACEBACK', format_exc())
+        else:
+            try:
+                result = func(c, *args, **kwds)
+            except Exception:
+                msg = ('#TRACEBACK', format_exc())
+            else:
+                msg = ('#RETURN', result)
+
+        try:
+            c.send(msg)
+        except Exception as e:
+            try:
+                c.send(('#TRACEBACK', format_exc()))
+            except Exception:
+                pass
+            util.info('Failure to send message: %r', msg)
+            util.info(' ... request was %r', request)
+            util.info(' ... exception was %r', e)
+
+    def handle_request(self, conn):
+        '''
+        Handle a new connection
+        '''
+        try:
+            self._handle_request(conn)
+        except SystemExit:
+            # Server.serve_client() calls sys.exit(0) on EOF
+            pass
+        finally:
+            conn.close()
+
+    def serve_client(self, conn):
+        '''
+        Handle requests from the proxies in a particular process/thread
+        '''
+        util.debug('starting server thread to service %r',
+                   threading.current_thread().name)
+
+        recv = conn.recv
+        send = conn.send
+        id_to_obj = self.id_to_obj
+
+        while not self.stop_event.is_set():
+
+            try:
+                methodname = obj = None
+                request = recv()
+                ident, methodname, args, kwds = request
+                try:
+                    obj, exposed, gettypeid = id_to_obj[ident]
+                except KeyError as ke:
+                    try:
+                        obj, exposed, gettypeid = \
+                            self.id_to_local_proxy_obj[ident]
+                    except KeyError:
+                        raise ke
+
+                if methodname not in exposed:
+                    raise AttributeError(
+                        'method %r of %r object is not in exposed=%r' %
+                        (methodname, type(obj), exposed)
+                        )
+
+                function = getattr(obj, methodname)
+
+                try:
+                    res = function(*args, **kwds)
+                except Exception as e:
+                    msg = ('#ERROR', e)
+                else:
+                    typeid = gettypeid and gettypeid.get(methodname, None)
+                    if typeid:
+                        rident, rexposed = self.create(conn, typeid, res)
+                        token = Token(typeid, self.address, rident)
+                        msg = ('#PROXY', (rexposed, token))
+                    else:
+                        msg = ('#RETURN', res)
+
+            except AttributeError:
+                if methodname is None:
+                    msg = ('#TRACEBACK', format_exc())
+                else:
+                    try:
+                        fallback_func = self.fallback_mapping[methodname]
+                        result = fallback_func(
+                            self, conn, ident, obj, *args, **kwds
+                            )
+                        msg = ('#RETURN', result)
+                    except Exception:
+                        msg = ('#TRACEBACK', format_exc())
+
+            except EOFError:
+                util.debug('got EOF -- exiting thread serving %r',
+                           threading.current_thread().name)
+                sys.exit(0)
+
+            except Exception:
+                msg = ('#TRACEBACK', format_exc())
+
+            try:
+                try:
+                    send(msg)
+                except Exception:
+                    send(('#UNSERIALIZABLE', format_exc()))
+            except Exception as e:
+                util.info('exception in thread serving %r',
+                        threading.current_thread().name)
+                util.info(' ... message was %r', msg)
+                util.info(' ... exception was %r', e)
+                conn.close()
+                sys.exit(1)
+
+    def fallback_getvalue(self, conn, ident, obj):
+        return obj
+
+    def fallback_str(self, conn, ident, obj):
+        return str(obj)
+
+    def fallback_repr(self, conn, ident, obj):
+        return repr(obj)
+
+    fallback_mapping = {
+        '__str__':fallback_str,
+        '__repr__':fallback_repr,
+        '#GETVALUE':fallback_getvalue
+        }
+
+    def dummy(self, c):
+        pass
+
+    def debug_info(self, c):
+        '''
+        Return some info --- useful to spot problems with refcounting
+        '''
+        # Perhaps include debug info about 'c'?
+        with self.mutex:
+            result = []
+            keys = list(self.id_to_refcount.keys())
+            keys.sort()
+            for ident in keys:
+                if ident != '0':
+                    result.append('  %s:       refcount=%s\n    %s' %
+                                  (ident, self.id_to_refcount[ident],
+                                   str(self.id_to_obj[ident][0])[:75]))
+            return '\n'.join(result)
+
+    def number_of_objects(self, c):
+        '''
+        Number of shared objects
+        '''
+        # Doesn't use (len(self.id_to_obj) - 1) as we shouldn't count ident='0'
+        return len(self.id_to_refcount)
+
+    def shutdown(self, c):
+        '''
+        Shutdown this process
+        '''
+        try:
+            util.debug('manager received shutdown message')
+            c.send(('#RETURN', None))
+        except:
+            import traceback
+            traceback.print_exc()
+        finally:
+            self.stop_event.set()
+
+    def create(self, c, typeid, /, *args, **kwds):
+        '''
+        Create a new shared object and return its id
+        '''
+        with self.mutex:
+            callable, exposed, method_to_typeid, proxytype = \
+                      self.registry[typeid]
+
+            if callable is None:
+                if kwds or (len(args) != 1):
+                    raise ValueError(
+                        "Without callable, must have one non-keyword argument")
+                obj = args[0]
+            else:
+                obj = callable(*args, **kwds)
+
+            if exposed is None:
+                exposed = public_methods(obj)
+            if method_to_typeid is not None:
+                if not isinstance(method_to_typeid, dict):
+                    raise TypeError(
+                        "Method_to_typeid {0!r}: type {1!s}, not dict".format(
+                            method_to_typeid, type(method_to_typeid)))
+                exposed = list(exposed) + list(method_to_typeid)
+
+            ident = '%x' % id(obj)  # convert to string because xmlrpclib
+                                    # only has 32 bit signed integers
+            util.debug('%r callable returned object with id %r', typeid, ident)
+
+            self.id_to_obj[ident] = (obj, set(exposed), method_to_typeid)
+            if ident not in self.id_to_refcount:
+                self.id_to_refcount[ident] = 0
+
+        self.incref(c, ident)
+        return ident, tuple(exposed)
+
+    def get_methods(self, c, token):
+        '''
+        Return the methods of the shared object indicated by token
+        '''
+        return tuple(self.id_to_obj[token.id][1])
+
+    def accept_connection(self, c, name):
+        '''
+        Spawn a new thread to serve this connection
+        '''
+        threading.current_thread().name = name
+        c.send(('#RETURN', None))
+        self.serve_client(c)
+
+    def incref(self, c, ident):
+        with self.mutex:
+            try:
+                self.id_to_refcount[ident] += 1
+            except KeyError as ke:
+                # If no external references exist but an internal (to the
+                # manager) still does and a new external reference is created
+                # from it, restore the manager's tracking of it from the
+                # previously stashed internal ref.
+                if ident in self.id_to_local_proxy_obj:
+                    self.id_to_refcount[ident] = 1
+                    self.id_to_obj[ident] = \
+                        self.id_to_local_proxy_obj[ident]
+                    util.debug('Server re-enabled tracking & INCREF %r', ident)
+                else:
+                    raise ke
+
+    def decref(self, c, ident):
+        if ident not in self.id_to_refcount and \
+            ident in self.id_to_local_proxy_obj:
+            util.debug('Server DECREF skipping %r', ident)
+            return
+
+        with self.mutex:
+            if self.id_to_refcount[ident] <= 0:
+                raise AssertionError(
+                    "Id {0!s} ({1!r}) has refcount {2:n}, not 1+".format(
+                        ident, self.id_to_obj[ident],
+                        self.id_to_refcount[ident]))
+            self.id_to_refcount[ident] -= 1
+            if self.id_to_refcount[ident] == 0:
+                del self.id_to_refcount[ident]
+
+        if ident not in self.id_to_refcount:
+            # Two-step process in case the object turns out to contain other
+            # proxy objects (e.g. a managed list of managed lists).
+            # Otherwise, deleting self.id_to_obj[ident] would trigger the
+            # deleting of the stored value (another managed object) which would
+            # in turn attempt to acquire the mutex that is already held here.
+            self.id_to_obj[ident] = (None, (), None)  # thread-safe
+            util.debug('disposing of obj with id %r', ident)
+            with self.mutex:
+                del self.id_to_obj[ident]
+
+
+#
+# Class to represent state of a manager
+#
+
+class State(object):
+    __slots__ = ['value']
+    INITIAL = 0
+    STARTED = 1
+    SHUTDOWN = 2
+
+#
+# Mapping from serializer name to Listener and Client types
+#
+
+listener_client = {
+    'pickle' : (connection.Listener, connection.Client),
+    'xmlrpclib' : (connection.XmlListener, connection.XmlClient)
+    }
+
+#
+# Definition of BaseManager
+#
+
+class BaseManager(object):
+    '''
+    Base class for managers
+    '''
+    _registry = {}
+    _Server = Server
+
+    def __init__(self, address=None, authkey=None, serializer='pickle',
+                 ctx=None, *, shutdown_timeout=1.0):
+        if authkey is None:
+            authkey = process.current_process().authkey
+        self._address = address     # XXX not final address if eg ('', 0)
+        self._authkey = process.AuthenticationString(authkey)
+        self._state = State()
+        self._state.value = State.INITIAL
+        self._serializer = serializer
+        self._Listener, self._Client = listener_client[serializer]
+        self._ctx = ctx or get_context()
+        self._shutdown_timeout = shutdown_timeout
+
+    def get_server(self):
+        '''
+        Return server object with serve_forever() method and address attribute
+        '''
+        if self._state.value != State.INITIAL:
+            if self._state.value == State.STARTED:
+                raise ProcessError("Already started server")
+            elif self._state.value == State.SHUTDOWN:
+                raise ProcessError("Manager has shut down")
+            else:
+                raise ProcessError(
+                    "Unknown state {!r}".format(self._state.value))
+        return Server(self._registry, self._address,
+                      self._authkey, self._serializer)
+
+    def connect(self):
+        '''
+        Connect manager object to the server process
+        '''
+        Listener, Client = listener_client[self._serializer]
+        conn = Client(self._address, authkey=self._authkey)
+        dispatch(conn, None, 'dummy')
+        self._state.value = State.STARTED
+
+    def start(self, initializer=None, initargs=()):
+        '''
+        Spawn a server process for this manager object
+        '''
+        if self._state.value != State.INITIAL:
+            if self._state.value == State.STARTED:
+                raise ProcessError("Already started server")
+            elif self._state.value == State.SHUTDOWN:
+                raise ProcessError("Manager has shut down")
+            else:
+                raise ProcessError(
+                    "Unknown state {!r}".format(self._state.value))
+
+        if initializer is not None and not callable(initializer):
+            raise TypeError('initializer must be a callable')
+
+        # pipe over which we will retrieve address of server
+        reader, writer = connection.Pipe(duplex=False)
+
+        # spawn process which runs a server
+        self._process = self._ctx.Process(
+            target=type(self)._run_server,
+            args=(self._registry, self._address, self._authkey,
+                  self._serializer, writer, initializer, initargs),
+            )
+        ident = ':'.join(str(i) for i in self._process._identity)
+        self._process.name = type(self).__name__  + '-' + ident
+        self._process.start()
+
+        # get address of server
+        writer.close()
+        self._address = reader.recv()
+        reader.close()
+
+        # register a finalizer
+        self._state.value = State.STARTED
+        self.shutdown = util.Finalize(
+            self, type(self)._finalize_manager,
+            args=(self._process, self._address, self._authkey, self._state,
+                  self._Client, self._shutdown_timeout),
+            exitpriority=0
+            )
+
+    @classmethod
+    def _run_server(cls, registry, address, authkey, serializer, writer,
+                    initializer=None, initargs=()):
+        '''
+        Create a server, report its address and run it
+        '''
+        # bpo-36368: protect server process from KeyboardInterrupt signals
+        signal.signal(signal.SIGINT, signal.SIG_IGN)
+
+        if initializer is not None:
+            initializer(*initargs)
+
+        # create server
+        server = cls._Server(registry, address, authkey, serializer)
+
+        # inform parent process of the server's address
+        writer.send(server.address)
+        writer.close()
+
+        # run the manager
+        util.info('manager serving at %r', server.address)
+        server.serve_forever()
+
+    def _create(self, typeid, /, *args, **kwds):
+        '''
+        Create a new shared object; return the token and exposed tuple
+        '''
+        assert self._state.value == State.STARTED, 'server not yet started'
+        conn = self._Client(self._address, authkey=self._authkey)
+        try:
+            id, exposed = dispatch(conn, None, 'create', (typeid,)+args, kwds)
+        finally:
+            conn.close()
+        return Token(typeid, self._address, id), exposed
+
+    def join(self, timeout=None):
+        '''
+        Join the manager process (if it has been spawned)
+        '''
+        if self._process is not None:
+            self._process.join(timeout)
+            if not self._process.is_alive():
+                self._process = None
+
+    def _debug_info(self):
+        '''
+        Return some info about the servers shared objects and connections
+        '''
+        conn = self._Client(self._address, authkey=self._authkey)
+        try:
+            return dispatch(conn, None, 'debug_info')
+        finally:
+            conn.close()
+
+    def _number_of_objects(self):
+        '''
+        Return the number of shared objects
+        '''
+        conn = self._Client(self._address, authkey=self._authkey)
+        try:
+            return dispatch(conn, None, 'number_of_objects')
+        finally:
+            conn.close()
+
+    def __enter__(self):
+        if self._state.value == State.INITIAL:
+            self.start()
+        if self._state.value != State.STARTED:
+            if self._state.value == State.INITIAL:
+                raise ProcessError("Unable to start server")
+            elif self._state.value == State.SHUTDOWN:
+                raise ProcessError("Manager has shut down")
+            else:
+                raise ProcessError(
+                    "Unknown state {!r}".format(self._state.value))
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.shutdown()
+
+    @staticmethod
+    def _finalize_manager(process, address, authkey, state, _Client,
+                          shutdown_timeout):
+        '''
+        Shutdown the manager process; will be registered as a finalizer
+        '''
+        if process.is_alive():
+            util.info('sending shutdown message to manager')
+            try:
+                conn = _Client(address, authkey=authkey)
+                try:
+                    dispatch(conn, None, 'shutdown')
+                finally:
+                    conn.close()
+            except Exception:
+                pass
+
+            process.join(timeout=shutdown_timeout)
+            if process.is_alive():
+                util.info('manager still alive')
+                if hasattr(process, 'terminate'):
+                    util.info('trying to `terminate()` manager process')
+                    process.terminate()
+                    process.join(timeout=shutdown_timeout)
+                    if process.is_alive():
+                        util.info('manager still alive after terminate')
+                        process.kill()
+                        process.join()
+
+        state.value = State.SHUTDOWN
+        try:
+            del BaseProxy._address_to_local[address]
+        except KeyError:
+            pass
+
+    @property
+    def address(self):
+        return self._address
+
+    @classmethod
+    def register(cls, typeid, callable=None, proxytype=None, exposed=None,
+                 method_to_typeid=None, create_method=True):
+        '''
+        Register a typeid with the manager type
+        '''
+        if '_registry' not in cls.__dict__:
+            cls._registry = cls._registry.copy()
+
+        if proxytype is None:
+            proxytype = AutoProxy
+
+        exposed = exposed or getattr(proxytype, '_exposed_', None)
+
+        method_to_typeid = method_to_typeid or \
+                           getattr(proxytype, '_method_to_typeid_', None)
+
+        if method_to_typeid:
+            for key, value in list(method_to_typeid.items()): # isinstance?
+                assert type(key) is str, '%r is not a string' % key
+                assert type(value) is str, '%r is not a string' % value
+
+        cls._registry[typeid] = (
+            callable, exposed, method_to_typeid, proxytype
+            )
+
+        if create_method:
+            def temp(self, /, *args, **kwds):
+                util.debug('requesting creation of a shared %r object', typeid)
+                token, exp = self._create(typeid, *args, **kwds)
+                proxy = proxytype(
+                    token, self._serializer, manager=self,
+                    authkey=self._authkey, exposed=exp
+                    )
+                conn = self._Client(token.address, authkey=self._authkey)
+                dispatch(conn, None, 'decref', (token.id,))
+                return proxy
+            temp.__name__ = typeid
+            setattr(cls, typeid, temp)
+
+#
+# Subclass of set which get cleared after a fork
+#
+
+class ProcessLocalSet(set):
+    def __init__(self):
+        util.register_after_fork(self, lambda obj: obj.clear())
+    def __reduce__(self):
+        return type(self), ()
+
+#
+# Definition of BaseProxy
+#
+
+class BaseProxy(object):
+    '''
+    A base for proxies of shared objects
+    '''
+    _address_to_local = {}
+    _mutex = util.ForkAwareThreadLock()
+
+    # Each instance gets a `_serial` number. Unlike `id(...)`, this number
+    # is never reused.
+    _next_serial = 1
+
+    def __init__(self, token, serializer, manager=None,
+                 authkey=None, exposed=None, incref=True, manager_owned=False):
+        with BaseProxy._mutex:
+            tls_serials = BaseProxy._address_to_local.get(token.address, None)
+            if tls_serials is None:
+                tls_serials = util.ForkAwareLocal(), ProcessLocalSet()
+                BaseProxy._address_to_local[token.address] = tls_serials
+
+            self._serial = BaseProxy._next_serial
+            BaseProxy._next_serial += 1
+
+        # self._tls is used to record the connection used by this
+        # thread to communicate with the manager at token.address
+        self._tls = tls_serials[0]
+
+        # self._all_serials is a set used to record the identities of all
+        # shared objects for which the current process owns references and
+        # which are in the manager at token.address
+        self._all_serials = tls_serials[1]
+
+        self._token = token
+        self._id = self._token.id
+        self._manager = manager
+        self._serializer = serializer
+        self._Client = listener_client[serializer][1]
+
+        # Should be set to True only when a proxy object is being created
+        # on the manager server; primary use case: nested proxy objects.
+        # RebuildProxy detects when a proxy is being created on the manager
+        # and sets this value appropriately.
+        self._owned_by_manager = manager_owned
+
+        if authkey is not None:
+            self._authkey = process.AuthenticationString(authkey)
+        elif self._manager is not None:
+            self._authkey = self._manager._authkey
+        else:
+            self._authkey = process.current_process().authkey
+
+        if incref:
+            self._incref()
+
+        util.register_after_fork(self, BaseProxy._after_fork)
+
+    def _connect(self):
+        util.debug('making connection to manager')
+        name = process.current_process().name
+        if threading.current_thread().name != 'MainThread':
+            name += '|' + threading.current_thread().name
+        conn = self._Client(self._token.address, authkey=self._authkey)
+        dispatch(conn, None, 'accept_connection', (name,))
+        self._tls.connection = conn
+
+    def _callmethod(self, methodname, args=(), kwds={}):
+        '''
+        Try to call a method of the referent and return a copy of the result
+        '''
+        try:
+            conn = self._tls.connection
+        except AttributeError:
+            util.debug('thread %r does not own a connection',
+                       threading.current_thread().name)
+            self._connect()
+            conn = self._tls.connection
+
+        conn.send((self._id, methodname, args, kwds))
+        kind, result = conn.recv()
+
+        if kind == '#RETURN':
+            return result
+        elif kind == '#PROXY':
+            exposed, token = result
+            proxytype = self._manager._registry[token.typeid][-1]
+            token.address = self._token.address
+            proxy = proxytype(
+                token, self._serializer, manager=self._manager,
+                authkey=self._authkey, exposed=exposed
+                )
+            conn = self._Client(token.address, authkey=self._authkey)
+            dispatch(conn, None, 'decref', (token.id,))
+            return proxy
+        try:
+            raise convert_to_error(kind, result)
+        finally:
+            del result   # break reference cycle
+
+    def _getvalue(self):
+        '''
+        Get a copy of the value of the referent
+        '''
+        return self._callmethod('#GETVALUE')
+
+    def _incref(self):
+        if self._owned_by_manager:
+            util.debug('owned_by_manager skipped INCREF of %r', self._token.id)
+            return
+
+        conn = self._Client(self._token.address, authkey=self._authkey)
+        dispatch(conn, None, 'incref', (self._id,))
+        util.debug('INCREF %r', self._token.id)
+
+        self._all_serials.add(self._serial)
+
+        state = self._manager and self._manager._state
+
+        self._close = util.Finalize(
+            self, BaseProxy._decref,
+            args=(self._token, self._serial, self._authkey, state,
+                  self._tls, self._all_serials, self._Client),
+            exitpriority=10
+            )
+
+    @staticmethod
+    def _decref(token, serial, authkey, state, tls, idset, _Client):
+        idset.discard(serial)
+
+        # check whether manager is still alive
+        if state is None or state.value == State.STARTED:
+            # tell manager this process no longer cares about referent
+            try:
+                util.debug('DECREF %r', token.id)
+                conn = _Client(token.address, authkey=authkey)
+                dispatch(conn, None, 'decref', (token.id,))
+            except Exception as e:
+                util.debug('... decref failed %s', e)
+
+        else:
+            util.debug('DECREF %r -- manager already shutdown', token.id)
+
+        # check whether we can close this thread's connection because
+        # the process owns no more references to objects for this manager
+        if not idset and hasattr(tls, 'connection'):
+            util.debug('thread %r has no more proxies so closing conn',
+                       threading.current_thread().name)
+            tls.connection.close()
+            del tls.connection
+
+    def _after_fork(self):
+        self._manager = None
+        try:
+            self._incref()
+        except Exception as e:
+            # the proxy may just be for a manager which has shutdown
+            util.info('incref failed: %s' % e)
+
+    def __reduce__(self):
+        kwds = {}
+        if get_spawning_popen() is not None:
+            kwds['authkey'] = self._authkey
+
+        if getattr(self, '_isauto', False):
+            kwds['exposed'] = self._exposed_
+            return (RebuildProxy,
+                    (AutoProxy, self._token, self._serializer, kwds))
+        else:
+            return (RebuildProxy,
+                    (type(self), self._token, self._serializer, kwds))
+
+    def __deepcopy__(self, memo):
+        return self._getvalue()
+
+    def __repr__(self):
+        return '<%s object, typeid %r at %#x>' % \
+               (type(self).__name__, self._token.typeid, id(self))
+
+    def __str__(self):
+        '''
+        Return representation of the referent (or a fall-back if that fails)
+        '''
+        try:
+            return self._callmethod('__repr__')
+        except Exception:
+            return repr(self)[:-1] + "; '__str__()' failed>"
+
+#
+# Function used for unpickling
+#
+
+def RebuildProxy(func, token, serializer, kwds):
+    '''
+    Function used for unpickling proxy objects.
+    '''
+    server = getattr(process.current_process(), '_manager_server', None)
+    if server and server.address == token.address:
+        util.debug('Rebuild a proxy owned by manager, token=%r', token)
+        kwds['manager_owned'] = True
+        if token.id not in server.id_to_local_proxy_obj:
+            server.id_to_local_proxy_obj[token.id] = \
+                server.id_to_obj[token.id]
+    incref = (
+        kwds.pop('incref', True) and
+        not getattr(process.current_process(), '_inheriting', False)
+        )
+    return func(token, serializer, incref=incref, **kwds)
+
+#
+# Functions to create proxies and proxy types
+#
+
+def MakeProxyType(name, exposed, _cache={}):
+    '''
+    Return a proxy type whose methods are given by `exposed`
+    '''
+    exposed = tuple(exposed)
+    try:
+        return _cache[(name, exposed)]
+    except KeyError:
+        pass
+
+    dic = {}
+
+    for meth in exposed:
+        exec('''def %s(self, /, *args, **kwds):
+        return self._callmethod(%r, args, kwds)''' % (meth, meth), dic)
+
+    ProxyType = type(name, (BaseProxy,), dic)
+    ProxyType._exposed_ = exposed
+    _cache[(name, exposed)] = ProxyType
+    return ProxyType
+
+
+def AutoProxy(token, serializer, manager=None, authkey=None,
+              exposed=None, incref=True, manager_owned=False):
+    '''
+    Return an auto-proxy for `token`
+    '''
+    _Client = listener_client[serializer][1]
+
+    if exposed is None:
+        conn = _Client(token.address, authkey=authkey)
+        try:
+            exposed = dispatch(conn, None, 'get_methods', (token,))
+        finally:
+            conn.close()
+
+    if authkey is None and manager is not None:
+        authkey = manager._authkey
+    if authkey is None:
+        authkey = process.current_process().authkey
+
+    ProxyType = MakeProxyType('AutoProxy[%s]' % token.typeid, exposed)
+    proxy = ProxyType(token, serializer, manager=manager, authkey=authkey,
+                      incref=incref, manager_owned=manager_owned)
+    proxy._isauto = True
+    return proxy
+
+#
+# Types/callables which we will register with SyncManager
+#
+
+class Namespace(object):
+    def __init__(self, /, **kwds):
+        self.__dict__.update(kwds)
+    def __repr__(self):
+        items = list(self.__dict__.items())
+        temp = []
+        for name, value in items:
+            if not name.startswith('_'):
+                temp.append('%s=%r' % (name, value))
+        temp.sort()
+        return '%s(%s)' % (self.__class__.__name__, ', '.join(temp))
+
+class Value(object):
+    def __init__(self, typecode, value, lock=True):
+        self._typecode = typecode
+        self._value = value
+    def get(self):
+        return self._value
+    def set(self, value):
+        self._value = value
+    def __repr__(self):
+        return '%s(%r, %r)'%(type(self).__name__, self._typecode, self._value)
+    value = property(get, set)
+
+def Array(typecode, sequence, lock=True):
+    return array.array(typecode, sequence)
+
+#
+# Proxy types used by SyncManager
+#
+
+class IteratorProxy(BaseProxy):
+    _exposed_ = ('__next__', 'send', 'throw', 'close')
+    def __iter__(self):
+        return self
+    def __next__(self, *args):
+        return self._callmethod('__next__', args)
+    def send(self, *args):
+        return self._callmethod('send', args)
+    def throw(self, *args):
+        return self._callmethod('throw', args)
+    def close(self, *args):
+        return self._callmethod('close', args)
+
+
+class AcquirerProxy(BaseProxy):
+    _exposed_ = ('acquire', 'release')
+    def acquire(self, blocking=True, timeout=None):
+        args = (blocking,) if timeout is None else (blocking, timeout)
+        return self._callmethod('acquire', args)
+    def release(self):
+        return self._callmethod('release')
+    def __enter__(self):
+        return self._callmethod('acquire')
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        return self._callmethod('release')
+
+
+class ConditionProxy(AcquirerProxy):
+    _exposed_ = ('acquire', 'release', 'wait', 'notify', 'notify_all')
+    def wait(self, timeout=None):
+        return self._callmethod('wait', (timeout,))
+    def notify(self, n=1):
+        return self._callmethod('notify', (n,))
+    def notify_all(self):
+        return self._callmethod('notify_all')
+    def wait_for(self, predicate, timeout=None):
+        result = predicate()
+        if result:
+            return result
+        if timeout is not None:
+            endtime = time.monotonic() + timeout
+        else:
+            endtime = None
+            waittime = None
+        while not result:
+            if endtime is not None:
+                waittime = endtime - time.monotonic()
+                if waittime <= 0:
+                    break
+            self.wait(waittime)
+            result = predicate()
+        return result
+
+
+class EventProxy(BaseProxy):
+    _exposed_ = ('is_set', 'set', 'clear', 'wait')
+    def is_set(self):
+        return self._callmethod('is_set')
+    def set(self):
+        return self._callmethod('set')
+    def clear(self):
+        return self._callmethod('clear')
+    def wait(self, timeout=None):
+        return self._callmethod('wait', (timeout,))
+
+
+class BarrierProxy(BaseProxy):
+    _exposed_ = ('__getattribute__', 'wait', 'abort', 'reset')
+    def wait(self, timeout=None):
+        return self._callmethod('wait', (timeout,))
+    def abort(self):
+        return self._callmethod('abort')
+    def reset(self):
+        return self._callmethod('reset')
+    @property
+    def parties(self):
+        return self._callmethod('__getattribute__', ('parties',))
+    @property
+    def n_waiting(self):
+        return self._callmethod('__getattribute__', ('n_waiting',))
+    @property
+    def broken(self):
+        return self._callmethod('__getattribute__', ('broken',))
+
+
+class NamespaceProxy(BaseProxy):
+    _exposed_ = ('__getattribute__', '__setattr__', '__delattr__')
+    def __getattr__(self, key):
+        if key[0] == '_':
+            return object.__getattribute__(self, key)
+        callmethod = object.__getattribute__(self, '_callmethod')
+        return callmethod('__getattribute__', (key,))
+    def __setattr__(self, key, value):
+        if key[0] == '_':
+            return object.__setattr__(self, key, value)
+        callmethod = object.__getattribute__(self, '_callmethod')
+        return callmethod('__setattr__', (key, value))
+    def __delattr__(self, key):
+        if key[0] == '_':
+            return object.__delattr__(self, key)
+        callmethod = object.__getattribute__(self, '_callmethod')
+        return callmethod('__delattr__', (key,))
+
+
+class ValueProxy(BaseProxy):
+    _exposed_ = ('get', 'set')
+    def get(self):
+        return self._callmethod('get')
+    def set(self, value):
+        return self._callmethod('set', (value,))
+    value = property(get, set)
+
+    __class_getitem__ = classmethod(types.GenericAlias)
+
+
+BaseListProxy = MakeProxyType('BaseListProxy', (
+    '__add__', '__contains__', '__delitem__', '__getitem__', '__len__',
+    '__mul__', '__reversed__', '__rmul__', '__setitem__',
+    'append', 'count', 'extend', 'index', 'insert', 'pop', 'remove',
+    'reverse', 'sort', '__imul__'
+    ))
+class ListProxy(BaseListProxy):
+    def __iadd__(self, value):
+        self._callmethod('extend', (value,))
+        return self
+    def __imul__(self, value):
+        self._callmethod('__imul__', (value,))
+        return self
+
+    __class_getitem__ = classmethod(types.GenericAlias)
+
+
+_BaseDictProxy = MakeProxyType('DictProxy', (
+    '__contains__', '__delitem__', '__getitem__', '__iter__', '__len__',
+    '__setitem__', 'clear', 'copy', 'get', 'items',
+    'keys', 'pop', 'popitem', 'setdefault', 'update', 'values'
+    ))
+_BaseDictProxy._method_to_typeid_ = {
+    '__iter__': 'Iterator',
+    }
+class DictProxy(_BaseDictProxy):
+    __class_getitem__ = classmethod(types.GenericAlias)
+
+
+ArrayProxy = MakeProxyType('ArrayProxy', (
+    '__len__', '__getitem__', '__setitem__'
+    ))
+
+
+BasePoolProxy = MakeProxyType('PoolProxy', (
+    'apply', 'apply_async', 'close', 'imap', 'imap_unordered', 'join',
+    'map', 'map_async', 'starmap', 'starmap_async', 'terminate',
+    ))
+BasePoolProxy._method_to_typeid_ = {
+    'apply_async': 'AsyncResult',
+    'map_async': 'AsyncResult',
+    'starmap_async': 'AsyncResult',
+    'imap': 'Iterator',
+    'imap_unordered': 'Iterator'
+    }
+class PoolProxy(BasePoolProxy):
+    def __enter__(self):
+        return self
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.terminate()
+
+#
+# Definition of SyncManager
+#
+
+class SyncManager(BaseManager):
+    '''
+    Subclass of `BaseManager` which supports a number of shared object types.
+
+    The types registered are those intended for the synchronization
+    of threads, plus `dict`, `list` and `Namespace`.
+
+    The `multiprocessing.Manager()` function creates started instances of
+    this class.
+    '''
+
+SyncManager.register('Queue', queue.Queue)
+SyncManager.register('JoinableQueue', queue.Queue)
+SyncManager.register('Event', threading.Event, EventProxy)
+SyncManager.register('Lock', threading.Lock, AcquirerProxy)
+SyncManager.register('RLock', threading.RLock, AcquirerProxy)
+SyncManager.register('Semaphore', threading.Semaphore, AcquirerProxy)
+SyncManager.register('BoundedSemaphore', threading.BoundedSemaphore,
+                     AcquirerProxy)
+SyncManager.register('Condition', threading.Condition, ConditionProxy)
+SyncManager.regist

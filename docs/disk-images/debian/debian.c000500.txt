@@ -1,0 +1,1302 @@
+string($gid_option, numberre);
+}
+
+if ((defined($special_home)) && ($special_home !~ m+^/+ )) {
+  log_fatal( mtx("The home dir must be an absolute path.") );
+  exit( RET_INVALID_HOME_DIRECTORY );
+}
+
+
+$SIG{'INT'} = $SIG{'QUIT'} = $SIG{'HUP'} = 'handler';
+
+#####
+# OK, we've processed the arguments.  $action equals one of the following,
+# and the appropriate variables have been set:
+#
+# $action = "adduser"
+#    $new_name                - the name of the new user.
+#    $ingroup_name | $gid_option - the group to add the user to
+#    $special_home, $new_uid, $comment_tainted - optional overrides
+# $action = "addgroup"
+#    $new_name                - the name of the new group
+#    $gid_option                 - optional override
+# $action = "addsysgroup"
+#    $new_name                - the name of the new group
+#    $gid_option                 - optional override
+# $action = "addsysuser"
+#    $new_name                - the name of the new user
+#    $make_group_also | $ingroup_name | $gid_option | 0  - which group
+#    $special_home, $new_uid, $comment_tainted - optional overrides
+# $action = "addusertogroup"
+#    $existing_user           - the user to be added
+#    $existing_group          - the group to add her to
+#####
+
+
+#################
+## addsysgroup ##
+#################
+if ($action eq "addsysgroup") {
+
+    acquire_lock();
+    # Check if requested group already exists and we can exit safely
+    my $asgret = existing_group_status($new_name, $gid_option);
+    log_trace( "existing_group_status( %s, %s ) returns %s", $new_name, $gid_option, $asgret );
+
+    if ($asgret & EXISTING_ID_MISMATCH) {
+        log_err( mtx("The group `%s' already exists, but has a different GID. Exiting."), $new_name );
+        exit( RET_WRONG_OBJECT_PROPERTIES );
+    }
+    if ($asgret & EXISTING_FOUND) {
+        log_trace( "existing_found" );
+        if ($asgret & (EXISTING_SYSTEM)) {
+            log_info( mtx("The group `%s' already exists as a system group."), $new_name );
+            exit( RET_OK );
+        } else {
+            log_err( mtx("The group `%s' already exists and is not a system group. Exiting."), $new_name );
+            exit( RET_WRONG_OBJECT_PROPERTIES );
+        }
+    }
+    if (defined($gid_option) && defined(getgrgid($gid_option))) {
+        log_fatal( mtx("The GID `%s' is already in use."), $gid_option );
+        exit( RET_ID_IN_USE );
+    }
+
+    if (!defined($gid_option)) {
+        $first_gid = $new_firstgid || $config{"first_system_gid"};
+        $last_gid = $new_lastgid || $config{"last_system_gid"};
+        $gid_option = &first_avail_gid($first_gid,
+                           $last_gid,
+                           $gid_pool{$new_name}{'id'});
+        if ($gid_option == -1) {
+            log_warn( mtx("No GID is available in the range %d-%d (FIRST_SYS_GID - LAST_SYS_GID)."),
+                $first_gid, $last_gid );
+            log_err( mtx("The group `%s' was not created."), $new_name );
+            exit( RET_NO_ID_IN_RANGE );
+        }
+    }
+
+
+    log_info( mtx("Adding group `%s' (GID %d) ..."), $new_name, $gid_option);
+    my $groupadd = which('groupadd');
+    my $ga_ret = systemcall_useradd($name_check_level, $groupadd, '-g', $gid_option, $new_name);
+    if( $ga_ret == RET_INVALID_NAME_FROM_USERADD ) {
+        $returnvalue = RET_INVALID_NAME_FROM_USERADD;
+    }
+    release_lock(0);
+    exit( $returnvalue );
+}
+
+
+##############
+## addgroup ##
+##############
+if ($action eq "addgroup") {
+    acquire_lock();
+    if (defined egetgrnam(encode($charset, $new_name))) {
+        log_fatal( mtx("The group `%s' already exists."), $new_name);
+        exit( RET_OBJECT_EXISTS );
+    }
+    if (defined($gid_option) && defined(getgrgid($gid_option))) {
+        log_fatal( mtx("The GID `%s' is already in use."), $gid_option );
+        exit( RET_ID_IN_USE );
+    }
+    if (!defined($gid_option)) {
+        $first_gid = $new_firstgid || $config{"first_gid"};
+        $last_gid = $new_lastgid || $config{"last_gid"};
+        log_debug( "Searching for gid with first_gid=%s, last_gid=%s, new_name=%s, gid_pool=%s",
+                $first_gid,
+                $last_gid,
+                $new_name,
+                $gid_pool{$new_name}{'id'}
+            );
+        $gid_option = &first_avail_gid($first_gid,
+                           $last_gid,
+                           $gid_pool{$new_name}{'id'});
+
+        if ($gid_option == -1) {
+            log_warn( mtx("No GID is available in the range %d-%d (FIRST_GID - LAST_GID)."),
+                $first_gid, $last_gid );
+            log_fatal( mtx("The group `%s' was not created."), $new_name );
+            exit( RET_NO_ID_IN_RANGE );
+        }
+    }
+
+    log_info( mtx("Adding group `%s' (GID %d) ..."), $new_name, $gid_option);
+    my $groupadd = which('groupadd');
+    my $ga_ret = systemcall_useradd($name_check_level, $groupadd, '-g', $gid_option, $new_name);
+    if( $ga_ret == RET_INVALID_NAME_FROM_USERADD ) {
+        $returnvalue = RET_INVALID_NAME_FROM_USERADD;
+    }
+    release_lock(0);
+    exit( $returnvalue );
+}
+
+
+####################
+## addusertogroup ##
+####################
+if ($action eq 'addusertogroup') {
+
+    if (!defined egetpwnam($existing_user)) {
+        log_fatal( mtx("The user `%s' does not exist."), $existing_user );
+        exit( RET_OBJECT_DOES_NOT_EXIST );
+    }
+    if (!defined egetgrnam($existing_group)) {
+        log_fatal( mtx("The group `%s' does not exist."), $existing_group );
+        exit( RET_OBJECT_DOES_NOT_EXIST );
+    }
+
+    if (&user_is_member($existing_user, $existing_group)) {
+        log_warn( mtx("The user `%s' is already a member of `%s'."), $existing_user, $existing_group );
+        exit( RET_OK );
+    }
+
+    log_info( mtx("Adding user `%s' to group `%s' ..."), $existing_user, $existing_group );
+
+    acquire_lock();
+    systemcall('/usr/sbin/usermod', '-a', '-G', $existing_group, $existing_user);
+    release_lock();
+
+    exit( $returnvalue );
+}
+
+################
+## addsysuser ##
+################
+if ($action eq "addsysuser") {
+    acquire_lock();
+
+    my $ret = existing_user_status($new_name, $new_uid);
+    if (($ret & EXISTING_FOUND) && !($ret & EXISTING_SYSTEM)) {
+        # a user with this name already exists; it's a problem when it's not a system user
+        log_fatal( mtx("The user `%s' already exists, but is not a system user. Exiting."), $new_name );
+        exit( RET_WRONG_OBJECT_PROPERTIES );
+    }
+    if ($ret & EXISTING_ID_MISMATCH) {
+        log_fatal( mtx("The user `%s' already exists with a different UID. Exiting."), $new_name );
+        exit( RET_WRONG_OBJECT_PROPERTIES );
+    }
+    if ($ret & EXISTING_FOUND) {
+        log_info( mtx("The system user `%s' already exists. Exiting.\n"), $new_name );
+        exit( RET_OK );
+    }
+
+    if (!$ingroup_name && !defined($gid_option) && !$make_group_also) {
+      $gid_option = $nogroup_id;
+    }
+    check_user_group(1);
+
+    if (!defined($new_uid) && $make_group_also) {
+        $new_uid = &first_avail_uid($new_firstuid || $config{"first_system_uid"},
+                                    $new_lastuid || $config{"last_system_uid"},
+                                    $uid_pool{$new_name}{'id'});
+        if ($new_uid == -1) {
+            log_warn( mtx("No UID/GID pair is available in the range %d-%d (FIRST_SYS_UID - LAST_SYS_UID)."),
+                $config{"first_system_uid"},
+                $config{"last_system_uid"} );
+            log_fatal( mtx("The user `%s' was not created."), $new_name );
+            exit( RET_NO_ID_IN_RANGE );
+        }
+        $gid_option = &first_avail_gid($new_firstgid || $config{"first_system_gid"},
+                                       $new_lastgid || $config{"last_system_gid"},
+                                       $gid_pool{$new_name}{'id'});
+        $ingroup_name = $new_name;
+    }
+    elsif (!defined($new_uid) && !$make_group_also) {
+        $new_uid = &first_avail_uid($new_firstuid || $config{"first_system_uid"},
+                                    $new_lastuid || $config{"last_system_uid"},
+                                    $uid_pool{$new_name}{'id'});
+        if ($new_uid == -1) {
+            log_warn( mtx("No UID is available in the range %d-%d (FIRST_SYS_UID - LAST_SYS_UID)."),
+                $config{"first_system_uid"},
+                $config{"last_system_uid"} );
+            log_fatal( mtx("The user `%s' was not created."), $new_name);
+            exit( RET_NO_ID_IN_RANGE );
+        }
+        if (defined($gid_option)) {
+            $ingroup_name = getgrgid($gid_option);
+        } elsif ($ingroup_name) {
+            $gid_option = egetgrnam($ingroup_name);
+        } else {
+            log_fatal( mtx("Neither ingroup option nor gid given.") );
+            exit( RET_NO_PRIMARY_GROUP );
+        }
+    }
+    else {
+        if (defined($gid_option)) {
+            $ingroup_name = getgrgid($gid_option);
+        } elsif ($ingroup_name) {
+            $gid_option = egetgrnam($ingroup_name);
+        } elsif ($make_group_also) {
+            $gid_option=$new_uid; $ingroup_name=$new_name;
+        } else {
+            log_fatal( mtx("Neither ingroup option nor gid given and make_group_also unset.") );
+            exit( RET_NO_PRIMARY_GROUP );
+        }
+    }
+    log_info( mtx("Adding system user `%s' (UID %d) ..."), $new_name, $new_uid );
+
+    # if we reach this point, and the group does already exist, we can use it.
+    if ($make_group_also && !egetgrnam($new_name)) {
+        log_info( mtx("Adding new group `%s' (GID %d) ..."), $new_name, $gid_option );
+        $undogroup = $new_name;
+        my $groupadd = which('groupadd');
+        my $ga_ret = systemcall_useradd($name_check_level, $groupadd, '-g', $gid_option, $new_name);
+        if( $ga_ret == RET_INVALID_NAME_FROM_USERADD ) {
+            $returnvalue = RET_INVALID_NAME_FROM_USERADD;
+        }
+    }
+
+    if (defined($special_home) && $special_home ne "/nonexistent" ) {
+        if (!defined($no_create_home) && -d $special_home) {
+            log_info( mtx("The home dir %s you specified already exists.\n"), $special_home );
+        }
+        if (defined($no_create_home) && ! -d $special_home) {
+            log_info( mtx("The home dir %s you specified can't be accessed: %s\n"), $special_home, $! );
+        }
+    }
+
+    log_info( mtx("Adding new user `%s' (UID %d) with group `%s' ..."),
+        $new_name, $new_uid, $ingroup_name );
+    $home_dir = $special_home || $uid_pool{$new_name}{'home'} || '/nonexistent';
+    $no_create_home = $home_dir =~ /^\/+nonexistent(\/|$)/ ? 1 : $no_create_home;
+
+    $shell = $special_shell || $uid_pool{$new_name}{'shell'} || '/usr/sbin/nologin';
+    $undouser = $new_name;
+
+    my $useradd = which('useradd');
+    my $ua_ret = systemcall_useradd($name_check_level, 
+        $useradd,
+        '-r',
+        '-K', sprintf('SYS_UID_MIN=%d', $new_firstuid || $config{'first_system_uid'}),
+        '-K', sprintf('SYS_UID_MAX=%d', $new_lastuid || $config{'last_system_uid'}),
+        '-d', $home_dir,
+        '-g', $ingroup_name,
+        '-s', $shell,
+        '-u', $new_uid,
+        $new_name);
+    if( $ua_ret == RET_INVALID_NAME_FROM_USERADD ) {
+        $returnvalue = RET_INVALID_NAME_FROM_USERADD;
+    }
+
+    release_lock(0);
+
+    if (defined($comment_tainted)) {
+        ch_comment($new_name, $comment_tainted);
+    } elsif ($uid_pool{$new_name}{'comment'}) {
+        ch_comment($new_name, $uid_pool{$new_name}{'comment'});
+    }
+
+    $primary_gid = $gid_option;
+    create_homedir(0, 1);
+
+    exit( $returnvalue );
+}
+
+
+#############
+## adduser ##
+#############
+if ($action eq "adduser") {
+    acquire_lock();
+
+    $primary_gid=-1;
+    my @supplemental_groups=();
+
+    log_trace( "new_uid %s", $new_uid );
+    log_trace( "ingroup_name %s, gid_option %s", $ingroup_name, $gid_option );
+    log_trace( "usergroups %s", $config{"usergroups"} );
+    log_trace( "users_gid %s, users_group %s", $config{"users_gid"}, $config{"users_group"} );
+    log_trace( "primary_gid %s, supplemental groups %s", $primary_gid, join(", ",@supplemental_groups) );
+    if( defined($config{"users_gid"}) && defined($config{"users_group"}) ) {
+        log_warn ( mtx("USERS_GID and USERS_GROUP both given in configuration. This is an error.") );
+        log_fatal (mtx("The user `%s' was not created."),$new_name);
+        exit( RET_CONFIG_ERROR );
+    }
+
+    if ($config{"usergroups"} =~  /yes/i) {
+        log_trace( "config usergroups == yes code path" );
+        $make_group_also = 1;
+        if( $gid_option ) {
+            $make_group_also = 0;
+            $primary_gid = $gid_option;
+            log_trace( "gid_option defined %s, make_group_also 0, primary_gid=gid_option", $gid_option );
+        }
+        if( $ingroup_name ) {
+            $make_group_also = 0;
+            $primary_gid = egetgrnam($ingroup_name);
+            log_trace( "ingroup_name defined %s, make_group_also 0, primary_gid %s", $gid_option, $primary_gid );
+        }
+        log_trace( "make_group_also %s, primary_gid %s", $make_group_also, $primary_gid );
+        if( defined( $primary_gid) && $primary_gid == -1 && $make_group_also == 0 ) {
+            if (defined($config{"users_gid"}) && $config{"users_gid"} != -1) {
+                my @grgid=getgrgid($config{"users_gid"});
+                my $grname=$grgid[0];
+                log_debug( "set primary_gid to users_gid %s %s", $config{"users_gid"}, $grname);
+                $primary_gid = $config{"users_gid"};
+            } elsif (defined($config{"users_gid"}) && $config{"users_gid"} == -1) {
+                # nothing
+            } else {
+                my $primary_group="users";
+                if (defined($config{"users_group"})) {
+                    $primary_group=$config{"users_group"};
+                }
+                $primary_gid=egetgrnam($primary_group);
+                log_debug( "set primary_gid to users_group %s %s", $primary_gid, $primary_group);
+            }
+        } else {
+            if (defined($config{"users_gid"}) && $config{"users_gid"} != -1) {
+                my @grgid=getgrgid($config{"users_gid"});
+                my $grname=$grgid[0];
+                log_trace( "push users_gid %s %s to supplemental_groups", $config{"users_gid"}, $grname);
+                push(@supplemental_groups, $grname);
+            } elsif (defined($config{"users_gid"}) && $config{"users_gid"} == -1) {
+                # nothing
+            } else {
+                my $supp_group="users";
+                if (defined($config{"users_group"})) {
+                    $supp_group=$config{"users_group"};
+                }
+                log_trace( "push %s to supplemental_groups", $supp_group );
+                push(@supplemental_groups, $supp_group);
+            }
+        }
+    } else {
+        log_debug( "config usergroups != yes code path" );
+        if( defined($ingroup_name) ) {
+            $primary_gid=egetgrnam($ingroup_name);
+        } elsif (defined($config{"users_gid"})) {
+            log_trace( "primary_gid = users_gid = %d", $primary_gid );
+            $primary_gid = $config{"users_gid"};
+        } else {
+            if (defined($config{"users_group"})) {
+                my @grgid=egetgrnam($config{"users_group"});
+                my $grgid=$grgid[2];
+                log_trace( "primary_gid = users_group %s %s", $config{"users_group"}, $grgid);
+                $primary_gid = $grgid;
+            } else {
+                log_trace( "primary_gid = literal 100");
+                $primary_gid = 100;
+            }
+        }
+        if( $primary_gid == -1 ) {
+            log_fatal( "no primary GID for user set. User not created." );
+            exit( RET_NO_PRIMARY_GID );
+        }
+    }
+    log_debug( "primary_gid %s, supplemental groups %s", $primary_gid, join(", ",@supplemental_groups) );
+    if ( defined $ingroup_name || defined $gid_option ) {
+        $make_group_also = 0;
+        log_trace( "set make_group_also 0, neither ingroup_name or gid_option defined" );
+    }
+    check_user_group(0);
+    $first_uid = $new_firstuid || $config{"first_uid"};
+    $last_uid = $new_lastuid || $config{"last_uid"};
+    if ($config{"usergroups"} =~  /yes/i) {
+        $first_gid = $first_uid;
+        $last_gid = $last_uid;
+    } else {
+        $first_gid = $new_firstgid || $config{"first_gid"};
+        $last_gid = $new_lastgid || $config{"last_gid"};
+    }
+    log_trace( "first_uid %s, last_uid %s, first_gid %s, last_gid %s", $first_uid, $last_uid, $first_gid, $last_gid );
+    log_info (gtx("Adding user `%s' ..."),$new_name);
+
+    if (!defined($new_uid)) {
+        if ( defined $ingroup_name ) {
+            $new_uid = &first_avail_uid( $first_uid,
+                                             $last_uid,
+                                             $uid_pool{$new_name}{'id'});
+        } else {
+            my $first_uidgid = ($first_uid, $first_gid)[$first_uid > $first_gid];
+            my $last_uidgid  = ($last_uid, $last_gid)[$last_uid < $last_gid];
+            # TODO: Check what happens when those ranges do not overlap
+            $new_uid = &first_avail_uid_gid( $first_uidgid,
+                                             $last_uidgid,
+                                             $uid_pool{$new_name}{'id'});
+            log_trace( "uidgid=%s, from first_uidgid %s, last_uidgid %s", $new_uid, $first_uidgid, $last_uidgid);
+        }
+        # TODO: user can specify different UID and GID here.
+        # idea: split handling in uid/gid, which are equally the return value of
+        # first_avail_uid_gid. If either pool_id is defined, set uid and gid from
+        # distinct first_avail_uid and first_avail_gid calls.
+
+        log_debug( "new_uid %s selected", $new_uid);
+        if ($new_uid == -1) {
+            log_warn( mtx("No UID/GID pair is available in the range %d-%d (FIRST_UID - LAST_UID)."), $first_uid, $last_uid);
+            log_fatal( mtx("The user `%s' was not created."), $new_name );
+            exit( RET_NO_ID_IN_RANGE );
+        }
+        log_trace( "gid_option %s, ingroup_name %s", $gid_option, $ingroup_name );
+        if ( defined $gid_option && $gid_option == -1 && defined $ingroup_name && $ingroup_name == "") {
+            log_warn( mtx("USERGROUPS=no, USER_GID=-1 and USERS_GROUP empty. A user needs a primary group!") );
+            log_fatal( mtx("The user `%s' was not created."), $new_name );
+            exit( RET_NO_PRIMARY_GROUP );
+        } elsif (defined($gid_option) && $gid_option != -1) {
+            $ingroup_name = getgrgid($gid_option);
+            $primary_gid = $gid_option;
+            log_debug( "gid_option defined and not -1, ingroup_name %s, primary_gid %d", $ingroup_name, $primary_gid );
+        } elsif ($ingroup_name) {
+            $primary_gid = egetgrnam($ingroup_name);
+            log_debug( "ingroup_name defined %s, primary_gid %d", $ingroup_name, $primary_gid );
+        } elsif ( defined( $primary_gid ) ) {
+            $ingroup_name = getgrgid($primary_gid);
+            log_debug( "primary_gid defined %d, ingroup_name %s", $primary_gid, $primary_gid  );
+        } else {
+            $ingroup_name = 'users';
+            $primary_gid = 100;
+            log_debug( "ingroup_name hard users, primary_gid hard 100" );
+        }
+        if ($make_group_also) {
+            $primary_gid = $new_uid;
+            $ingroup_name = $new_name;
+            log_trace( "make_group_also %s, primary_gid %s, ingroup_name %s", $make_group_also, $primary_gid, $ingroup_name );
+        }
+    } else {
+        log_debug( "new_uid %s, primary_gid %s, ingroup_name %s, make_group_also %s", $new_uid, $primary_gid, $ingroup_name, $make_group_also );
+        if (defined($gid_option)) {
+            $ingroup_name = getgrgid($gid_option);
+            $primary_gid = $gid_option;
+            log_debug( "gid_option defined %s, ingroup_name %s", $gid_option, $ingroup_name );
+        } elsif (defined($primary_gid) && $primary_gid != -1) {
+            $ingroup_name = getgrgid($primary_gid);
+            log_debug( "primary_gid defined %s, ingroup_name %s", $primary_gid, $ingroup_name );
+        } elsif ($ingroup_name) {
+            $primary_gid = egetgrnam($ingroup_name);
+            log_debug( "ingroup_name defined %s, primary_gid %s", $ingroup_name, $primary_gid );
+        } elsif ($make_group_also) {
+            $primary_gid=$new_uid; $ingroup_name=$new_name;
+            log_debug( "make_group_also %s, primary_gid defined %s, ingroup_name %s", $make_group_also, $primary_gid, $ingroup_name );
+        } else {
+            log_debug( "no gid_option, no primary_gid, no ingroup_name, no make_group_also" );
+            log_fatal( mtx("Internal error interpreting parameter combination") );
+            exit( RET_INTERNAL );
+        }
+    }
+
+    log_debug ("make_group_also %s", $make_group_also );
+    if ($make_group_also) {
+        $undogroup = $new_name;
+        my $groupadd = which('groupadd');
+        my $ret;
+        if( defined( $primary_gid ) ) {
+           log_info( mtx("Adding new group `%s' (%d) ..."), $new_name, $primary_gid);
+           $ret = systemcall_useradd($name_check_level, $groupadd, '-g', $primary_gid, $new_name);
+        } else {
+           log_info( mtx("Adding new group `%s' (new group ID) ..."), $new_name);
+           $ret = systemcall_useradd($name_check_level, $groupadd, $new_name);
+           $primary_gid = egetgrnam($new_name);
+           log_info( mtx("new group '%s' created with GID %d"), $new_name, $primary_gid );
+        }
+        if( $ret == RET_INVALID_NAME_FROM_USERADD ) {
+            $returnvalue = RET_INVALID_NAME_FROM_USERADD;
+        }
+    }
+
+    if (defined($special_home) && $special_home ne "/nonexistent" ) {
+        if (!defined($no_create_home) && -d $special_home) {
+            log_warn( mtx("The home dir %s you specified already exists.\n"), $special_home );
+        }
+        if (defined($no_create_home) && ! -d $special_home) {
+            log_warn( mtx("The home dir %s you specified can't be accessed: %s\n"), $special_home, $! );
+        }
+    }
+
+    {
+        my @grgid=getgrgid($primary_gid);
+        my $grname=$grgid[0];
+        log_info( mtx("Adding new user `%s' (%d) with group `%s (%d)' ..."), $new_name, $new_uid, $grname, $primary_gid );
+    }
+    $home_dir = $special_home || $uid_pool{$new_name}{'home'} || &homedir($new_name, $ingroup_name);
+    if( !$disabled_login ) {
+        $shell = $special_shell || $uid_pool{$new_name}{'shell'} || $config{"dshell"};
+    } else {
+        $shell = $special_shell || $uid_pool{$new_name}{'shell'} || "/usr/sbin/nologin";
+    }
+    log_debug( "creating new user %s with home_dir %s and shell %s", $new_name, $home_dir, $shell );
+    $undouser = $new_name;
+    my $useradd = which('useradd');
+    my $ret = systemcall_useradd($name_check_level,
+        $useradd,
+        '-d', $home_dir,
+        '-g', $primary_gid,
+        '-s', $shell,
+        '-u', $new_uid,
+        $new_name);
+    if( $ret == RET_INVALID_NAME_FROM_USERADD ) {
+        $returnvalue = RET_INVALID_NAME_FROM_USERADD;
+    }
+
+    create_homedir (1, 0); # copy skeleton data
+
+    # useradd without -p has left the account disabled (password string is '!')
+    my $yesexpr = langinfo(YESEXPR());
+    my $noexpr = langinfo(NOEXPR());
+    if ($ask_passwd) {
+        PASSWD: for (;;) {
+            my $passwd = which('passwd');
+            my $ok = systemcall_or_warn($passwd, $new_name);
+            $ok = $ok >> 8;
+            log_debug( "systemcall_or_warn %s %s return value %s", $passwd, $new_name, $ok);
+            if ($ok != 0) {
+                my $answer;
+                # hm, error, should we break now?
+                if ($ok == 1) {
+                    log_warn( mtx("Permission denied"));
+                } elsif ($ok == 2) {
+                    log_warn( mtx("invalid combination of options"));
+                } elsif ($ok == 3) {
+                    log_warn( mtx("unexpected failure, nothing done"));
+                } elsif ($ok == 4) {
+                    log_warn( mtx("unexpected failure, passwd file missing"));
+                } elsif ($ok == 5) {
+                    log_warn( mtx("passwd file busy, try again"));
+                } elsif ($ok == 6) {
+                    log_warn( mtx("invalid argument to option"));
+                } elsif ($ok == 10) {
+                    log_warn( mtx("wrong password given or password retyped incorrectly"));
+                } else {
+                    log_warn( mtx("unexpected return code %s given from passwd"), $ok );
+                }
+
+                # Translators: [y/N] has to be replaced by values defined in your
+                # locale.  You can see by running "locale noexpr" which regular
+                # expression will be checked to find positive answer.
+                PROMPT: for (;;) {
+                    print (gtx("Try again? [y/N] "));
+                    chop ($answer=<STDIN>);
+                    last PROMPT if ($answer =~ m/$yesexpr/o);
+                    last PASSWD if ($answer =~ m/$noexpr/o);
+                    last PASSWD if (!$answer);
+                }
+            } else {
+                last; ## passwd ok
+            }
+        }
+    }
+
+    if (defined($comment_tainted)) {
+        ch_comment($new_name, $comment_tainted);
+    } elsif ($uid_pool{$new_name}{'comment'}) {
+        ch_comment($new_name, $uid_pool{$new_name}{'comment'});
+    } else {
+        my $noexpr = langinfo(NOEXPR());
+        my $yesexpr = langinfo(YESEXPR());
+        CHFN: for (;;) {
+            my $chfn = &which('chfn');
+            systemcall($chfn, $new_name);
+            # Translators: [y/N] has to be replaced by values defined in your
+            # locale.  You can see by running "locale yesexpr" which regular
+            # expression will be checked to find positive answer.
+            PROMPT: for (;;) {
+                print (gtx("Is the information correct? [Y/n] "));
+                chop (my $answer=<STDIN>);
+                last PROMPT if ($answer =~ m/$noexpr/o);
+                last CHFN if ($answer =~ m/$yesexpr/o);
+                last CHFN if (!$answer);
+            }
+        }
+    }
+
+    if ( ( $add_extra_groups || $config{"add_extra_groups"} ) && defined($config{"extra_groups"}) ) {
+        log_debug( "add extra_groups from config (%s) to supplemental_groups", $config{"extra_groups"} );
+        push (@supplemental_groups, split(/\s+/,$config{"extra_groups"}));
+    }
+    if ( @supplemental_groups ) {
+        log_info( mtx("Adding new user `%s' to supplemental / extra groups `%s' ..."), $new_name, join(", ", @supplemental_groups) );
+        foreach my $newgrp ( @supplemental_groups ) {
+            log_trace( "newgrp %s", $newgrp );
+            if (!defined egetgrnam($newgrp)) {
+                log_warn( mtx("The group `%s' does not exist."), $newgrp);
+                next;
+            }
+            if (&user_is_member($new_name, $newgrp)) {
+                log_warn( mtx("The user `%s' is already a member of `%s'."),
+                        $new_name,$newgrp );
+                next;
+
+            }
+
+            log_info( mtx("Adding user `%s' to group `%s' ..."), $new_name, $newgrp );
+            my $gpasswd = &which('gpasswd');
+            systemcall($gpasswd, '-M',
+                        join(',', get_group_members($newgrp), $new_name),
+                        $newgrp);
+        }
+    }
+
+
+    if ($config{"quotauser"}) {
+        log_info( mtx("Setting quota for user `%s' to values of user `%s' ..."), $new_name, $config{quotauser} );
+        my $edquota = &which('edquota');
+        systemcall($edquota, '-p', $config{quotauser}, $new_name);
+    }
+
+    systemcall('/usr/local/sbin/adduser.local', $new_name, $new_uid,
+            $primary_gid, $home_dir) if (-x "/usr/local/sbin/adduser.local");
+    release_lock(0);
+
+    exit( $returnvalue );
+}
+
+#
+# we never go here
+#
+
+
+# calculate home directory
+sub homedir {
+    my $dir = $config{"dhome"};
+    $dir .= '/' . $_[1] if ($config{"grouphomes"} =~ /yes/i);
+    $dir .= '/' . substr($_[0],0,1) if ($config{"letterhomes"} =~ /yes/i);
+    $dir .= '/' . $_[0];
+    return $dir;
+}
+
+
+# create_homedir -- create the homedirectory
+# parameter
+#   1: $copy_skeleton:
+#     if 0  -> do not copy the skeleton data
+#     if 1  -> copy the files in /etc/skel to the newly created home directory
+# return values:
+#   none
+sub create_homedir {
+    my ($copy_skeleton, $system_user) = @_;
+
+    if ($home_dir =~ /^\/+nonexistent(\/|$)/) {
+        log_info( mtx("Not creating `%s'."), $home_dir );
+    } elsif ($no_create_home) {
+        log_info( mtx("Not creating home directory `%s' as requested."), $home_dir );
+    } elsif (-e $home_dir) {
+        if( !$system_user ) {
+            log_warn( mtx("The home directory `%s' already exists.  Not touching this directory."),
+                $home_dir );
+            my @homedir_stat = stat($home_dir);
+            my $home_uid = $homedir_stat[4];
+            my $home_gid = $homedir_stat[5];
+            if (($home_uid != $new_uid) || ($home_gid != $primary_gid)) {
+                log_warn( mtx("Warning: The home directory `%s' does not belong to the user you are currently creating."), $home_dir );
+            }
+        }
+    } else {
+        log_info( mtx("Creating home directory `%s' ..."),$home_dir );
+        $undohome = $home_dir;
+        if( !&mktree($home_dir) ) {
+           log_err( gtx("Couldn't create home directory `%s': %s."), $home_dir, $!);
+           &cleanup();
+        }
+        if( !chown($new_uid, $primary_gid, $home_dir) ) {
+            log_err("chown %s:%s %s: %s", $new_uid, $primary_gid, $home_dir, $!);
+            &cleanup();
+        }
+        $dir_mode = get_dir_mode();
+        if( !chmod ($dir_mode, $home_dir) ) {
+            log_err("chmod %s %s: %s", $dir_mode, $home_dir, $!);
+            &cleanup();
+        }
+
+        if ($config{"skel"} && $copy_skeleton) {
+            log_info( mtx("Copying files from `%s' ..."), $config{skel} );
+            my $findpipe;
+            if( !open($findpipe, q{-|}, "cd $config{skel}; find .  -print") ) {
+                log_err( mtx("fork for `find' failed: %s"), $!);
+                &cleanup();
+            }
+            while (<$findpipe>) {
+                chop;
+                next if ($_ eq ".");
+                next if ($_ =~ qr/$config{skel_ignore_regex}/ );
+                my $src = sanitize_string($_, pathre );
+                log_trace("copy_to_dir(%s, %s, %s, %s, %s)", $config{"skel"}, $src, $home_dir, $new_uid, $primary_gid );
+                &copy_to_dir($config{"skel"}, $src, $home_dir, $new_uid,
+                    $primary_gid, ($config{"setgid_home"} =~ /yes/i));
+            }
+            close ($findpipe);
+        }
+    }
+}
+
+# mktree: create a directory and all parent directories
+# we do not care about the rights and so on
+# parameters:
+#   tree: the path
+# return values:
+#   none
+sub mktree {
+    my($tree) = @_;
+    my($done, @path);
+    my $default_dir_mode = oct(755);
+
+    $tree =~ s:^/*(.*)/*$:$1:; # chop off leading & trailing slashes
+    @path = split(/\//, $tree);
+
+    $done = "";
+    while (@path) {
+        $done .= '/' . shift(@path);
+        -d $done || mkdir($done, $default_dir_mode) || return 0;
+    }
+    return 1;
+}
+
+# existing_user_status: check if there is already a user present
+# on the system which satisfies the requirements
+# parameter:
+#   new_name: the name of the user to check
+#   new_uid : the UID of the user
+# return value:
+#   bitwise combination of these constants:
+#       EXISTING_NOT_FOUND => 0
+#       EXISTING_FOUND => 1
+#       EXISTING_SYSTEM => 2
+#       EXISTING_ID_MISMATCH => 4
+#       EXISTING_LOCKED => 8
+#   e.g. if the requested account name exists as a locked system user,
+#   return 8|2|1 == 11
+sub existing_user_status {
+    my ($new_name,$new_uid) = @_;
+    my ($pw,$uid);
+    my $ret = EXISTING_NOT_FOUND;
+    log_trace( "existing_user_status called with new_name %s, new_uid %s", $new_name, $new_uid );
+    if ((undef,$pw,$uid) = egetpwnam($new_name)) {
+        log_trace("egetpwnam %s returned successfully, uid = %s", $new_name, $uid);
+        $ret |= EXISTING_FOUND;
+        $ret |= EXISTING_ID_MISMATCH if (defined($new_uid) && $uid != $new_uid);
+        $ret |= EXISTING_SYSTEM if
+            ($uid >= $config{"first_system_uid"} && $uid <= $config{"last_system_uid"});
+    } elsif ($new_uid && getpwuid($new_uid)) {
+        $ret |= EXISTING_ID_MISMATCH;
+    }
+    log_trace( "existing_user_status( %s, %s ) returns %s", $new_name, $new_uid, $ret );
+    return $ret;
+}
+
+# existing_group_status: check if there is already a group which satisfies the requirements
+# parameter:
+#   new_name: the name of the group
+#   new_gid : the GID of the group
+# return value:
+#   bitwise combination of these constants:
+#       EXISTING_NOT_FOUND => 0
+#       EXISTING_FOUND => 1
+#       EXISTING_SYSTEM => 2
+#       EXISTING_ID_MISMATCH => 4
+sub existing_group_status {
+    my ($new_name,$new_gid) = @_;
+    my $gid;
+    my $ret = EXISTING_NOT_FOUND;
+    log_trace( "existing_group_status called with new_name %s, new_gid %s", $new_name, $new_gid );
+    if ((undef,undef,$gid) = egetgrnam($new_name)) {
+        log_trace("egetgrnam %s returned successfully, gid = %s", $new_name, $gid);
+        $ret |= EXISTING_FOUND;
+        $ret |= EXISTING_ID_MISMATCH if (defined($new_gid) && $gid != $new_gid);
+        $ret |= EXISTING_SYSTEM if
+            ($gid >= $config{"first_system_gid"} && $gid <= $config{"last_system_gid"});
+    } elsif ($new_gid && getgrgid($new_gid)) {
+        $ret |= EXISTING_ID_MISMATCH;
+    }
+    log_trace( "existing_group_status( %s, %s ) returns %s", $new_name, $new_gid, $ret );
+    return $ret;
+}
+
+# check_user_group: ???
+# parameters:
+#   system: 0 if the user is not a system user, 1 otherwise
+# return values:
+#
+# todo: not sure whether global variables apply fine here.
+sub check_user_group {
+    my ($system) = @_;
+    log_debug( "check_user_group %s called, make_group_also %s", $system, $make_group_also );
+    
+    my $ustat = existing_user_status($new_name, $new_uid);
+    if ($system) {
+        if (($ustat & EXISTING_FOUND) && !($ustat & EXISTING_SYSTEM)) {
+            log_fatal( mtx("The user `%s' already exists, and is not a system user."), $new_name);
+            exit( RET_WRONG_OBJECT_PROPERTIES );
+        }
+        # if ($new_uid && !($ustat & EXISTING_SYSTEM)) {
+        #         log_fatal( mtx("The uid `%s' is invalid for system users."), $new_name);
+        #         exit( RET_OBJECT_EXISTS );
+        # }
+    } else {
+        if ($ustat & EXISTING_FOUND) {
+            log_fatal( mtx("The user `%s' already exists."), $new_name);
+            exit( RET_OBJECT_EXISTS );
+        }
+    }
+
+    if ($make_group_also) {
+        log_trace( "make_group_also 1, new_name %s, new_uid %s", $new_name, $new_uid );
+        if( !$system || !existing_group_status($new_name, $new_uid) ) {
+            if (defined egetgrnam($new_name)) {
+                log_fatal( mtx("The group `%s' already exists."),$new_name );
+                exit( RET_OBJECT_EXISTS );
+            }
+            if (defined($new_uid) && defined(getgrgid($new_uid))) {
+                log_fatal( mtx("The GID %d is already in use."),$new_uid );
+                exit( RET_ID_IN_USE );
+            }
+        }
+    } else {
+        if ($ingroup_name && !defined(egetgrnam($ingroup_name))) {
+            log_fatal( mtx("The group `%s' does not exist."), $ingroup_name);
+            exit( RET_OBJECT_DOES_NOT_EXIST );
+        }
+        if (defined($gid_option) && !defined(getgrgid($gid_option))) {
+            log_fatal( mtx("No group with GID %d found."), $gid_option);
+            exit( RET_OBJECT_DOES_NOT_EXIST );
+        }
+    }
+    log_debug( "return from check_user_group" );
+}
+
+# copy_to_dir :
+# parameters:
+#   fromdir
+#   file
+#   todir
+#   newi
+#   newg
+#   sgiddir
+# return values:
+#   none
+sub copy_to_dir {
+    my($fromdir, $file, $todir, $newu, $newg, $sgiddir) = @_;
+
+    log_trace("copy_to_dir fromdir: %s", $fromdir);
+    log_trace("copy_to_dir file: %s", $file);
+    if (-l "$fromdir/$file") {
+        my $target;
+        if( !($target = sanitize_string(readlink("$fromdir/$file"), pathre)) ) {
+            log_err( "readlink: %s", $! );
+            &cleanup();
+        }
+        my $curgid="$)";
+        my $curuid="$>";
+        my $error="";
+        $)="$newg";
+        $>="$newu";
+        symlink("$target", "$todir/$file") or $error="$!";
+        $>="$curuid";
+        $)="$curgid";
+        if( "$error" ne "" ) {
+            log_err( "symlink: %s", $!);
+            &cleanup();
+        }
+        return;
+    } elsif (-f "$fromdir/$file") {
+        my $filefh;
+        my $newfilefh;
+        if( !open ($filefh, q{<}, "$fromdir/$file") ) {
+            log_err( "open %s/%s: %s", $fromdir, $file , $!);
+            &cleanup();
+        }
+        if( !open ($newfilefh, q{>}, "$todir/$file") ) {
+            log_err( "open >%s/%s: %s", $todir, $file, $!);
+            &cleanup();
+        }
+        if( !print $newfilefh (<$filefh>) ) {
+            log_err( "print %s/%s: %s", $todir, $file, $!);
+            &cleanup();
+        }
+        close($filef
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             h);
+        if( !close($newfilefh) ) {
+            log_err( "close %s/%s: %s", $todir, $file, $!);
+            &cleanup();
+        }
+    } elsif (-d "$fromdir/$file") {
+        if( ! -d "$todir/$file" ) {
+            if( !mkdir("$todir/$file", 700) ) {
+                log_err( "mkdir: %s/%s: %s", $todir, $file, $!);
+                &cleanup();
+            }
+        }
+    } else {
+        log_err( mtx("%s/%s is neither a dir, file, nor a symlink."), $fromdir, $file );
+        &cleanup();
+    }
+
+    if( !chown($newu, $newg, "$todir/$file") ) {
+       log_err( "chown %s:%s %s/%s: %s", $newu, $newg, $todir, $file, $! );
+       &cleanup();
+    }
+    $perm = (stat("$fromdir/$file"))[2] & oct(7777);
+    if (-d "$fromdir/$file" && ($perm & oct(10)) && $sgiddir) {
+        $perm |= oct(2000);
+    }
+    if( !chmod($perm, "$todir/$file") ) {
+       log_err( "chmod %s/%s: %s", $todir, $file, $!);
+       &cleanup();
+    }
+}
+
+
+# sanitize_name: perform some sanity checks
+# parameters:
+#   name: the name to check
+# return values:
+#   the sanitized and untainted name, available to use
+sub sanitize_name {
+    my ($name) = @_;
+
+    my $name_regex_var = $found_sys_opt ? 'SYS_NAME_REGEX' : 'NAME_REGEX';
+    my $name_regex = $config{lc $name_regex_var};
+
+    log_trace("sanitize name %s called. name_regex_var %s, name_regex %s, Now testing all numeric. ", $name, $name_regex_var, $name_regex);
+    if ($name =~ qr/^-?[\d]+$/) {
+        # this check cannot be turned off
+        log_err( mtx("To avoid ambiguity with numerical UIDs, usernames which
+            resemble numbers or negative numbers are not allowed.") );
+        exit( RET_INVALID_CHARS_IN_NAME );
+    }
+
+    log_trace("sanitize_name testing single or double period");
+    if ( $name =~ qr/^\.\.?$/ ) {
+        # this check cannot be turned off
+        log_err( mtx("Usernames must not be a single or a double period.") );
+        exit( RET_INVALID_CHARS_IN_NAME );
+    }
+
+    log_trace("sanitize_name testing > 32 chars");
+    if (length( encode($charset, $name) ) > 32) {
+        # this check cannot be turned off
+        log_err( mtx("Usernames must be no more than 32 bytes in length.") );
+        exit( RET_INVALID_CHARS_IN_NAME );
+    }
+
+    log_trace("sanitize_name testing %s against insane chars %s", $name, def_min_regex);
+    if ($name !~ def_min_regex) {
+        # this check cannot be turned off
+        log_err( mtx("To avoid problems, the username must not start with a
+            dash, plus sign, or tilde, and it must not contain any of the
+            following: colon, comma, slash, or any whitespace characters
+            including spaces, tabs, and newlines.") );
+        exit( RET_INVALID_CHARS_IN_NAME );
+    }
+
+    log_trace("sanitize_name checking %s against %s (%s)", $name, $name_regex, $name_regex_var);
+    if ($name =~ qr/($name_regex)/) {
+        log_trace("sanitize_name passed. returning %s", $1);
+        return $1;
+    };
+
+    log_trace("sanitize_name checking %s ieee_regex %s", $name, def_ieee_name_regex);
+    if ($name !~ def_ieee_name_regex && $name_check_level < 2) {
+        log_err( mtx("To avoid problems, the username should consist only of
+            letters, digits, underscores, periods, at signs and dashes, and
+            not start with a dash (as defined by IEEE Std 1003.1-2001). For
+            compatibility with Samba machine accounts, \$ is also supported
+            at the end of the username.  (Use the `--allow-all-names' option
+            to bypass this restriction.)") );
+        exit( RET_INVALID_CHARS_IN_NAME );
+    }
+
+    if ($name_check_level) {
+        log_info( mtx("Allowing use of questionable username.") );
+    } else {
+        log_err( mtx("Please enter a username matching the regular expression
+            configured via the %s configuration variable.  Use the
+            `--allow-bad-names' option to relax this check or reconfigure
+            %s in configuration."), $name_regex_var, $name_regex_var );
+        exit( RET_INVALID_CHARS_IN_NAME );
+    }
+
+    log_trace("sanitize_name checking %s against %s", $name, anynamere);
+    if ($name =~ anynamere) {
+        log_trace("sanitize_name passed. returning %s", $1);
+        return $1;
+    };
+    log_fatal("sanitize_name failed. invalid user name %s", $name);
+    return "";
+}
+
+# first_avail_uid: return the first available uid in given range
+# parameters:
+#   min, max: the range
+#   pool_id: user id suggested from pool
+# return values:
+#   -1 if no free uid is available
+#  otherwise the choosen uid
+sub first_avail_uid {
+    my ($min, $max, $pool_id) = @_;
+    if (defined ($pool_id)) {
+        return $pool_id if (!defined(getpwuid($pool_id)));
+        return -1;
+    }
+    log_info( mtx("Selecting UID from range %d to %d ...\n"),$min,$max);
+
+    my $t = $min;
+    while ($t <= $max) {
+       return $t if (!exists($reserved_uid_pool{$t}) and !defined(getpwuid($t)));
+       $t++;
+    }
+    return -1; # nothing available
+}
+
+# first_avail_gid: return the first available gid in given range
+# parameters:
+#   min, max: the range
+#   pool_id: group id suggested from pool
+# return values:
+#   -1 if no free gid is available
+#   otherwise the choosen gid
+sub first_avail_gid {
+    my ($min, $max, $pool_id) = @_;
+    if (defined ($pool_id)) {
+        return $pool_id if (!defined(getgrgid($pool_id)));
+        return -1;
+    }
+    log_info( mtx("Selecting GID from range %d to %d ..."),$min,$max);
+
+    my $t = $min;
+    while ($t <= $max) {
+       return $t if (!exists($reserved_gid_pool{$t}) and !defined(getgrgid($t)));
+       $t++;
+    }
+    return -1; # nothing available
+}
+
+# first_avail_uid_gid: return the first available id in given range
+#     that is both available as uid and gid
+# parameters:
+#   min, max: the range
+#   pool_id: user id suggested from pool
+# return values:
+#   -1 if no free id is available
+#   otherwise the choosen id
+sub first_avail_uid_gid {
+    my ($min, $max, $pool_id) = @_;
+    if (defined ($pool_id)) {
+        return $pool_id if (!defined(getgrgid($pool_id)));
+        return -1;
+    }
+    log_info( mtx("Selecting UID/GID from range %d to %d ..."), $min, $max );
+
+    my $t = $min;
+    while ($t <= $max) {
+       return $t if (!exists($reserved_uid_pool{$t}) && !exists($reserved_gid_pool{$t}) &&
+                     !defined(getgrgid($t)) && !defined(getpwuid($t)));
+       $t++;
+    }
+    return -1; # nothing available
+}
+
+sub ch_comment {
+    my ($name, $comment) = @_;
+    my $usermod = &which('usermod');
+
+    # untaint unconditionally. our call to system() is safe, so
+    # we leave the check to usermod
+    if ($comment =~ qr/^([^\x00-\x1F\x7F:]*)$/ ) {
+        systemcall($usermod, '-c', $1, $name);
+    } else {
+        log_fatal("unconditional sanitize of comment failed. This should not happen.");
+    }
+}
+
+# user is member of group?
+sub user_is_member {
+    my($user, $group) = @_;
+    for (split(/ /, (egetgrnam($group))[3])) {
+        return 1 if ($user eq $_);
+    }
+    return 0;
+}
+
+
+sub cleanup {
+    if ($undohome) {
+        log_info( mtx("Removing directory `%s' ..."), $undohome);
+        systemcall('rm', '-rf', $undohome);
+    }
+    if ($undouser) {
+        log_info( mtx("Removing user `%s' ..."), $undouser);
+        systemcall('userdel', $undouser);
+    }
+    if ($undogroup) {
+        log_info( mtx("Removing group `%s' ..."), $undogroup);
+        systemcall('groupdel', $undogroup);
+    }
+    exit( RET_ADDUSER_ABORTED );
+}
+
+sub handler {
+    my($sig) = @_;
+    # Translators: the variable %s is INT, QUIT, or HUP.
+    # Please do not insert a space character between SIG and %s.
+    log_err( mtx( "Caught a SIG%s." ), $sig );
+    &cleanup();
+}
+
+
+sub version {
+    printf( gtx("adduser version %s\n\n"), $version );
+    print( gtx("Adds a user or group to the system.
+
+For detailed copyright information, please refer to
+/usr/share/doc/adduser/copyright.
+\n") );
+    print( gtx(
+"This program is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 2 of the License, or (at
+your option) any later version.
+
+This program is distributed in the hope that it will be useful, but
+WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+General Public License, /usr/share/common-licenses/GPL, for more details.
+") );
+}
+
+sub usage {
+    printf( gtx(
+"adduser [--uid id] [--firstuid id] [--lastuid id]
+        [--gid id] [--firstgid id] [--lastgid id] [--ingroup group]
+        [--add-extra-groups] [--shell shell]
+        [--comment comment] [--home dir] [--no-create-home]
+        [--allow-all-names] [--allow-bad-names]
+        [--disabled-password] [--disabled-login]
+        [--conf file] [--quiet] [--verbose] [--debug]
+        user
+    Add a regular user
+
+adduser --system
+        [--uid id] [--group] [--ingroup group] [--gid id]
+        [--shell shell] [--comment comment] [--home dir] [--no-create-home]
+        [--conf file] [--quiet] [--verbose] [--debug]
+        user
+   Add a system user
+
+adduser --group
+        [--gid ID] [--firstgid id] [--lastgid id]
+        [--conf file] [--quiet] [--verbose] [--debug]
+        group
+addgroup
+        [--gid ID] [--firstgid id] [--lastgid id]
+        [--conf file] [--quiet] [--verbose] [--debug]
+        group
+   Add a user group
+
+addgroup --system
+        [--gid id]
+        [--conf file] [--quiet] [--verbose] [--debug]
+        group
+   Add a system group
+
+adduser USER GROUP
+   Add an existing user to an existing group\n") );
+}
+
+sub usage_error {
+    &usage;
+    exit( RET_INVALID_CALL );
+}
+
+# get_dir_mode: return the appropriate permissions mode for a home directory
+# parameters:
+#   none
+# return value:
+#   a valid octal mode
+sub get_dir_mode
+  {
+    my $setgid = $config{"setgid_home"} =~ /yes/i;
+    my $mode = $found_sys_opt
+      ? $config{"sys_dir_mode"}
+      : $config{"dir_mode"};
+
+    if(!defined($mode) || ! ($mode =~ /[0-7]{3}/ || $mode =~ /[0-7]{4}/)) {
+        $mode = ($found_sys_opt) ? "755" : "0700";
+    }
+
+    if($setgid && (length($mode) == 3 || $mode =~ /^[0-1|4-5][0-7]{3}$/)) {
+        $mode += 2000;
+    }
+
+    return oct($mode);
+  }
+
+# Local Variables:
+# mode:cperl
+# cperl-indent-level:4
+# End:
+
+# vim: tabstop=4 shiftwidth=4 expandtab
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              ELF              k  4   ´     4    (      4   4   4   €  €           Ø  Ø  Ø                             `"  `"            0   0   0  xõ  xõ            0  0  0 z  z           xª xº xº   @(           ô« ô» ô»                ´  ´  ´  $   $            L© L© L© ¼   ¼         PåtdÀM ÀM ÀM $  $        Qåtd                          Råtdxª xº xº ˆ  ˆ                 GNU wì>ğÊ¸	K°ø9¿NQ/lib/ld-linux.so.2     ¿                 ¿   ­KãÀ                œ             ,             Ğ             `             F                          2             ¶             H             »             z             D             R             á             1                          ©              F             Ú                          ï             P              )             +             ø                            ÿ             M             ü                                       ¸             •             ·             Ä                          Ÿ                          ²             Ø              ˆ              è                          b             Á              Ë                          ¿             "             9             Ê             S                          ¸              ¦             &             ˜                            !             :             î             å              F             u              4             °             —             s             l             ,               „             Ù             <             €             ó             >                           «             è                                                    Û             Ò             á             ï             ‰             ä             â             ×             †                          9             ¯                                       =             ³                          Å             Ë                          ¾             o              }             X             µ             š             }             Q             E             .             Ş             ½             œ             t             Ó             ±             3             ©                          É              |              f             Ë             ê             X             X                                        û              ¿             d                          ï              p              Æ                                       õ              Ø             Ë             £             P             }             à             P                           Ô             ^             -             F                            h             s             õ             ‚                          C             ¥                          B             &             ø             ì             (             ^             ú             \                          m             U             ¦             (             £             ¸             p          "   ì                           ‰             c             ;             Ñ              +             ´             ¾             W             <             K                           `   0       __gmon_start__ _ITM_deregisterTMCloneTable _ITM_registerTMCloneTable sd_booted sd_get_sessions _IO_stdin_used fgetc optind nl_langinfo fgets __setsockopt64 gethostname __prctl_time64 updwtmpx mempcpy setvbuf fchmod reallocarray tcsetpgrp stdin sleep program_invocation_short_name fopen64 ungetc closelog sysconf __select64 getdtablesize dirfd utmpxname __fstat64_time64 dcgettext chroot openat64 __printf_chk chdir exit sendfile64 secure_getenv __fdelt_chk __assert_fail sigaddset readdir64 setenv __fstatat64_time64 getttynam freeaddrinfo getaddrinfo __isoc23_strtoimax sigaction getutxent cfgetospeed strdup __sched_cpualloc closedir bind strspn setuid strrchr pututxline memmove tcflush nice strtod strtok poll __explicit_bzero_chk strndup socket __openat64_2 cfgetispeed strlen getgrnam __ctype_b_loc read __vasprintf_chk __sched_cpufree endutxent tcgetsid faccessat inotify_add_watch mkdir __vfprintf_chk __isoc23_strtol fchown __vsnprintf_chk getpid inotify_init1 readlink stdout umask mbstowcs __vsyslog_chk optarg realloc isatty getdomainname bindtextdomain __fprintf_chk open_memstream localeconv mkostemp64 strcspn malloc __libc_start_main __stat64_time64 strtold __ioctl_time64 iswprint execv __time64 __futimens64 sigprocmask stderr __localtime64_r fdopen __isoc23_strtoumax setutxent cfsetospeed ttyname versionsort64 openlog fdopendir inet_ntop __ctype_tolower_loc scandirat64 __cxa_finalize setlocale cfsetispeed strchr __syslog_chk __open64_2 getgid setregid calloc stpcpy fclose __asprintf_chk memset readlinkat __isoc23_strtoul fputc __isoc23_vfscanf tcgetattr fputs connect vhangup __snprintf_chk getuid getegid sigemptyset access tcsetattr setreuid memcpy __fcntl_time64 fileno __nanosleep64 fwrite strcmp uname getifaddrs __errno_location dcngettext __recvmsg64 syscall getopt_long freeifaddrs strncmp geteuid warnx errx rewinddir alarm __environ __progname __stack_chk_fail libsystemd.so.0 libc.so.6 LIBSYSTEMD_209 GLIBC_2.1.3 GLIBC_2.15 GLIBC_2.9 GLIBC_2.25 GLIBC_2.3 GLIBC_2.8 GLIBC_2.4 GLIBC_2.17 GLIBC_2.26 GLIBC_2.3.4 GLIBC_2.38 GLIBC_2.7 GLIBC_2.1 GLIBC_2.2 GLIBC_2.34 GLIBC_2.0                          	      	          
+               	                   	                                                                                        	                                i         ¹Èb   ƒ        y         si	   ’     •‘–        ii   ©     …‘–   ³     ii   ¾     ii   È     ii   Ò     —‘–   Ü     †‘–  
+ ç     ti	  	 ò     ¸‘–   ş     ii   	     ii        ii        ´‘–   '     ii   2      xº    |º    €º    „º    ˆº    Œº     º    ¤º    ¨º    ¬º    °º    ´º    ¸º    ¼º    Àº    Äº    àº    äº    èº    ìº    ğº    ôº    øº    üº     »    »    »    »    »    »    »    »     »    $»    (»    ,»    0»    4»    8»    <»    @»    D»    H»    L»    P»    T»    X»    \»    `»    d»    h»    l»    p»    t»    x»    |»    €»    „»    ˆ»    Œ»     »    ¤»    ¨»    À»    Ä»    È»    Ì»    Ğ»    Ô»    Ø»    Ü»    à»    ä»    è»    ì»    ğ¿    À     À    0À    @À    PÀ    `À    pÀ    €À    À     À    °À    ÀÀ    ĞÀ    àÀ    ğÀ     Á    Á     Á    0Á    @Á    PÁ    `Á    pÁ    €Á    Á     Á    °Á    ÀÁ    ĞÁ    àÁ    ğÁ     Â    Â     Â    0Â    @Â    PÂ    À¿   Ä¿ :  È¿ @  Ì¿ F  Ğ¿ Z  Ô¿ o  Ø¿ ƒ  Ü¿ ‡  à¿ •  ä¿ £  è¿ ¤  ì¿ ±   ½   ½   ½   ½   ½   ½   ½   ½    ½ 	  $½ 
+  (½   ,½   0½   4½   8½   <½   @½   D½   H½   L½   P½   T½   X½   \½   `½   d½   h½   l½   p½   t½    x½ !  |½ "  €½ #  „½ $  ˆ½ %  Œ½ &  ½ '  ”½ (  ˜½ )  œ½ *   ½ +  ¤½ ,  ¨½ -  ¬½ .  °½ /  ´½ 0  ¸½ 1  ¼½ 2  À½ 3  Ä½ 4  È½ 5  Ì½ 6  Ğ½ 7  Ô½ 8  Ø½ 9  Ü½ ;  à½ <  ä½ =  è½ >  ì½ ?  ğ½ A  ô½ B  ø½ C  ü½ D   ¾ E  ¾ G  ¾ H  ¾ I  ¾ J  ¾ K  ¾ L  ¾ M   ¾ N  $¾ O  (¾ P  ,¾ Q  0¾ R  4¾ S  8¾ T  <¾ U  @¾ V  D¾ W  H¾ X  L¾ Y  P¾ [  T¾ \  X¾ ]  \¾ ^  `¾ _  d¾ `  h¾ a  l¾ b  p¾ c  t¾ d  x¾ e  |¾ f  €¾ g  „¾ h  ˆ¾ i  Œ¾ j  ¾ k  ”¾ l  ˜¾ m  œ¾ n   ¾ p  ¤¾ q  ¨¾ r  ¬¾ s  °¾ t  ´¾ u  ¸¾ v  ¼¾ w  À¾ x  Ä¾ y  È¾ z  Ì¾ {  Ğ¾ |  Ô¾ }  Ø¾ ~  Ü¾   à¾ €  ä¾   è¾ ‚  ì¾ „  ğ¾ …  ô¾ †  ø¾ ˆ  ü¾ ‰   ¿ Š  ¿ ‹  ¿ Œ  ¿   ¿   ¿   ¿   ¿ ‘   ¿ ’  $¿ “  (¿ ”  ,¿ –  0¿ —  4¿ ˜  8¿ ™  <¿ š  @¿ ›  D¿ œ  H¿   L¿   P¿    T¿ ¡  X¿ ¢  \¿ ¥  `¿ ¦  d¿ §  h¿ ¨  l¿ ©  p¿ ª  t¿ «  x¿ ¬  |¿ ­  €¿ ®  „¿ ¯  ˆ¿ °  Œ¿ ²  ¿ ³  ”¿ ´  ˜¿ µ  œ¿ ¶   ¿ ·  ¤¿ ¸  ¨¿ ¹  ¬¿ º  °¿ »  ´¿ ¼  ¸¿ ½  ¼¿ ¾                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  Sƒìè7;  ÃëŒ ‹ƒÌ  …ÀtÿĞƒÄ[Ãÿ³   ÿ£       ÿ£   h    éàÿÿÿÿ£   h   éĞÿÿÿÿ£   h   éÀÿÿÿÿ£   h   é°ÿÿÿÿ£   h    é ÿÿÿÿ£    h(   éÿÿÿÿ£$   h0   é€ÿÿÿÿ£(   h8   épÿÿÿÿ£,   h@   é`ÿÿÿÿ£0   hH   éPÿÿÿÿ£4   hP   é@ÿÿÿÿ£8   hX   é0ÿÿÿÿ£<   h`   é ÿÿÿÿ£@   hh   éÿÿÿÿ£D   hp   é ÿÿÿÿ£H   hx   éğşÿÿÿ£L   h€   éàşÿÿÿ£P   hˆ   éĞşÿÿÿ£T   h   éÀşÿÿÿ£X   h˜   é°şÿÿÿ£\   h    é şÿÿÿ£`   h¨   éşÿÿÿ£d   h°   é€şÿÿÿ£h   h¸   épşÿÿÿ£l   hÀ   é`şÿÿÿ£p   hÈ   éPşÿÿÿ£t   hĞ   é@şÿÿÿ£x   hØ   é0şÿÿÿ£|   hà   é şÿÿÿ£€   hè   éşÿÿÿ£„   hğ   é şÿÿÿ£ˆ   hø   éğıÿÿÿ£Œ   h   éàıÿÿÿ£   h  éĞıÿÿÿ£”   h  éÀıÿÿÿ£˜   h  é°ıÿÿÿ£œ   h   é ıÿÿÿ£    h(  éıÿÿÿ£¤   h0  é€ıÿÿÿ£¨   h8  épıÿÿÿ£¬   h@  é`ıÿÿÿ£°   hH  éPıÿÿÿ£´   hP  é@ıÿÿÿ£¸   hX  é0ıÿÿÿ£¼   h`  é ıÿÿÿ£À   hh  éıÿÿÿ£Ä   hp  é ıÿÿÿ£È   hx  éğüÿÿÿ£Ì   h€  éàüÿÿÿ£Ğ   hˆ  éĞüÿÿÿ£Ô   h  éÀüÿÿÿ£Ø   h˜  é°üÿÿÿ£Ü   h   é üÿÿÿ£à   h¨  éüÿÿÿ£ä   h°  é€üÿÿÿ£è   h¸  épüÿÿÿ£ì   hÀ  é`üÿÿÿ£ğ   hÈ  éPüÿÿÿ£ô   hĞ  é@üÿÿÿ£ø   hØ  é0üÿÿÿ£ü   hà  é üÿÿÿ£   hè  éüÿÿÿ£  hğ  é üÿÿÿ£  hø  éğûÿÿÿ£  h   éàûÿÿÿ£  h  éĞûÿÿÿ£  h  éÀûÿÿÿ£  h  é°ûÿÿÿ£  h   é ûÿÿÿ£   h(  éûÿÿÿ£$  h0  é€ûÿÿÿ£(  h8  épûÿÿÿ£,  h@  é`ûÿÿÿ£0  hH  éPûÿÿÿ£4  hP  é@ûÿÿÿ£8  hX  é0ûÿÿÿ£<  h`  é ûÿÿÿ£@  hh  éûÿÿÿ£D  hp  é ûÿÿÿ£H  hx  éğúÿÿÿ£L  h€  éàúÿÿÿ£P  hˆ  éĞúÿÿÿ£T  h  éÀúÿÿÿ£X  h˜  é°úÿÿÿ£\  h   é úÿÿÿ£`  h¨  éúÿÿÿ£d  h°  é€úÿÿÿ£h  h¸  épúÿÿÿ£l  hÀ  é`úÿÿÿ£p  hÈ  éPúÿÿÿ£t  hĞ  é@úÿÿÿ£x  hØ  é0úÿÿÿ£|  hà  é úÿÿÿ£€  hè  éúÿÿÿ£„  hğ  é úÿÿÿ£ˆ  hø  éğùÿÿÿ£Œ  h   éàùÿÿÿ£  h  éĞùÿÿÿ£”  h  éÀùÿÿÿ£˜  h  é°ùÿÿÿ£œ  h   é ùÿÿÿ£   h(  éùÿÿÿ£¤  h0  é€ùÿÿÿ£¨  h8  épùÿÿÿ£¬  h@  é`ùÿÿÿ£°  hH  éPùÿÿÿ£´  hP  é@ùÿÿÿ£¸  hX  é0ùÿÿÿ£¼  h`  é ùÿÿÿ£À  hh  éùÿÿÿ£Ä  hp  é ùÿÿÿ£È  hx  éğøÿÿÿ£Ì  h€  éàøÿÿÿ£Ğ  hˆ  éĞøÿÿÿ£Ô  h  éÀøÿÿÿ£Ø  h˜  é°øÿÿÿ£Ü  h   é øÿÿÿ£à  h¨  éøÿÿÿ£ä  h°  é€øÿÿÿ£è  h¸  épøÿÿÿ£ì  hÀ  é`øÿÿÿ£ğ  hÈ  éPøÿÿÿ£ô  hĞ  é@øÿÿÿ£ø  hØ  é0øÿÿÿ£ü  hà  é øÿÿÿ£   hè  éøÿÿÿ£  hğ  é øÿÿÿ£  hø  éğ÷ÿÿÿ£  h   éà÷ÿÿÿ£  h  éĞ÷ÿÿÿ£  h  éÀ÷ÿÿÿ£  h  é°÷ÿÿÿ£  h   é ÷ÿÿÿ£   h(  é÷ÿÿÿ£$  h0  é€÷ÿÿÿ£(  h8  ép÷ÿÿÿ£,  h@  é`÷ÿÿÿ£0  hH  éP÷ÿÿÿ£4  hP  é@÷ÿÿÿ£8  hX  é0÷ÿÿÿ£<  h`  é ÷ÿÿÿ£@  hh  é÷ÿÿÿ£D  hp  é ÷ÿÿÿ£H  hx  éğöÿÿÿ£L  h€  éàöÿÿÿ£P  hˆ  éĞöÿÿÿ£T  h  éÀöÿÿÿ£X  h˜  é°öÿÿÿ£\  h   é öÿÿÿ£`  h¨  éöÿÿÿ£d  h°  é€öÿÿÿ£h  h¸  épöÿÿÿ£l  hÀ  é`öÿÿÿ£p  hÈ  éPöÿÿÿ£t  hĞ  é@öÿÿÿ£x  hØ  é0öÿÿÿ£|  hà  é öÿÿÿ£€  hè  éöÿÿÿ£„  hğ  é öÿÿÿ£ˆ  hø  éğõÿÿÿ£Œ  h   éàõÿÿÿ£  h  éĞõÿÿÿ£”  h  éÀõÿÿÿ£˜  h  é°õÿÿÿ£œ  h   é õÿÿÿ£   h(  éõÿÿÿ£¤  h0  é€õÿÿÿ£¨  h8  épõÿÿÿ£¬  h@  é`õÿÿÿ£°  hH  éPõÿÿÿ£´  hP  é@õÿÿÿ£¸  hX  é0õÿÿÿ£¼  h`  é õÿÿÿ£À  hh  éõÿÿÿ£Ä  hp  é õÿÿÿ£È  hx  éğôÿÿÿ£ø  f        PƒÊuÿÿjPj èÏøÿÿƒÄWPjèóõÿÿƒ0ˆÿÿVjPj è²øÿÿ_ZPjèØõÿÿPƒÙuÿÿjëÆƒdÿÿPƒ^yÿÿj\Pƒ¿{ÿÿPè‘÷ÿÿƒFyÿÿRRPjè¡õÿÿƒ,yÿÿQjPjèõÿÿƒ,ÿÿPƒåyÿÿh   Pƒ÷yÿÿPèQ÷ÿÿƒˆ{ÿÿWÿt$(Pÿ³ˆ  èºúÿÿ‹\$èQôÿÿÇ "   ‹ƒˆ  Wÿt$‹\$“ˆ{ÿÿRPè/õÿÿ‹\$è&ôÿÿ‰Â‹ƒˆ  ƒ:"tÔWÿt$‹\$“ˆ{ÿÿRPècúÿÿèşóÿÿ‰Â‹ƒˆ  ƒ:"u%“ˆ{ÿÿWÿt$RPèßôÿÿèÚóÿÿÇ "   ‹ƒˆ  ëÛ“ˆ{ÿÿWÿt$RPèúÿÿİØ‹“ˆ  ƒø"uƒˆ{ÿÿVUPRèôÿÿƒˆ{ÿÿVUPÿ³ˆ  èêùÿÿè…óÿÿ‰Â‹ƒˆ  ƒ:"u“ˆ{ÿÿVWRPèiôÿÿ“ˆ{ÿÿVWRPèºùÿÿèUóÿÿ‰Â‹ƒˆ  ƒ: t“ˆ{ÿÿVWRPè9ôÿÿ“ˆ{ÿÿVWRPèŠùÿÿƒˆ{ÿÿVÿt$Pjèwùÿÿ‚Dÿÿ‰ÓP‚¬{ÿÿh¿  P‚»{ÿÿPèÖõÿÿ‚Dÿÿ‰ÓP‚¬{ÿÿh¾  P‚¼{ÿÿPèµõÿÿƒ`ÿÿPƒÃ{ÿÿhÃ   PƒMsÿÿPè–õÿÿƒTÿÿPƒÃ{ÿÿh\  PƒMsÿÿPèwõÿÿƒ¬ÿÿPƒ|ÿÿjnPƒ|ÿÿPè[õÿÿƒ”ÿÿPƒ|ÿÿhÊ   Pƒb|ÿÿPè<õÿÿƒ€ÿÿPƒ|ÿÿhØ   Pƒe|ÿÿPèõÿÿƒ€ÿÿPƒ|ÿÿh×   Pƒb|ÿÿPèşôÿÿƒlÿÿPƒ|ÿÿhé   Pƒb|ÿÿPèßôÿÿƒÀÿÿPƒœ}ÿÿh4  Pƒ¬}ÿÿPèÀôÿÿffffffffL$ƒäğÿqüU‰åWV½ìÚÿÿSè¥,  ÃY~ Qì &  ‹‰… Ùÿÿ‹A¹   ³=uÿÿ‰…œÙÿÿe¡   ‰Eä1ÀÇ…èÚÿÿ   Ç…¬Ùÿÿ    Ç…°Ùÿÿ    Ç…´Ùÿÿ    Ç…¸Ùÿÿ    Ç…¼Ùÿÿ    ó«ƒuÿÿ‰…üÚÿÿƒ&uÿÿ‰…ÛÿÿƒøxÿÿPjèíöÿÿXƒ+uÿÿZPVèôÿÿ‰4$µdÛÿÿèÀùÿÿ…hÛÿÿÇ…dÛÿÿ   ‰$Ç…èÛÿÿ   èîğÿÿƒÄ…ğÛÿÿPVj‰…ÙÿÿèÖôÿÿƒÄ…|ÜÿÿPVj‰…ŒÙÿÿè¾ôÿÿƒÄ…İÿÿPVj‰…ˆÙÿÿè¦ôÿÿƒHuÿÿ‰$è¨p  ƒÄ…À„  ƒìPƒLsÿÿPè-±  ƒÄ‰…˜Ùÿÿ…À„9  PPj ÿµ˜Ùÿÿè»  ƒÄ‰Æ…À„h  ƒ^uÿÿ‰…¤Ùÿÿ…ÀÙÿÿ‰…”Ùÿÿ.´&    ƒìVè'õÿÿƒÄ…À„†   €x.xu€ tİ€x.u€.u€ tË.´&    v ƒìÿµ¤ÙÿÿWèÑùÿÿƒÄ…ÀuªƒìWÿµ”Ùÿÿÿµ˜ÙÿÿèÀ  _ÿµğÚÿÿè9óÿÿƒÄ‹…ÀÙÿÿƒìV‰…ğÚÿÿè¡ôÿÿƒÄ…À…zÿÿÿƒìVèöÿÿƒÄÇ…˜Ùÿÿ    ½”İÿÿ³,  ¹”   ‰½¤Ùÿÿó¥»H‡ÿÿƒìj ÿµ¤ÙÿÿWÿµœÙÿÿÿµ ÙÿÿèƒóÿÿƒÄ ƒøÿ„  ƒè8ƒøQ‡Q  ‹”ƒ¸‹ÿÿÚÿâ»ÀsÿÿPh€  hA  Wè	ğÿÿƒÄ‰Æ…ÀˆÜùÿÿPPj VèÂôÿÿƒÄ…ÀˆÿùÿÿƒìVè~õÿÿƒÄ…Àˆëùÿÿƒìj èÙøÿÿ‹ƒô  ‹ ‰…ÛÿÿéVÿÿÿ‹ƒô  ‹ ‰…ÛÿÿéCÿÿÿèÚÿÿ   é4ÿÿÿèÚÿÿ   é%ÿÿÿèÚÿÿ   éÿÿÿ‹ƒä  ‹0ƒõuÿÿW»uÿÿjPj èòÿÿ“ vÿÿRV1öPjèÅïÿÿ‹ƒì  ƒÄ ‰…¤Ùÿÿÿ0ƒvÿÿjjPèÔôÿÿƒLsÿÿ‹îtÿÿƒÄ‰œÙÿÿ‰… Ùÿÿë´&    ÿ0jjÿµœÙÿÿèŸôÿÿƒÄƒìƒÆWÿµ ÙÿÿjèXïÿÿ‹¼³¬ıÿÿ‹…¤ÙÿÿƒÄ…ÿuÄÿ0ƒewÿÿ1öjjPè`ôÿÿ‰4$è¸÷ÿÿƒèÚÿÿ é<şÿÿPƒ±uÿÿjPj èKñÿÿ1Ò‰$jÿP‹ƒô  j
+ÿ0èD|  ƒÄ ‰…ìÚÿÿéşÿÿèÚÿÿ   é÷ıÿÿ‹ƒô  ‹ ‰…øÚÿÿéäıÿÿèÚÿÿ €  éÕıÿÿ‹ƒô  ‹ ‰… ÛÿÿéÂıÿÿèÚÿÿ€   é³ıÿÿƒèÚÿÿé§ıÿÿ‹ƒô  ‹ ‰…üÚÿÿé”ıÿÿƒ¥èÚÿÿıéˆıÿÿƒèÚÿÿé|ıÿÿ‹ƒô  ‹ ‰…ÛÿÿéiıÿÿPƒouÿÿjPj èxğÿÿ1Ò‰$jÿP‹ƒô  j
+ÿ0èq{  ƒÄ ‰…$Ûÿÿé3ıÿÿèÚÿÿ   é$ıÿÿƒìÿµğÚÿÿèöïÿÿ‹ƒô  Yÿ0èèõÿÿƒÄ‰…ğÚÿÿ…À…÷üÿÿé1  èÚÿÿ   éãüÿÿèÚÿÿ    éÔüÿÿƒ›uÿÿQjPj èãïÿÿƒÄj hÿÿÿjÿh   €P‹ƒô  j
+ÿ0èz  ƒÄ ‰…(Ûÿÿé”üÿÿèÚÿÿ   é…üÿÿÇ…0Ûÿÿ   ‹ƒô  ‹0…ö„küÿÿPPƒ†uÿÿPVè¬õÿÿƒÄ…À„QüÿÿPPƒuÿÿPVè’õÿÿƒÄ…À„¦  PPƒ•uÿÿPVèxõÿÿƒÄ…À…Ü#  ‰…0ÛÿÿéüÿÿèÚÿÿ   éüÿÿ‹ƒô  ƒì‹0Vè¢ğÿÿƒÀ‰$èWòÿÿƒÄ‰…Ûÿÿ‰Â…Àué  .´&    .´&    v ‰ÎˆBÿ¶„À„•   NƒÂ<\uæ¶F<\uIƒÆëÛ‹ƒô  ‹ ‰ƒ¬%  é†ûÿÿ‹ƒô  ‹ ‰…ôÚÿÿésûÿÿèÚÿÿ   édûÿÿèÚÿÿ    éUûÿÿ‰•„ÙÿÿF‰Î‰…”Ùÿÿ1À¶JĞ€ùw‹”ÙÿÿƒÆDÂĞ9Îuä‹•„Ùÿÿé]ÿÿÿƒèÚÿÿÆ éûÿÿ»lÿÿ¸2   ³îuÿÿ.´&    v ƒìƒÇPVjèÁëÿÿ‹ƒÄ…Àuèé`ûÿÿÇ…˜Ùÿÿ   éÄúÿÿƒ½˜Ùÿÿ …§  ‹ƒÔ  ‰…„Ùÿÿ‹09µ Ùÿÿj"  µ    ƒì‰…€Ùÿÿ‹…œÙÿÿ‹<°Wè.ïÿÿY‹ƒvÿÿZQW‰…”Ùÿÿ‰|Ùÿÿè³òÿÿƒÄV9…”Ùÿÿ„ÿ  ‹…„Ùÿÿ‰½Ûÿÿ‰9• Ùÿÿ~4‹€Ùÿÿ‹…œÙÿÿƒì‹|WèÒîÿÿZYÿµ|ÙÿÿW‰ÆèbòÿÿƒÄ9Æ„Ï  ‹µÛÿÿƒ¦wÿÿWWPVèBóÿÿÀÙÿÿƒÄ‰”Ùÿÿ…À„Q  PƒÓvÿÿjPV‰…€ÙÿÿèEòÿÿƒÄ…Àu'ƒÆPPƒvÿÿPVèüñÿÿ‰4$‰ÇèRîÿÿƒÄ9Ç„7  ‹…„Ùÿÿ‹ 9… Ùÿÿ~‹œÙÿÿ‹…Àt‰…Ûÿÿ‹…üÚÿÿ‰…¤Úÿÿèéÿÿƒìj ‰… ÙÿÿèCóÿÿ‹µÛÿÿ‰…„Ùÿÿ‹…Ûÿÿ‰…œÙÿÿƒšvÿÿ‰$èİïÿÿèòÿÿƒÄ.t& è[éÿÿ…À„a	  ‹ Ùÿÿ;Huè·QûfƒúwÜ‹½¤Ùÿÿ¹`   ‰Æó¥ƒ¨vÿÿVj P…ÀİÿÿPè$  ƒÄ…œİÿÿj ÿµœÙÿÿPè $  ‹ƒ¬%  ƒÄ…ÀtQh   P…àİÿÿPèà#  ƒÄƒìÿµ”Ùÿÿèÿíÿÿ‹…ÀÙÿÿ‹µ¤ÙÿÿfÇ…”İÿÿ ‰…èŞÿÿ‹… Ùÿÿ‰4$‰…˜İÿÿ‹…„Ùÿÿ‰…äŞÿÿèäêÿÿè_òÿÿXƒ®vÿÿZVPè êÿÿ‹…$ÛÿÿƒÄ…À…Ş  ‹…Ûÿÿ‰…„Ùÿÿè¾çÿÿƒ½8Ûÿÿ ‰Ç…¬  ƒìÿµ€ÙÿÿèñèÿÿƒÄ…À„±  ‹@‰…œÙÿÿPPƒ¼vÿÿÿµ„ÙÿÿP…äßÿÿh  jh  P‰… ÙÿÿèPğÿÿƒÄ =   ‡R  Vj h	  ÿµ ÙÿÿèÿçÿÿƒÄ‰Æ…Àˆ2  QÿµœÙÿÿj PèÓèÿÿƒÄ…Àu#ƒ½œÙÿÿ ¸€  t¸  RRPVèñÿÿƒÄ…Àt%è¤æÿÿƒ8…ö  PPƒ·wÿÿÿµ ÙÿÿPè÷(  ƒÄPPÿµ”ÙÿÿVèæèÿÿƒÄ…ÀˆÆ  ‹…ĞÙÿÿ% ğ  =    …š  ƒìVèÜêÿÿƒÄ…À„g  ƒìVèøïÿÿƒÄ…Àx9ÇtQjhT  VèßéÿÿƒÄƒÀ„×  ƒìj è¹ìÿÿèæÿÿƒÄ‰Â1À‰‹…èÚÿÿ‰•œÙÿÿ%    ‰…˜Ùÿÿ„ì  PPh"T  Vè‘éÿÿ‰4$èyìÿÿÇ$   èmìÿÿÇ$   èaìÿÿ‹•œÙÿÿ1À‰èéÿÿƒÄÇ…˜Ùÿÿ   …À…:  Pj h	  ÿµ ÙÿÿèŠæÿÿƒÄ…À…¿  ƒìj è%ïÿÿƒÄ…Àx9ÇtVjhT  j èéÿÿƒÄƒÀ„*  PPWj èµèÿÿƒÄ…À…S  ƒ½˜Ùÿÿ „–  ƒìj èêÿÿƒÄ‰…œÙÿÿƒè…  ƒìj è÷éÿÿƒÄƒø…ÿ  ‹ƒì  j ½,Úÿÿjj ÿ0èÒëÿÿ1À¹   ‰ú‰½ Ùÿÿó«_XRj èwçÿÿƒÄ…Àˆ²  …4ÛÿÿWPhDK  j èXèÿÿƒÄ…À…¡  èÚÿÿ   ‹…Ûÿÿ…À„5  ³%wÿÿRjPVèuîÿÿƒÄ‰…„Ùÿÿ…À…v  ‹µ¤ÙÿÿƒìVèUäÿÿXZjVèKìÿÿƒÄj Vjè^ëÿÿƒÄj ÿµÙÿÿjè,èÿÿègäÿÿY^Pj èçÿÿ‹…èÚÿÿƒÄ%   …,Ûÿÿ„W  ƒìjPèÉU  ƒÄ…À„  µhÚÿÿ1À¹   ‰÷ó«WVhWT  j èçÿÿ‹…èÚÿÿƒÄöÄ…  öÄ…Å  ƒ½,Ûÿÿ „¸  ‹µ<Ûÿÿ‰÷ƒ½ğÚÿÿ „$  1Òƒ¥0Úÿÿ‰•8ÚÿÿöÄu‹…4Úÿÿ%   °  ‰…4ÚÿÿPPV‹µ ÙÿÿVèyíÿÿZYWVèpèÿÿ‹…0ÛÿÿƒÄƒø„€  ƒøu
+¥4Úÿÿÿ÷ÿÿPÿµ”ÙÿÿhT  j Æ…<Úÿÿ fÇ…BÚÿÿ è¼æÿÿƒÄ…Àu<fƒ½ÀÙÿÿ u	fÇ…ÀÙÿÿ fƒ½ÂÙÿÿ u	fÇ…ÂÙÿÿP Pÿµ”ÙÿÿhT  j è|æÿÿƒÄö…èÚÿÿt
+4Úÿÿ   €PPjj èûæÿÿƒÄÿµ Ùÿÿj j èiëÿÿƒÄ…À…¯  Wj jj è¢âÿÿƒÄ€ä÷Pjj è’âÿÿ‹…èÚÿÿƒÄ¨t‹µÛÿÿ…öt	€> …,  öÄu	ƒ½0Ûÿÿt%Vj jjèXâÿÿƒÄ€ä÷PjjèHâÿÿ‹…èÚÿÿƒÄ%  ƒè„  ‹…ìÚÿÿ…À…c  ‹…èÚÿÿ‰Ââ   ƒú „Ä  ‹ğÚÿÿ‰¤Ùÿÿ‰Áá€   ‰tÙÿÿ…=  ©   „  ƒ½ğÚÿÿ „m  µèÚÿÿ‹ Ùÿÿ½¬Ùÿÿ‰ò‰øè™8  ‹ Ùÿÿ‰ò‰øè?  ƒPwÿÿ‹µğÚÿÿQjPj è3åÿÿ“™tÿÿVRPjèãâÿÿƒÄ Ç…˜Ùÿÿ   1ÿ‰½tÙÿÿÇ…lÙÿÿ   Ç…hÙÿÿ   ƒ½ìÚÿÿ …<  ‹…èÚÿÿöÄ…_
+  ‹,Úÿÿ‹½8ÚÿÿfÇ…=ÚÿÿÆ…AÚÿÿ‰ÊÆ…HÚÿÿ €ÎÆ…DÚÿÿ ‰•,Úÿÿ‰úÊ;  ‰•8Úÿÿ‹•0Úÿÿ‰ÖƒÎƒ½˜Ùÿÿ‰µ0Úÿÿu€ÍƒÊ‰,Úÿÿ‰•0Úÿÿ¶•hÙÿÿ‹„Ùÿÿˆ•?Úÿÿ¶•lÙÿÿˆ•@Úÿÿƒùtƒùt ƒéu-4Úÿÿ   4Úÿÿ   ƒ,Úÿÿ0‹•4ÚÿÿƒâÏƒÊ ‰•4Úÿÿƒ½tÙÿÿ tÏ?  ƒ0Úÿÿ,Úÿÿ   ‰½8Úÿÿ¨t
+4Úÿÿ   €Vÿµ Ùÿÿj j èßèÿÿƒÄ…Àˆ$  º   ƒŒtÿÿèÔ5  Vj ÿµŒÙÿÿjèäãÿÿƒÄj ÿµˆÙÿÿjèÒãÿÿ‹½¤ÙÿÿƒÄ…ÿt;ƒìWèåÿÿƒÄƒø*‡y  èäÿÿ‹0‰øë.t& ƒÀ¾öDN uó€ù-„S  ‹µ Ûÿÿ…ö„›
+  èçãÿÿ‹‰ÇëƒÆ¾öDB uó‰µ Ùÿÿ¾„À„È  ƒ½œÙÿÿ„»  ‹öDB …Õ  ƒÆëÖPƒ~ÿÿjPj èââÿÿ‰$èz!  ƒÄéˆïÿÿ‹½¤Ùÿÿ¹`   ó«…öt	€> …}  ‹µœÙÿÿƒìVè9äÿÿƒÄ‰òƒøvTü…¼İÿÿWjRPè«  ƒÄévöÿÿPj jj è×ŞÿÿƒÄ¨„W  PPWj èâÿÿƒÄ…À…°  ƒìjè-åÿÿÇ$   è!åÿÿèlŞÿÿ1ÒƒÄ‰éCùÿÿ1À½ÀÙÿÿµ¤Úÿÿ¹   ‰½”Ùÿÿó«¹   ‰÷ó«QQVj èòàÿÿƒÄ…Àˆ4éÿÿ‹…”Ùÿÿ•èÚÿÿ‰ñè$5  ‹•ÈÙÿÿ…Ò…a  ‹…ÀÙÿÿ…ÀtƒìPè³âÿÿƒÄƒìÿµÄÙÿÿèráÿÿ1É‰$èøçÿÿPƒ<~ÿÿjé°şÿÿ‹ƒä  ‹0ƒ ‡ÿÿWjPj èáÿÿVP‹ƒÜ  jÿ0èğŞÿÿƒÄjè¶çÿÿ‹ƒì  ‹0PƒvÿÿjPj èMáÿÿZYVPèdİÿÿ‹ƒä  ƒÄ‹8ƒˆ~ÿÿjPj è)áÿÿWPjVèŸŞÿÿƒÄVj
+èÄäÿÿƒÄƒô~ÿÿjPj èáÿÿ_ZVPèİÿÿƒÄƒvÿÿjPj èåàÿÿY_VPèüÜÿÿƒÄƒÿÿjPj èÉàÿÿZYVPèàÜÿÿƒÄƒHÿÿjPj è­àÿÿ_ZVPèÄÜÿÿƒÄƒŒÿÿjPj è‘àÿÿY_VPè¨ÜÿÿƒÄƒÄÿÿjPj èuàÿÿZYVPèŒÜÿÿƒÄƒ €ÿÿjPj èYàÿÿ_ZVPèpÜÿÿƒÄƒ@€ÿÿjPj è=àÿÿY_VPèTÜÿÿƒÄƒ|€ÿÿjPj è!àÿÿZYVPè8ÜÿÿƒÄƒ¸€ÿÿjPj èàÿÿ_ZVPèÜÿÿƒÄƒè€ÿÿjPj èéßÿÿY_VPè ÜÿÿƒÄƒ ÿÿjPj èÍßÿÿZYVPèäÛÿÿƒÄƒPÿÿjPj è±ßÿÿ_ZVPèÈÛÿÿƒÄƒ”ÿÿjPj è•ßÿÿY_VPè¬ÛÿÿƒÄƒÈÿÿjPj èyßÿÿZYVPèÛÿÿƒÄƒ‚ÿÿjPj è]ßÿÿ_ZVPètÛÿÿƒÄƒD‚ÿÿjPj èAßÿÿY_VPèXÛÿÿƒÄƒ|‚ÿÿjPj è%ßÿÿZYVPè<ÛÿÿƒÄƒÀ‚ÿÿjPj è	ßÿÿ_ZVPè ÛÿÿƒÄƒ ƒÿÿjPj èíŞÿÿY_VPèÛÿÿƒÄƒ@ƒÿÿjPj èÑŞÿÿZYVPèèÚÿÿƒÄƒ|ƒÿÿjPj èµŞÿÿ_ZVPèÌÚÿÿƒÄƒ¸ƒÿÿjPj è™ŞÿÿY_VPè°ÚÿÿƒÄƒøƒÿÿjPj è}ŞÿÿZYVPè”ÚÿÿƒÄƒ,„ÿÿjPj èaŞÿÿ_ZVPèxÚÿÿƒÄƒd„ÿÿjPj èEŞÿÿY_VPè\ÚÿÿƒÄƒ˜„ÿÿjPj è)ŞÿÿZYVPè@ÚÿÿƒÄƒÈ„ÿÿjPj èŞÿÿ_ZVPè$ÚÿÿƒÄƒ…ÿÿjPj èñİÿÿY_VPèÚÿÿƒÄƒD…ÿÿjPj èÕİÿÿZYVPèìÙÿÿƒÄƒ|…ÿÿjPj è¹İÿÿ_ZVPèĞÙÿÿƒÄƒ°…ÿÿjPj èİÿÿY_VPè´ÙÿÿƒÄƒä…ÿÿjPj èİÿÿZYVPè˜ÙÿÿƒÄƒ †ÿÿjPj èeİÿÿ_ZVPè|ÙÿÿƒÄƒ\†ÿÿjPj èIİÿÿY_VPè`ÙÿÿƒÄƒ¤†ÿÿjPj è-İÿÿZYVPèDÙÿÿƒÄƒ'vÿÿjPj èİÿÿPƒà†ÿÿPjVèÚÿÿƒÄƒ9vÿÿjPj èîÜÿÿPƒ ‡ÿÿPjVè^ÚÿÿƒÄƒIvÿÿjPj èËÜÿÿ“dvÿÿRPjVè;ÚÿÿƒÄj èãÿÿ¸   éjíÿÿƒˆÿÿQjPj è–Üÿÿ^_ÿµ„ÙÿÿPè(  ƒÄé†óÿÿ‰µÛÿÿé¾ïÿÿ‹…ÄÙÿÿèŠ.  éúÿÿ1À‰…œÙÿÿéKñÿÿèÚÿÿ‰ú‰Èè‰  ‹…„Ùÿÿƒ éïÿÿP…¼İÿÿjVPèK  ƒÄéğÿÿÆ ‹.´&    ¶    ¾VƒÆöDQ uò„Ò„İøÿÿ‹…œÙÿÿP‹… Ùÿÿ‰•˜Ùÿÿ‹•¤ÙÿÿèŠ  ‹œÙÿÿ‹•˜Ùÿÿ‰„¤Úÿÿ‰•œÙÿÿé™øÿÿ1ö‰µ4Ûÿÿé\óÿÿ‹½ ÙÿÿƒìWèPÙÿÿ‰<$‰ÆèàÿÿƒÄ‰Ç‹…,Ûÿÿ…Àt ‰ò…öu
+…ÿº   E×H‰”…<Ûÿÿ‰,Ûÿÿ…öu¾   …ÿu¿   ‹…èÚÿÿéëóÿÿ‹… Ùÿÿ…Àt€8 tƒ½œÙÿÿ…a  ‹…œÙÿÿ1Ò‰”…¤Úÿÿ‹…øÚÿÿ…ÀtƒìPè<İÿÿƒÄ…Àˆ™  ‹…ôÚÿÿ…ÀtƒìPèNİÿÿƒÄ…Àˆ•  ‹…(Ûÿÿ…À…“
+  …¤ÚÿÿRRPÿµüÚÿÿèAÜÿÿYÿµ ÛÿÿèuÚÿÿ^ÿµğÚÿÿèiÚÿÿƒÄ‹½¤Úÿÿ‹µÛÿÿjƒ¨wÿÿPj èŠÚÿÿƒÄWVPè_  ‹• Ùÿÿ¹   è¯   é¦öÿÿƒ½4Ûÿÿ„—
+  ƒ7wÿÿQQPj èMÜÿÿ‹…èÚÿÿƒÄ€ä¿‹• Ùÿÿ1É‰…èÚÿÿèn   ‹…4Úÿÿ%0  ƒø0u
+èÚÿÿ   ‹…èÚÿÿ©   …Úóÿÿƒtÿÿº	   è,  ‹…èÚÿÿé¿óÿÿ‹µ”Ùÿÿë¶…ÀÙÿÿƒàˆ…ÀÙÿÿ<
+t<tWjVj èÙÿÿƒÄƒètÕ‹…èÚÿÿéşóÿÿ‰µÀÙÿÿVj Qj Ç…8Ûÿÿ   èßŒ  ƒÄ‰Æ…ÀˆN
+  ‹µÀÙÿÿ‰µÛÿÿévìÿÿƒìPè˜İÿÿƒÄéîÿÿƒìPèÛÿÿƒÄéŒóÿÿ‹ ÙÿÿµèÚÿÿ½¬Ùÿÿ‰ò‰øèt,  ‹ Ùÿÿ‰ò‰øèõ/  é ôÿÿƒìµhÚÿÿjQè G  ƒÄÇ…¤Ùÿÿ   ë9‹…hÚÿÿ…lÚÿÿ…pÚÿÿ…tÚÿÿ„:ñÿÿƒìjèİÿÿƒÄƒ­¤Ùÿÿ„ ñÿÿƒì1À¹   ‰÷ó«VhVT  j èØÿÿƒÄ…Ày¦éùğÿÿ‹…èÚÿÿ©    t*‹“¬%  …Ò„ß
+  ƒœwÿÿ‰•¬Úÿÿ‰…¨ÚÿÿÇ…œÙÿÿ   ƒ½¤Ùÿÿ „/ıÿÿƒ½ğÚÿÿ t‹œÙÿÿƒ¢wÿÿ‰„¤ÚÿÿA‰…œÙÿÿ‹œÙÿÿ“¥wÿÿ‰”¤ÚÿÿAƒÁ‰œÙÿÿ‹¤Ùÿÿ‰Œ…¤ÚÿÿéÙüÿÿ…¬ÙÿÿèÚÿÿ‰…|Ùÿÿƒ¬  ‰…Ùÿÿ¬  ‰…dÙÿÿ…«Ùÿÿ‰…pÙÿÿ‰xÙÿÿö…éÚÿÿ„  PPj j èCØÿÿ‹…èÚÿÿ‹ ÙÿÿÆƒ¬   ‹•xÙÿÿ% H  ‰…`Ùÿÿ‹…|ÙÿÿèÄ*  1ÀƒÄÇ…˜Ùÿÿ   ‰…„Ùÿÿ‹…ÙÿÿÇ…lÙÿÿ   Ç…hÙÿÿ   ‰…€Ùÿÿ‹…dÙÿÿ€< …ã
+  ‹ Ùÿÿ‹•xÙÿÿ‹…|Ùÿÿèø0  è  …À…¸   ö…éÚÿÿ„Ë  ‹ Ùÿÿ‹•xÙÿÿ‹…|Ùÿÿè7*  ‹µ¸Ùÿÿ…öt‹…°Ùÿÿ…ÀtWWPVè
+İÿÿƒÄ…À„<  RRj j èT×ÿÿ‹…èÚÿÿƒÄ%  =   „í  ‹…ÙÿÿÆƒ¬   ‰…€ÙÿÿéDÿÿÿW1öWj ÿµ”Ùÿÿ‰µÌÙÿÿ‰µÀÙÿÿ‰µÄÙÿÿÇ…ÈÙÿÿ€²æè†ÜÿÿƒÄPjÿµpÙÿÿj è³ÕÿÿƒÄ‰Ç…Àˆ¿   …  ƒ½`Ùÿÿ Æ…«Ùÿÿ Æ…¤Ùÿÿ t¶…«Ùÿÿˆ…¤Ùÿÿ‹…Ûÿÿ…Àt¾µ¤ÙÿÿRRVPèòÓÿÿƒÄ…À…€  ‹…Ûÿÿ…À„!  VV¾µ¤ÙÿÿVPèÉÓÿÿƒÄ…À„  ‰µhÙÿÿ‹€Ùÿÿ9Ùÿÿsö…8Úÿÿ„g  ƒ­€Ùÿÿ‹Ùÿÿ9€Ùÿÿ…1ÿÿÿ1À‰…˜Ùÿÿé_şÿÿè²Ñÿÿ‹ ƒø„äşÿÿƒø„Ûşÿÿƒø‡_  º- @ £ÂƒQ  ƒìj
+è}Ùÿÿ1É‰$è“ÛÿÿƒìjèiÙÿÿƒÄé#şÿÿƒ½`Ùÿÿ …ûşÿÿ¶…«Ùÿÿ‰Âƒâˆ•¤Ùÿÿ„À‰îşÿÿ‰½˜Ùÿÿº   ¹   ¾µ¤Ùÿÿ¸   ‰÷!ÇƒÿƒÙÿÀƒêuïƒá¸   ‹½˜Ùÿÿ)È	…„Ùÿÿé¦şÿÿƒìVè™×ÿÿƒÄéTëÿÿƒìj èWÖÿÿƒÄé²ïÿÿPƒğ}ÿÿjPj èÔÿÿ‰$è&  ƒÄé0îÿÿ4Úÿÿ   é€íÿÿƒ=wÿÿVVj Pèï9  ƒÄƒè…ÒîÿÿèÚÿÿ   éÃîÿÿ‹½,ÚÿÿQµäßÿÿÿµ Ùÿÿ‰øj ƒÈ j ‰…,Úÿÿ¶…CÚÿÿÆ…CÚÿÿ ˆ…˜ÙÿÿèÙÿÿÇ$   è-ØÿÿƒÄhÿ  Vj èMÓÿÿƒÄ‰Â…À~Gò‰½ÙÿÿÆ„äßÿÿ ‰×ë)¾ƒù‰¤ÙÿÿwèmÔÿÿ‹¤Ùÿÿ‹ öDH…)  ƒÆ9şrÓ‹½Ùÿÿ¶…˜Ùÿÿ‰½,Úÿÿˆ…CÚÿÿPÿµ Ùÿÿj j èŠØÿÿƒÄé¡íÿÿ‹µ„ÙÿÿèÚÿÿ‰È‰‰úè›  ‹9… Ùÿÿú  ‹„ÙÿÿP‰‹œÙÿÿ‹‰…Ûÿÿéæÿÿ¥,Úÿÿ @  „Ìëÿÿ€Ì@‰…èÚÿÿé¾ëÿÿ¶…éÚÿÿQQÀèƒàƒğPÿµÛÿÿèr‡  ƒÄ‰…Ûÿÿ…À…œêÿÿPƒ#sÿÿjPj èĞÒÿÿ‰$è¨  ¶…¤Ùÿÿ<„Àx!<w‹Œƒ ÿÿÙÿá€½¤Ùÿÿ¾   „Êüÿÿ‹…€Ùÿÿ‹Ùÿÿ)È=ş  ‡¡  ö…8Úÿÿ…ˆ  èÎÿÿ€½¤Ùÿÿ‰Æ„/  ‹…pÙÿÿ¿   ‰…˜Ùÿÿ1À‰PWÿµ˜ÙÿÿjèŠĞÿÿ‹ƒÄ…Àı  )Ç„ş  …˜ÙÿÿƒùuÍéó  ‹…€ÙÿÿÆ  ¾…¤Ùÿÿ‰…˜Ùÿÿé«úÿÿö…éÚÿÿ„Güÿÿ‹…€Ùÿÿ‰…˜ÙÿÿƒŒıÿÿ‰…\Ùÿÿë.´&    .´&    v ƒ­˜Ùÿÿ‹˜Ùÿÿ9Ùÿÿƒ	  ö…8ÚÿÿuŞ‹„Ùÿÿ‹…\Ùÿÿ‹ˆ‰…¤Ùÿÿè´Íÿÿ‰Ç¸   ‰ş‰Ç.´&    ƒìÇ    Wÿµ¤Ùÿÿjè©Ïÿÿ‹ƒÄ…À—   )Ç„˜   …¤ÙÿÿƒùuÉÇ…ÈÙÿÿ€²æ1À‰…ÌÙÿÿ‰…ÀÙÿÿ‰…ÄÙÿÿPPj ÿµ”Ùÿÿè,×ÿÿƒÄ…ÿu•é@ÿÿÿ‹…€Ùÿÿ‹,ÛÿÿÆ  ƒù~‹…èÚÿÿöÄ„*  …ÿ…/ûÿÿéyûÿÿÇ…lÙÿÿ   éÔşÿÿ¾µ¤Ùÿÿéçúÿÿƒù„nÿÿÿƒù…ãşÿÿéeÿÿÿ‹•Ùÿÿ‹€Ùÿÿ‰Ğ)È9Ñº    BÂÁ‰€ÙÿÿéÑúÿÿ‰µlÙÿÿéşÿÿÇ…,Ûÿÿ   ƒ*wÿÿèç  èÚÿÿ   ‰…<ÛÿÿéèÿÿƒìPèùÑÿÿƒÄ…À‰Yõÿÿƒ`‰ÿÿW‹µÛÿÿjPj èĞÿÿZYVPè®  ƒÄé1õÿÿQ‹µÛÿÿƒhwÿÿjPj èïÏÿÿ_ZVPèÆ	  ƒìVèmÑÿÿƒÄ‰Â‰ğèñ!  ‹…èÚÿÿé´éÿÿƒ/wÿÿVVPj è¶Ñÿÿ‹…èÚÿÿƒÄ€Ì@édõÿÿƒìjèËÓÿÿƒÄéÕ÷ÿÿƒìVèJÏÿÿ‹…°Ùÿÿ1ÉƒÄ‰°Ùÿÿ‰…¸Ùÿÿ‰´Ùÿÿé@øÿÿ‹½øÚÿÿ‹µÛÿÿPƒ‰ÿÿjé¼ôÿÿ‹½ôÚÿÿ‹µÛÿÿPƒ4‰ÿÿjé¢ôÿÿPƒp‡ÿÿjPj è#ÏÿÿZYVPèº  ‹µÛÿÿƒÄéâÿÿƒÜ‡ÿÿRjPj èûÎÿÿYZÿµ„ÙÿÿPè  ƒÄéåÿÿPƒÜ‡ÿÿjPj èÔÎÿÿZYÿµ„ÙÿÿPèf  ƒÄé¯åÿÿèéÊÿÿ¾	   ‰Çƒtÿÿ‰…¤Ùÿÿ‡ş1À‰PWÿµ¤ÙÿÿjèáÌÿÿ‹ƒÄ…À~)Çt…¤ÙÿÿƒùuÕëƒùtôƒù…¾÷ÿÿÇ…ÈÙÿÿ€²æ1À‰…ÌÙÿÿ‰…ÀÙÿÿ‰…ÄÙÿÿPPj ÿµ”Ùÿÿè\ÔÿÿƒÄ…ÿu‘é…÷ÿÿƒù„üÿÿƒùu8Q1ÒQj ÿµ”Ùÿÿ‰•ÌÙÿÿ‰•ÀÙÿÿ‰•ÄÙÿÿÇ…ÈÙÿÿ€²æèÔÿÿƒÄ…ÿ…ûÿÿ‹€Ùÿÿ¶…¤ÙÿÿˆA‰…€Ùÿÿé'øÿÿ‹½œÙÿÿ‹•¤Ùÿÿèl	  w‰„½¤Úÿÿ‰µœÙÿÿéyòÿÿ©   „2õÿÿÇ…œÙÿÿ   ƒŸwÿÿ‰…¨Úÿÿéõÿÿ‰ğ‹½Ùÿÿè  ‰Æ…À„ÍùÿÿPPVÿµ Ùÿÿè¼ÓÿÿXZVÿµ Ùÿÿè®ÎÿÿƒÄé©ùÿÿ‹…„Ùÿÿ¿   ‹„ƒŒıÿÿ‰…¤ÙÿÿèYÉÿÿ‰Æ1À‰RWÿµ¤ÙÿÿjèdËÿÿ‹ƒÄ…À~)Çt…¤ÙÿÿƒùuÕëƒùtôƒù…?÷ÿÿÇ…ÈÙÿÿ€²æ1À‰…ÌÙÿÿ‰…ÀÙÿÿ‰…ÄÙÿÿPPj ÿµ”ÙÿÿèßÒÿÿƒÄ…ÿu‘é÷ÿÿ‹“|  ƒúÿ„  B™÷ù‹½ ÙÿÿPP‰“|  rÿ´µìÚÿÿWèàÒÿÿXZÿ´µìÚÿÿWèÑÍÿÿƒÄWj j ètÑÿÿƒÄé‘ôÿÿ‹…èÚÿÿ‰Â÷Ò€æH„W  öÄ…´  ‹…Ùÿÿ‰…¤Ùÿÿé5çÿÿƒuÿÿ¿   ‰…˜Ùÿÿ1À‰RWÿµ˜Ùÿÿjè[Êÿÿ‹ƒÄ…À~)Çt…˜ÙÿÿƒùuÕëƒùtôƒù…ùıÿÿÇ…ÈÙÿÿ€²æ1À‰…ÌÙÿÿ‰…ÀÙÿÿ‰…ÄÙÿÿPPj ÿµ”ÙÿÿèÖÑÿÿƒÄ…ÿu‘éÀıÿÿVƒÄvÿÿjPj è™ËÿÿZYÿµ„ÙÿÿPèk  ƒ¼‡ÿÿWjëßƒ‡ÿÿWjëÔPPƒ·wÿÿÿµ ÙÿÿPèA  ƒd~ÿÿVjé{øÿÿV³nvÿÿjVj èBËÿÿ‰$èÚ	  ƒÄjVj è-Ëÿÿ_ZPjè³ÍÿÿPƒ×vÿÿjétÿÿÿPƒõvÿÿjéfÿÿÿÁè	‰ÂƒâƒòéYşÿÿè"ÇÿÿÇ    ƒ‡wÿÿQjéøÿÿ‹µÛÿÿQƒuwÿÿjéÓúÿÿƒ,ˆÿÿVjéÿÿÿPƒwÿÿjéÿÿÿƒXˆÿÿWjé©úÿÿ‹µÛÿÿQƒàˆÿÿjé•úÿÿ‹Ùÿÿ1ÿë‰Çç   ƒÁ¶1‰ğ„Àt0‰¤ÙÿÿèËÿÿ‰ò‹ ¾ò·pöÄ…şÿÿ…ÿ‹¤ÙÿÿtÃ¿   ëÄ‹•Ùÿÿ…ÿ„ğıÿÿ‰×ë"è×Êÿÿ‰ò‹ ¾òöDptè´Îÿÿ‹ ‹°ˆƒÇ¶7‰ğ„ÀuÕÇ…tÙÿÿ   é²ıÿÿPj ÿµÙÿÿj èâÊÿÿƒÄ‰Â…Àx{ƒÂƒì•    ‰•¤ÙÿÿPèÍÿÿƒÄ‹•¤Ùÿÿ…À‰Ç„ÌöÿÿPRÿµÙÿÿWèŸÊÿÿƒÄ…Àx:‰½¤Ùÿÿ‰şëƒìƒÆWè‚ÏÿÿƒÄ…Àt1‹>…ÿuç‹½¤ÙÿÿƒìWè&ÉÿÿƒÄéıÿÿ‹µÛÿÿPƒ„ˆÿÿjéSùÿÿPƒ´ˆÿÿ‹µÛÿÿjPj ‰½¤Ùÿÿè-Éÿÿ‹•¤ÙÿÿƒÄRVPèü  ffffff1í^‰áƒäğPTRè   ÃÔQ j j QVÿ³ü  èÉÎÿÿô‹$Ãff‹$Ãffffffèà   ÂŸQ ŠŒ  ‚Œ  9Èt‹‚Ğ  …ÀtU‰åƒìQÿĞƒÄÉÃ.t& Ã´&    è    Â_Q U‰åSŠŒ  ‚Œ  ƒì)È‰ÃÁèÁûØÑøt‹’Ø  …Òt
+ƒìPQÿÒƒÄ‹]üÉÃ.´&    U‰åSèWÿÿÿÃQ ƒì€»Œ   u'‹ƒø  …Àtƒìÿ³  èÏÿÿƒÄè5ÿÿÿÆƒŒ  ‹]üÉÃ.´&    é[ÿÿÿ‹$ÃfffUWVSè÷şÿÿÃ«P ƒì‹t$0‹|$4‹l$,VèLÉÿÿƒÄH9ùGÏƒùs…ÉuƒÄ‰è[^_]Ã‹Dü‰ï‰DüƒéÁéó¥ëâ¶ˆE öÁt×·Dşf‰DşëËv WVSèˆşÿÿÃ<P ƒìe‹=   ‰|$‰ÇÇD$    èuÃÿÿƒìÇ     ‰Æj
+D$PWèËÿÿ‹ƒÄ‰Á1À…Òu1‹D$9øt@…Àt<ƒlÿÿº2   ë´&    ‹PƒÀ…Òt9Ñuò‹@‹T$e+   uƒÄ[^_Ãv 1Àëåèÿ·  .´&    ´&    U‰ÕW‰ÇVSèÓıÿÿÃ‡O ƒì(‰L$PèÀÈÿÿƒÄƒøÿtX‹L$1öƒé‰L$<{uG´&    ƒìWè—ÈÿÿƒÄƒøÿt<<}t‹T$9ÖsãƒÆˆD5ÿëÚ.´&    fÆD5  ƒÄ‰è[^_]ÃƒìWPè¶ÅÿÿƒÄƒÄ1í[‰è^_]Ã´&    VSè9ıÿÿÃíN ƒìt$ƒìjPjƒsÿÿPèÉÅÿÿVÿt$$jjè[ÉÿÿƒÄ èsËÿÿƒìj
+è	ÊÿÿÇ$   èÌÿÿ.´&    .t& UWV‰ÆSèÕüÿÿÃ‰N ƒì(RèfËÿÿ‰D$ƒÄ…À„“   ƒìƒvÿÿ‰D$Pÿt$ë*v ‹~DG‰FD‰èè şÿÿ‰D¾T…Àt1ƒ~D	Eƒìÿt$j èÉÿÿƒÄ‰Å…ÀuËƒìÿt$èÿÄÿÿƒÄ,[^_]ÃƒAsÿÿRjPj è&ÅÿÿY[UPèışÿÿPƒOsÿÿjPj èÅÿÿ‰$èäşÿÿƒ#sÿÿVjëå.´&    UWVSèüÿÿÃ»M ƒìh´   èÄÁÿÿƒÄ‰Çh…À
+½A   ¿@   ƒìUèÈÿÿƒÄ‰Æ…Àt4ƒìUPèBÈÿÿƒÄ…ÀuÆ> ƒÄ‰ğ[^_]Ã.t& ƒìV1öè=ÄÿÿƒÄëáPƒ#sÿÿjPj ègÄÿÿ‰$è?şÿÿ.´&    ´&    UW‰ÇVSèeûÿÿÃM ƒì‰T$Ç$    …ÒtƒìRè´ÅÿÿƒÄ‰$€? ‰ı„K  ÇD$    é“   ¶    ƒìUè‡ÅÿÿƒÄ‰D$9ıu	ƒø„ó   ƒì‹D$‹T$ĞPè ÇÿÿƒÄ‰Æ…À„  ‰Á9ıt‰øƒì)èPUVè^ÂÿÿƒÄ‰Á‹$…Ò…   € uXÆ ‰L$ƒì‰õÿt$èCÃÿÿ‹|$ƒÄ‰t$€? tf?\u„hÿÿÿƒÇ€? uí‹D$…À„Œ   ‹D$ƒÄ[^_]Ã.´&    ‹T$‰øƒì)è)ÂBÿWPRQ‰L$èqÄÿÿƒÄ‹L$ëƒ.´&    ƒìÿt$ÿt$Qè¯ÁÿÿƒÄ‰ÁéWÿÿÿ.t& ƒìÿt$è¤Âÿÿ‹D$ƒÄ‰D$‹D$ƒÄ[^_]Ã.t& ‰l$‹D$ƒÄ[^_]Ãƒìƒ#sÿÿjPj è¥Âÿÿ‰$è}üÿÿ.´&    .t& WVS‹D$è¤ùÿÿÃXK ¶PöÂ÷t1ÿ€ú
+u=1ÿ€x.t5ƒìpVèêÃÿÿƒÄƒøv!ƒì“isÿÿDúRPènÈÿÿƒÄ…À”À¶À‰Ç‰ø[^_Ã.´&    v UWVSè7ùÿÿÃëJ ƒì‰T$…É„•   ƒì‰Å‰ÎQè…ÃÿÿƒÄ€}  ‰ÇtZƒìUèqÃÿÿƒÄ…À‰D$tH‹L$…Ét@ƒìQèUÃÿÿ‹T$ƒÄLÁù   wCÕ…Àt*ƒìPÿt$UèLÀÿÿƒÄ‰Åë.t& 1ÀT8ú   wÅƒìWVUèÅÂÿÿÆD=  ƒÄƒÄ[^_]Ã.t& VSèyøÿÿÃ-J ƒìt$ƒìjPjƒsÿÿPè	ÁÿÿVÿt$$jjè›ÄÿÿƒÄ è³ÆÿÿƒÄ[^Ã.´&    .t& UWV‰ÆSè%øÿÿÃÙI ì¸   ‰T$e¡   ‰„$¨   1ÀRèpÂÿÿƒÄ‰$‹F8ÇD$ÿÿÿÿ‰D$…À„[  ƒìÿt$èwÆÿÿ‰D$ ƒÄ…À„c  ƒµsÿÿ‹t$ÇD$    »²sÿÿ‰D$ƒ¹sÿÿ«°sÿÿ‰D$.´&    t& ƒìWVè–ÅÿÿZYUÆVè‹ÅÿÿƒÄÆ€> „=  ƒìÿt$VèpÅÿÿƒÄ…À…µ   ƒìÿt$ÿt$Vè„ÅÿÿƒÄ…À…™   ‹$ƒìUÆVè:ÅÿÿƒÄÆ€>=uƒìÿt$$Vè#ÅÿÿZYWÆVèˆÅÿÿƒÄBÿÆ 9Æs¶€ù	„  €ù „  €ù"uÆ  ‰T$ƒìÿt$èk¿ÿÿ‰4$ècÅÿÿ‰D$ƒÄ…À‹T$„K  réÿÿÿ.´&    ƒìWVèÅÿÿƒÄÆéüşÿÿt& ƒìƒpsÿÿj Pè—¼ÿÿ‰D$(ƒÄƒøÿ„  ƒìD$8Pÿt$$èÖ½ÿÿƒÄ…Àx‹|$X¸  @ 9ø¸    D$\}iÇD$    ƒìÿt$èÄ¾ÿÿ‹D$(ƒÄ…ÀxƒìPèĞÁÿÿƒÄ‹„$œ   e+   …¯  ‹D$Ä¬   [^_]Ã.´&    fƒè9Æ…İşÿÿéõşÿÿ‰|$GƒìPèğÁÿÿƒÄ‰F8‰Å…À„K  ƒìÿt$j Pè½ÿÿ‹D$ƒÄ1Ò…À„ï   ‰t$1ÿ‰Öƒìÿt$Uÿt$$è·½ÿÿƒÄ…Àxh„ö   ÅÆ)D$„è   1ÿëĞƒìƒ€sÿÿj Pèg»ÿÿ‰D$(ƒÄƒøÿ…Ğşÿÿƒìƒ”sÿÿjPj è¾ÿÿ‰$èœüÿÿƒÄÇD$    éÿşÿÿt& èºÿÿ‹ ƒøtƒøu?ƒÿt:ÇD$,    ƒìƒÇÇD$(    ÇD$,    ÇD$0€²æj D$,PèÀÃÿÿƒÄé0ÿÿÿ‰ò‹t$¸ÿÿÿÿ‹|$X…Ò‹n8DĞ9úuÆD  ‹F8‰D$é©üÿÿƒìUè#½ÿÿÇF8    ƒÄé;şÿÿ‰ò‹t$‹|$X‹n8ëÄƒìƒ#sÿÿjPj è2½ÿÿ‰$è
+÷ÿÿèU®  .t& UWVSè7ôÿÿÃëE ìì  e‹   ‰”$Ü  ‹“„  ƒúş„,  D$`1í‰D$D$\‰D$„$Ü   ‰D$‹|$¹   ‰è1öÇD$\   ó«…Òx(ƒìRèmÃÿÿ‹‹„  ‰Â¸   Óà	D”l1À…ÉIÁƒÄ‰Æ‹ƒ€  …Àx$ƒìPè;Ãÿÿ‹‹€  ‰Â¸   Óà	D”l9ÎLñƒÄƒìƒÆj j j ÿt$0Vèº½ÿÿƒÄ …Àˆh  ‹D$\ƒà‰D$…î   ‹ƒ€  …Àˆê  ƒìPè×Âÿÿ‹‹€  ‰Â¸   Óà#D”lƒÄ…À„Ã  D$,ÇD$    |$4‰D$t$@‹D$‰|$@ƒìÇD$4   ‰D$0‹D$ÇD$H   ‰D$LÇD$P   ‰l$T‰l$X‰l$\j@VQèÁÿÿƒÄ…Àx5ƒøv ‹”$Ü   ƒúv9Ğƒœ   .´&    t& ‹‹€  ëˆ.´&    è‹·ÿÿƒ8u>‹D$…ÀtY.´&    ¶    ‹„$Ü  e+   …b  ‹D$Äì  [^_]Ã.t& ƒìÿ³€  èê½ÿÿ‹D$ ƒÄÇƒ€  şÿÿÿ…Àuµ‹“„  éşÿÿ.´&    f·„$à   ƒèfƒøv·ÇD$   éRÿÿÿƒì»Àsÿÿh€  h@  Wèé·ÿÿƒÄ‰Æ…Àx@ƒìh  èC½ÿÿƒÄ‰ƒ„  …À~ƒìjWPèz¿ÿÿƒÄƒìVèN½ÿÿ‹“„  ƒÄérıÿÿƒìƒÈ}ÿÿjPj èMºÿÿZYWPèäøÿÿ‹“„  ƒÄéHıÿÿ‹ƒ„  …ÀˆèşÿÿƒìPèßÀÿÿ‹‹„  ‰Â¸   Óà#D”lƒÄ…À„Áşÿÿ´$Ü   ë‹‹„  ƒìh  VQèC¹ÿÿƒÄ…Àäé—şÿÿÇD$   éŠşÿÿèõª  .t& U‰ÍWV‰Æ‰ĞS‰òÁî	èÌğÿÿÃ€B ‰ñÁêƒâƒáƒì	Ê‹0‹x‰T$‹P…É„›   ÊŠ  ç ÿÿƒÏ‰xöD$„   æåÿÿÎe  â;úÿÿ1É‰0Ê;Š  …íÇ@DÑƒìÇ@  Ç@ Ç@Æ@! ‰PPjj è$¾ÿÿƒÄ…ÀuWƒìj jj è_µÿÿƒÄ€ä÷Pjj èOµÿÿƒÄ,[^_]Ã‹HâğïÿÿÊŠ  €åüÉ¿  ‰HéKÿÿÿæ¥ÿÿÎ%  é]ÿÿÿPƒğ}ÿÿjPj è¥¸ÿÿ‰$è=÷ÿÿƒÄë‹.´&    U‰ÍWV‰ÖSè£ïÿÿÃWA ƒì|‰D$e‹   ‰L$l‹Œ$   ÇD$    …Òt‰Ê‰L$‰é‰Õ.´&    ¶    ‹F…À„…   ‹~…ÿt~f9/uy…ÉteƒìQ‰L$PèG¾ÿÿƒÄ‹L$…Àu\‹L$j/GƒÇfƒù·ÉDøt$AVWQè:´ÿÿY_‹D$ÿ0Vèü³ÿÿƒÄ‹D$le+   …á   ƒÄ|[^_]Ã‹FƒàIƒøAt©.t& ‹6…ö…fÿÿÿ‰Í‹L$…íuÃ|$1Ò1À‰‰TƒÀƒø rñ·ñ‰t$ fƒù
+uÇD$   è{òÿÿ‰Å…ÀteD$PWj Uè'¸ÿÿƒÄ…ÀuP‹D$…ÀtH‹PƒútQƒú
+u)‹@ƒÀj/|$AWPVèw³ÿÿXZ‹D$ÿ0Wè9³ÿÿ‹D$(ƒÄƒìPè	´ÿÿƒÄ¶    ƒìUè·¶ÿÿƒÄéÿÿÿ‹@ƒÀë²è¨  fU‰ÅWV‰ÖSèóíÿÿÃ§? ìØ  ‹„$ì  ‰L$‰D$e¡   ‰„$È  1ÀRè³²ÿÿZYT$PRPè6µÿÿƒÄ…ÀuO‹D$X% ğ  = €  u?‹E …À„\  t& ƒìVè‡¸ÿÿƒÄƒøÿtƒø\t:ƒìÿu Pè»ÿÿƒÄëÙ.´&    ‹„$¼  e+   …¯  ÄÌ  [^_]ÃƒìVè7¸ÿÿƒÄ‰Ç@Ì<Bw¶À‹Œƒ¬ŠÿÿÙÿá.t& ‰øƒìÿu ¶øWè'»ÿÿƒÄéoÿÿÿƒìL$Q‰L$è¸ÿÿYXD$$P‹L$Qè]¸ÿÿ‰øƒÄ<d…Ë  ‹D$0ƒøEˆĞ  l  NÑ‹L$(ƒì‰T$‰L$‹D$8  Pè¼¸ÿÿ‰Ç‹D$D   ‰$è©¸ÿÿ‹T$ƒÄR‹L$QWPƒâsÿÿPjÿu èÉ²ÿÿƒÄ éÑşÿÿèºÿÿ…Às  ƒìj èŠ²ÿÿ1Ò…ÀIĞƒÄ‰ø<U„Ü  Rƒ1tÿÿPjÿu è„²ÿÿƒÄéŒşÿÿ‰øÇD$    <4•Àƒì¶ÀÅ   f‰D$D$(Pè±¶ÿÿƒÄ…À…Vşÿÿ„$<  ¹€   ‰Â‰D$‰ğèííÿÿ‹T$‰Á·D$…É„ì  ƒìP‹L$‰èèûûÿÿƒÄƒìÿt$(èœ¸ÿÿ‹ƒ°%  ‰ùƒÄ‰ÂƒÈ€Î€ù4EÂ‰ƒ°%  éèıÿÿècïÿÿÇD$    L$ 1ÒÇD$     ‰Ç¸   ‰‰TƒÀƒørñÇD$   …ÿ„Ï  D$PD$ Pj WèÕ´ÿÿ‹M ƒÄ“Ósÿÿ…Àu5‹D$…Àt-‹@…Àt&‰L$ƒì‰T$j.PèÃ±ÿÿ‹T$ƒÄH…ÀEÑ‹L$ƒìQRèÖ¯ÿÿ‹D$ ƒÄ…À„Ç   ƒìPè°ÿÿƒÄé¶   ƒìÿt$è:±ÿÿ“pÿÿƒÄ¹2   ë.´&    f‹JƒÂ…É„òüÿÿ;uîQƒÿsÿÿéCşÿÿ¼$<  ¹@   ‰ğ‰úè}ìÿÿ…À„Å  ‹$‰úèòÿÿ‰Ç…À„C  ¼$<  ANSI„9  ¸   ‹U …À…ò  ƒtÿÿWPjRèp°ÿÿƒÄ.´&    .t& ƒìWè—²ÿÿƒÄé_üÿÿƒì„$Â   PèŸ±ÿÿY_ÿu „$…  PèÍ®ÿÿƒÄé5üÿÿƒì¼$Â   Wèu±ÿÿXZÿu Wèª®ÿÿƒÄéüÿÿƒì„$Â   PèR±ÿÿXZÿu „$D  Pè€®ÿÿƒÄéèûÿÿƒì¿@   h´   è6¯ÿÿƒÄ¹A   …Àk  ƒìQ‰L$èyµÿÿƒÄ‹L$…À„¢  ƒìQP‰D$è¬³ÿÿƒÄ‹T$…À…d  ‹E Æ: ‰×ƒìPRè
+®ÿÿ‰<$è¢±ÿÿƒÄéjûÿÿƒì„$Â   Pèª°ÿÿY_ÿu „$  PèØ­ÿÿƒÄé@ûÿÿƒì„$Â   Pè€°ÿÿXZÿu „$Æ  Pè®­ÿÿƒÄéûÿÿƒìÿu ‹D$ÿpè”­ÿÿƒÄéüúÿÿ¼$<  ¹    ‰ğ‰úè—êÿÿ…À„Ê   ƒìWè&$  ƒÄ‰Ç…À„Éúÿÿƒìÿu PèM­ÿÿ‰<$èå°ÿÿƒÄé­úÿÿ.t& ƒìÿuèÍ°ÿÿEÇE    ÇE    Y_PEPèğ¯ÿÿƒÄ‰E éuúÿÿƒìƒğsÿÿÿt$$ÿt$,ÿt$4éwûÿÿ‰ÇHé‹şÿÿèŒ¶ÿÿ1Ò‰|$‰×ëffƒ8”À¶ÀÇè¿­ÿÿ…Àuë‰|$‹|$è~·ÿÿ‹T$éeûÿÿƒìÿu jè(´ÿÿƒÄé úÿÿ‹$“tÿÿèRïÿÿ‰Ç…Àt`ƒìÿu Pèp¬ÿÿƒÄéhıÿÿ‹M “Ósÿÿézüÿÿƒìƒ tÿÿjR‰T$Pƒ)tÿÿPj èû¬ÿÿ‹T$(ƒÄ RéÿúÿÿƒìRWè$¬ÿÿƒÄéıÿÿƒì¼$Â   WèÌ®ÿÿXZÿu Wè¬ÿÿƒÄ1ÿé÷üÿÿ¼$@  _COL…¶üÿÿ1À¼$C  LOR …£üÿÿé£üÿÿƒì1ÉP‰èè÷ÿÿƒÄéûÿÿƒì1ÿRèN¯ÿÿ‹E ƒÄ“Ósÿÿé‰ıÿÿè¨   Pƒ#sÿÿjPj èg¯ÿÿ‰$è?éÿÿ.´&    ´&    UWV‰ÆSèeæÿÿÃ8 ƒìD‰D$‹D$X‰L$‰D$e¡   ‰D$41ÀÇD$0    h  	 RèM¬ÿÿƒÄ…Àˆø   ƒì‰Çƒœ´şÿÿ³ğ  PD$<Pƒ5tÿÿPWè®²ÿÿƒÄ …À½   ‹7tÿÿ€N1ö‰L$‰|$‰D$ë.´&    ‰Æƒìh   ‹D$0‹°ƒÀPÿt$ è²®ÿÿƒÄ‰Å…Àx7ƒìÿt$$Pè®ÿÿƒÄ‰Ç…Àt~ƒì‰Âÿt$‹L$‹D$è}÷ÿÿ‰<$èE¯ÿÿƒÄF9D$u™‹|$1ív ƒì‹D$4ÿ4¨èñ­ÿÿ‰èƒÄƒÅ9ğuåƒìÿt$4èÙ­ÿÿƒÄƒìWèí°ÿÿƒÄ‹D$,e+   uƒÄ<[^_]ÃƒìUèÌ°ÿÿƒÄë•èŸ  fUWVSè÷äÿÿÃ«6 ƒì<e‹-   ‰l$,‰Å…ÒtA‰Öèæ©ÿÿ‰ÇD$‰D$.´&    t& ƒìÇ    VUjèŞ«ÿÿ‹ƒÄ…À~%)Æuaƒút|‹D$,e+   …¢   ƒÄ<[^_]Ãv ƒútKƒúuÚÇD$(    ƒìÇD$$    ÇD$(    ÇD$,€²æj ÿt$èH³ÿÿƒÄëƒv Åƒú…uÿÿÿë½v ƒú…gÿÿÿë¯.t& ÇD$(    ƒìÇD$$    ÇD$(    ÇD$,€²æj D$(Pèñ²ÿÿƒÄéMÿÿÿèô  t& UW‰ÇVSèÕãÿÿÃ‰5 ìœ   ‰L$e¡   ‰„$Œ   1ÀÇƒ°%      ö„F  ‹B,‰Ö…À„v  ƒìPè-²ÿÿƒÄ‰Á…À„  ƒìƒ:tÿÿ‰D$ PQ‰L$è°ÿÿƒÄ‹L$‰Åƒ7tÿÿT$ …í‰D$„±  ‰|$‰ï‹l$‰t$‰Ö‰L$ëNv ƒìÿt$Wè“ªÿÿƒÄ‰Ç…Àt!ƒì‰Âÿt$‹L$ ‹D$èõÿÿ‰<$èÌ¬ÿÿƒÄƒìUj è¯ÿÿƒÄ‰Ç…ÀtEƒìVWèÛ®ÿÿƒÄ…ÀxÛ‹D$0% ğ  = @  u”ƒì‰úÿt$‹L$ ‹D$è>üÿÿƒÄë°.´&    ‹L$‹|$ƒì‹³°%  Qè)«ÿÿƒÄ…öt%ƒ»€  şÇD$     ÇD$$    ÇD$(    „  ‹…ÀtƒìPè¬ÿÿÇ    ƒÄ‹„$Œ   e+   …»  Äœ   [^_]Ã¶    ƒì“<tÿÿ«7tÿÿjR‰T$èõªÿÿƒÄ‹T$…À„  ƒìƒTtÿÿUPèV©ÿÿƒÄ‰Â…Àt#ƒì‰ñÿt$‰D$‰øèÉóÿÿ‹T$‰$è«ÿÿƒÄƒì‰ñ“_tÿÿ‰øÿt$è4ûÿÿƒltÿÿZYUPè©ÿÿƒÄ‰Å…Àtƒì‰Â‰ñ‰øÿt$èzóÿÿ‰,$èB«ÿÿƒÄƒì‰ñ“{tÿÿ‰øÿt$èéúÿÿ‹³°%  ƒÄéÅşÿÿv ƒìj jjèºªÿÿƒÄ‰Å…ÀˆĞşÿÿ¸   f‰D$ è~¦ÿÿ‰t$(‰D$$D$ ƒìjPUèV¬ÿÿƒÄ…Àxx‰«€  é—şÿÿt& ƒìURèV¨ÿÿƒÄ‰Â…Àt#ƒì‰ñÿt$‰D$‰øèÉòÿÿ‹T$‰$èªÿÿƒÄƒì‰ñ“Gtÿÿ‰øÿt$è4úÿÿƒÄé¦şÿÿt& ƒìQè/©ÿÿƒÄé*şÿÿƒìUè>¬ÿÿƒÄéşÿÿèš  ƒ#sÿÿVjPj è@©ÿÿ‰$èãÿÿ.´&    UWV‰ÆSèEàÿÿÃù1 ƒìL‰T$‰L$e¡   ‰D$<‹A‰D$‹‰D$©   „"  öFt‹D$‹ öÄ„}  ‹n…ítU‹F‰D$…ÀtJèö¤ÿÿ‰ÇD$,‰D$.´&    t& ƒìÇ    Uÿt$jèë¦ÿÿ‹ƒÄ…À~Z)Å…š   ƒù„á  öF…·  ƒìÿvè,¨ÿÿ‹FÇF    ƒÄÇF    ‰F‹D$<e+   …  ƒÄL[^_]Ãt& ƒùtSƒùu­ÇD$8    ƒìÇD$4    ÇD$8    ÇD$<€²æj ÿt$è ®ÿÿƒÄéHÿÿÿ.´&    D$ƒù…3ÿÿÿë³ƒù…'ÿÿÿë§.t& èû£ÿÿ¿   ‰ÅƒŒtÿÿ‰D$D$,‰D$‰ø‰ï‰Å.´&    t& ƒìÇ    Uÿt$jèÛ¥ÿÿ‹ƒÄ…À~R)Å…’   ƒú…şÿÿÇD$8    ƒìÇD$4    ÇD$8    ÇD$<€²æj D$8Pèb­ÿÿƒÄéHşÿÿ.´&    fƒút[ƒú…0şÿÿÇD$8    ƒìÇD$4    ÇD$8    ÇD$<€²æj ÿt$(è­ÿÿƒÄéLÿÿÿt& D$ƒú…;ÿÿÿë·.´&    ƒú…'ÿÿÿë£.t& ‹D$‹|$ƒì‰xPjj è¸«ÿÿƒÄé)şÿÿÇD$8    ƒìÇD$4    ÇD$8    ÇD$<€²æj D$8Pè‘¬ÿÿƒÄéèıÿÿ.´&    ‹D$ƒìƒHPjj è[«ÿÿƒÄéfıÿÿèn—  .´&    ¶    U‰ÅWVSèEİÿÿÃù. ì\  ‰T$‰L$e¡   ‰„$L  ƒ¡tÿÿ‰D$.´&    f‹|$‹t$‰è‰ñ‰úè­üÿÿ‹öÄ€„›  ƒìjÿt$ j èÂ¥ÿÿ‰$èŠªÿÿè•èÿÿƒÄ…À…Z  ‰ñ‰ú‰èèßøÿÿ‹u…öt‹E…ÀtƒìPVè·«ÿÿƒÄ…À„  ‹D$‹ ‰D$%  =   …rÿÿÿè¡ÿÿ¾	   ‰Çƒtÿÿ‰D$D$,‰D$‰ğ‰ş‰Ç.´&    ¶    ƒìÇ    Wÿt$jèk£ÿÿ‹ƒÄ…À~B)ÇtND$ƒúuÕÇD$8    ƒìÇD$4    ÇD$8    ÇD$<€²æj ÿt$(è÷ªÿÿƒÄë¢fƒútKƒútÁéÑşÿÿƒú…ÇşÿÿÇD$8    ƒìÇD$4    ÇD$8    ÇD$<€²æj D$8Pè¨ªÿÿƒÄéşÿÿƒú…GÿÿÿémÿÿÿfƒìVè'¤ÿÿ‹EÇE    ƒÄÇE    ‰E‹ƒè  ƒìÿ0è0¨ÿÿ‹D$ ƒÄ‹ ©   …  ‹L$‹Q…Ò„B  ©   …  èßÿÿ‰D$…À„ü   ƒìj.Pèæ¡ÿÿ‹L$ ƒÄÇD$(    ‹	‰L$á   „ˆ  …À„r  ‹|$ƒìWèP¥ÿÿƒÄ‰ÆèæŸÿÿ‰ÅD$,‰D$…ö„„  t& ƒìÇE     VWjèİ¡ÿÿ‹U ƒÄ…ÀG  )Æ„g  ÇƒúuĞÇD$8    ƒìÇD$4    ÇD$8    ÇD$<€²æj ÿt$ èb©ÿÿƒÄëÇD$,    ƒìD$0PhdK  j è£ÿÿƒÄ…À„!  ‹D$‹ ©   „óşÿÿ‹D$‹@…Àt/‹„$L  e+   …  Ä\  [^_]ÃöÄu™©   „¹şÿÿèöÿÿ¾   «™tÿÿ‰ÇD$,‰D$ƒìÇ    VUjèî ÿÿ‹ƒÄ…À!  )Æ…¹  ƒúuŠÇD$8    ƒìÇD$4    ÇD$8    ÇD$<€²æj D$8Pèu¨ÿÿƒÄéSÿÿÿ…À„xşÿÿÆ  épşÿÿ.t& ƒú„  ƒú„¶şÿÿ¶    ¾   »ïtÿÿƒìÇE     VWjèR ÿÿ‹U ƒÄ…À~@)Æ…Ğ   ƒú„U  ‹D$(…ÀtƒìPèÖÿÿƒÄƒìÿt$è‡¡ÿÿƒÄéºşÿÿ´&    ƒú„ï   ƒúuÃÇD$8    ƒìÇD$4    ÇD$8    ÇD$<€²æj D$8Pè›§ÿÿƒÄé^ÿÿÿv ƒú„Ç   ƒú…dşÿÿÇD$8    ƒìÇD$4    ÇD$8    ÇD$<€²æj ÿt$èP§ÿÿƒÄéxşÿÿ.´&    Çƒú… ÿÿÿéfÿÿÿƒú…çşÿÿÇD$8    ƒìÇD$4    ÇD$8    ÇD$<€²æj D$8Pèø¦ÿÿƒÄé°şÿÿÅƒú…şÿÿébÿÿÿƒú…¢şÿÿéÿÿÿfƒú…ıÿÿé2ıÿÿfƒú…çıÿÿé4ÿÿÿÇD$8    ƒìÇD$4    ÇD$8    ÇD$<€²æj D$8Pèƒ¦ÿÿƒÄétşÿÿÇD$0    T$01É¸   ‰‰LƒÀƒørñD$(ÇD$,   PD$0Pj ‹t$V‰÷èé ÿÿƒÄ…À…Eüÿÿ‹D$(…À„9üÿÿ‹x…ÿDşé,üÿÿt$L¹@   ƒì‰÷ó«ƒ¸tÿÿj PèçŸÿÿ‰Â‹D$<ƒÄ…ÒuP¨„Ñ   ‰ÂƒâDƒú„•   ƒàƒøtc€|$L „‹üÿÿƒìƒ uÿÿjPj èŸÿÿƒÄVPjèBÿÿƒÄédüÿÿ‰Âƒâ"ƒúu®ƒìƒÕtÿÿjPj è]Ÿÿÿ1Ò‰Á‰ğè2İÿÿ‹D$<ƒÄë‡ƒìƒñtÿÿjPj è6Ÿÿÿ“îtÿÿ‰Á‰ğèİÿÿƒÄésÿÿÿƒìƒátÿÿjPj èŸÿÿ“îtÿÿ‰Á‰ğèİÜÿÿ‹D$<ƒÄé=ÿÿÿƒìƒÈtÿÿjé|ÿÿÿè  ffffffffffffffèW  ' ‹T$‰¼%  ‹T$‰¸%  ÃWVSè¸ÕÿÿÃl' ‹»´%  …ÿt8.´&    ‰şƒì‹ÿvè0ÿÿXÿ6è(ÿÿZÿvèÿÿ‰4$èÿÿƒÄ…ÿuĞÇƒ´%      [^_ÃfUWVSèWÕÿÿÃ' ì4   ‹Œ$H   ‰L$e¡   ‰„$$   ƒ!xÿÿPQè–œÿÿ‰D$ƒÄ…À„&  D$‰$ƒìÿt$h    ÿt$èKœÿÿƒÄ…À„ğ  ¶T$€ú#tÖ€ú
+ˆT$tÍƒìj#ÿt$èŸ›ÿÿƒÄ¶T$…À„‡  Æ  ¶T$„ÒˆT$tŸè:ÿÿ‹<$¾T$‹(ë-ë.´&    .´&    .´&    t& ¾WƒÇ„Ò„aÿÿÿöDU uê¶„À„Oÿÿÿ‰şëv <=t¶FƒÆ„À„u  ¾ĞöDU tã9÷‚s  9÷„ÿÿÿë$.´&    ¾ĞöDU u<=”Â<"”ÀÂt
+ƒÆ¶„ÀuŞƒìVèeÿÿƒÄğ9Ær|ƒìjè ÿÿƒÄ‰Å…À„S  ƒìWèl¢ÿÿƒÄ…À„ ¤ÿÿ‰E 1À€> …  ‰E‹D$…À„ç£ÿÿƒìÿt$è8¢ÿÿƒÄ…À„ì£ÿÿ‰E‹ƒ´%  ‰«´%  ‰Eéfşÿÿ¶    ƒè9Æƒyÿÿÿ.t& ¾öDM u	€ù"…aÿÿÿƒèÆ@ 9ğuâéQÿÿÿ.t& ˆT$ƒì‹|$Wè—ÿÿƒÄ¶T$…À„`şÿÿDÿ€8
+…SşÿÿéFşÿÿ.t& ƒìÿt$èÄœÿÿƒÄ‹„$   e+   uZÄ,   [^_]Ã¶    9÷‚Ãşÿÿéşÿÿv Æ €? F„¡ıÿÿ‰Æ9ø…¢şÿÿé’ıÿÿfƒìVè7¡ÿÿƒÄ…À…Ùşÿÿéæ¢ÿÿè’Œ  éì¢ÿÿ.´&    .t& UWVSègÒÿÿÃ$ ƒì‰D$‹‹´%  …É„}   ‹‹|$‰D$9øte‰L$1Òë¶    ƒÆ ƒÃ ƒÿwƒÀ ƒÁ ƒÂ8Ëu.‹D$¶4‹D$¶n¿‰ó‰Áx¿ƒıvÉƒÿwƒÀ ƒÁ …öuË‹L$9Æt	‹I…Éu1ÉƒÄ‰È[^_]Ã‹ƒ¼%  …Àtƒìÿ³¸%  ÿĞ‹‹´%  ƒÄëĞƒìƒqyÿÿPè@üÿÿ‹‹´%  ƒÄë¶.t& UWè	  Ç=# VSƒì‹D$0‹t$4èÿÿÿ…Àtm‹X…Ûtf‡yÿÿ¾   9ÃtW‰Çë v ƒÁ ƒÂ ƒ|$wƒÆ ƒÀ ƒÃƒÇ8Âu*¶7¶n¿‰Ê‰ğ‰l$i¿ƒıvÊƒ|$wƒÆ ƒÀ …ÉuÌ1À9ñ”À‰ÆƒÄ‰ğ[^_]Ã¶    UWèi  Ç" VSƒì<‹D$P‰|$‰D$‰Áe¡   ‰D$,‰ÈèOşÿÿÇD$(    …À„  ‹h‰Æ…í„ş   ‰ûè«•ÿÿƒìÇ     ‰Çj D$0PUèŸÿÿ‹T$8ƒÄ…Òt€: u
+‹…Û„É   ‹D$‹v‹¸´%  …ÿ„„   ‰t$‹‰D$9D$„¸   ‰|$1Òë .´&    ƒÆ ƒÃ ƒÿwƒÀ ƒÁ ƒÂ8Ëu.‹D$¶4‹D$¶n¿‰ó‰Áx¿ƒıvÉƒÿwƒÀ ƒÁ …öuË‹|$9ÆtZ‹…ÿu‹‹t$´&    ƒìj‹\$ƒˆ‰ÿÿPj è™˜ÿÿZYVÿt$WPjjèG›ÿÿƒÄ ‹D$T‹T$,e+   uƒÄ<[^_]Ãv ‹t$‹ë¯èŠ‰  .´&    fSèjÏÿÿÃ! ƒì‹D$èèüÿÿ…Àt‹@“øxÿÿ…ÀDÂƒÄ[Ã‹D$ƒÄ[Ã´&    UWVSè'ÏÿÿÃÛ  ƒì‹D$$‹|$ è¡üÿÿ…À„‰   ‹p…ö„–   ƒìj=VèÃ•ÿÿƒÄ‰Å…Àt*ƒìWèQ™ÿÿƒÄPWVèÿÿƒÄ…Àu¶E„Àtu<"t ƒìjVWèÔÿÿƒÄƒÄ[^_]Ã.´&    €} uu×‹D$(…Àt/‹t$(ëÉ.´&    ‹T$(…Òt‹t$(éqÿÿÿ´&    ³øxÿÿë ¸ÿÿÿÿë¨.´&    SèJÎÿÿÃş ƒìÿt$ÿt$è$šÿÿƒÄƒøÿtƒìPèã™ÿÿƒÄ1ÀƒÄ[Ã.´&    UWVSèÎÿÿÃ» ì¬   ‹„$À   ‰D$‹„$Ä   ‰D$e¡   ‰„$œ   ƒ•yÿÿÇ„$˜       ‰„$”   ƒ yÿÿèEûÿÿ…À„í  ‹h…í„7  €}  „-  Ç„$”       ƒ›|ÿÿ´$   ‰D$„$œ   ‰D$€} /„v  ‹D$ƒì‹xWèÆ—ÿÿ‰,$‰D$èº—ÿÿ‹T$ƒÄD=    ‡»   ‹L$…ÉEùƒìUWÿt$(h    jh    ÿt$0è]›ÿÿƒÄ …Àˆ‰   ‹„$È   …À„Ã  èN˜ÿÿ‰Çè˜ÿÿƒì‰D$‹D$ÿpjÿèR’ÿÿƒÄ…À„‡   1íƒìj è»–ÿÿƒÄ…À…û  ƒìj WèšÿÿƒÄ…À…å  ƒìÿt$jÿè’ÿÿƒÄ…À…Ì  …í…m  ‹nƒÆ…í…ûşÿÿ1ÿ‹„$œ   e+   …Ì  Ä¬   ‰ø[^_]Ã.´&    ƒì‹D$ÿpj è™ÿÿƒÄ‰Å…À…[ÿÿÿƒìj ÿt$ è4’ÿÿƒÄƒøÿ„Cÿÿÿƒì½   Pèº—ÿÿƒÄé-ÿÿÿfƒìD$,PUèâ—ÿÿƒÄ‰Ç…À…\ÿÿÿ‹D$LD$P„»   ƒìƒ!xÿÿPUè'“ÿÿƒÄ‰Å…À„1ÿÿÿ‰|$´$œ   ‹|$ë;.´&    ƒìVè÷•ÿÿƒÄÆ„›    €¼$œ   /u4‹GƒìPVèušÿÿƒÄ…ÀtvƒìUh    VèŸ’ÿÿƒÄ…Àtx€¼$œ    u®‹ëË.´&    fƒìj ÿt$ èB‘ÿÿƒÄ‰ÇƒøÿtƒìPèÏ–ÿÿƒÄ¿   é™şÿÿfèÿÿƒ8…yşÿÿé„şÿÿ.t& ¿   ƒìUèª”ÿÿƒÄéişÿÿf‹|$ëç.´&    f«…yÿÿé(ıÿÿƒìƒ´‰ÿÿjPj è‚“ÿÿƒÄPjjè5–ÿÿÇ$   è¹™ÿÿè”„  ‹$Ã‹<$ÃffffffUWVSègÊÿÿÃ ìŒ   e‹-   ‰l$|l$|$ƒì‹ƒlÿÿ³lÿÿ‰D$‹ƒÖÿÿ‰é)ù‰D$|)ÎƒÁnÁéó¥ÇD$   j h jè‡“ÿÿƒÄ‰Æ…Àx^ƒìjD$PjjVèz—ÿÿƒÄ …ÀxcƒìD$PèF”ÿÿƒÄƒÀPUVèÿÿƒÄ…Àxn‹D$|e+   …“   ÄŒ   ‰ğ[^_]Ãv ƒìƒ¯yÿÿjPj èm’ÿÿ‰$èu˜ÿÿƒÄë¿ƒìƒä‰ÿÿjPj èM’ÿÿ‰$èU˜ÿÿ‰4$è•ÿÿƒÄ¾ÿÿÿÿë’è^ÿÿƒ8otƒìƒÇyÿÿjPj è’ÿÿ‰$è˜ÿÿƒÄƒìVèâ”ÿÿƒÄëÃè(ƒ  .´&    UWVSèÉÿÿÃ» ìX  e‹5   ‰´$H  ‹´$l  D$0|$,PèøÿÿÇD$0   Ç„$´      ƒÄ„$°   ‰D$PWjèÎ‘ÿÿÆ„$K   ƒÄƒşP„Š   ƒşQtEƒş?tƒìƒŠÿÿjPj è]‘ÿÿZYVPèd—ÿÿƒÄ1À‹”$<  e+   …  ÄL  [^_]ÃèÛıÿÿ‰D$…À‰Ç   Æ„$8   ƒìj ÿt$jèG‘ÿÿƒÄ1À€¼$8  ”Àë¦.t& è›ıÿÿ‰D$…ÀxÄÆ„$:  P¾   ¬$:  èúŒÿÿ‰ÇD$‰D$ƒìÇ    VUÿt$èüÿÿ‹ƒÄ…À·  )Æ„Ç   ÅƒúuĞÇD$    ƒìÇD$    ÇD$    ÇD$ €²æj ÿt$è‚–ÿÿƒÄë.t& Æ„$:  Q¾   ¬$:  èoŒÿÿ‰ÇD$‰D$.t& ƒìÇ    VUÿt$èlÿÿ‹ƒÄ…À  )Æt;ÅƒúuÔÇD$    ƒìÇD$    ÇD$    ÇD$ €²æj ÿt$èö•ÿÿƒÄë¡ƒú„  ‹D$‹t$Æ„$8   ÇD$   ‰D$ë.´&    èË‹ÿÿƒ8…|   ƒìhè  jVè‚“ÿÿƒÄ…ÀxÛƒøu`öD$tY1À1í¼$8  ¾   f‰„$8  ƒìVWÿt$è©ÿÿƒÄ…Àxt*Ç)Æt$1íëß¶    è[‹ÿÿ‹ ƒøtƒøu	ƒı…¦   ƒìÿt$èê‘ÿÿƒÄéëıÿÿfƒút+ƒú„îşÿÿé&ÿÿÿ.t& ƒút#ƒú„Jşÿÿéÿÿÿ.t& ƒú…—şÿÿé¾şÿÿfƒú…÷ıÿÿé"şÿÿfÇD$    ƒìÇD$    ÇD$    ÇD$ €²æj ÿt$è¢”ÿÿƒÄé³şÿÿ.´&    fÇD$    ƒìƒÅÇD$    ÇD$    ÇD$ €²æj ÿt$è_”ÿÿƒÄéàşÿÿèb  fffffffffUWVSè7ÅÿÿÃë ƒì‹D$0…ÀtOƒìıÿÿ¾   ‰D$ë.t& ƒîEÑî‰D$…öt)‹D$‰÷ƒìÑï,øÿu ÿt$<èö“ÿÿƒÄ…ÀtÍ‰ş…öu×ƒÄ1À[^_]Ã.t& ‹EƒÄ[^_]Ã.´&    .t& UW1ÿVSè¥ÄÿÿÃY ƒì‹t$ …öt€>tƒÄ‰ø[^_]Ã.t& ƒìVèçÿÿƒÄ‰ÅƒøvŞ€~[uØèòÿÿ¾V‹ öDPtÆ1À€|.ÿm”À‰Çë¸´&    WVSè8ÄÿÿÃì ƒìe‹=   ‰|$‹|$ ÇD$    …ÿ„y  ¶7‰ğ<\tè’ÿÿ‰ñ‹ ¾ñöDp…8  ƒtÿÿWPjD$PèìŒÿÿƒÄ‰Æ…À8  ‹D$…Àtt¶„Òtf‰Áë.ë.´&    .´&    .´&    fˆƒÀ‰ÊJ¶R„Òt&€ú\ué¶yWİ€úSwE¶Ò‹¼“Üÿÿßÿç´&    ‰Â+T$9ÖŒÚ“ÿÿÆ  ‹D$‹T$e+   …²   ƒÄ[^_Ãv Æ \¶QƒÀˆPÿ.´&    v Që‚Æ ƒÀëóÆ 	ƒÀëëÆ ƒÀëãÆ 
+ƒÀëÛÆ ƒÀëÓÆ ƒÀëËÆ ƒÀëÃÆ ƒÀë»Æ  ƒÀë³Æ \ƒÀë«Æ ?ƒÀë£Æ #ƒÀë›v ƒìWèoıÿÿ…ÀDÇ‰$èB‘ÿÿƒÄ…À…Dÿÿÿ1Àé=ÿÿÿè›|  fffffU‰ÍW‰ÇVSèsÂÿÿÃ' ƒì$‹D$<‰T$DPjèF‰ÿÿƒÄ…ÀtE‰Æ@ƒìL(‰‰L$‰NUÿt$Pè_ŒÿÿƒÄÿt$8ÿt$8‹L$QèJŒÿÿ‰~ƒÄƒÄ‰ğ[^_]Ã‰şëò¶    UWVSè÷ÁÿÿÃ« ƒì‹t$4‹l$0‹|$8…ötN€> tI1Ò…ÿtƒìWè:ŒÿÿƒÄ‰Â‰T$ƒìVè(Œÿÿ‹T$‰|$@‰Á‰è‰T$DƒÄ,‰ò[^_]éÿÿÿ.´&    fƒÄ‰è[^_]Ã¶    VSèyÁÿÿÃ- ƒì‹t$…öt8ƒìVè?ˆÿÿƒÄ…ÀtƒìPVÿt$èJÿÿÿƒÄƒÄ[^Ã‹D$…Àt‹D$ëÚf‹D$ƒÄ[^Ã¶    UWVSèÁÿÿÃË ƒì‹D$$‹t$ …ÀtIƒì“vÿÿRPèÂ3  ƒÄ‰Ç…Àt0‹ …Àt‰ıƒìƒÅj PVèQÿÿÿƒÄ‰Æ‹E …ÀuåƒìWè\1  ƒÄƒÄ‰ğ[^_]Ã.´&    ´&    UWVSè—ÀÿÿÃK ƒìLe¡   ‰D$<1Àè…ÿÿƒì‰D$$Ç     h   è–Œÿÿ‰D$$ƒÄ…À„¸   D$,ÇD$    ÇD$   ‰D$.´&    ´&    ‹D$‹t$ƒì‹T$)Æ<Vj Wès‡ÿÿƒÄ…ö„ö   1íÇD$    ƒìVWÿt$lè0ˆÿÿƒÄ…ÀxYtÇÅ)ÆuÙ…íˆ¯   „¿   l$‹D$9D$u“Ñd$‹D$ƒìPÿt$ è.†ÿÿ‰D$$ƒÄ…À…oÿÿÿ1íé(  .´&    ‹D$‹ ƒøtƒøuP‹D$ƒøtGƒÀÇD$8    ƒì‰D$ÇD$4    ÇD$8    ÇD$<€²æj ÿt$(èBÿÿƒÄé<ÿÿÿ.´&    f…íWÿÿÿƒì1íÿt$ èº‡ÿÿƒÄé¢   ‹t$…ögÿÿÿ‹D$Æ0 …À„ª   ‹|$1í€? tFƒìj=Wè°…ÿÿƒÄ…À„…   ‰D$PƒìR‰T$è1‰ÿÿZY‹L$P‰è‹T$)ùR‰úè*üÿÿƒÄ‰ÅƒìWè‰ÿÿ|‰<$è ‰ÿÿƒÄ)Æƒî…ö”ƒìÿt$ è‡ÿÿƒÄ.t& ‹D$<e+   uƒÄL‰è[^_]Ã.´&    1íë§1ÿ1íë¡èQx  WVS‹t$è4¾ÿÿÃè ‹|$…öu$ëDt& ƒìWRPè5ÿÿ‹vƒÄ…À”Â…öt„Òt‹…Àt‹V…ÒuÕ‹vº   1À…öuá[^_Ãv [1À^_Ã.´&    fVSèÉ½ÿÿÃ} ƒì‹t$…öt.´&    ‰ğƒì‹vPèB†ÿÿƒÄ…öuëƒÄ[^Ã.t& UWVSè‡½ÿÿÃ; ƒì,‹ƒà  ‹‹:‰T$…ÿ„P  1À¶    ƒÀ‹,‚…íuö‰D$‹D$‰D$ƒÌşÿÿ‰D$ƒ{ÿÿ‰D$¶    ‹t$‹l$¸	   ë‹nƒÆ…í„â  ƒìUèy‡ÿÿƒÄƒìPUWè;‹ÿÿƒÄ…ÀuÔ‹t$@…ötO‹D$@€? ‹0t>ƒìj=Wè¦ƒÿÿƒÄ…À„É  ‰D$hƒìUè+‡ÿÿZY‰ú‹L$$P‰ğU)ùè(úÿÿƒÄ‰Æ‹D$@‰0‹|$‹l$ƒì‹t$‰ú)ê‰ğƒî‰ÑÁù)ÈÁàPDPWè¯‰ÿÿ‰t$GüƒÄ‹x…ÿ…*ÿÿÿ‹D$‹0…ö„4  ƒ¬şÿÿ‹l$‰D$ƒ{ÿÿ‰D$é·   ´&    ƒìj/Vèí‚ÿÿƒÄ…À„½   ‹|$@…ÿtW‹D$@€> ‹8tFƒìj=VèÄ‚ÿÿƒÄ…À„Ù   ‰D$PƒìR‰T$ èE†ÿÿZY‹L$$P‰ø‹T$)ñR‰òè>ùÿÿƒÄ‰Ç‹D$@‰8‹t$‰êƒì‹|$)ò‰Ñ‰øƒïÁù)ÈÁàPDPUèÉˆÿÿ‰|$EüƒÄ‹p…öt`‹|$‹T$¸   ƒìPRVè ‰ÿÿƒÄ…À„-ÿÿÿ‹WƒÇ…ÒtBƒìR‰T$ è®…ÿÿƒÄ‹T$ëÊ.t& ‹L$‰ÈƒÁ‰L$é¹şÿÿ¶    ƒÄ,[^_]Ã1ÿéPÿÿÿ‰èƒÅëƒ1öéXşÿÿ.´&    v SèêºÿÿÃ ƒìj èJıÿÿƒÄ[Ã.t& VSèÉºÿÿÃ} ƒìè†ÿÿ‰Æè”Šÿÿ9Æu@è;Šÿÿ‰ÆèÄ…ÿÿ9Æu0ƒìj j j j jè~€ÿÿƒÄ …Àtƒìÿt$è;ƒÿÿƒÄƒÄ[^ÃfƒÄ1À[^ÃffffffffffffffffffffÇ    ¶€ù/tëƒÀ€x/t÷¶„Ét8Ç   ¶H„Ét-€ù/t(S¹   ´&    ‰
+¶ƒÁ„Ût€û/uî[Ãt& 1ÀÃÃt& èWïÿÿ ‹T$‰ˆ  Ã.´&    v Uè*  Ån WVSƒìl‹¼$„   ‹„$ˆ   ‰ë‹´$€   ‰|$ ‰D$$e¡   ‰D$\1ÀÇ    ÇG    …ö„N  ¶„ÒˆT$„?  èê‚ÿÿ‰D$‹¶D$‰ÂöDC t‰ğt& ¶HƒÀ‰ÊöDK uğ‰ëˆT$è5~ÿÿ¶T$‰D$€ú-„Ã  ƒìÇ     ÇD$\    j |$`‰|$8WVèñ†ÿÿ‹\$‹|$h‰D$H‰T$L‹ƒÄ9÷„t  …É…Ä  …ÿ„  €? „û  ÇD$    ÇD$    ÇD$    v ¶G<i„Ò   ‰Âƒâß€úB…&  € „ç  ‰ëèå}ÿÿ…À„  ‹…Ò„  ƒìR‰T$8èÆ‚ÿÿ‹L$‹\$ƒÄ‰Æ‹T$(‰È	Ø…ë  €? „â  ƒì‰ëVWRèe†ÿÿƒÄ…À…Ê  7¾‰Î<0u).´&    ¶    ‰ò¾FƒÆ<0tó‹\$)Ê|‰|$‹|$‹öDB…  ‰÷‰t$X¶G<i….ÿÿÿ¶Gƒàß<B…7ÿÿÿ€ …-ÿÿÿÇD$   ¾?ƒìµv{ÿÿ‰ëWVè\~ÿÿƒÄ…À„ù  )ğx‰D$0…ÿ„  ‹D$‹L$0‰|$@‹t$8‹|$<™‰D$(‰T$,‰D$H‰L$ë9.´&    ‹T$(‹L$,ƒl$‰Ó‰È¯Æ¯ßÃ‰Ğ÷æ‰Æ‹D$‰×ßƒøÿ„h  …ÿtÌ‹D$(÷æ‰D$8‹D$H‰T$<‹\$<÷ç‰Ù1ÛÈÚ…Òt¨‰|$<‹|$@‰t$8¾Şÿÿÿ‹D$$…Àt‰8‹L$‹\$‰È	Ø„@  ‹|$(¸   1Ò‰t$H‰Æ‰|$$‰×ëNë .´&    .´&    .´&    .´&    ‹T$(‹L$,ƒl$0‰Ó‰È¯Æ¯ßÃ‰Ğ÷æ‰Æ‹D$0‰×ßƒøÿt(…ÿtĞ‹D$(÷æ‰D$‹D$$‰T$‹\$÷ç‰Ù1ÛÈÚ…Òt¬‹L$¸
+   ‹\$‰t$@‰|$D‹t$H9È¸    ÇD$0
+   ¹   ØÇD$4    sE‰t$‰Ï¸
+   1Òƒï„   ‰Á‰ÓÁá¤ÃÈ‹L$ÚÀ‹\$Ò9È‰ÖŞrÔ‰D$0‹t$‰T$4‹|$…ÿ„Ğ   1ÿ‰t$$»™™™™‹t$0‰|$¹™™™‹|$4ë&‰ğ‰ú¤ÂÁàÆ×öÿƒD$‹D$9D$„ö  9ó‰ÈøsÒ‰|$4‹|$»ÍÌÌÌ‰t$0‰l$‰ù‹l$‹|$‰şîƒÖ ‰ğ÷ã‰ĞƒâüÁèÂ‰ğ)Ğ)Çƒİ ‰øƒÁiıÍÌÌÌ‰D$iD$ÌÌÌÌ‰l$Ç‹D$÷ãú¬ĞÑê‰Ç‹D$‰Õ9Áu«‹l$‹t$$‰|$‰T$‰t$L¸   1Ò‰l$H‰Ç‰Õ.´&    ´&    ‹\$‹t$¸ÍÌÌÌ‰ÙñƒÑ ÷á‰ĞƒâüÁèÂ)Ñ1Ò‰È‰Ù‰ó‰T$)Á‰D$ÓiÁÌÌÌÌióÍÌÌÌÆ¸ÍÌÌÌ÷á‰Ó1Ò‰Áƒàó4’‰t$¾   ÷æ‹t$òD$T$‰T$‰Ê‰Ù¬ÚÑé‰D$‰T$‰L$UWÿt$<ÿt$<‹\$Xèm  ‹L$ƒÄ‹\$‰L$$‹L$‰\$(‹\$‰L$‰ù‰\$Áá‰ë¤ûù‰ÏëÏ‹L$‰İİ‹\$…Ét29È‰ÖŞr*SQRP‹\$Xè¦l  ƒÄRPÿt$Lÿt$Lè”l  ƒÄD$8T$<‹\$$¸	   9Ø¸    D$(‚Ïşÿÿ‹t$L‹|$ ‹D$8‹T$<‰‰Wé‰   .t& …Éu|.´&    t& ¸   ¾êÿÿÿ‹|$‰‹D$\e+   …Ø  ƒÄl‰ğ[^_]Ã.t& è+xÿÿ¾êÿÿÿ‰D$¸   ëÅv ƒÀÿ»ıÿÿÿƒÒÿ‰D$¸ÿÿÿÿ‰T$‹T$9ÓD$ƒúÿÿ÷Ù‰Î…öy˜‰ğ÷ØëŒf‹D$ƒì‰ëÇ     ÇD$\    j ÿt$8Vè­€ÿÿ‹\$‹|$h‰D$‰T$‹ƒÄ9ş„0ÿÿÿ…Ét<ƒÀÿ»ıÿÿÿƒÒÿ9Ã»ÿÿÿÿÓr–…ÿ„ÿÿÿ€? …Åùÿÿéÿÿÿ„À…Üùÿÿéªúÿÿv ‹\$‹t$‰Ø	ğuÌéùÿÿ‹L$‹|$»ÍÌÌÌ‰D$0‰T$4‹t$ùƒÑ ‰È÷ã‰×ƒâüÁï:‹T$)Á‹D$)ÈƒÚ ‰D$‹D$iÊÍÌÌÌiT$ÌÌÌÌÑ÷ãÊ¬ĞÑê‰D$‰T$é$üÿÿ‹D$$…Àt
+1Ò‰¶    ‹|$ ‹D$81ö‹T$<‰‰Wéhşÿÿ‰t$81ö‰|$<‹|$@é¾úÿÿÇD$è  éçùÿÿƒìµ{ÿÿWVèHxÿÿƒÄ…À…ìùÿÿéşÿÿ‰t$0‹t$$‰|$4é…üÿÿèbk  fSèJ±ÿÿÃş ƒìj ÿt$ÿt$èr÷ÿÿƒÄ[Ã.´&    .t& UWVSè±ÿÿÃË ƒì‹|$ ‰ı…ÿuëEfè‹zÿÿ‰ò‹ ¶òöDptƒÅ¶u ‰ğ„Àuà‹D$$…Àt‹D$$‰(9ïs#1À€}  ”ÀƒÄ[^_]Ã‹T$$…Òt
+‹D$$Ç     ƒÄ1À[^_]ÃUWVSè—°ÿÿÃK ƒì‹|$ ‰ı…ÿuëEfèzÿÿ‰ò‹ ¶òöDptƒÅ¶u ‰ğ„Àuà‹D$$…Àt‹D$$‰(9ïs#1À€}  ”ÀƒÄ[^_]Ã‹T$$…Òt
+‹D$$Ç     ƒÄ1À[^_]ÃUWVSè°ÿÿÃË ƒì‹|$ t$(ët& ƒìUWèÿÿƒÄ…Àt.‹…À„„€ÿÿ‹nƒÆ…í„v€ÿÿƒìPWèİ~ÿÿƒÄ…ÀuÆ¸   ƒÄ[^_]Ã.´&    S‹L$‹D$‹\$…ÉtÁëv 8ÚtƒÀ9Èt¶„Òuî1À[ÃfUWVSèw¯ÿÿÃ+ ƒìe‹-   ‰l$‹l$4‹|$0ÇD$    è^tÿÿ‰Æ…ÿt`€? t[ƒìÇ     ÿt$<D$PWè{uÿÿƒÄ‰E ‹‰U…Àu,‹T$9út,…Òt€: u#‹T$e+   u#ƒÄ[^_]Ã¶    ÷Øëát& Ç   ¸êÿÿÿëĞèæh  ¶    UWVSèÇ®ÿÿÃ{  ƒì,‹D$D‹|$@‰D$e¡   ‰D$1ÀÇD$    è©sÿÿ‰Æ…ÿ„   €? tzƒìÇ     ÿt$Ll$ UWèÂtÿÿƒÄ…Òy#Ç"   ¸Şÿÿÿ‹T$e+   uPƒÄ,[^_]Ãv ƒìÇ    ÿt$LUWè4|ÿÿ‹L$ƒÄ‰‹‰Q…Àu$‹T$9út
+…Òt¶€: t±Ç   ¸êÿÿÿë£èh  ÷Øëš.´&    fUWVSèç­ÿÿÃ›ÿ  ƒì e‹5   ‰t$‹t$8ÿt$<D$Pÿt$<è=şÿÿƒÄ‰Á…Àu)‹$‹T$‰Ç‰ÕÇ   €ƒÕ ƒı v+è¦rÿÿ¹ŞÿÿÿÇ "   ‹D$e+   uƒÄ‰È[^_]Ãt& ‰ëáèwg  ´&    VSèY­ÿÿÃÿ  ƒìe‹5   ‰t$‹t$(ÿt$,D$Pÿt$,è_şÿÿƒÄ…Àu‹L$‹$…Ét-è(rÿÿÇ "   ¸Şÿÿÿ‹T$e+   uƒÄ[^Ã.´&    f‰ëßè÷f  ´&    UWVSè×¬ÿÿÃ‹ş  ƒì0‹D$L‹L$P‹|$D‹t$T‰D$‹D$X‰\$‰D$‰L$e‹-   ‰l$ ‹l$\ÇD$    ÇD$    ÿt$HD$PWèüüÿÿƒÄ…À…R}ÿÿ‹$‹\$‹T$‰È	ğt9Ë‰ĞğŒ
+}ÿÿ‹t$‰ğ	èu‹D$e+   uƒÄ,‰Ø[^_]Ãv 9ŞÕŒÜ|ÿÿëÚè/f  .´&    ´&    UWVSè¬ÿÿÃ»ı  ƒì0‹D$L‹|$D‹l$P‰D$e‹5   ‰t$ ‹t$TÇD$    ÇD$    ÿt$HD$PWèğüÿÿƒÄ…À…Â|ÿÿ‰é	ñt/‹D$‹L$9ÅÎ‚Î|ÿÿ‹T$e+   u"ƒÄ,‰Ê[^_]Ã¶    …À……|ÿÿ‹D$‹L$ëÑèye  .´&    UWVSèW«ÿÿÃı  ƒìe‹-   ‰l$‹l$                      !   "   #   $   %   &   '   (   )                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   4‹t$0ÇD$    è>pÿÿÇ     …ö„’|ÿÿ€> „‰|ÿÿƒì‰ÇD$PVèÇqÿÿ‹ƒÄ…À…P|ÿÿ‹D$9ğt,…Àt€8 u‹D$e+   uƒÄ[^_]ÃİØèİd  İØé8|ÿÿİØé1|ÿÿ.´&    ´&    UWVSè§ªÿÿÃ[ü  ƒìe‹-   ‰l$‹l$4‹|$0ÇD$    èoÿÿÇ     ‰Æ…ÿtR€? tMƒìD$PWèOwÿÿ‹ƒÄÛ} …Àu+‹T$9út+…Òt€: u"‹T$e+   u"ƒÄ[^_]Ã.t& ÷Øëât& Ç   ¸êÿÿÿëÑèd  .´&    ¶    WÙîVSèö©ÿÿÃªû  ƒìe‹=   ‰|$‹|$,‹t$(D$Û|$PVèÿÿÿƒÄ…À…F{ÿÿÛ,$‹D$e+   uƒÄ[^_ÃİØè²c  fWVSè˜©ÿÿÃLû  ƒìe‹=   ‰|$‹|$,‹t$(D$PVè!øÿÿƒÄ…À…{ÿÿ‹$‹T$‹L$e+   uƒÄ[^_ÃèVc  ¶    VSè9©ÿÿÃíú  ƒì‹t$,ÿt$0ÿt$,èÿÿÿÙ|$·D$€Ìf‰D$ÙÀÙl$ß|$Ùl$ßl$‹D$‹T$‰ŞéÙƒsÿÿ‰VŞÉÙl$Û\$Ùl$‹D$‰FÁø‰FƒÄ$[^Ã¶    VSè¹¨ÿÿÃmú  ƒì‹t$,ÿt$0ÿt$,èŸşÿÿÙ|$·D$€Ìf‰D$ÙÀÙl$ß|$Ùl$ßl$‹D$‹T$‰ŞéÙƒsÿÿ‰VŞÉÙl$Û^Ùl$ƒÄ$[^Ãt& SèJ¨ÿÿÃşù  ƒìj j j j ÿt$(j
+ÿt$,èJûÿÿƒÄ([Ã.t& VSè¨ÿÿÃÍù  ƒì‹t$…ötIƒìƒuÿÿPVèwÿÿƒÄ…Àtaƒìƒ‡uÿÿPVèñvÿÿƒÄ…Àt:ƒìƒ–uÿÿPVèÚvÿÿƒÄ…À…¥yÿÿƒìjèUqÿÿƒÄ…À•ÀƒÄ[^Ã´&    ƒÄ¸   [^Ã.t& ƒÄ1À[^Ã.´&    UWVSƒì‹D$,‹T$0‰ÁZá ğ  ù @  „ê  ù    „~   ù    „ò  ù `  „Ö  ù À  „ê  ù   „î  ù €  „ò  ÇD$	   ‰Ó¾   ¿   ÇD$   ½   ÇD$   ÇD$   ÇD$   Ç$   ëAÆlÇD$
+   ¾   ¿   ½   ÇD$	   ÇD$   ÇD$   ÇD$   Ç$   ‰Áá   ƒùÉƒá»ƒÁrˆ‰Áá€   ƒùÉƒá¶ƒÁwˆ*‰Áƒá@ƒùÉöÄ„±   ƒáàƒÁsˆ:‰Áƒá ƒùÉƒá»ƒÁrˆ2‰Á‹4$ƒáƒùÉƒá¶ƒÁwˆ2‰ÁƒáƒùÉöÄ„Œ   ƒáàƒÁs‹|$‹\$‹t$ˆ:‰ÁƒáƒùÉƒá»ƒÁrˆ‰ÁƒáƒùÉƒá¶ƒÁwˆ2‰ÁƒáöÄt7ƒùÀƒààƒÀt‹|$ˆ:‹D$Æ ƒÄ‰Ğ[^_]Ãv ƒáµƒÁxéJÿÿÿ.t& ƒùÀƒàµƒÀxëÇv ƒáµƒÁxéoÿÿÿ.t& Ædé›şÿÿ.´&    Æbé‹şÿÿ.´&    Æcé{şÿÿ.´&    Æsékşÿÿ.´&    Æpé[şÿÿ.´&    Æ-éKşÿÿ.´&    è‡Úÿÿ¿ö  UWVSƒìL‰$‹t$dl$e‹=   ‰|$<‹|$höD$`t	ÆD$ l$¹
+   1À1ÒöÁ ‰û”À•ÂÓàÓâ9ÆÓ‚û  ƒÁ
+ƒùFuÛE‰Ë¹<   ‰D$¸ÍÌÌÌ÷ã‹$Áê¶„{ÿÿ‰úˆD$‰ğ­ĞÓêöÁ t‰Ğ‰D$¸ÿÿÿÿºÿÿÿÿÓàöÁ t‰Â1À÷Ğ÷Ò!Æ¶D$!×ˆE öD$`t€|$Bt‹D$ºiB  f‰E‰D$‹D$Æ  ‰ğ	ø„y  ‹l$`¸î§ÆKƒå9ğ¸7‰A øƒ¶  ¬ş
+Áï
+Kì‰ğ‰úÁà¤ò)ğú¤ÂÁàğú1ÿ¤ÂÁà­ĞÓêƒá EÂE×…í„¬  ƒÀ»ÍÌÌÌƒÒ ‰Á‰ÆÑ‰×ƒÑ ‰È÷ã‰ĞƒâüÁèÂ)Ñ)Îƒß iÖÌÌÌÌ‰ğiÏÍÌÌÌÑ÷ãÊ¬ĞÑê‰Æƒğd‰×	Ğ„ï  ‹$èÏhÿÿ“5tÿÿ…Àt‹…Ò„3  €: „*  ƒìWVRÿt$‹\$ƒ™{ÿÿPj jj t$HVèmqÿÿƒÄ0‰Ç@ÿƒø‡  €|<0„  ƒìl$#U‹\$è`mÿÿƒÄ…Àts¹   >)ù9ÁGÈ…Ét1Û¶D ˆƒÃ9ËrñÆ
+ ëI´&    ‰Ëƒé
+…È  ¹B   ‰t$f‰M ƒìD$Pÿt$‹\$ƒ¤{ÿÿPj jj t$8VèÉpÿÿƒÄ ƒìV‹\$è	qÿÿƒÄ‹T$<e+   …k  ƒÄL[^_]Ã.t& ‰ğ‰úÁà¤ò)ğú¤ÂÁàğú1ÿ¤ÂÁà­ĞÓêƒá EÂE×…í…§   ƒÀ2ƒÒ ‰Á‰Æ¬Ğæÿÿ ‰Ó‰Ï%ÿÿ ‰İÆ‰ĞÁè%ÿÿ Æ‰ĞÁèÆ¸…ëQ÷æÁê’€)Æ)÷ƒİ iÇõ(\iİ)\ÂÃ¸)\Â÷çÚ‰Æƒàü‰×¬ÖÁïÆ×öÿ‰ğƒğd	øt‰ğ	ø„äşÿÿéşÿÿ´&    ƒD$éÎşÿÿ¶    ƒÀ»ÍÌÌÌƒÒ ‰Á‰ÆÑ‰×ƒÑ ‰È÷ã‰ĞƒâüÁèÂ)Ñ)Îƒß iÖÌÌÌÌ‰ğiÏÍÌÌÌÑ÷ãÊ¬ĞÑê‰Æ‰×ë†.t& ‹$5tÿÿéÈıÿÿ.´&    fÆD$ é€şÿÿÆD< ‰ÇééıÿÿèõZ  E‰D$é<üÿÿ.´&    UWVSƒì‹D$ …À„ã   ¶„Ò„Ø   ‹\$$‹t$(…Û”Á…ö”ÃÙ…¾   ‹L$,…É„²   1í.´&    f‰Ã€ú,„•   €{ t¶SƒÃ„Ò„˜   ;l$(sS€ú,uà€{ t_‰î‰ß.´&    v 9øsb‰ùƒì)ÁQPÿT$<ƒÄƒøÿtM‹T$$ƒÅ‰²€? tP¶SC„ÒtE;l$(r‡ƒÄ¸şÿÿÿ[^_]Ã.´&    f{‰îë©.´&    €x têƒÄ¸ÿÿÿÿ[^_]Ã.t& ƒÄ‰è[^_]Ã.´&    ¶    Uèÿ  Å^ñ  WVSƒì‹D$ ‹\$$‹T$(‹t$,…ÀtR¶…ötK„ÉtG‹>9úrA€ù+t,Ç    ÿt$0RS‰ëPèşÿÿƒÄ…À~ƒÄ[^_]Ã´&    ƒÀ)ú»ëĞ¶    ¸ÿÿÿÿëÚUWVSƒì‹L$8‹t$4‹D$0…É”Â…ö”ÁÊ…Â  …À„º  ¶¿   „Ò„Ë   v ‰Ã€ú,„…  €{ t¶SƒÃ„Ò„¨   €ú,uæ€{ ‰İuk9èƒb  ‹T$<…Ò„”   €}ÿ+„*  €8+ÇD$    ÇD$    uÇD$   ƒÀf‰êƒì)ÂRPÿT$HƒÄ…ÀxF‰Â‰ÁÁúƒá‰T$‰úÓâ‰Ñ‹T$‹L$…ÉuI‹T$…Ò…}   €}  t¶SC„Ò…8ÿÿÿ1ÀƒÄ[^_]Ã¶    ÇD$    ÇD$    ë†¶    Pÿ…Àt¼‰\$.´&    .´&    .t& ‰Ğ‰Ñ‰ûÁøƒáÓãƒêsê‹\$ë‡t& ƒÀ;D$<vÿÿÿ‰\$‰l$‹l$<´&    ‰Â‰Á‰ûƒÀÁúƒáÓã9èuè‹l$‹\$é>ÿÿÿv ÇD$    ƒíÇD$   éàşÿÿ€x „“şÿÿƒÄ¸ÿÿÿÿ[^_]Ã¸êÿÿÿéÿÿÿ.´&    ´&    UWVSƒì‹|$(‹t$$‹D$ …ÿ”Â…ö”ÁÊ…~   …Àtz¶„ÒtQ‰Ã€ú,tY€{ t¶SƒÃ„Òt9€ú,uê€{ ‰İuk9ès:‰êƒì)ÂRPÿ×ƒÄ…Àx	€}  t¶SC„Òu¯1ÀƒÄ[^_]Ã.t& €x t¿ƒÄ¸ÿÿÿÿ[^_]Ã¸êÿÿÿëÙ¶    UWVSèwœÿÿÃ+î  ƒì,e‹=   ‰|$‹|$H‹t$@‹l$DÇD$    …öth‹D$L‰E ‰èMaÿÿÇ     €>:‰D$tnƒìj
+D$ ‰D$PVèÚhÿÿ‹T$ƒÄ‰E ‰‹…À…´   ‹D$9ğ„¨   …À„    ¶€ù:th€ù-ts1À‹T$e+   …Š   ƒÄ,[^_]Ã.´&    ƒìƒÆj
+D$ PVèmhÿÿ‹T$ƒÄ‰‹…ÒuN‹T$…ÒtF€: •À9ò”Â	Ğ¶À÷Øë¡f€x u
+‹D$L‰ëfÇD$    ƒìp‰T$Ç    j
+ÿt$ë¸ÿÿÿÿéeÿÿÿèQU  è·Ğÿÿïì  UWVSƒì,‰D$‹D$@e‹=   ‰|$‹|$D…ÿ„À   …À„¸   T$‰T$T$‰T$ëB¶    …ö”À…í”ÃØ…   9ù…†   ƒìQ‰L$UV‹\$èiÿÿƒÄ…Àul‹$ï‹T$èkàÿÿ‹T$‰Æ‰øè^àÿÿ‹L$‹|$‰Å‰Èøtƒøu™…öt€>/t…ít,€} /u†¶    ¸   ‹T$e+   uƒÄ,[^_]Ã¶    1ÀëáèWT  ´&    UWVSè7šÿÿÃëë  ƒì‹|$0‰øD$4„~   …ÿ„–   ‹D$4…À„ª   ƒìWèqdÿÿƒÄ‰ÆD$8‰D$‚   ƒìƒÀPèfÿÿƒÄ‰Å…Àt*ƒìVîWPèücÿÿƒÄÿt$<ÿt$<Vèëcÿÿ‹D$ƒÄÆD  ƒÄ‰è[^_]Ã.t& ƒìƒøxÿÿPè1hÿÿƒÄƒÄ‰Å[‰è^_]Ãfƒìÿt$@ÿt$@èàfÿÿƒÄ‰Åëº.´&    ƒìWè÷gÿÿƒÄ‰Åë¡1íë.´&    t& V1ÀSè7™ÿÿÃëê  ƒì‹t$…ötƒìVècÿÿƒÄƒìPVÿt$èÌşÿÿƒÄ[^Ã¶    W1ÿVSèö˜ÿÿÃªê  ƒìe‹5   ‰t$‹t$ D$(Pÿt$(jD$PèIhÿÿƒÄ…ÀxƒìPÿt$Vètşÿÿ‰ÇXÿt$èHaÿÿƒÄ‹D$e+   u	ƒÄ‰ø[^_ÃèšR  .´&    fUWVSèw˜ÿÿÃ+ê  ƒì‹T$0‹t$4…Ò„   …ötY€> tT‹
+…Ét_‰T$0ƒìQ‰L$è®bÿÿ‰4$‰Åè¤bÿÿZY‰ÇDP‹L$Qè¡^ÿÿƒÄ…Àt@‹T$0ƒÇƒì‰èWVPè4bÿÿƒÄ1ÀƒÄ[^_]Ã´&    ƒìVè‡fÿÿ‹T$@ƒÄ‰…ÀuÙ¸ôÿÿÿëÔv ¸êÿÿÿëÊ.´&    VSè¹—ÿÿÃmé  ƒìe‹5   ‰t$‹t$ ÿt$(ÿt$(jD$PègÿÿƒÄ…Àx6ƒìÿt$Vèùşÿÿ‰ÆXÿt$è`ÿÿƒÄ‹D$e+   uƒÄ‰ğ[^Ã.t& è[\ÿÿ‹0÷ŞëÛèPQ  Sè:—ÿÿÃîè  ƒìD$ƒìPÿt$ÿt$è\ÿÿÿƒÄ[Ã´&    S‹T$‹L$…Òt(¾„Àt.´&    t& <\t9Át¾BƒÂ„Àuí1Ò‰Ğ[Ã´&    ¾BZ„Àtè9Èt¾BƒÂ„ÀuÆ1Òë×fƒù\uê‰ÚëÌ´&    UWVSè—–ÿÿÃKè  ƒì<‹l$P‹D$T‹u ‰D$€> e‹=   ‰|$,‹|$X„ê  ƒìWVèmdÿÿƒÄÆ¶„É„Í  ‹D$\…À„!  ƒì¾ÁˆL$Pƒ©{ÿÿPèú\ÿÿƒÄ¾L$…À„ª  FˆL$*‰D$¶FÆD$+ ˆD$„À„  D$*1Ò‰|$‰÷‰D$‰Ö¾D$‰l$‰Í.´&    .t& <\„È   ƒìPÿt$ è‹\ÿÿƒÄ…À…ˆ  ƒÆ¾D7„ÀuÔ‰ò‰é‰ş‹l$‹|$1À)ÂD‰D$‹D$‰‹D$¶ „À„õ   8Á…í   T¾„Àt‰T$ƒìPWè$\ÿÿƒÄ‹T$…À„Å   ‰U ‹D$,e+   …n  ‹D$ƒÄ<[^_]Ã.t& ƒìWVè–cÿÿ‹T$ƒÄ‰‰U ‰t$ë¿€|7 F„å   ƒÆ¾D7„À…ÿÿÿé9ÿÿÿ.t& €|7 F„ó   ƒÆ¾7„Éu_‰ò‰ş‰ï‹l$1À)Â‹D$‰ò¾„Àt˜‰T$ƒìPWèd[ÿÿƒÄ‹T$…À…{ÿÿÿ.t& ‰u ÇD$    é.ÿÿÿ1Ò‰l$‰ı‰÷‰Öt& €ù\„ÿÿÿƒìQUè[ÿÿƒÄ…ÀuQƒÆ¾7„ÉuÛ‰ò‰ş‰ï‹l$éyÿÿÿt& ‰ò‰ş‰é‹|$D‹l$‰D$éƒşÿÿ‰ş‰é‰Â‹l$‹|$¸   éaşÿÿ‰ò‰ş‰ï‹l$é5ÿÿÿ‹D$1Ò‰D$éMşÿÿ‰ş‰Â‰ï¸   ‹l$éÿÿÿèÎM  .´&    ¶    VSè©“ÿÿÃ]å  ƒì‹t$ë.´&    fƒø
+t#ƒìVè‚^ÿÿƒÄƒøÿuêƒÄ¸   [^Ã´&    ƒÄ1À[^ÃUWVSèW“ÿÿÃå  ƒì‹D$ ‹l$$¶8‰ø„Àt_.´&    .t& è»\ÿÿ‰Á‰ø‹	¶ÀöAu>ƒD$ ‹D$ ¶8‰ø„ÀuÚ¶u ƒÅ‰ğ„Àt,.´&    .t& è{\ÿÿ‰ò‹ ¶òöpu>¶u ƒÅ‰ğ„Àuá‰ø„Àt[èF`ÿÿ‰ù‹ ¶ù‹¸¶Â„ÒtE1É)ÈƒÄ[^_]Ã.´&    ‰ø„Àt:è`ÿÿ‹‰ø¶ø‹¹‹±¶Â„Òt68Ê„]ÿÿÿ¶É)ÈëÁf1ÀƒÄ[^_]Ã¶    èÛ_ÿÿ‹ ¶°ƒÄ[^÷Ø_]Ã¶É‰È÷ØëÔfè0“ÿÿÂïã  UWVSƒì‹l$ ‹L$$‹\$(…í„4dÿÿ‹E …À„dÿÿ…ÉtÇ    …ÛtÇ    ‹|$,…ÿt
+‹t$,Ç    ‹t$0…öt‹|$0Ç    ë.t& ƒÀ¶€ú,tõ„Ò„„  €ú=„  €ú"„ë   ‰l$ ‰Æ1ÿ¶V„Òuk‹l$ V9Ğƒf  …Ét‰…Û„   …ÿ„ö   ‰ù)Á‰€: „Ÿ   B‰E ‹L$,…Ét	‹t$,G‰‹D$0…Àt‹D$0)úƒê‰1ÀƒÄ[^_]Ãv n€ú"„Ä   …ÿu9ès‰î€ú=u‰ïékÿÿÿ¶    €ú,…¿   9èt
+€}ÿ\„±   ‰ê‹l$ éRÿÿÿ¶    €:‰ĞƒØÿ‰E …ÿ…lÿÿÿëv ‰U é_ÿÿÿ¶P„Òtp1ÿ€ú"t.´&    ¶    ¶VƒÆ„Òt\€ú"uğ‰l$ éäşÿÿ´&    ‰Ñ)Á‰€: tƒÂ‰U é-ÿÿÿ.´&    f¶UƒÆ„Òt€ú"t!‹l$ ëª.´&    f‰îé–şÿÿ¸   éôşÿÿ‰ı‰ïéƒşÿÿ¸êÿÿÿéáşÿÿ.´&    t& VSè	ÿÿÃ½á  ƒìe¡   ‰D$‹D$ t$‰D$.´&    fƒìj j j j VèıÿÿƒÄ …Àtè÷ĞÁè‹T$e+   uƒÄ[^Ãè»I  ‹,$ÃfffWVS‹|$è”ÿÿÃHá  …ÿt%‹…Àt‰şfƒìƒÆPèXÿÿ‹ƒÄ…ÀuëÇ    [^_ÃVSèYÿÿÃá  ƒì‹t$Vè¦ÿÿÿ‰4$èŞWÿÿƒÄ1À[^Ã¶    UWVSè'ÿÿÃÛà  ƒì…À„Î   1É‰Åƒøÿ‹‰Ö•Á…À„Ğ   RƒÁë.´&    .´&    .´&    ƒøÿ•ÀƒÂ¶ÀÁ‹Bø…ÀuëƒìÁáQèïZÿÿƒÄ‰Ç…À„}   ƒıÿt]ƒìUèD]ÿÿƒÄ‰…Àts½   ¶    ‹ƒÆ…Àt$ƒøÿtòƒìPè]ÿÿƒÄ‰¯…ÀtG‹ƒÆƒÅ…ÀuÜ¯Ç     ƒÄ‰ø[^_]Ã1íë¼t& ƒìjènZÿÿƒÄ‰Ç…ÀuÕ1ÿë×ƒÁé]ÿÿÿƒìW1ÿè½şÿÿƒÄë¾.´&    ‹T$1À…Òt‹
+…ÉtƒÀ‹‚…ÉuöÃ.t& Ã´&    Ã´&    UWVSè×ÿÿÃ‹ß  ƒì‹t$,Vè´ÿÿÿ…   ‰$èåYÿÿƒÄ…ÀtV‰Ç…öt@‹‰ı…Àt ƒìPè7\ÿÿƒÄ‰E …Àt)‹FƒÆƒÅ…ÀuàÇE     ƒÄ‰ø[^_]Ã´&    ‰ÅëäƒìWèûıÿÿƒÄ1ÿëÛt& ƒì‹D$T$èşÿÿƒÄÃ.´&    t& UWVSè'ÿÿÃÛŞ  ƒì,‹D$D‹L$@‰D$‰L$e¡   ‰D$1À…É„5_ÿÿ‹D$‰D$j ÿt$|$ Wt$ Vè=öÿÿƒÄ…À„º   1í‰l$ƒÅj ÿt$WVèöÿÿƒÄ…Àuå‹D$…   ƒìPèÑXÿÿ‰D$ƒÄ…À„–   ‹D$‰D$j ÿt$WVèİõÿÿƒÄ…Àth1ít& ƒìÿt$ PèÓYÿÿ‹T$ƒÄ‰ª…ÀtMj ƒÅÿt$WVè¥õÿÿƒÄ…ÀuÎ‹D$¨Ç     ‹D$e+   u0‹D$ƒÄ,[^_]Ã¸   édÿÿÿ‹D$ëÑƒìRèŸüÿÿƒÄ1À‰D$ëÃèÿE  .´&    ´&    UWVSè×‹ÿÿÃ‹İ  ƒì‹D$4‹|$0…À„Ş   ƒìÿt$@è"VÿÿƒÄ‰Á…ÿ„•   ‹/1ö‰è…í„‡   ‰l$‰Í‰|$0ëv .…öEñƒìƒÇPèäUÿÿƒÄÆ‹…Àuá‹l$‹|$0ƒÆƒìVè…WÿÿƒÄ‰Æ…À„|   .´&    ƒìƒÇUPèÓRÿÿ‹/ƒÄ…ít:9Ætæƒìÿt$<Pè¹RÿÿƒÄëÔt& ƒìjè6WÿÿƒÄ…Àt3‰Æ.´&    .t& Æ  ƒÄ‰ğ[^_]Ãv ƒïtÿÿ¹   ‰D$4éÿÿÿ1öëÛ.´&    UWVSè·ŠÿÿÃkÜ  ƒì‹l$$‹|$ …ít5ƒìÿ7èˆüÿÿƒÄ‰ÆƒÀr+ƒìjPÿ7èÁQÿÿƒÄ…Àt‰,°ÇD°    ‰1ÀƒÄ[^_]Ã¸ôÿÿÿëñ.´&    t& UWVSèGŠÿÿÃûÛ  ƒì‹t$4‹|$8…öu,ë0ƒìWPèæğÿÿƒÄ‰Å…Àt-ƒìPÿt$<èPÿÿÿƒÄ…Àx)ƒÆ‹…ÀuĞƒÄ1À[^_]Ã¶    ƒÄ¸ôÿÿÿ[^_]Ãv ‰D$ƒìUèsRÿÿƒÄ‹D$ƒÄ[^_]Ãt& UWVSè·‰ÿÿÃkÛ  ƒì‹D$4…À„…   ƒì‹D$<ÿ0è„ûÿÿƒÄ‰Æ‰D$ƒÆrsƒìÁæVèªUÿÿƒÄ‹T$…À‰ÇtZ‹D$0‹(…Òt&‰t$‰èWL5ø¶    ‹0ƒÀƒÂ‰rü9Èuñ‹t$‹D$4ƒì‰ÇD7ü    UèÆQÿÿ‹D$@ƒÄ‰81ÀƒÄ[^_]Ã¸ôÿÿÿëñ.´&    t& VSèùˆÿÿÃ­Ú  ƒì‹t$,Vÿt$,è"şÿÿƒÄ…ÀxƒÄ[^Ã.t& ‰D$ƒìVècQÿÿƒÄ‹D$ƒÄ[^Ã¶    VSè©ˆÿÿÃ]Ú  ƒì‹t$,Vÿt$,èÒşÿÿƒÄ…ÀxƒÄ[^Ã.t& ‰D$ƒìVèQÿÿƒÄ‹D$ƒÄ[^Ã¶    S1ÀèXˆÿÿÃÚ  ƒì‹T$…Òt ƒìRèŞVÿÿƒÄ…ÀtƒìPÿt$è*ÿÿÿƒÄƒÄ[Ã¸ôÿÿÿëô.´&    v WVS‹|$èˆÿÿÃ¸Ù  ‹t$…ÿuët& ƒìPVè†ÿÿÿƒÄ…ÀxƒÇ‹…Àuæ1À[^_ÃUWVSèÇ‡ÿÿÃ{Ù  ƒì‹T$ …Òtc‹D$$…À„Zÿÿ‹D$ ‹(‰Æ‰Ç…íuëA.´&    fƒÇ‰.ƒÆ‹/…ít)ƒìÿt$,Uè…VÿÿƒÄ…ÀuŞƒìƒÇUèPÿÿ‹/ƒÄ…íu×Ç    ‹D$ ƒÄ[^_]Ã´&    VSè9‡ÿÿÃíØ  ƒìe‹5   ‰t$‹t$ D$(Pÿt$(jD$PèŒVÿÿƒÄ…Àx%ƒìÿt$VèøıÿÿƒÄ‹T$e+   uƒÄ[^Ãf¸ôÿÿÿëäèä@  t& VSèÉ†ÿÿÃ}Ø  ƒìe‹5   ‰t$‹t$ ÿt$(ÿt$(jD$PèVÿÿƒÄ…Àx&ƒìÿt$Vè‰ıÿÿƒÄ‹T$e+   uƒÄ[^Ãv ¸ôÿÿÿëãèt@  t& WVS‹t$èT†ÿÿÃØ  ƒìVè5øÿÿƒÄƒøv1L†üÑè‰ò†.´&    .´&    f‹9‹ƒÂƒé‰zü‰A9Úuì‰ğ[^_ÃfffWVSèø…ÿÿÃ¬×  ƒìe‹   ‰T$1ÒPè¼LÿÿƒÄ…ÀteÇD$    ‰ÆèÖJÿÿƒìÇ     ‰Çj
+D$PVènRÿÿ‹ƒÄ…Òu5‹T$…Òt-€: ”Á9Ö’Â„Ñt…À~‹T$e+   uƒÄ[^_Ã¶    ¸ÿÿÿÿëßèt?  t& UWVSèW…ÿÿÃ×  ƒì e‹5   ‰t$‹t$8D$‹|$4PhT  jèúMÿÿƒÄ…ÀtC…ÿtƒÎ{ÿÿèÿÿÿ‰…ötƒÖ{ÿÿèÿÿÿ‰Å‰.‹D$e+   uAƒÄ1À[^_]Ã.´&    ·l$…ÿt·D$…Àt‰…ötÉ…ít¶‰.ëÁƒÎ{ÿÿèµşÿÿ‰ëåè¼>  .´&    t& Sèš„ÿÿÃNÖ  ƒì e¡   ‰D$1ÀÇD$    j D$Pèÿÿÿ‹D$ƒÄ…ÀND$ ‹T$e+   uƒÄ[Ãè\>  .´&    t& Sè:„ÿÿÃîÕ  ƒìj èÊMÿÿƒÄ‰Â1À…ÒtƒÄ[Ã.´&    fƒìjè¦MÿÿƒÄ‰Â¸   …ÒuÙƒìjèMÿÿƒÄƒøÀƒÄƒàè[ƒÀÃ.´&    v UWVSèÇƒÿÿÃ{Õ  ƒì‹t$4‹l$0‹|$8…ötÇ    …ítÇE     …ÿtÇ    èNÿÿÿ…Àˆœ   ƒìPèJÿÿƒÄ‰Á…À„   …ít‰E ‰ø	ğtwƒìƒÜ{ÿÿjPQ‰L$èQÿÿ‹L$ƒÄ‰Â…ÒADÈ…öt‰…ÿtF¶„Òt?ˆT$‰L$è®Lÿÿ¾T$‹L$‹ ë.´&    .´&    ¾QƒÁ„Òt	öDPtî‰1ÀƒÄ[^_]Ã¸ÿÿÿÿëñ.´&    v SèÊ‚ÿÿÃ~Ô  ƒìƒ%wÿÿPè•Iÿÿ‹T$ ‰÷ØÀƒÄƒàê[Ãv Sèš‚ÿÿÃNÔ  ƒì‹D$…ÀtƒìPè€IÿÿƒÄ…Àt‹@…Àu‹D$“â{ÿÿ…ÀƒBuÿÿEÂƒìPèôPÿÿƒÄƒÄ[ÃffffffVSè9‚ÿÿÃíÓ  ƒì‹D$…Àt	öƒÃ%  t/‹³Ü  D$Pÿt$jÿ6è7KÿÿXZÿ6j
+èŒNÿÿƒÄ[^Ã¶    ‹³Ü  Pƒè{ÿÿPjÿ6è9HÿÿƒÄë»t& VSèÉÿÿÃ}Ó  ƒìD$Pÿt$‹³Ü  jÿ6èØJÿÿXZÿ6j
+è-NÿÿƒÄ[^Ã´&    WVS‹xè…ÿÿÃ9Ó  ‹P…ÿtX…Òtd1É€:/”Áƒì‰Îòpƒ›|ÿÿRWPh   jh   Vè—OÿÿƒÄ …Àx=ÿ  w	‰ğ[^_Ãv è;FÿÿÇ $   1öëè‰Ö[‰ğ^_Ã.´&    ‰ş[‰ğ^_Ã.´&    UW‰ÇV‰ÖƒÇSèğ€ÿÿÃ¤Ò  ƒì‰L$èîEÿÿƒì‹L$Ç     ‰ÅQVh   jh   WèëHÿÿƒÄ …Àx,=ÿ  wƒÄ‰ø[^_]Ãv ÇE $   1ÿƒÄ‰ø[^_]Ã.t& ‹E …ÀuèÇE    1ÿëß¶    WVSèh€ÿÿÃÒ  ƒìe¡   ‰D$1À‹ƒÀ%  …Àt‹D$e+   …ğ   ƒÄ[^_Ãƒìƒï{ÿÿPèGÿÿƒÄ…Àt>ƒìj T$RPèšNÿÿ‰Æ‹D$ƒÄ…Àtƒì“ü{ÿÿRPèıNÿÿƒÄ…Àt‰³À%  …öu,¾   ‰³À%  ë†´&    ÇƒÀ%  ÿÿ  ¾ÿÿ  .´&    èKÿÿ‰Çè„Oÿÿ9Çt@Î   ‰³À%  èïDÿÿƒì“ |ÿÿRPƒ4ŠÿÿP‹ƒÜ  jÿ0èÎEÿÿ‹³À%  ƒÄ ƒÎë‰èëNÿÿ‰ÇètJÿÿ9Çu°ƒÎéqÿÿÿèS9  v ‹D$…Àtƒ@Ãv WVS‹|$è$ÿÿÃØĞ  ‹t$‹…À‰‰Qÿÿ…ötƒìVè£MÿÿƒÄ‰Æ…ÀtmƒìÿwèGÿÿ‰wƒÄöƒÀ%  u1À[^_Ã.´&    fè+Dÿÿƒì“!|ÿÿR“ |ÿÿRPƒ%|ÿÿP‹ƒÜ  jÿ0èEÿÿƒÄƒ3|ÿÿVPWèRüÿÿƒÄë­¸ôÿÿÿë¨¶    ‹D$…Àt‹@Ãt& 1ÀÃ.´&    .t& WVS‹t$èT~ÿÿÃĞ  ‹|$…ötƒìVèİLÿÿƒÄ‰Æ…Àt‹…ÀxƒìPèåIÿÿÇÿÿÿÿƒÄƒìÿwè±Fÿÿ‰wƒÄöƒÀ%  u
+1À[^_Ãt& èSCÿÿƒì“!|ÿÿR“ |ÿÿRPƒ%|ÿÿP‹ƒÜ  jÿ0è+DÿÿƒÄƒD|ÿÿVPWèzûÿÿƒÄë³¸ôÿÿÿë®.´&    ¶    ‹D$…Àt‹@Ãt& 1ÀÃ.´&    .t& VSèy}ÿÿÃ-Ï  ƒì‹t$‹D$‰†  ‹D$‰†  öƒÀ%  uƒÄ1À[^Ã´&    è›Bÿÿƒì“!|ÿÿR“ |ÿÿRPƒ%|ÿÿP‹ƒÜ  jÿ0èsCÿÿƒÄƒR|ÿÿPVèÃúÿÿƒÄ1ÀƒÄ[^Ã.´&    ‹D$…Àt‹€  Ã1ÀÃ.´&    .t& ‹D$‹T$‰  1ÀÃ.´&    ´&    Sèª|ÿÿÃ^Î  ƒì‹D$…À„*Oÿÿ‹º   …Éx
+ƒÄ‰Ğ[Ãv èëúÿÿ1Ò…Àtëƒìj PèZEÿÿƒÄ1Ò…À”ÂƒÄ‰Ğ[Ã.´&    WVS‹t$èD|ÿÿÃøÍ  …ö„	Oÿÿ‹F…À„ßNÿÿ‹…Àx[^_Ã‰ğè‰úÿÿ‰Ç…ÀtköƒÀ%  uƒìh   WèBÿÿƒÄ‰[^_Ãv èKAÿÿƒì“!|ÿÿR“ |ÿÿRPƒ%|ÿÿP‹ƒÜ  jÿ0è#BÿÿƒÄƒr|ÿÿWPVèrùÿÿƒÄë£.t& è³@ÿÿ‹ ÷Øéuÿÿÿ.´&    fVSè‰{ÿÿÃ=Í  ƒì‹t$…ö„fNÿÿ‹…ÀxöƒÀ%  uƒìPèGÿÿÇÿÿÿÿƒÄƒÄ[^Ã.t& è£@ÿÿƒì“!|ÿÿR“ |ÿÿRPƒ%|ÿÿP‹ƒÜ  jÿ0è{AÿÿƒÄƒ„|ÿÿPVèËøÿÿ‹ƒÄëŸt& VSèùzÿÿÃ­Ì  ƒì‹t$…öt‹Fƒè‰F…À~ƒÄ[^Ã.t& öƒÀ%  uG‹  …ÉtƒìVÿ–  ƒÄƒìVèÿÿÿXÿvè>CÿÿZÿvè5Cÿÿ‰4$è-CÿÿƒÄƒÄ[^Ãt& èÛ?ÿÿƒì“!|ÿÿR“ |ÿÿRPƒ%|ÿÿP‹ƒÜ  jÿ0è³@ÿÿƒÄƒ|ÿÿPVèøÿÿƒÄétÿÿÿ.´&    v WVS‹|$è$zÿÿÃØË  ƒìh  jèÿ@ÿÿƒÄ…À„˜   ‰ÆöƒÀ%  u9ÇF   Çÿÿÿÿ…ÿtD$PFWjPèWIÿÿƒÄ…ÀxX‹F…ÀtQ‰ğ[^_Ãv è?ÿÿƒì“!|ÿÿR“ |ÿÿRPƒ%|ÿÿP‹ƒÜ  jÿ0èó?ÿÿƒÄƒ’|ÿÿPVèC÷ÿÿƒÄë…¶    ƒìVèoşÿÿƒÄ1öëŸ.´&    ‹T$1À…Òt‹÷ĞÁèÃ.´&    ¶    UWVSè7yÿÿÃëÊ  ƒì‹T$,‹t$ ‹|$(…Ò„Š   ‹nL$0‰ğèøÿÿ…ít`€} /„¾   …À„Á   1Ò€8/”ÂĞ‹V‹øxÿÿPƒ˜|ÿÿU…ÒDÑRPjÿjWÿt$@èGÿÿƒÄ 9øƒ›   ‹D$$ƒÄ[^_]Ã´&    …ÀtT1Ò€8/«øxÿÿ”ÂĞë¦f‰ğèùöÿÿ‰Æ…ÀtnƒìPèêBÿÿƒÄ…Àt¸ƒï9ÇGøƒìWVÿt$0èBÿÿ‹D$4ƒÄÆ8 ë•ƒøxÿÿ‰ÅéWÿÿÿv ƒÅ…À…?ÿÿÿƒøxÿÿé>ÿÿÿ.´&    fè+=ÿÿÇ $   ƒÄ1À[^_]Ã.´&    v UWVSè÷wÿÿÃ«É  ƒìe‹=   ‰|$‹|$8‹l$0…ítoƒìUè~ûÿÿ‰D$‰ÆƒÄ…Àx;1À€?/j ”Àÿt$8ÇWVèJEÿÿƒÄ‰Æ…Àtè¬<ÿÿƒ8„ã   öƒÀ%  …†   ‹D$e+   …  ƒÄ‰ğ[^_]Ãv ƒìÿt$<WèK@ÿÿƒÄ‰ÆöƒÀ%  tÇè¨<ÿÿƒì“!|ÿÿR“ |ÿÿRPƒ%|ÿÿP‹ƒÜ  jÿ0è€=ÿÿƒÄƒpŠÿÿVWPè?õÿÿƒÄë„.´&    fè[<ÿÿƒì“!|ÿÿR“ |ÿÿRPƒ%|ÿÿP‹ƒÜ  jÿ0è3=ÿÿƒÄ ƒ¡|ÿÿVWPUèôÿÿƒÄé3ÿÿÿ.´&    ‹…  …À„ÿÿÿƒìT$RWUÿĞƒÄ…À…øşÿÿj ÿt$8Wÿt$èDÿÿƒÄ‰ÆéŞşÿÿè|0  .´&    t& VSèYvÿÿÃÈ  ƒì‹t$‹T$L$‰ğè=õÿÿ…ÀtƒìPÿt$Vè+şÿÿƒÄƒÄ[^Ãfè+;ÿÿ‹ ƒÄ[^÷ØÃUWVSèvÿÿÃ»Ç  ƒì,‹L$D‹|$@‰L$e‹-   ‰l$‹l$L…ÿ„»   ƒìWè‚ùÿÿ‰D$(‰ÆƒÄ…Àˆ~   …í„Y  1À€} /ÿt$H”Àÿt$ÅUVèß>ÿÿƒÄ‰Æ…ÀtFè¡:ÿÿƒ8u<‹‡  …Àt2ƒìL$QUWÿĞƒÄ…Àuj ÿt$Uÿt$$èŸ>ÿÿƒÄ‰Æ.´&    föƒÀ%  …“   ‹D$e+   …é   ƒÄ,‰ğ[^_]Ã.´&    ¾êÿÿÿ…ítƒìQUèAÿÿƒÄ‰ÆöƒÀ%  t¼èZ:ÿÿƒì“!|ÿÿR“ |ÿÿRPƒ%|ÿÿP‹ƒÜ  jÿ0è2;ÿÿƒÄƒ¶|ÿÿVUPèñòÿÿƒÄévÿÿÿ.´&    è:ÿÿƒì‹!|ÿÿQ‹ |ÿÿQPƒ%|ÿÿP‹ƒÜ  jÿ0èã:ÿÿƒÄ ƒÔ|ÿÿVUPWè1òÿÿƒÄé&ÿÿÿ.´&    ƒìÿt$PèÓ;ÿÿƒÄ‰ÆéùşÿÿèT.  t& VSè9tÿÿÃíÅ  ƒì‹t$‹L$ ‹T$‰ğèóÿÿ…ÀtPÿt$ÿt$VèúıÿÿƒÄƒÄ[^Ãè9ÿÿ‹ ƒÄ[^÷ØÃSèêsÿÿÃÅ  ƒìD$ ƒìPÿt$,ÿt$,ÿt$,ÿt$,è„ÿÿÿƒÄ([Ã.´&    ´&    UWVSè§sÿÿÃ[Å  ƒì,e‹=   ‰|$‹|$H‹l$@…ÿ„¸  …ítgƒìUè&÷ÿÿ‰D$(‰ÆƒÄ…Àx21À€?/”ÀƒìÇÿt$HWVè9ÿÿƒÄ‰Æ…ÀˆŒ   öƒÀ%  …  ‹D$e+   …e  ƒÄ,‰ğ[^_]Ãt& ƒìÿt$LWèû>ÿÿƒÄ‰ÆöƒÀ%  tÆèX8ÿÿƒì“!|ÿÿR“ |ÿÿRPƒ%|ÿÿP‹ƒÜ  jÿ0è09ÿÿƒÄƒô|ÿÿWPèğğÿÿƒÄë„v èÃ7ÿÿƒ8…fÿÿÿ‹…  …À„XÿÿÿƒìT$RWUÿĞƒÄ…À…Aÿÿÿƒìÿt$HWÿt$$è¤8ÿÿƒÄöƒÀ%  „°   ‰D$è»7ÿÿƒì‹!|ÿÿQ‹ |ÿÿQPƒ%|ÿÿP‹ƒÜ  jÿ0è“8ÿÿ‹T$,ƒÄ 9Ötl‰Öƒæ|ÿÿë<¶    ès7ÿÿƒì“!|ÿÿR“ |ÿÿRPƒ%|ÿÿP‹ƒÜ  jÿ0èK8ÿÿƒÄ ƒøxÿÿPƒ}ÿÿWPUè“ïÿÿƒÄé”şÿÿ¾êÿÿÿéŠşÿÿèÌ+  ƒøxÿÿëÒ‰Æévşÿÿ.´&    .t& VSè™qÿÿÃMÃ  ƒì‹t$‹L$‹T$‰ğè}ğÿÿ…ÀtƒìPÿt$Vè»ıÿÿƒÄƒÄ[^Ãfèk6ÿÿ‹ ƒÄ[^÷ØÃSèJqÿÿÃşÂ  ƒìD$Pÿt$ÿt$ÿt$è‹ÿÿÿƒÄ[Ã¶    UWè™¦ÿÿÇÍÂ  VSƒì‹t$$…ötV¶„ÒtO‰ñ1Û¶A€úrt4f€úw„   €úa„†   ‰İÍ   €úeDİƒÁ„Àt)‰Â¶A€úruÎ<+uêƒËƒÁ‰Âëé1Û.´&    ¶    ƒìÿt$,S‰ûÿt$,èİüÿÿƒÄ1Ò…ÀxƒìVPèú8ÿÿƒÄ‰ÂƒÄ‰Ğ[^_]Ãv <+t$Ë  ëŒt& <+t$Ë  éyÿÿÿ.´&    Ë  ƒÁ‰ÂéiÿÿÿË  ƒÁ‰ÂéYÿÿÿVèĞ  ÆÎÁ  Sƒì‹\$‹L$‹T$‰Øèıîÿÿ…ÀtƒìPÿt$S‰óèÉşÿÿƒÄƒÄ[^ÃSèÚoÿÿÃÁ  ƒìD$Pÿt$ÿt$ÿt$è›ÿÿÿƒÄ[Ã¶    VSè©oÿÿÃ]Á  ƒì‹D$$‹t$ …ÀtDƒìPh   VèÕûÿÿƒÄ‰Æ…Àx"ƒìPè3?ÿÿƒÄ…ÀtƒÄ[^ÃƒìVè;ÿÿƒÄƒÄ1À[^Ãf‹F…ÀtïöƒÀ%  uPƒìVèçòÿÿƒÄ…ÀxÖƒìjPèE  ƒÄ‰Æ…ÀxÂƒìPèÓ>ÿÿƒÄ…Àt¦ƒìP‰D$èß:ÿÿƒÄ‹D$ƒÄ[^ÃfèK4ÿÿƒì“!|ÿÿR“ |ÿÿRPƒ%|ÿÿP‹ƒÜ  jÿ0è#5ÿÿƒÄƒ}ÿÿPVèsìÿÿƒÄékÿÿÿ.´&    v VèP  ÆNÀ  Sƒì‹\$‹L$‹T$‰Øè}íÿÿ…ÀtƒìPS‰óè½şÿÿƒÄƒÄ[^Ãt& SèZnÿÿÃÀ  ƒìD$ƒìPÿt$ÿt$èœÿÿÿƒÄ[Ã´&    WVS‹|$è$nÿÿÃØ¿  ‹D$‹t$…ÿtBƒìPè¹ñÿÿƒÄ…Àx%‹L$1Ò€?/”Â×QÿRVWPèØ7ÿÿƒÄ…ÀxÆ [^_Ã.´&    è;ìÿÿ…Àtƒì‹L$QÿRVPèå:ÿÿƒÄëËè»2ÿÿ‹ ÷ØëÈ.t& VSè™mÿÿÃM¿  ƒì‹t$‹T$L$ ‰ğè}ìÿÿ…ÀtPÿt$ÿt$Vè:ÿÿÿƒÄƒÄ[^Ãèk2ÿÿ‹ ƒÄ[^÷ØÃUWVSèGmÿÿÃû¾  ƒì@e‹-   ‰l$0‹l$`‹|$X‹t$\Uh   ÿt$\èhùÿÿ‰D$ƒÄ…ÀˆI  öƒÀ%  …ô   ƒìVj WèP4ÿÿƒÄ…ö„0  1íÇD$    ƒìVWÿt$è5ÿÿƒÄ…ÀxtÇÅ)ÆuÙèÇ1ÿÿ‹‰Âëkè»1ÿÿ‹‰ÂƒùtƒùuM‹D$ƒøtDƒÀÇD$(    ƒì‰D$ÇD$$    ÇD$(    ÇD$,€²æj D$(Pè^;ÿÿƒÄé{ÿÿÿ¶    …í¸ÿÿÿÿDè‰L$ƒì‰T$ÿt$èò7ÿÿ‹T$‹L$ƒÄ‰
+‹D$,e+   usƒÄ<‰è[^_]Ã¶    èc1ÿÿƒì“!|ÿÿR“ |ÿÿRPƒ%|ÿÿP‹ƒÜ  jÿ0è;2ÿÿƒÄƒ0}ÿÿUPèûéÿÿƒÄéÇşÿÿv èË0ÿÿ‹(÷İëèÀ0ÿÿ1í‹‰Âé_ÿÿÿè°%  VSè™kÿÿÃM½  ƒì‹t$‹L$ ‹T$‰ğè}êÿÿ…ÀtPÿt$ÿt$VèşÿÿƒÄƒÄ[^Ãèk0ÿÿ‹ ƒÄ[^÷ØÃSèJkÿÿÃş¼  ƒìD$ ƒìPÿt$,ÿt$,ÿt$,ÿt$,è„ÿÿÿƒÄ([Ã.´&    ´&    VSè	kÿÿÃ½¼  ƒì‹t$ÿt$‹D$ƒèPVÿt$è–ıÿÿƒÄ…ÀuÆ ƒÄ[^Ã¶    ~òHÿ€:
+tÆ ƒÄ[^Ã.´&    Æ ƒÄ‰È[^Ã.t& UWVSè—jÿÿÃK¼  ì   e‹   ‰”$   ‹”$8   ‹¼$4   ‹„$0   …ÿtOÇ    Rh    l$UPè=ÿÿÿƒÄ‰Æ…ÀxƒìUèÛ8ÿÿƒÄ‰…Àt)‹„$   e+   uÄ   ‰ğ[^_]Ã¾êÿÿÿëÜè$  ¾ôÿÿÿëĞfVSèùiÿÿÃ­»  ƒì‹t$‹T$L$‰ğèİèÿÿ…ÀtƒìPÿt$Vè+ÿÿÿƒÄƒÄ[^ÃfèË.ÿÿ‹ ƒÄ[^÷ØÃVSè©iÿÿÃ]»  ƒì‹t$‹L$ ‹T$‰ğèèÿÿ…ÀtPÿt$ÿt$VèjşÿÿƒÄƒÄ[^Ãè{.ÿÿ‹ ƒÄ[^÷ØÃU‰ÕW‰ÏVSèSiÿÿÃ»  ƒì8‹L$P‹t$T‰D$‰L$‰t$e‹   ‰T$(ı    ÇE     )úR‰T$èA5ÿÿƒÄ…À„â   ƒì‰Æÿt$ÿt$‹T$ RPÿt$è:ÿÿÿƒÄ …Àxkƒìj D$ PWèS  ƒÄ‰E ‰Â…À„“   ‹L$@‹D$…ÉtWj PRVè-  ƒÄ…ÀuX1À‰$ƒìVè81ÿÿ‹D$ƒÄ‹T$e+   u[ƒÄ,[^_]Ãt& ‹U ‰$ƒìRè9  ƒÄ‹$ë½ƒìPRVè5  ƒÄ…Àt¨èY-ÿÿ‹U Ç    ¸êÿÿÿëÄ.´&    ¸êÿÿÿë´è4"  ¸ôÿÿÿëŒ.´&    .t& Sè
+hÿÿÃ¾¹  ƒìD$ ƒìPÿt$,ÿt$,ÿt$,ÿt$,è4şÿÿƒÄ([Ã.´&    ´&    UWVSèÇgÿÿÃ{¹  ƒì‹t$(‹|$,Vƒ7tÿÿPÿt$,è…öÿÿƒÄ…Àty‰ÅöƒÀ%  u+D$,ƒìPWUè42ÿÿ‰,$‰ÆèJ1ÿÿƒÄƒÄ‰ğ[^_]Ã.t& èÃ,ÿÿƒì“!|ÿÿR“ |ÿÿRPƒ%|ÿÿP‹ƒÜ  jÿ0è›-ÿÿƒÄƒ>}ÿÿVWPèZåÿÿƒÄë’¾êÿÿÿë§.´&    ¶    WVSègÿÿÃ¼¸  ÿt$ÿt$ƒ7tÿÿPÿt$èÊöÿÿƒÄ…Àt'‰ÆD$ ƒìPÿt$$Vè1ÿÿ‰4$‰Çè•0ÿÿƒÄ‰ø[^_Ã¿êÿÿÿëó.t& VSè©fÿÿÃ]¸  ƒìe‹5   ‰t$‹t$$‰àÇ$    ÇD$    PƒP}ÿÿPÿt$0ÿt$,è›şÿÿƒÄƒøu+…öt‹$‹T$‰‰V1À‹T$e+   uƒÄ[^Ã¶    ¸ÿÿÿÿëàè<   .´&    t& VSèfÿÿÃÍ·  ƒì‹t$‹T$L$‰ğèıäÿÿ…ÀtƒìPÿt$Vè;ÿÿÿƒÄƒÄ[^Ãfèë*ÿÿ‹ ƒÄ[^÷ØÃVSèÉeÿÿÃ}·  ƒìe‹5   ‰t$‹t$$‰àÇ$    ÇD$    PƒU}ÿÿPÿt$0ÿt$,è»ıÿÿƒÄƒøu+…öt‹$‹T$‰‰V1À‹T$e+   uƒÄ[^Ã¶    ¸ÿÿÿÿëàè\  .´&    t& VSè9eÿÿÃí¶  ƒì‹t$‹T$L$‰ğèäÿÿ…ÀtƒìPÿt$Vè;ÿÿÿƒÄƒÄ[^Ãfè*ÿÿ‹ ƒÄ[^÷ØÃVSèédÿÿÃ¶  ƒìe‹5   ‰t$‹t$$D$ÇD$    PƒísÿÿPÿt$0ÿt$,èàüÿÿƒÄƒøu(…öt‹D$‰1À‹T$e+   uƒÄ[^Ã.´&    ¸ÿÿÿÿëİè„  t& VSèidÿÿÃ¶  ƒì‹t$‹T$L$‰ğèMãÿÿ…ÀtƒìPÿt$VèKÿÿÿƒÄƒÄ[^Ãfè;)ÿÿ‹ ƒÄ[^÷ØÃVSèdÿÿÃÍµ  ƒìe‹5   ‰t$‹t$$D$ÇD$    PƒZ}ÿÿPÿt$0ÿt$,èüÿÿƒÄƒøu(…öt‹D$‰1À‹T$e+   uƒÄ[^Ã.´&    ¸ÿÿÿÿëİè´  t& VSè™cÿÿÃMµ  ƒì‹t$‹T$L$‰ğè}âÿÿ…ÀtƒìPÿt$VèKÿÿÿƒÄƒÄ[^Ãfèk(ÿÿ‹ ƒÄ[^÷ØÃWVSèHcÿÿÃü´  ƒìe‹5   ‰t$‹t$0D$ÇD$    ÇD$    PD$Pƒ]}ÿÿPÿt$@ÿt$<è2ûÿÿƒÄ ƒøur…ötQ‹D$‹|$1Û‰Á‰Â1ÀÁáâ ğÿÿá ÿ 	Ú‰û	È¶Ë‰Ë	È‰ùÁûÁá	Ú1Ûá  ğÿ¤û	Áãÿ  ‰	Ó‰^1À‹T$e+   uƒÄ[^_Ã´&    ¸ÿÿÿÿëŞèŒ  .´&    t& VSèibÿÿÃ´  ƒì‹t$‹T$L$‰ğèMáÿÿ…ÀtƒìPÿt$VèëşÿÿƒÄƒÄ[^Ãfè;'ÿÿ‹ ƒÄ[^÷ØÃUWVSèbÿÿÃË³  ƒì@e‹-   ‰l$0‹l$Xÿt$\h  ÿt$\è=îÿÿ‰D$‰Æèò&ÿÿƒÄ‰Ç…öˆ5  ƒìUè<,ÿÿƒÄ‰Æ…À„9  D$‰D$´&    ƒìÇ    VUÿt$èÌ(ÿÿ‹ƒÄ…À~K)Æ…‹   1öƒú„    ‰T$ƒìÿt$è0-ÿÿ‹T$ƒÄ‰‹D$,e+   …Ù   ƒÄ<‰ğ[^_]Ãt& ƒútSƒú…ª   ÇD$(    ƒìÇD$$    ÇD$(    ÇD$,€²æj ÿt$è0ÿÿƒÄéTÿÿÿt& Åƒú…Eÿÿÿë¹v ƒú…7ÿÿÿë«.t& ÇD$(    ƒìÇD$$    ÇD$(    ÇD$,€²æj D$(Pè±/ÿÿ‹ƒÄé'ÿÿÿ´&    ‹0÷Şé0ÿÿÿ´&    ¾ÿÿÿÿéÿÿÿ‹1öéışÿÿèˆ  .´&    VSèi`ÿÿÃ²  ƒì‹t$‹T$L$‰ğèMßÿÿ…ÀtƒìPÿt$VèşÿÿƒÄƒÄ[^Ãfè;%ÿÿ‹ ƒÄ[^÷ØÃUWVSè`ÿÿÃË±  ƒìPe‹=   ‰|$@‹|$l‹t$hÿt$ph  ÿt$lè9ìÿÿƒÄ…Àˆş   ƒì‰ÅƒP}ÿÿWVPjjjT$CR‰T$,è.ÿÿƒÄ ‰ÆèÂ$ÿÿ‰ÇƒìÇ    Vÿt$UèÌ&ÿÿ‹ƒÄ…À~K)Æ…‹   1öƒú„À   ‰T$ƒìUè3+ÿÿ‹T$ƒÄ‰‹D$<e+   …Ò   ƒÄL‰ğ[^_]Ã´&    ƒútSƒúunÇD$     ƒìÇD$    ÇD$     ÇD$$€²æj D$ Pè.ÿÿƒÄéWÿÿÿ´&    D$ƒú…Cÿÿÿë³ƒú…7ÿÿÿë§.t& èë#ÿÿ‹0÷Şéhÿÿÿf¾ÿÿÿÿéFÿÿÿ¶    ÇD$     ƒìÇD$    ÇD$     ÇD$$€²æj D$ Pè‘-ÿÿ‹ƒÄéÿÿÿè’  fUWVSèw^ÿÿÃ+°  ƒì`e‹=   ‰|$P‹|$|‹t$xÿ´$€   h  ÿt$|è–êÿÿƒÄ…Àˆû   ƒì‰ÅƒU}ÿÿWVPj%jj%T$CR‰T$,èi,ÿÿƒÄ ‰Æè#ÿÿ‰ÇƒìÇ    Vÿt$Uè)%ÿÿ‹ƒÄ…À~H)Æ…ˆ   1öƒú„½   ‰T$ƒìUè)ÿÿ‹T$ƒÄ‰‹D$Le+   …Ï   ƒÄ\‰ğ[^_]Ãt& ƒútSƒúunÇD$     ƒìÇD$    ÇD$     ÇD$$€²æj D$ Pèo,ÿÿƒÄéZÿÿÿ´&    D$ƒú…Fÿÿÿë³ƒú…:ÿÿÿë§.t& èK"ÿÿ‹0÷Şékÿÿÿf¾ÿÿÿÿéIÿÿÿ¶    ÇD$     ƒìÇD$    ÇD$     ÇD$$€²æj D$ Pèñ+ÿÿ‹ƒÄé
+ÿÿÿèò  fUWVSè×\ÿÿÃ‹®  ƒì‹l$ ‹T$,L$0‹t$$‹|$(‰èè³Ûÿÿ…ÀtPWVUè&şÿÿƒÄƒÄ[^_]Ãv è£!ÿÿ‹ ƒÄ[^÷Ø_]Ã´&    WVSèx\ÿÿÃ,®  ƒìÿt$ÿt$è²ìÿÿƒÄ…Àts‰Æ1ÿ´&    ƒìVèg&ÿÿƒÄ…ÀtC€x.Pu€z tá€x.u€z.u€z tÏ.´&    ´&    ƒìƒÇVè$&ÿÿƒÄ…Àu½ƒìVè¤'ÿÿƒÄ‰ø[^_Ãv 1ÿ[^‰ø_ÃVSèÙ[ÿÿÃ­  ƒì‹t$‹T$L$‰ğè½Úÿÿ…ÀtƒìPVè/ÿÿÿƒÄƒÄ[^Ã¶    è« ÿÿ‹ ƒÄ[^÷ØÃUWVSè‡[ÿÿÃ;­  ƒì‹t$$‹|$,‹T$ …ö”À…ÿ”ÁÈ…¯   …Ò„§   ‹.…ítzƒìUèi%ÿÿƒÄ…Àt@€x.Pu€z tá€x.u€z.t‰1ÀƒÄ[^_]Ãv €z uëƒìUè)%ÿÿƒÄ…ÀuÀÇ    ƒìÿ6è¢&ÿÿƒÄÇ    ¸   ƒÄ[^_]Ãt& ƒìÿt$0RèëÿÿƒÄ‰‰Å…À…jÿÿÿèÇÿÿ‹ ÷Øë¸êÿÿÿë‡.´&    fƒìD$ ƒìPÿt$$j ‹L$(‹T$$‹D$ èñÿÿƒÄÃ.´&    fƒìD$ ƒìPÿt$$j‹L$(‹T$$‹D$ èîğÿÿƒÄÃ‹4$ÃfffUWVSè7ZÿÿÃë«  ìL   ‰D$‰T$e¡   ‰„$<   D$<‰D$D$,‰D$¶    ‹|$ÇD$    1À1ö¹   ‹l$ó«¿    ƒìWUÿt$ è"ÿÿƒÄ…Àx#„¥   ÅÆ)Ç„™   ÇD$    ëÏ´&    è³ÿÿ‹ ƒøtƒøuG‹D$ƒøt>ƒÀÇD$8    ƒì‰D$ÇD$4    ÇD$8    ÇD$<€²æj ÿt$$èY(ÿÿƒÄéqÿÿÿ…öu,¾ÿÿÿÿ‹„$<   e+   …!  ÄL   ‰ğ[^_]Ã¶    …öâ   è#ÿÿ‹l$‰Ç.´&    .t& ƒìÇ    VUÿt$è ÿÿ‹ƒÄ…À~C)Æuƒú…ÖşÿÿÇD$8    ƒìÇD$4    ÇD$8    ÇD$<€²æj ÿt$$è¨'ÿÿƒÄé şÿÿƒútKƒúuVÇD$8    ƒìÇD$4    ÇD$8    ÇD$<€²æj ÿt$$èh'ÿÿƒÄé`ÿÿÿÅƒú…Uÿÿÿë½v ƒú…Gÿÿÿë¯.t& ¾şÿÿÿéïşÿÿ…äşÿÿƒìh    h    ÿt$(èê"ÿÿƒÄéËşÿÿè  .´&    .t& SèúWÿÿÃ®©  ƒìhÂ  ÿt$èãÿÿƒÄ[Ã.´&    ¶    UWVSèÇWÿÿÃ{©  ƒìe‹5   ‰t$‹t$8‹D$4‹|$0…À„   ƒìVPƒp}ÿÿPjD$$Pè— ÿÿƒÄ …Àˆ„   ƒìj?è2!ÿÿ‰ÅXÿt$èfÿÿÿ‰,$‰Æè!ÿÿ‹D$ƒÄƒşÿt ‰‹D$e+   uPƒÄ‰ğ[^_]Ã´&    ƒìPèÇÿÿƒÄ1ÀëĞƒìƒi}ÿÿPèñÿÿƒÄ“c}ÿÿ…ÀDÂé_ÿÿÿ¶    ¾ÿÿÿÿë£èü  .´&    t& UWVSè×VÿÿÃ‹¨  ƒì‹|$$ÿt$(h  WèûÿÿƒÄ‰Æ…ÀxƒÄ‰ğ[^_]Ã.´&    ƒìWè§ ÿÿƒÄ‰Æ…ÀxÜƒìjPèÃÿÿƒÄ…ÀxƒìƒÈPjVè­ÿÿƒÄ…Ày´èqÿÿƒì‹(V‰Ç¾ÿÿÿÿè"ÿÿ‰/ƒÄë–.´&    Sè:VÿÿÃî§  ƒìèÌÿÿƒÄ[Ã´&    UWVSèVÿÿÃË§  ƒì8e¡   ‰D$(ƒ}}ÿÿPèHÿÿƒÄ…À„ş   ‰ÇD$‰D$v ƒìWè÷ÿÿƒÄ…À„¼   €x.pu€~ tİ€x.u€~.u€~ tË.´&    v è«ÿÿƒìÇ     ‰Åj
+ÿt$Vè$ÿÿ‰D$‹E ƒÄ…Àu–‹D$…Àt9ğtŠ€8 u…ƒìWèÿÿƒÄ…Àˆqÿÿÿ‹L$9È„eÿÿÿ;L$@‚[ÿÿÿ9L$D‚QÿÿÿƒìQèè ÿÿƒÄƒìWè<ÿÿƒÄ…À…EÿÿÿƒìWè· ÿÿƒÄ‹D$e+   u6ƒÄ,[^_]Ãèªşÿÿ1ö‰Ç…ÀtŞ;t$@r9t$DrƒìVè ÿÿƒÄƒÆ9÷uáë½èÌ  .´&    t& UWVSè§TÿÿÃ[¦  ƒì‹D$ …À„Ô   €8 „Ë   ƒìPè #ÿÿƒÄ‰Ç…À„¼   ¶ ‰ı</u¶Go„Àuë4.t& Æ  €}  ug€~ Æ/ntƒìj/UèÿÿƒÄ‰Æ…Àu×€}  u1íƒìWè¾ÿÿƒÄƒÄ‰è[^_]Ãƒìÿt$,Wè“ÿÿƒÄ‰Å…ÀtÑèÿÿƒ8tÇëÇ¶    ƒìÿt$,WèkÿÿƒÄ‰Å…À„ÿÿÿèÙÿÿƒ8„qÿÿÿë—½êÿÿÿëœ½ôÿÿÿë•SèªSÿÿÃ^¥  ƒì‹D$…Àt!ƒìj/Pè>ÿÿƒÄ…ÀtÆ  ƒÀƒÄ[Ãt& 1Àëót& UWVSègSÿÿÃ¥  ì¤   e¡   ‰„$”   D$(Pÿ´$¼   è½ÿÿƒÄ‰Åƒøÿt%‹D$0% ğ  = €  t;‹”$´   ‹„$°   èĞøÿÿ‰Å‹„$Œ   e+   …w  Äœ   ‰è[^_]Ã.t& ‹t$H…öt41ÿ1íVj ÿ´$¸   ÿ´$À   èö ÿÿƒÄ…ÀˆÃ   t	Ç)ÆuÕv …ÿx‰D$‰D$t& 1í1ÿ¾   Vj ÿ´$¸   ÿ´$À   è± ÿÿƒÄ…Àx„Ô   Å)Æ„Ê   1ÿëÏ¶    èkÿÿ‹ ƒøtƒøu?ƒÿt:ÇD$    ƒìƒÇÇD$    ÇD$    ÇD$ €²æj ÿt$è!ÿÿƒÄézÿÿÿ…í„åşÿÿ…í‰`ÿÿÿéØşÿÿv èÿÿ‹ ƒøtƒøuWƒıtRÇD$    ƒìƒÅÇD$    ÇD$    ÇD$ €²æj D$Pè° ÿÿƒÄéÌşÿÿ.´&    …íu”é‰şÿÿ´&    …ÿ…Øşÿÿé`şÿÿè  .´&    ¶    WVSèhQÿÿÃ£  ì(  e¡   ‰„$$  1Àÿ´$8  ƒ‹}ÿÿPjjjt$VèÿÿƒÄhÿ  |$$WVèLÿÿƒÄ…Àx=„ $ÿÿÆD ƒìÿ´$<  WèêÿÿƒÄ‹”$  e+   uÄ   [^_Ã.t& èãÿÿ‹ ÷ØëÖèØ
+  .´&    VSè¹PÿÿÃm¢  ƒì‹t$“5tÿÿ…öt_€> tZƒìj/VèBÿÿƒÄ…Àtd€x Pu?‰Â9Ærë7.´&    fƒè9Æt<€xÿ/tó9ÆsBPÿÆ  9Örëv ƒê9Öt"€zÿ/uóƒÄ‰Ğ[^Ã.´&    v ƒÆ€~ u÷‰òƒÄ‰Ğ[^Ã‰ÆëìffffU‰ÕWV‰ÆSèPÿÿÃ·¡  ƒì‰L$èÿÿÇ     ¶„ÒˆT$tP‰Çèiÿÿ¾T$‹ öDPt;ƒìj
+UVèOÿÿ‹L$ƒÄ‰‹…Àu9u tƒÄ[^_]Ãv ƒÄ÷Ø[^_]Ã¶    ¸êÿÿÿëŞ.´&    UWVSèwOÿÿÃ+¡  ƒì‹t$,‹l$0‹|$4Vè¬ÿÿƒÄ…Àt…ítVÁêÁâ‰U …ÿtƒÆƒæà‰7ƒÄ[^_]ÃSè*OÿÿÃŞ   ƒìÿt$èxÿÿƒÄ[Ãv UWVSèOÿÿÃ»   ƒì0e¡   ‰D$ 1Àj D$ ‰D$Ph   è]ÿÿÿƒÄ…À„˜   ‰Æ½   ë,.´&    ƒìíVè…ÿÿÿƒÄj ÿt$Uè&ÿÿÿƒÄ‰Æ…Àtcƒìÿt$j VèîÿÿVÿt$,j hò   èíÿÿƒÄ ‰Ç…Àyèÿÿƒ8uı   u¢ƒìVè)ÿÿÿı    ƒÄ‹T$e+   uƒÄ,[^_]Ã¸ÿÿÿÿëäè>  .´&    ¶    è—ƒÿÿÏŸ  UWVSƒì‹t$<‹l$8‰D$‹D$0‰÷Áç„Ú   ‰D$1É1Òë.´&    fƒÂ9úƒµ   ‰ĞÁè9ğsì‰ĞÁè‹D… £ĞsŞB‰D$9øƒ§   1Éëv ‰ÃÁë‹\ £ÃsƒÀƒÁ9øs‰ÃÁë9órß…Ét{ƒù„¢   ƒìÑQ‰L$R‹\$ƒ½}ÿÿPjÿjÿt$Lÿt$ è£ÿÿ‹T$,ƒÄ …Àˆ€   ;D$4szƒÂD$¹   )D$49ú‚Qÿÿÿ¶    ‹D$)ÈÆ  ‹D$0ƒÄ[^_]Ãv ƒìR‹\$ƒ¸}ÿÿ‰T$Pjÿjÿt$Lÿt$ è4ÿÿƒÄ ‹T$ëv ƒìÿt$R‹\$ƒ´}ÿÿëÎƒÄ1À[^_]Ã.´&    fUWVSƒì‹\$$İüÿÿÿ…Àˆ]  ‹L$1ö‰$ë(v ¾ù‰ú…öu„ÒE4$ƒ$‹$W0ˆQÿƒèˆø   ‹$+T$;T$„  ‰Ç1ÉÁï9ßs‹|$ ‰Â1ÉÁê‹—£Â’Áx‰ıÁí9İs!‹T$ ‰ıÁí‹,ª‰ú£Õ’Â¶ú‰Êÿ‰ù	Ê‰Ñx‰ıÁí9İs"‹T$ ‰ıÁí‹,ª‰ú£Õ’Â¶ú‰ÊÁç‰ù	Ê‰Ñx‰ıÁí9İƒ@ÿÿÿ‹T$ ‰ıÁí‹,ª‰ú£Õr¾ù…ö…1ÿÿÿ„ÉE4$é&ÿÿÿ´&    ‰ÊƒÊ…öD4$¾ú€ú	ÿÿÿƒ$‹$WWˆQÿƒè‰ÿÿÿÆ …ötƒÄ‰ğ[^_]Ã.´&    f‹$Æ …öuâƒÄqÿ

@@ -1,0 +1,3612 @@
+CTION WITH THE USE OR PERFORMANCE
+# OF THIS SOFTWARE.
+# --------------------------------------------------------------------
+
+"""
+An XML-RPC client interface for Python.
+
+The marshalling and response parser code can also be used to
+implement XML-RPC servers.
+
+Exported exceptions:
+
+  Error          Base class for client errors
+  ProtocolError  Indicates an HTTP protocol error
+  ResponseError  Indicates a broken response package
+  Fault          Indicates an XML-RPC fault package
+
+Exported classes:
+
+  ServerProxy    Represents a logical connection to an XML-RPC server
+
+  MultiCall      Executor of boxcared xmlrpc requests
+  DateTime       dateTime wrapper for an ISO 8601 string or time tuple or
+                 localtime integer value to generate a "dateTime.iso8601"
+                 XML-RPC value
+  Binary         binary data wrapper
+
+  Marshaller     Generate an XML-RPC params chunk from a Python data structure
+  Unmarshaller   Unmarshal an XML-RPC response from incoming XML event message
+  Transport      Handles an HTTP transaction to an XML-RPC server
+  SafeTransport  Handles an HTTPS transaction to an XML-RPC server
+
+Exported constants:
+
+  (none)
+
+Exported functions:
+
+  getparser      Create instance of the fastest available parser & attach
+                 to an unmarshalling object
+  dumps          Convert an argument tuple or a Fault instance to an XML-RPC
+                 request (or response, if the methodresponse option is used).
+  loads          Convert an XML-RPC packet to unmarshalled data plus a method
+                 name (None if not present).
+"""
+
+import base64
+import sys
+import time
+from datetime import datetime
+from decimal import Decimal
+import http.client
+import urllib.parse
+from xml.parsers import expat
+import errno
+from io import BytesIO
+try:
+    import gzip
+except ImportError:
+    gzip = None #python can be built without zlib/gzip support
+
+# --------------------------------------------------------------------
+# Internal stuff
+
+def escape(s):
+    s = s.replace("&", "&amp;")
+    s = s.replace("<", "&lt;")
+    return s.replace(">", "&gt;",)
+
+# used in User-Agent header sent
+__version__ = '%d.%d' % sys.version_info[:2]
+
+# xmlrpc integer limits
+MAXINT =  2**31-1
+MININT = -2**31
+
+# --------------------------------------------------------------------
+# Error constants (from Dan Libby's specification at
+# http://xmlrpc-epi.sourceforge.net/specs/rfc.fault_codes.php)
+
+# Ranges of errors
+PARSE_ERROR       = -32700
+SERVER_ERROR      = -32600
+APPLICATION_ERROR = -32500
+SYSTEM_ERROR      = -32400
+TRANSPORT_ERROR   = -32300
+
+# Specific errors
+NOT_WELLFORMED_ERROR  = -32700
+UNSUPPORTED_ENCODING  = -32701
+INVALID_ENCODING_CHAR = -32702
+INVALID_XMLRPC        = -32600
+METHOD_NOT_FOUND      = -32601
+INVALID_METHOD_PARAMS = -32602
+INTERNAL_ERROR        = -32603
+
+# --------------------------------------------------------------------
+# Exceptions
+
+##
+# Base class for all kinds of client-side errors.
+
+class Error(Exception):
+    """Base class for client errors."""
+    __str__ = object.__str__
+
+##
+# Indicates an HTTP-level protocol error.  This is raised by the HTTP
+# transport layer, if the server returns an error code other than 200
+# (OK).
+#
+# @param url The target URL.
+# @param errcode The HTTP error code.
+# @param errmsg The HTTP error message.
+# @param headers The HTTP header dictionary.
+
+class ProtocolError(Error):
+    """Indicates an HTTP protocol error."""
+    def __init__(self, url, errcode, errmsg, headers):
+        Error.__init__(self)
+        self.url = url
+        self.errcode = errcode
+        self.errmsg = errmsg
+        self.headers = headers
+    def __repr__(self):
+        return (
+            "<%s for %s: %s %s>" %
+            (self.__class__.__name__, self.url, self.errcode, self.errmsg)
+            )
+
+##
+# Indicates a broken XML-RPC response package.  This exception is
+# raised by the unmarshalling layer, if the XML-RPC response is
+# malformed.
+
+class ResponseError(Error):
+    """Indicates a broken response package."""
+    pass
+
+##
+# Indicates an XML-RPC fault response package.  This exception is
+# raised by the unmarshalling layer, if the XML-RPC response contains
+# a fault string.  This exception can also be used as a class, to
+# generate a fault XML-RPC message.
+#
+# @param faultCode The XML-RPC fault code.
+# @param faultString The XML-RPC fault string.
+
+class Fault(Error):
+    """Indicates an XML-RPC fault package."""
+    def __init__(self, faultCode, faultString, **extra):
+        Error.__init__(self)
+        self.faultCode = faultCode
+        self.faultString = faultString
+    def __repr__(self):
+        return "<%s %s: %r>" % (self.__class__.__name__,
+                                self.faultCode, self.faultString)
+
+# --------------------------------------------------------------------
+# Special values
+
+##
+# Backwards compatibility
+boolean = Boolean = bool
+
+
+def _iso8601_format(value):
+    if value.tzinfo is not None:
+        # XML-RPC only uses the naive portion of the datetime
+        value = value.replace(tzinfo=None)
+    # XML-RPC doesn't use '-' separator in the date part
+    return value.isoformat(timespec='seconds').replace('-', '')
+
+
+def _strftime(value):
+    if isinstance(value, datetime):
+        return _iso8601_format(value)
+
+    if not isinstance(value, (tuple, time.struct_time)):
+        if value == 0:
+            value = time.time()
+        value = time.localtime(value)
+
+    return "%04d%02d%02dT%02d:%02d:%02d" % value[:6]
+
+class DateTime:
+    """DateTime wrapper for an ISO 8601 string or time tuple or
+    localtime integer value to generate 'dateTime.iso8601' XML-RPC
+    value.
+    """
+
+    def __init__(self, value=0):
+        if isinstance(value, str):
+            self.value = value
+        else:
+            self.value = _strftime(value)
+
+    def make_comparable(self, other):
+        if isinstance(other, DateTime):
+            s = self.value
+            o = other.value
+        elif isinstance(other, datetime):
+            s = self.value
+            o = _iso8601_format(other)
+        elif isinstance(other, str):
+            s = self.value
+            o = other
+        elif hasattr(other, "timetuple"):
+            s = self.timetuple()
+            o = other.timetuple()
+        else:
+            s = self
+            o = NotImplemented
+        return s, o
+
+    def __lt__(self, other):
+        s, o = self.make_comparable(other)
+        if o is NotImplemented:
+            return NotImplemented
+        return s < o
+
+    def __le__(self, other):
+        s, o = self.make_comparable(other)
+        if o is NotImplemented:
+            return NotImplemented
+        return s <= o
+
+    def __gt__(self, other):
+        s, o = self.make_comparable(other)
+        if o is NotImplemented:
+            return NotImplemented
+        return s > o
+
+    def __ge__(self, other):
+        s, o = self.make_comparable(other)
+        if o is NotImplemented:
+            return NotImplemented
+        return s >= o
+
+    def __eq__(self, other):
+        s, o = self.make_comparable(other)
+        if o is NotImplemented:
+            return NotImplemented
+        return s == o
+
+    def timetuple(self):
+        return time.strptime(self.value, "%Y%m%dT%H:%M:%S")
+
+    ##
+    # Get date/time value.
+    #
+    # @return Date/time value, as an ISO 8601 string.
+
+    def __str__(self):
+        return self.value
+
+    def __repr__(self):
+        return "<%s %r at %#x>" % (self.__class__.__name__, self.value, id(self))
+
+    def decode(self, data):
+        self.value = str(data).strip()
+
+    def encode(self, out):
+        out.write("<value><dateTime.iso8601>")
+        out.write(self.value)
+        out.write("</dateTime.iso8601></value>\n")
+
+def _datetime(data):
+    # decode xml element contents into a DateTime structure.
+    value = DateTime()
+    value.decode(data)
+    return value
+
+def _datetime_type(data):
+    return datetime.strptime(data, "%Y%m%dT%H:%M:%S")
+
+##
+# Wrapper for binary data.  This can be used to transport any kind
+# of binary data over XML-RPC, using BASE64 encoding.
+#
+# @param data An 8-bit string containing arbitrary data.
+
+class Binary:
+    """Wrapper for binary data."""
+
+    def __init__(self, data=None):
+        if data is None:
+            data = b""
+        else:
+            if not isinstance(data, (bytes, bytearray)):
+                raise TypeError("expected bytes or bytearray, not %s" %
+                                data.__class__.__name__)
+            data = bytes(data)  # Make a copy of the bytes!
+        self.data = data
+
+    ##
+    # Get buffer contents.
+    #
+    # @return Buffer contents, as an 8-bit string.
+
+    def __str__(self):
+        return str(self.data, "latin-1")  # XXX encoding?!
+
+    def __eq__(self, other):
+        if isinstance(other, Binary):
+            other = other.data
+        return self.data == other
+
+    def decode(self, data):
+        self.data = base64.decodebytes(data)
+
+    def encode(self, out):
+        out.write("<value><base64>\n")
+        encoded = base64.encodebytes(self.data)
+        out.write(encoded.decode('ascii'))
+        out.write("</base64></value>\n")
+
+def _binary(data):
+    # decode xml element contents into a Binary structure
+    value = Binary()
+    value.decode(data)
+    return value
+
+WRAPPERS = (DateTime, Binary)
+
+# --------------------------------------------------------------------
+# XML parsers
+
+class ExpatParser:
+    # fast expat parser for Python 2.0 and later.
+    def __init__(self, target):
+        self._parser = parser = expat.ParserCreate(None, None)
+        self._target = target
+        parser.StartElementHandler = target.start
+        parser.EndElementHandler = target.end
+        parser.CharacterDataHandler = target.data
+        encoding = None
+        target.xml(encoding, None)
+
+    def feed(self, data):
+        self._parser.Parse(data, False)
+
+    def close(self):
+        try:
+            parser = self._parser
+        except AttributeError:
+            pass
+        else:
+            del self._target, self._parser # get rid of circular references
+            parser.Parse(b"", True) # end of data
+
+# --------------------------------------------------------------------
+# XML-RPC marshalling and unmarshalling code
+
+##
+# XML-RPC marshaller.
+#
+# @param encoding Default encoding for 8-bit strings.  The default
+#     value is None (interpreted as UTF-8).
+# @see dumps
+
+class Marshaller:
+    """Generate an XML-RPC params chunk from a Python data structure.
+
+    Create a Marshaller instance for each set of parameters, and use
+    the "dumps" method to convert your data (represented as a tuple)
+    to an XML-RPC params chunk.  To write a fault response, pass a
+    Fault instance instead.  You may prefer to use the "dumps" module
+    function for this purpose.
+    """
+
+    # by the way, if you don't understand what's going on in here,
+    # that's perfectly ok.
+
+    def __init__(self, encoding=None, allow_none=False):
+        self.memo = {}
+        self.data = None
+        self.encoding = encoding
+        self.allow_none = allow_none
+
+    dispatch = {}
+
+    def dumps(self, values):
+        out = []
+        write = out.append
+        dump = self.__dump
+        if isinstance(values, Fault):
+            # fault instance
+            write("<fault>\n")
+            dump({'faultCode': values.faultCode,
+                  'faultString': values.faultString},
+                 write)
+            write("</fault>\n")
+        else:
+            # parameter block
+            # FIXME: the xml-rpc specification allows us to leave out
+            # the entire <params> block if there are no parameters.
+            # however, changing this may break older code (including
+            # old versions of xmlrpclib.py), so this is better left as
+            # is for now.  See @XMLRPC3 for more information. /F
+            write("<params>\n")
+            for v in values:
+                write("<param>\n")
+                dump(v, write)
+                write("</param>\n")
+            write("</params>\n")
+        result = "".join(out)
+        return result
+
+    def __dump(self, value, write):
+        try:
+            f = self.dispatch[type(value)]
+        except KeyError:
+            # check if this object can be marshalled as a structure
+            if not hasattr(value, '__dict__'):
+                raise TypeError("cannot marshal %s objects" % type(value))
+            # check if this class is a sub-class of a basic type,
+            # because we don't know how to marshal these types
+            # (e.g. a string sub-class)
+            for type_ in type(value).__mro__:
+                if type_ in self.dispatch.keys():
+                    raise TypeError("cannot marshal %s objects" % type(value))
+            # XXX(twouters): using "_arbitrary_instance" as key as a quick-fix
+            # for the p3yk merge, this should probably be fixed more neatly.
+            f = self.dispatch["_arbitrary_instance"]
+        f(self, value, write)
+
+    def dump_nil (self, value, write):
+        if not self.allow_none:
+            raise TypeError("cannot marshal None unless allow_none is enabled")
+        write("<value><nil/></value>")
+    dispatch[type(None)] = dump_nil
+
+    def dump_bool(self, value, write):
+        write("<value><boolean>")
+        write(value and "1" or "0")
+        write("</boolean></value>\n")
+    dispatch[bool] = dump_bool
+
+    def dump_long(self, value, write):
+        if value > MAXINT or value < MININT:
+            raise OverflowError("int exceeds XML-RPC limits")
+        write("<value><int>")
+        write(str(int(value)))
+        write("</int></value>\n")
+    dispatch[int] = dump_long
+
+    # backward compatible
+    dump_int = dump_long
+
+    def dump_double(self, value, write):
+        write("<value><double>")
+        write(repr(value))
+        write("</double></value>\n")
+    dispatch[float] = dump_double
+
+    def dump_unicode(self, value, write, escape=escape):
+        write("<value><string>")
+        write(escape(value))
+        write("</string></value>\n")
+    dispatch[str] = dump_unicode
+
+    def dump_bytes(self, value, write):
+        write("<value><base64>\n")
+        encoded = base64.encodebytes(value)
+        write(encoded.decode('ascii'))
+        write("</base64></value>\n")
+    dispatch[bytes] = dump_bytes
+    dispatch[bytearray] = dump_bytes
+
+    def dump_array(self, value, write):
+        i = id(value)
+        if i in self.memo:
+            raise TypeError("cannot marshal recursive sequences")
+        self.memo[i] = None
+        dump = self.__dump
+        write("<value><array><data>\n")
+        for v in value:
+            dump(v, write)
+        write("</data></array></value>\n")
+        del self.memo[i]
+    dispatch[tuple] = dump_array
+    dispatch[list] = dump_array
+
+    def dump_struct(self, value, write, escape=escape):
+        i = id(value)
+        if i in self.memo:
+            raise TypeError("cannot marshal recursive dictionaries")
+        self.memo[i] = None
+        dump = self.__dump
+        write("<value><struct>\n")
+        for k, v in value.items():
+            write("<member>\n")
+            if not isinstance(k, str):
+                raise TypeError("dictionary key must be string")
+            write("<name>%s</name>\n" % escape(k))
+            dump(v, write)
+            write("</member>\n")
+        write("</struct></value>\n")
+        del self.memo[i]
+    dispatch[dict] = dump_struct
+
+    def dump_datetime(self, value, write):
+        write("<value><dateTime.iso8601>")
+        write(_strftime(value))
+        write("</dateTime.iso8601></value>\n")
+    dispatch[datetime] = dump_datetime
+
+    def dump_instance(self, value, write):
+        # check for special wrappers
+        if value.__class__ in WRAPPERS:
+            self.write = write
+            value.encode(self)
+            del self.write
+        else:
+            # store instance attributes as a struct (really?)
+            self.dump_struct(value.__dict__, write)
+    dispatch[DateTime] = dump_instance
+    dispatch[Binary] = dump_instance
+    # XXX(twouters): using "_arbitrary_instance" as key as a quick-fix
+    # for the p3yk merge, this should probably be fixed more neatly.
+    dispatch["_arbitrary_instance"] = dump_instance
+
+##
+# XML-RPC unmarshaller.
+#
+# @see loads
+
+class Unmarshaller:
+    """Unmarshal an XML-RPC response, based on incoming XML event
+    messages (start, data, end).  Call close() to get the resulting
+    data structure.
+
+    Note that this reader is fairly tolerant, and gladly accepts bogus
+    XML-RPC data without complaining (but not bogus XML).
+    """
+
+    # and again, if you don't understand what's going on in here,
+    # that's perfectly ok.
+
+    def __init__(self, use_datetime=False, use_builtin_types=False):
+        self._type = None
+        self._stack = []
+        self._marks = []
+        self._data = []
+        self._value = False
+        self._methodname = None
+        self._encoding = "utf-8"
+        self.append = self._stack.append
+        self._use_datetime = use_builtin_types or use_datetime
+        self._use_bytes = use_builtin_types
+
+    def close(self):
+        # return response tuple and target method
+        if self._type is None or self._marks:
+            raise ResponseError()
+        if self._type == "fault":
+            raise Fault(**self._stack[0])
+        return tuple(self._stack)
+
+    def getmethodname(self):
+        return self._methodname
+
+    #
+    # event handlers
+
+    def xml(self, encoding, standalone):
+        self._encoding = encoding
+        # FIXME: assert standalone == 1 ???
+
+    def start(self, tag, attrs):
+        # prepare to handle this element
+        if ':' in tag:
+            tag = tag.split(':')[-1]
+        if tag == "array" or tag == "struct":
+            self._marks.append(len(self._stack))
+        self._data = []
+        if self._value and tag not in self.dispatch:
+            raise ResponseError("unknown tag %r" % tag)
+        self._value = (tag == "value")
+
+    def data(self, text):
+        self._data.append(text)
+
+    def end(self, tag):
+        # call the appropriate end tag handler
+        try:
+            f = self.dispatch[tag]
+        except KeyError:
+            if ':' not in tag:
+                return # unknown tag ?
+            try:
+                f = self.dispatch[tag.split(':')[-1]]
+            except KeyError:
+                return # unknown tag ?
+        return f(self, "".join(self._data))
+
+    #
+    # accelerator support
+
+    def end_dispatch(self, tag, data):
+        # dispatch data
+        try:
+            f = self.dispatch[tag]
+        except KeyError:
+            if ':' not in tag:
+                return # unknown tag ?
+            try:
+                f = self.dispatch[tag.split(':')[-1]]
+            except KeyError:
+                return # unknown tag ?
+        return f(self, data)
+
+    #
+    # element decoders
+
+    dispatch = {}
+
+    def end_nil (self, data):
+        self.append(None)
+        self._value = 0
+    dispatch["nil"] = end_nil
+
+    def end_boolean(self, data):
+        if data == "0":
+            self.append(False)
+        elif data == "1":
+            self.append(True)
+        else:
+            raise TypeError("bad boolean value")
+        self._value = 0
+    dispatch["boolean"] = end_boolean
+
+    def end_int(self, data):
+        self.append(int(data))
+        self._value = 0
+    dispatch["i1"] = end_int
+    dispatch["i2"] = end_int
+    dispatch["i4"] = end_int
+    dispatch["i8"] = end_int
+    dispatch["int"] = end_int
+    dispatch["biginteger"] = end_int
+
+    def end_double(self, data):
+        self.append(float(data))
+        self._value = 0
+    dispatch["double"] = end_double
+    dispatch["float"] = end_double
+
+    def end_bigdecimal(self, data):
+        self.append(Decimal(data))
+        self._value = 0
+    dispatch["bigdecimal"] = end_bigdecimal
+
+    def end_string(self, data):
+        if self._encoding:
+            data = data.decode(self._encoding)
+        self.append(data)
+        self._value = 0
+    dispatch["string"] = end_string
+    dispatch["name"] = end_string # struct keys are always strings
+
+    def end_array(self, data):
+        mark = self._marks.pop()
+        # map arrays to Python lists
+        self._stack[mark:] = [self._stack[mark:]]
+        self._value = 0
+    dispatch["array"] = end_array
+
+    def end_struct(self, data):
+        mark = self._marks.pop()
+        # map structs to Python dictionaries
+        dict = {}
+        items = self._stack[mark:]
+        for i in range(0, len(items), 2):
+            dict[items[i]] = items[i+1]
+        self._stack[mark:] = [dict]
+        self._value = 0
+    dispatch["struct"] = end_struct
+
+    def end_base64(self, data):
+        value = Binary()
+        value.decode(data.encode("ascii"))
+        if self._use_bytes:
+            value = value.data
+        self.append(value)
+        self._value = 0
+    dispatch["base64"] = end_base64
+
+    def end_dateTime(self, data):
+        value = DateTime()
+        value.decode(data)
+        if self._use_datetime:
+            value = _datetime_type(data)
+        self.append(value)
+    dispatch["dateTime.iso8601"] = end_dateTime
+
+    def end_value(self, data):
+        # if we stumble upon a value element with no internal
+        # elements, treat it as a string element
+        if self._value:
+            self.end_string(data)
+    dispatch["value"] = end_value
+
+    def end_params(self, data):
+        self._type = "params"
+    dispatch["params"] = end_params
+
+    def end_fault(self, data):
+        self._type = "fault"
+    dispatch["fault"] = end_fault
+
+    def end_methodName(self, data):
+        if self._encoding:
+            data = data.decode(self._encoding)
+        self._methodname = data
+        self._type = "methodName" # no params
+    dispatch["methodName"] = end_methodName
+
+## Multicall support
+#
+
+class _MultiCallMethod:
+    # some lesser magic to store calls made to a MultiCall object
+    # for batch execution
+    def __init__(self, call_list, name):
+        self.__call_list = call_list
+        self.__name = name
+    def __getattr__(self, name):
+        return _MultiCallMethod(self.__call_list, "%s.%s" % (self.__name, name))
+    def __call__(self, *args):
+        self.__call_list.append((self.__name, args))
+
+class MultiCallIterator:
+    """Iterates over the results of a multicall. Exceptions are
+    raised in response to xmlrpc faults."""
+
+    def __init__(self, results):
+        self.results = results
+
+    def __getitem__(self, i):
+        item = self.results[i]
+        if isinstance(item, dict):
+            raise Fault(item['faultCode'], item['faultString'])
+        elif isinstance(item, list):
+            return item[0]
+        else:
+            raise ValueError("unexpected type in multicall result")
+
+class MultiCall:
+    """server -> an object used to boxcar method calls
+
+    server should be a ServerProxy object.
+
+    Methods can be added to the MultiCall using normal
+    method call syntax e.g.:
+
+    multicall = MultiCall(server_proxy)
+    multicall.add(2,3)
+    multicall.get_address("Guido")
+
+    To execute the multicall, call the MultiCall object e.g.:
+
+    add_result, address = multicall()
+    """
+
+    def __init__(self, server):
+        self.__server = server
+        self.__call_list = []
+
+    def __repr__(self):
+        return "<%s at %#x>" % (self.__class__.__name__, id(self))
+
+    def __getattr__(self, name):
+        return _MultiCallMethod(self.__call_list, name)
+
+    def __call__(self):
+        marshalled_list = []
+        for name, args in self.__call_list:
+            marshalled_list.append({'methodName' : name, 'params' : args})
+
+        return MultiCallIterator(self.__server.system.multicall(marshalled_list))
+
+# --------------------------------------------------------------------
+# convenience functions
+
+FastMarshaller = FastParser = FastUnmarshaller = None
+
+##
+# Create a parser object, and connect it to an unmarshalling instance.
+# This function picks the fastest available XML parser.
+#
+# return A (parser, unmarshaller) tuple.
+
+def getparser(use_datetime=False, use_builtin_types=False):
+    """getparser() -> parser, unmarshaller
+
+    Create an instance of the fastest available parser, and attach it
+    to an unmarshalling object.  Return both objects.
+    """
+    if FastParser and FastUnmarshaller:
+        if use_builtin_types:
+            mkdatetime = _datetime_type
+            mkbytes = base64.decodebytes
+        elif use_datetime:
+            mkdatetime = _datetime_type
+            mkbytes = _binary
+        else:
+            mkdatetime = _datetime
+            mkbytes = _binary
+        target = FastUnmarshaller(True, False, mkbytes, mkdatetime, Fault)
+        parser = FastParser(target)
+    else:
+        target = Unmarshaller(use_datetime=use_datetime, use_builtin_types=use_builtin_types)
+        if FastParser:
+            parser = FastParser(target)
+        else:
+            parser = ExpatParser(target)
+    return parser, target
+
+##
+# Convert a Python tuple or a Fault instance to an XML-RPC packet.
+#
+# @def dumps(params, **options)
+# @param params A tuple or Fault instance.
+# @keyparam methodname If given, create a methodCall request for
+#     this method name.
+# @keyparam methodresponse If given, create a methodResponse packet.
+#     If used with a tuple, the tuple must be a singleton (that is,
+#     it must contain exactly one element).
+# @keyparam encoding The packet encoding.
+# @return A string containing marshalled data.
+
+def dumps(params, methodname=None, methodresponse=None, encoding=None,
+          allow_none=False):
+    """data [,options] -> marshalled data
+
+    Convert an argument tuple or a Fault instance to an XML-RPC
+    request (or response, if the methodresponse option is used).
+
+    In addition to the data object, the following options can be given
+    as keyword arguments:
+
+        methodname: the method name for a methodCall packet
+
+        methodresponse: true to create a methodResponse packet.
+        If this option is used with a tuple, the tuple must be
+        a singleton (i.e. it can contain only one element).
+
+        encoding: the packet encoding (default is UTF-8)
+
+    All byte strings in the data structure are assumed to use the
+    packet encoding.  Unicode strings are automatically converted,
+    where necessary.
+    """
+
+    assert isinstance(params, (tuple, Fault)), "argument must be tuple or Fault instance"
+    if isinstance(params, Fault):
+        methodresponse = 1
+    elif methodresponse and isinstance(params, tuple):
+        assert len(params) == 1, "response tuple must be a singleton"
+
+    if not encoding:
+        encoding = "utf-8"
+
+    if FastMarshaller:
+        m = FastMarshaller(encoding)
+    else:
+        m = Marshaller(encoding, allow_none)
+
+    data = m.dumps(params)
+
+    if encoding != "utf-8":
+        xmlheader = "<?xml version='1.0' encoding='%s'?>\n" % str(encoding)
+    else:
+        xmlheader = "<?xml version='1.0'?>\n" # utf-8 is default
+
+    # standard XML-RPC wrappings
+    if methodname:
+        # a method call
+        data = (
+            xmlheader,
+            "<methodCall>\n"
+            "<methodName>", methodname, "</methodName>\n",
+            data,
+            "</methodCall>\n"
+            )
+    elif methodresponse:
+        # a method response, or a fault structure
+        data = (
+            xmlheader,
+            "<methodResponse>\n",
+            data,
+            "</methodResponse>\n"
+            )
+    else:
+        return data # return as is
+    return "".join(data)
+
+##
+# Convert an XML-RPC packet to a Python object.  If the XML-RPC packet
+# represents a fault condition, this function raises a Fault exception.
+#
+# @param data An XML-RPC packet, given as an 8-bit string.
+# @return A tuple containing the unpacked data, and the method name
+#     (None if not present).
+# @see Fault
+
+def loads(data, use_datetime=False, use_builtin_types=False):
+    """data -> unmarshalled data, method name
+
+    Convert an XML-RPC packet to unmarshalled data plus a method
+    name (None if not present).
+
+    If the XML-RPC packet represents a fault condition, this function
+    raises a Fault exception.
+    """
+    p, u = getparser(use_datetime=use_datetime, use_builtin_types=use_builtin_types)
+    p.feed(data)
+    p.close()
+    return u.close(), u.getmethodname()
+
+##
+# Encode a string using the gzip content encoding such as specified by the
+# Content-Encoding: gzip
+# in the HTTP header, as described in RFC 1952
+#
+# @param data the unencoded data
+# @return the encoded data
+
+def gzip_encode(data):
+    """data -> gzip encoded data
+
+    Encode data using the gzip content encoding as described in RFC 1952
+    """
+    if not gzip:
+        raise NotImplementedError
+    f = BytesIO()
+    with gzip.GzipFile(mode="wb", fileobj=f, compresslevel=1) as gzf:
+        gzf.write(data)
+    return f.getvalue()
+
+##
+# Decode a string using the gzip content encoding such as specified by the
+# Content-Encoding: gzip
+# in the HTTP header, as described in RFC 1952
+#
+# @param data The encoded data
+# @keyparam max_decode Maximum bytes to decode (20 MiB default), use negative
+#    values for unlimited decoding
+# @return the unencoded data
+# @raises ValueError if data is not correctly coded.
+# @raises ValueError if max gzipped payload length exceeded
+
+def gzip_decode(data, max_decode=20971520):
+    """gzip encoded data -> unencoded data
+
+    Decode data using the gzip content encoding as described in RFC 1952
+    """
+    if not gzip:
+        raise NotImplementedError
+    with gzip.GzipFile(mode="rb", fileobj=BytesIO(data)) as gzf:
+        try:
+            if max_decode < 0: # no limit
+                decoded = gzf.read()
+            else:
+                decoded = gzf.read(max_decode + 1)
+        except OSError:
+            raise ValueError("invalid data")
+    if max_decode >= 0 and len(decoded) > max_decode:
+        raise ValueError("max gzipped payload length exceeded")
+    return decoded
+
+##
+# Return a decoded file-like object for the gzip encoding
+# as described in RFC 1952.
+#
+# @param response A stream supporting a read() method
+# @return a file-like object that the decoded data can be read() from
+
+class GzipDecodedResponse(gzip.GzipFile if gzip else object):
+    """a file-like object to decode a response encoded with the gzip
+    method, as described in RFC 1952.
+    """
+    def __init__(self, response):
+        #response doesn't support tell() and read(), required by
+        #GzipFile
+        if not gzip:
+            raise NotImplementedError
+        self.io = BytesIO(response.read())
+        gzip.GzipFile.__init__(self, mode="rb", fileobj=self.io)
+
+    def close(self):
+        try:
+            gzip.GzipFile.close(self)
+        finally:
+            self.io.close()
+
+
+# --------------------------------------------------------------------
+# request dispatcher
+
+class _Method:
+    # some magic to bind an XML-RPC method to an RPC server.
+    # supports "nested" methods (e.g. examples.getStateName)
+    def __init__(self, send, name):
+        self.__send = send
+        self.__name = name
+    def __getattr__(self, name):
+        return _Method(self.__send, "%s.%s" % (self.__name, name))
+    def __call__(self, *args):
+        return self.__send(self.__name, args)
+
+##
+# Standard transport class for XML-RPC over HTTP.
+# <p>
+# You can create custom transports by subclassing this method, and
+# overriding selected methods.
+
+class Transport:
+    """Handles an HTTP transaction to an XML-RPC server."""
+
+    # client identifier (may be overridden)
+    user_agent = "Python-xmlrpc/%s" % __version__
+
+    #if true, we'll request gzip encoding
+    accept_gzip_encoding = True
+
+    # if positive, encode request using gzip if it exceeds this threshold
+    # note that many servers will get confused, so only use it if you know
+    # that they can decode such a request
+    encode_threshold = None #None = don't encode
+
+    def __init__(self, use_datetime=False, use_builtin_types=False,
+                 *, headers=()):
+        self._use_datetime = use_datetime
+        self._use_builtin_types = use_builtin_types
+        self._connection = (None, None)
+        self._headers = list(headers)
+        self._extra_headers = []
+
+    ##
+    # Send a complete request, and parse the response.
+    # Retry request if a cached connection has disconnected.
+    #
+    # @param host Target host.
+    # @param handler Target PRC handler.
+    # @param request_body XML-RPC request body.
+    # @param verbose Debugging flag.
+    # @return Parsed response.
+
+    def request(self, host, handler, request_body, verbose=False):
+        #retry request once if cached connection has gone cold
+        for i in (0, 1):
+            try:
+                return self.single_request(host, handler, request_body, verbose)
+            except http.client.RemoteDisconnected:
+                if i:
+                    raise
+            except OSError as e:
+                if i or e.errno not in (errno.ECONNRESET, errno.ECONNABORTED,
+                                        errno.EPIPE):
+                    raise
+
+    def single_request(self, host, handler, request_body, verbose=False):
+        # issue XML-RPC request
+        try:
+            http_conn = self.send_request(host, handler, request_body, verbose)
+            resp = http_conn.getresponse()
+            if resp.status == 200:
+                self.verbose = verbose
+                return self.parse_response(resp)
+
+        except Fault:
+            raise
+        except Exception:
+            #All unexpected errors leave connection in
+            # a strange state, so we clear it.
+            self.close()
+            raise
+
+        #We got an error response.
+        #Discard any response data and raise exception
+        if resp.getheader("content-length", ""):
+            resp.read()
+        raise ProtocolError(
+            host + handler,
+            resp.status, resp.reason,
+            dict(resp.getheaders())
+            )
+
+
+    ##
+    # Create parser.
+    #
+    # @return A 2-tuple containing a parser and an unmarshaller.
+
+    def getparser(self):
+        # get parser and unmarshaller
+        return getparser(use_datetime=self._use_datetime,
+                         use_builtin_types=self._use_builtin_types)
+
+    ##
+    # Get authorization info from host parameter
+    # Host may be a string, or a (host, x509-dict) tuple; if a string,
+    # it is checked for a "user:pw@host" format, and a "Basic
+    # Authentication" header is added if appropriate.
+    #
+    # @param host Host descriptor (URL or (URL, x509 info) tuple).
+    # @return A 3-tuple containing (actual host, extra headers,
+    #     x509 info).  The header and x509 fields may be None.
+
+    def get_host_info(self, host):
+
+        x509 = {}
+        if isinstance(host, tuple):
+            host, x509 = host
+
+        auth, host = urllib.parse._splituser(host)
+
+        if auth:
+            auth = urllib.parse.unquote_to_bytes(auth)
+            auth = base64.encodebytes(auth).decode("utf-8")
+            auth = "".join(auth.split()) # get rid of whitespace
+            extra_headers = [
+                ("Authorization", "Basic " + auth)
+                ]
+        else:
+            extra_headers = []
+
+        return host, extra_headers, x509
+
+    ##
+    # Connect to server.
+    #
+    # @param host Target host.
+    # @return An HTTPConnection object
+
+    def make_connection(self, host):
+        #return an existing connection if possible.  This allows
+        #HTTP/1.1 keep-alive.
+        if self._connection and host == self._connection[0]:
+            return self._connection[1]
+        # create a HTTP connection object from a host descriptor
+        chost, self._extra_headers, x509 = self.get_host_info(host)
+        self._connection = host, http.client.HTTPConnection(chost)
+        return self._connection[1]
+
+    ##
+    # Clear any cached connection object.
+    # Used in the event of socket errors.
+    #
+    def close(self):
+        host, connection = self._connection
+        if connection:
+            self._connection = (None, None)
+            connection.close()
+
+    ##
+    # Send HTTP request.
+    #
+    # @param host Host descriptor (URL or (URL, x509 info) tuple).
+    # @param handler Target RPC handler (a path relative to host)
+    # @param request_body The XML-RPC request body
+    # @param debug Enable debugging if debug is true.
+    # @return An HTTPConnection.
+
+    def send_request(self, host, handler, request_body, debug):
+        connection = self.make_connection(host)
+        headers = self._headers + self._extra_headers
+        if debug:
+            connection.set_debuglevel(1)
+        if self.accept_gzip_encoding and gzip:
+            connection.putrequest("POST", handler, skip_accept_encoding=True)
+            headers.append(("Accept-Encoding", "gzip"))
+        else:
+            connection.putrequest("POST", handler)
+        headers.append(("Content-Type", "text/xml"))
+        headers.append(("User-Agent", self.user_agent))
+        self.send_headers(connection, headers)
+        self.send_content(connection, request_body)
+        return connection
+
+    ##
+    # Send request headers.
+    # This function provides a useful hook for subclassing
+    #
+    # @param connection httpConnection.
+    # @param headers list of key,value pairs for HTTP headers
+
+    def send_headers(self, connection, headers):
+        for key, val in headers:
+            connection.putheader(key, val)
+
+    ##
+    # Send request body.
+    # This function provides a useful hook for subclassing
+    #
+    # @param connection httpConnection.
+    # @param request_body XML-RPC request body.
+
+    def send_content(self, connection, request_body):
+        #optionally encode the request
+        if (self.encode_threshold is not None and
+            self.encode_threshold < len(request_body) and
+            gzip):
+            connection.putheader("Content-Encoding", "gzip")
+            request_body = gzip_encode(request_body)
+
+        connection.putheader("Content-Length", str(len(request_body)))
+        connection.endheaders(request_body)
+
+    ##
+    # Parse response.
+    #
+    # @param file Stream.
+    # @return Response tuple and target method.
+
+    def parse_response(self, response):
+        # read response data from httpresponse, and parse it
+        # Check for new http response object, otherwise it is a file object.
+        if hasattr(response, 'getheader'):
+            if response.getheader("Content-Encoding", "") == "gzip":
+                stream = GzipDecodedResponse(response)
+            else:
+                stream = response
+        else:
+            stream = response
+
+        p, u = self.getparser()
+
+        while data := stream.read(1024):
+            if self.verbose:
+                print("body:", repr(data))
+            p.feed(data)
+
+        if stream is not response:
+            stream.close()
+        p.close()
+
+        return u.close()
+
+##
+# Standard transport class for XML-RPC over HTTPS.
+
+class SafeTransport(Transport):
+    """Handles an HTTPS transaction to an XML-RPC server."""
+
+    def __init__(self, use_datetime=False, use_builtin_types=False,
+                 *, headers=(), context=None):
+        super().__init__(use_datetime=use_datetime,
+                         use_builtin_types=use_builtin_types,
+                         headers=headers)
+        self.context = context
+
+    # FIXME: mostly untested
+
+    def make_connection(self, host):
+        if self._connection and host == self._connection[0]:
+            return self._connection[1]
+
+        if not hasattr(http.client, "HTTPSConnection"):
+            raise NotImplementedError(
+            "your version of http.client doesn't support HTTPS")
+        # create a HTTPS connection object from a host descriptor
+        # host may be a string, or a (host, x509-dict) tuple
+        chost, self._extra_headers, x509 = self.get_host_info(host)
+        self._connection = host, http.client.HTTPSConnection(chost,
+            None, context=self.context, **(x509 or {}))
+        return self._connection[1]
+
+##
+# Standard server proxy.  This class establishes a virtual connection
+# to an XML-RPC server.
+# <p>
+# This class is available as ServerProxy and Server.  New code should
+# use ServerProxy, to avoid confusion.
+#
+# @def ServerProxy(uri, **options)
+# @param uri The connection point on the server.
+# @keyparam transport A transport factory, compatible with the
+#    standard transport class.
+# @keyparam encoding The default encoding used for 8-bit strings
+#    (default is UTF-8).
+# @keyparam verbose Use a true value to enable debugging output.
+#    (printed to standard output).
+# @see Transport
+
+class ServerProxy:
+    """uri [,options] -> a logical connection to an XML-RPC server
+
+    uri is the connection point on the server, given as
+    scheme://host/target.
+
+    The standard implementation always supports the "http" scheme.  If
+    SSL socket support is available (Python 2.0), it also supports
+    "https".
+
+    If the target part and the slash preceding it are both omitted,
+    "/RPC2" is assumed.
+
+    The following options can be given as keyword arguments:
+
+        transport: a transport factory
+        encoding: the request encoding (default is UTF-8)
+
+    All 8-bit strings passed to the server proxy are assumed to use
+    the given encoding.
+    """
+
+    def __init__(self, uri, transport=None, encoding=None, verbose=False,
+                 allow_none=False, use_datetime=False, use_builtin_types=False,
+                 *, headers=(), context=None):
+        # establish a "logical" server connection
+
+        # get the url
+        p = urllib.parse.urlsplit(uri)
+        if p.scheme not in ("http", "https"):
+            raise OSError("unsupported XML-RPC protocol")
+        self.__host = p.netloc
+        self.__handler = urllib.parse.urlunsplit(["", "", *p[2:]])
+        if not self.__handler:
+            self.__handler = "/RPC2"
+
+        if transport is None:
+            if p.scheme == "https":
+                handler = SafeTransport
+                extra_kwargs = {"context": context}
+            else:
+                handler = Transport
+                extra_kwargs = {}
+            transport = handler(use_datetime=use_datetime,
+                                use_builtin_types=use_builtin_types,
+                                headers=headers,
+                                **extra_kwargs)
+        self.__transport = transport
+
+        self.__encoding = encoding or 'utf-8'
+        self.__verbose = verbose
+        self.__allow_none = allow_none
+
+    def __close(self):
+        self.__transport.close()
+
+    def __request(self, methodname, params):
+        # call a method on the remote server
+
+        request = dumps(params, methodname, encoding=self.__encoding,
+                        allow_none=self.__allow_none).encode(self.__encoding, 'xmlcharrefreplace')
+
+        response = self.__transport.request(
+            self.__host,
+            self.__handler,
+            request,
+            verbose=self.__verbose
+            )
+
+        if len(response) == 1:
+            response = response[0]
+
+        return response
+
+    def __repr__(self):
+        return (
+            "<%s for %s%s>" %
+            (self.__class__.__name__, self.__host, self.__handler)
+            )
+
+    def __getattr__(self, name):
+        # magic method dispatcher
+        return _Method(self.__request, name)
+
+    # note: to call a remote object with a non-standard name, use
+    # result getattr(server, "strange-python-name")(args)
+
+    def __call__(self, attr):
+        """A workaround to get special attributes on the ServerProxy
+           without interfering with the magic __getattr__
+        """
+        if attr == "close":
+            return self.__close
+        elif attr == "transport":
+            return self.__transport
+        raise AttributeError("Attribute %r not found" % (attr,))
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *args):
+        self.__close()
+
+# compatibility
+
+Server = ServerProxy
+
+# --------------------------------------------------------------------
+# test code
+
+if __name__ == "__main__":
+
+    # simple test program (from the XML-RPC specification)
+
+    # local server, available from Lib/xmlrpc/server.py
+    server = ServerProxy("http://localhost:8000")
+
+    try:
+        print(server.currentTime.getCurrentTime())
+    except Error as v:
+        print("ERROR", v)
+
+    multi = MultiCall(server)
+    multi.getData()
+    multi.pow(2,9)
+    multi.add(1,2)
+    try:
+        for response in multi():
+            print(response)
+    except Error as v:
+        print("ERROR", v)
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               r"""XML-RPC Servers.
+
+This module can be used to create simple XML-RPC servers
+by creating a server and either installing functions, a
+class instance, or by extending the SimpleXMLRPCServer
+class.
+
+It can also be used to handle XML-RPC requests in a CGI
+environment using CGIXMLRPCRequestHandler.
+
+The Doc* classes can be used to create XML-RPC servers that
+serve pydoc-style documentation in response to HTTP
+GET requests. This documentation is dynamically generated
+based on the functions and methods registered with the
+server.
+
+A list of possible usage patterns follows:
+
+1. Install functions:
+
+server = SimpleXMLRPCServer(("localhost", 8000))
+server.register_function(pow)
+server.register_function(lambda x,y: x+y, 'add')
+server.serve_forever()
+
+2. Install an instance:
+
+class MyFuncs:
+    def __init__(self):
+        # make all of the sys functions available through sys.func_name
+        import sys
+        self.sys = sys
+    def _listMethods(self):
+        # implement this method so that system.listMethods
+        # knows to advertise the sys methods
+        return list_public_methods(self) + \
+                ['sys.' + method for method in list_public_methods(self.sys)]
+    def pow(self, x, y): return pow(x, y)
+    def add(self, x, y) : return x + y
+
+server = SimpleXMLRPCServer(("localhost", 8000))
+server.register_introspection_functions()
+server.register_instance(MyFuncs())
+server.serve_forever()
+
+3. Install an instance with custom dispatch method:
+
+class Math:
+    def _listMethods(self):
+        # this method must be present for system.listMethods
+        # to work
+        return ['add', 'pow']
+    def _methodHelp(self, method):
+        # this method must be present for system.methodHelp
+        # to work
+        if method == 'add':
+            return "add(2,3) => 5"
+        elif method == 'pow':
+            return "pow(x, y[, z]) => number"
+        else:
+            # By convention, return empty
+            # string if no help is available
+            return ""
+    def _dispatch(self, method, params):
+        if method == 'pow':
+            return pow(*params)
+        elif method == 'add':
+            return params[0] + params[1]
+        else:
+            raise ValueError('bad method')
+
+server = SimpleXMLRPCServer(("localhost", 8000))
+server.register_introspection_functions()
+server.register_instance(Math())
+server.serve_forever()
+
+4. Subclass SimpleXMLRPCServer:
+
+class MathServer(SimpleXMLRPCServer):
+    def _dispatch(self, method, params):
+        try:
+            # We are forcing the 'export_' prefix on methods that are
+            # callable through XML-RPC to prevent potential security
+            # problems
+            func = getattr(self, 'export_' + method)
+        except AttributeError:
+            raise Exception('method "%s" is not supported' % method)
+        else:
+            return func(*params)
+
+    def export_add(self, x, y):
+        return x + y
+
+server = MathServer(("localhost", 8000))
+server.serve_forever()
+
+5. CGI script:
+
+server = CGIXMLRPCRequestHandler()
+server.register_function(pow)
+server.handle_request()
+"""
+
+# Written by Brian Quinlan (brian@sweetapp.com).
+# Based on code written by Fredrik Lundh.
+
+from xmlrpc.client import Fault, dumps, loads, gzip_encode, gzip_decode
+from http.server import BaseHTTPRequestHandler
+from functools import partial
+from inspect import signature
+import html
+import http.server
+import socketserver
+import sys
+import os
+import re
+import pydoc
+import traceback
+try:
+    import fcntl
+except ImportError:
+    fcntl = None
+
+def resolve_dotted_attribute(obj, attr, allow_dotted_names=True):
+    """resolve_dotted_attribute(a, 'b.c.d') => a.b.c.d
+
+    Resolves a dotted attribute name to an object.  Raises
+    an AttributeError if any attribute in the chain starts with a '_'.
+
+    If the optional allow_dotted_names argument is false, dots are not
+    supported and this function operates similar to getattr(obj, attr).
+    """
+
+    if allow_dotted_names:
+        attrs = attr.split('.')
+    else:
+        attrs = [attr]
+
+    for i in attrs:
+        if i.startswith('_'):
+            raise AttributeError(
+                'attempt to access private attribute "%s"' % i
+                )
+        else:
+            obj = getattr(obj,i)
+    return obj
+
+def list_public_methods(obj):
+    """Returns a list of attribute strings, found in the specified
+    object, which represent callable attributes"""
+
+    return [member for member in dir(obj)
+                if not member.startswith('_') and
+                    callable(getattr(obj, member))]
+
+class SimpleXMLRPCDispatcher:
+    """Mix-in class that dispatches XML-RPC requests.
+
+    This class is used to register XML-RPC method handlers
+    and then to dispatch them. This class doesn't need to be
+    instanced directly when used by SimpleXMLRPCServer but it
+    can be instanced when used by the MultiPathXMLRPCServer
+    """
+
+    def __init__(self, allow_none=False, encoding=None,
+                 use_builtin_types=False):
+        self.funcs = {}
+        self.instance = None
+        self.allow_none = allow_none
+        self.encoding = encoding or 'utf-8'
+        self.use_builtin_types = use_builtin_types
+
+    def register_instance(self, instance, allow_dotted_names=False):
+        """Registers an instance to respond to XML-RPC requests.
+
+        Only one instance can be installed at a time.
+
+        If the registered instance has a _dispatch method then that
+        method will be called with the name of the XML-RPC method and
+        its parameters as a tuple
+        e.g. instance._dispatch('add',(2,3))
+
+        If the registered instance does not have a _dispatch method
+        then the instance will be searched to find a matching method
+        and, if found, will be called. Methods beginning with an '_'
+        are considered private and will not be called by
+        SimpleXMLRPCServer.
+
+        If a registered function matches an XML-RPC request, then it
+        will be called instead of the registered instance.
+
+        If the optional allow_dotted_names argument is true and the
+        instance does not have a _dispatch method, method names
+        containing dots are supported and resolved, as long as none of
+        the name segments start with an '_'.
+
+            *** SECURITY WARNING: ***
+
+            Enabling the allow_dotted_names options allows intruders
+            to access your module's global variables and may allow
+            intruders to execute arbitrary code on your machine.  Only
+            use this option on a secure, closed network.
+
+        """
+
+        self.instance = instance
+        self.allow_dotted_names = allow_dotted_names
+
+    def register_function(self, function=None, name=None):
+        """Registers a function to respond to XML-RPC requests.
+
+        The optional name argument can be used to set a Unicode name
+        for the function.
+        """
+        # decorator factory
+        if function is None:
+            return partial(self.register_function, name=name)
+
+        if name is None:
+            name = function.__name__
+        self.funcs[name] = function
+
+        return function
+
+    def register_introspection_functions(self):
+        """Registers the XML-RPC introspection methods in the system
+        namespace.
+
+        see http://xmlrpc.usefulinc.com/doc/reserved.html
+        """
+
+        self.funcs.update({'system.listMethods' : self.system_listMethods,
+                      'system.methodSignature' : self.system_methodSignature,
+                      'system.methodHelp' : self.system_methodHelp})
+
+    def register_multicall_functions(self):
+        """Registers the XML-RPC multicall method in the system
+        namespace.
+
+        see http://www.xmlrpc.com/discuss/msgReader$1208"""
+
+        self.funcs.update({'system.multicall' : self.system_multicall})
+
+    def _marshaled_dispatch(self, data, dispatch_method = None, path = None):
+        """Dispatches an XML-RPC method from marshalled (XML) data.
+
+        XML-RPC methods are dispatched from the marshalled (XML) data
+        using the _dispatch method and the result is returned as
+        marshalled data. For backwards compatibility, a dispatch
+        function can be provided as an argument (see comment in
+        SimpleXMLRPCRequestHandler.do_POST) but overriding the
+        existing method through subclassing is the preferred means
+        of changing method dispatch behavior.
+        """
+
+        try:
+            params, method = loads(data, use_builtin_types=self.use_builtin_types)
+
+            # generate response
+            if dispatch_method is not None:
+                response = dispatch_method(method, params)
+            else:
+                response = self._dispatch(method, params)
+            # wrap response in a singleton tuple
+            response = (response,)
+            response = dumps(response, methodresponse=1,
+                             allow_none=self.allow_none, encoding=self.encoding)
+        except Fault as fault:
+            response = dumps(fault, allow_none=self.allow_none,
+                             encoding=self.encoding)
+        except BaseException as exc:
+            response = dumps(
+                Fault(1, "%s:%s" % (type(exc), exc)),
+                encoding=self.encoding, allow_none=self.allow_none,
+                )
+
+        return response.encode(self.encoding, 'xmlcharrefreplace')
+
+    def system_listMethods(self):
+        """system.listMethods() => ['add', 'subtract', 'multiple']
+
+        Returns a list of the methods supported by the server."""
+
+        methods = set(self.funcs.keys())
+        if self.instance is not None:
+            # Instance can implement _listMethod to return a list of
+            # methods
+            if hasattr(self.instance, '_listMethods'):
+                methods |= set(self.instance._listMethods())
+            # if the instance has a _dispatch method then we
+            # don't have enough information to provide a list
+            # of methods
+            elif not hasattr(self.instance, '_dispatch'):
+                methods |= set(list_public_methods(self.instance))
+        return sorted(methods)
+
+    def system_methodSignature(self, method_name):
+        """system.methodSignature('add') => [double, int, int]
+
+        Returns a list describing the signature of the method. In the
+        above example, the add method takes two integers as arguments
+        and returns a double result.
+
+        This server does NOT support system.methodSignature."""
+
+        # See http://xmlrpc.usefulinc.com/doc/sysmethodsig.html
+
+        return 'signatures not supported'
+
+    def system_methodHelp(self, method_name):
+        """system.methodHelp('add') => "Adds two integers together"
+
+        Returns a string containing documentation for the specified method."""
+
+        method = None
+        if method_name in self.funcs:
+            method = self.funcs[method_name]
+        elif self.instance is not None:
+            # Instance can implement _methodHelp to return help for a method
+            if hasattr(self.instance, '_methodHelp'):
+                return self.instance._methodHelp(method_name)
+            # if the instance has a _dispatch method then we
+            # don't have enough information to provide help
+            elif not hasattr(self.instance, '_dispatch'):
+                try:
+                    method = resolve_dotted_attribute(
+                                self.instance,
+                                method_name,
+                                self.allow_dotted_names
+                                )
+                except AttributeError:
+                    pass
+
+        # Note that we aren't checking that the method actually
+        # be a callable object of some kind
+        if method is None:
+            return ""
+        else:
+            return pydoc.getdoc(method)
+
+    def system_multicall(self, call_list):
+        """system.multicall([{'methodName': 'add', 'params': [2, 2]}, ...]) => \
+[[4], ...]
+
+        Allows the caller to package multiple XML-RPC calls into a single
+        request.
+
+        See http://www.xmlrpc.com/discuss/msgReader$1208
+        """
+
+        results = []
+        for call in call_list:
+            method_name = call['methodName']
+            params = call['params']
+
+            try:
+                # XXX A marshalling error in any response will fail the entire
+                # multicall. If someone cares they should fix this.
+                results.append([self._dispatch(method_name, params)])
+            except Fault as fault:
+                results.append(
+                    {'faultCode' : fault.faultCode,
+                     'faultString' : fault.faultString}
+                    )
+            except BaseException as exc:
+                results.append(
+                    {'faultCode' : 1,
+                     'faultString' : "%s:%s" % (type(exc), exc)}
+                    )
+        return results
+
+    def _dispatch(self, method, params):
+        """Dispatches the XML-RPC method.
+
+        XML-RPC calls are forwarded to a registered function that
+        matches the called XML-RPC method name. If no such function
+        exists then the call is forwarded to the registered instance,
+        if available.
+
+        If the registered instance has a _dispatch method then that
+        method will be called with the name of the XML-RPC method and
+        its parameters as a tuple
+        e.g. instance._dispatch('add',(2,3))
+
+        If the registered instance does not have a _dispatch method
+        then the instance will be searched to find a matching method
+        and, if found, will be called.
+
+        Methods beginning with an '_' are considered private and will
+        not be called.
+        """
+
+        try:
+            # call the matching registered function
+            func = self.funcs[method]
+        except KeyError:
+            pass
+        else:
+            if func is not None:
+                return func(*params)
+            raise Exception('method "%s" is not supported' % method)
+
+        if self.instance is not None:
+            if hasattr(self.instance, '_dispatch'):
+                # call the `_dispatch` method on the instance
+                return self.instance._dispatch(method, params)
+
+            # call the instance's method directly
+            try:
+                func = resolve_dotted_attribute(
+                    self.instance,
+                    method,
+                    self.allow_dotted_names
+                )
+            except AttributeError:
+                pass
+            else:
+                if func is not None:
+                    return func(*params)
+
+        raise Exception('method "%s" is not supported' % method)
+
+class SimpleXMLRPCRequestHandler(BaseHTTPRequestHandler):
+    """Simple XML-RPC request handler class.
+
+    Handles all HTTP POST requests and attempts to decode them as
+    XML-RPC requests.
+    """
+
+    # Class attribute listing the accessible path components;
+    # paths not on this list will result in a 404 error.
+    rpc_paths = ('/', '/RPC2', '/pydoc.css')
+
+    #if not None, encode responses larger than this, if possible
+    encode_threshold = 1400 #a common MTU
+
+    #Override form StreamRequestHandler: full buffering of output
+    #and no Nagle.
+    wbufsize = -1
+    disable_nagle_algorithm = True
+
+    # a re to match a gzip Accept-Encoding
+    aepattern = re.compile(r"""
+                            \s* ([^\s;]+) \s*            #content-coding
+                            (;\s* q \s*=\s* ([0-9\.]+))? #q
+                            """, re.VERBOSE | re.IGNORECASE)
+
+    def accept_encodings(self):
+        r = {}
+        ae = self.headers.get("Accept-Encoding", "")
+        for e in ae.split(","):
+            match = self.aepattern.match(e)
+            if match:
+                v = match.group(3)
+                v = float(v) if v else 1.0
+                r[match.group(1)] = v
+        return r
+
+    def is_rpc_path_valid(self):
+        if self.rpc_paths:
+            return self.path in self.rpc_paths
+        else:
+            # If .rpc_paths is empty, just assume all paths are legal
+            return True
+
+    def do_POST(self):
+        """Handles the HTTP POST request.
+
+        Attempts to interpret all HTTP POST requests as XML-RPC calls,
+        which are forwarded to the server's _dispatch method for handling.
+        """
+
+        # Check that the path is legal
+        if not self.is_rpc_path_valid():
+            self.report_404()
+            return
+
+        try:
+            # Get arguments by reading body of request.
+            # We read this in chunks to avoid straining
+            # socket.read(); around the 10 or 15Mb mark, some platforms
+            # begin to have problems (bug #792570).
+            max_chunk_size = 10*1024*1024
+            size_remaining = int(self.headers["content-length"])
+            L = []
+            while size_remaining:
+                chunk_size = min(size_remaining, max_chunk_size)
+                chunk = self.rfile.read(chunk_size)
+                if not chunk:
+                    break
+                L.append(chunk)
+                size_remaining -= len(L[-1])
+            data = b''.join(L)
+
+            data = self.decode_request_content(data)
+            if data is None:
+                return #response has been sent
+
+            # In previous versions of SimpleXMLRPCServer, _dispatch
+            # could be overridden in this class, instead of in
+            # SimpleXMLRPCDispatcher. To maintain backwards compatibility,
+            # check to see if a subclass implements _dispatch and dispatch
+            # using that method if present.
+            response = self.server._marshaled_dispatch(
+                    data, getattr(self, '_dispatch', None), self.path
+                )
+        except Exception as e: # This should only happen if the module is buggy
+            # internal error, report as HTTP server error
+            self.send_response(500)
+
+            # Send information about the exception if requested
+            if hasattr(self.server, '_send_traceback_header') and \
+                    self.server._send_traceback_header:
+                self.send_header("X-exception", str(e))
+                trace = traceback.format_exc()
+                trace = str(trace.encode('ASCII', 'backslashreplace'), 'ASCII')
+                self.send_header("X-traceback", trace)
+
+            self.send_header("Content-length", "0")
+            self.end_headers()
+        else:
+            self.send_response(200)
+            self.send_header("Content-type", "text/xml")
+            if self.encode_threshold is not None:
+                if len(response) > self.encode_threshold:
+                    q = self.accept_encodings().get("gzip", 0)
+                    if q:
+                        try:
+                            response = gzip_encode(response)
+                            self.send_header("Content-Encoding", "gzip")
+                        except NotImplementedError:
+                            pass
+            self.send_header("Content-length", str(len(response)))
+            self.end_headers()
+            self.wfile.write(response)
+
+    def decode_request_content(self, data):
+        #support gzip encoding of request
+        encoding = self.headers.get("content-encoding", "identity").lower()
+        if encoding == "identity":
+            return data
+        if encoding == "gzip":
+            try:
+                return gzip_decode(data)
+            except NotImplementedError:
+                self.send_response(501, "encoding %r not supported" % encoding)
+            except ValueError:
+                self.send_response(400, "error decoding gzip content")
+        else:
+            self.send_response(501, "encoding %r not supported" % encoding)
+        self.send_header("Content-length", "0")
+        self.end_headers()
+
+    def report_404 (self):
+            # Report a 404 error
+        self.send_response(404)
+        response = b'No such page'
+        self.send_header("Content-type", "text/plain")
+        self.send_header("Content-length", str(len(response)))
+        self.end_headers()
+        self.wfile.write(response)
+
+    def log_request(self, code='-', size='-'):
+        """Selectively log an accepted request."""
+
+        if self.server.logRequests:
+            BaseHTTPRequestHandler.log_request(self, code, size)
+
+class SimpleXMLRPCServer(socketserver.TCPServer,
+                         SimpleXMLRPCDispatcher):
+    """Simple XML-RPC server.
+
+    Simple XML-RPC server that allows functions and a single instance
+    to be installed to handle requests. The default implementation
+    attempts to dispatch XML-RPC calls to the functions or instance
+    installed in the server. Override the _dispatch method inherited
+    from SimpleXMLRPCDispatcher to change this behavior.
+    """
+
+    allow_reuse_address = True
+
+    # Warning: this is for debugging purposes only! Never set this to True in
+    # production code, as will be sending out sensitive information (exception
+    # and stack trace details) when exceptions are raised inside
+    # SimpleXMLRPCRequestHandler.do_POST
+    _send_traceback_header = False
+
+    def __init__(self, addr, requestHandler=SimpleXMLRPCRequestHandler,
+                 logRequests=True, allow_none=False, encoding=None,
+                 bind_and_activate=True, use_builtin_types=False):
+        self.logRequests = logRequests
+
+        SimpleXMLRPCDispatcher.__init__(self, allow_none, encoding, use_builtin_types)
+        socketserver.TCPServer.__init__(self, addr, requestHandler, bind_and_activate)
+
+
+class MultiPathXMLRPCServer(SimpleXMLRPCServer):
+    """Multipath XML-RPC Server
+    This specialization of SimpleXMLRPCServer allows the user to create
+    multiple Dispatcher instances and assign them to different
+    HTTP request paths.  This makes it possible to run two or more
+    'virtual XML-RPC servers' at the same port.
+    Make sure that the requestHandler accepts the paths in question.
+    """
+    def __init__(self, addr, requestHandler=SimpleXMLRPCRequestHandler,
+                 logRequests=True, allow_none=False, encoding=None,
+                 bind_and_activate=True, use_builtin_types=False):
+
+        SimpleXMLRPCServer.__init__(self, addr, requestHandler, logRequests, allow_none,
+                                    encoding, bind_and_activate, use_builtin_types)
+        self.dispatchers = {}
+        self.allow_none = allow_none
+        self.encoding = encoding or 'utf-8'
+
+    def add_dispatcher(self, path, dispatcher):
+        self.dispatchers[path] = dispatcher
+        return dispatcher
+
+    def get_dispatcher(self, path):
+        return self.dispatchers[path]
+
+    def _marshaled_dispatch(self, data, dispatch_method = None, path = None):
+        try:
+            response = self.dispatchers[path]._marshaled_dispatch(
+               data, dispatch_method, path)
+        except BaseException as exc:
+            # report low level exception back to server
+            # (each dispatcher should have handled their own
+            # exceptions)
+            response = dumps(
+                Fault(1, "%s:%s" % (type(exc), exc)),
+                encoding=self.encoding, allow_none=self.allow_none)
+            response = response.encode(self.encoding, 'xmlcharrefreplace')
+        return response
+
+class CGIXMLRPCRequestHandler(SimpleXMLRPCDispatcher):
+    """Simple handler for XML-RPC data passed through CGI."""
+
+    def __init__(self, allow_none=False, encoding=None, use_builtin_types=False):
+        SimpleXMLRPCDispatcher.__init__(self, allow_none, encoding, use_builtin_types)
+
+    def handle_xmlrpc(self, request_text):
+        """Handle a single XML-RPC request"""
+
+        response = self._marshaled_dispatch(request_text)
+
+        print('Content-Type: text/xml')
+        print('Content-Length: %d' % len(response))
+        print()
+        sys.stdout.flush()
+        sys.stdout.buffer.write(response)
+        sys.stdout.buffer.flush()
+
+    def handle_get(self):
+        """Handle a single HTTP GET request.
+
+        Default implementation indicates an error because
+        XML-RPC uses the POST method.
+        """
+
+        code = 400
+        message, explain = BaseHTTPRequestHandler.responses[code]
+
+        response = http.server.DEFAULT_ERROR_MESSAGE % \
+            {
+             'code' : code,
+             'message' : message,
+             'explain' : explain
+            }
+        response = response.encode('utf-8')
+        print('Status: %d %s' % (code, message))
+        print('Content-Type: %s' % http.server.DEFAULT_ERROR_CONTENT_TYPE)
+        print('Content-Length: %d' % len(response))
+        print()
+        sys.stdout.flush()
+        sys.stdout.buffer.write(response)
+        sys.stdout.buffer.flush()
+
+    def handle_request(self, request_text=None):
+        """Handle a single XML-RPC request passed through a CGI post method.
+
+        If no XML data is given then it is read from stdin. The resulting
+        XML-RPC response is printed to stdout along with the correct HTTP
+        headers.
+        """
+
+        if request_text is None and \
+            os.environ.get('REQUEST_METHOD', None) == 'GET':
+            self.handle_get()
+        else:
+            # POST data is normally available through stdin
+            try:
+                length = int(os.environ.get('CONTENT_LENGTH', None))
+            except (ValueError, TypeError):
+                length = -1
+            if request_text is None:
+                request_text = sys.stdin.read(length)
+
+            self.handle_xmlrpc(request_text)
+
+
+# -----------------------------------------------------------------------------
+# Self documenting XML-RPC Server.
+
+class ServerHTMLDoc(pydoc.HTMLDoc):
+    """Class used to generate pydoc HTML document for a server"""
+
+    def markup(self, text, escape=None, funcs={}, classes={}, methods={}):
+        """Mark up some plain text, given a context of symbols to look for.
+        Each context dictionary maps object names to anchor names."""
+        escape = escape or self.escape
+        results = []
+        here = 0
+
+        # XXX Note that this regular expression does not allow for the
+        # hyperlinking of arbitrary strings being used as method
+        # names. Only methods with names consisting of word characters
+        # and '.'s are hyperlinked.
+        pattern = re.compile(r'\b((http|https|ftp)://\S+[\w/]|'
+                                r'RFC[- ]?(\d+)|'
+                                r'PEP[- ]?(\d+)|'
+                                r'(self\.)?((?:\w|\.)+))\b')
+        while match := pattern.search(text, here):
+            start, end = match.span()
+            results.append(escape(text[here:start]))
+
+            all, scheme, rfc, pep, selfdot, name = match.groups()
+            if scheme:
+                url = escape(all).replace('"', '&quot;')
+                results.append('<a href="%s">%s</a>' % (url, url))
+            elif rfc:
+                url = 'https://www.rfc-editor.org/rfc/rfc%d.txt' % int(rfc)
+                results.append('<a href="%s">%s</a>' % (url, escape(all)))
+            elif pep:
+                url = 'https://peps.python.org/pep-%04d/' % int(pep)
+                results.append('<a href="%s">%s</a>' % (url, escape(all)))
+            elif text[end:end+1] == '(':
+                results.append(self.namelink(name, methods, funcs, classes))
+            elif selfdot:
+                results.append('self.<strong>%s</strong>' % name)
+            else:
+                results.append(self.namelink(name, classes))
+            here = end
+        results.append(escape(text[here:]))
+        return ''.join(results)
+
+    def docroutine(self, object, name, mod=None,
+                   funcs={}, classes={}, methods={}, cl=None):
+        """Produce HTML documentation for a function or method object."""
+
+        anchor = (cl and cl.__name__ or '') + '-' + name
+        note = ''
+
+        title = '<a name="%s"><strong>%s</strong></a>' % (
+            self.escape(anchor), self.escape(name))
+
+        if callable(object):
+            argspec = str(signature(object))
+        else:
+            argspec = '(...)'
+
+        if isinstance(object, tuple):
+            argspec = object[0] or argspec
+            docstring = object[1] or ""
+        else:
+            docstring = pydoc.getdoc(object)
+
+        decl = title + argspec + (note and self.grey(
+               '<font face="helvetica, arial">%s</font>' % note))
+
+        doc = self.markup(
+            docstring, self.preformat, funcs, classes, methods)
+        doc = doc and '<dd><tt>%s</tt></dd>' % doc
+        return '<dl><dt>%s</dt>%s</dl>\n' % (decl, doc)
+
+    def docserver(self, server_name, package_documentation, methods):
+        """Produce HTML documentation for an XML-RPC server."""
+
+        fdict = {}
+        for key, value in methods.items():
+            fdict[key] = '#-' + key
+            fdict[value] = fdict[key]
+
+        server_name = self.escape(server_name)
+        head = '<big><big><strong>%s</strong></big></big>' % server_name
+        result = self.heading(head)
+
+        doc = self.markup(package_documentation, self.preformat, fdict)
+        doc = doc and '<tt>%s</tt>' % doc
+        result = result + '<p>%s</p>\n' % doc
+
+        contents = []
+        method_items = sorted(methods.items())
+        for key, value in method_items:
+            contents.append(self.docroutine(value, key, funcs=fdict))
+        result = result + self.bigsection(
+            'Methods', 'functions', ''.join(contents))
+
+        return result
+
+
+    def page(self, title, contents):
+        """Format an HTML page."""
+        css_path = "/pydoc.css"
+        css_link = (
+            '<link rel="stylesheet" type="text/css" href="%s">' %
+            css_path)
+        return '''\
+<!DOCTYPE>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Python: %s</title>
+%s</head><body>%s</body></html>''' % (title, css_link, contents)
+
+class XMLRPCDocGenerator:
+    """Generates documentation for an XML-RPC server.
+
+    This class is designed as mix-in and should not
+    be constructed directly.
+    """
+
+    def __init__(self):
+        # setup variables used for HTML documentation
+        self.server_name = 'XML-RPC Server Documentation'
+        self.server_documentation = \
+            "This server exports the following methods through the XML-RPC "\
+            "protocol."
+        self.server_title = 'XML-RPC Server Documentation'
+
+    def set_server_title(self, server_title):
+        """Set the HTML title of the generated server documentation"""
+
+        self.server_title = server_title
+
+    def set_server_name(self, server_name):
+        """Set the name of the generated HTML server documentation"""
+
+        self.server_name = server_name
+
+    def set_server_documentation(self, server_documentation):
+        """Set the documentation string for the entire server."""
+
+        self.server_documentation = server_documentation
+
+    def generate_html_documentation(self):
+        """generate_html_documentation() => html documentation for the server
+
+        Generates HTML documentation for the server using introspection for
+        installed functions and instances that do not implement the
+        _dispatch method. Alternatively, instances can choose to implement
+        the _get_method_argstring(method_name) method to provide the
+        argument string used in the documentation and the
+        _methodHelp(method_name) method to provide the help text used
+        in the documentation."""
+
+        methods = {}
+
+        for method_name in self.system_listMethods():
+            if method_name in self.funcs:
+                method = self.funcs[method_name]
+            elif self.instance is not None:
+                method_info = [None, None] # argspec, documentation
+                if hasattr(self.instance, '_get_method_argstring'):
+                    method_info[0] = self.instance._get_method_argstring(method_name)
+                if hasattr(self.instance, '_methodHelp'):
+                    method_info[1] = self.instance._methodHelp(method_name)
+
+                method_info = tuple(method_info)
+                if method_info != (None, None):
+                    method = method_info
+                elif not hasattr(self.instance, '_dispatch'):
+                    try:
+                        method = resolve_dotted_attribute(
+                                    self.instance,
+                                    method_name
+                                    )
+                    except AttributeError:
+                        method = method_info
+                else:
+                    method = method_info
+            else:
+                assert 0, "Could not find method in self.functions and no "\
+                          "instance installed"
+
+            methods[method_name] = method
+
+        documenter = ServerHTMLDoc()
+        documentation = documenter.docserver(
+                                self.server_name,
+                                self.server_documentation,
+                                methods
+                            )
+
+        return documenter.page(html.escape(self.server_title), documentation)
+
+class DocXMLRPCRequestHandler(SimpleXMLRPCRequestHandler):
+    """XML-RPC and documentation request handler class.
+
+    Handles all HTTP POST requests and attempts to decode them as
+    XML-RPC requests.
+
+    Handles all HTTP GET requests and interprets them as requests
+    for documentation.
+    """
+
+    def _get_css(self, url):
+        path_here = os.path.dirname(os.path.realpath(__file__))
+        css_path = os.path.join(path_here, "..", "pydoc_data", "_pydoc.css")
+        with open(css_path, mode="rb") as fp:
+            return fp.read()
+
+    def do_GET(self):
+        """Handles the HTTP GET request.
+
+        Interpret all HTTP GET requests as requests for server
+        documentation.
+        """
+        # Check that the path is legal
+        if not self.is_rpc_path_valid():
+            self.report_404()
+            return
+
+        if self.path.endswith('.css'):
+            content_type = 'text/css'
+            response = self._get_css(self.path)
+        else:
+            content_type = 'text/html'
+            response = self.server.generate_html_documentation().encode('utf-8')
+
+        self.send_response(200)
+        self.send_header('Content-Type', '%s; charset=UTF-8' % content_type)
+        self.send_header("Content-length", str(len(response)))
+        self.end_headers()
+        self.wfile.write(response)
+
+class DocXMLRPCServer(  SimpleXMLRPCServer,
+                        XMLRPCDocGenerator):
+    """XML-RPC and HTML documentation server.
+
+    Adds the ability to serve server documentation to the capabilities
+    of SimpleXMLRPCServer.
+    """
+
+    def __init__(self, addr, requestHandler=DocXMLRPCRequestHandler,
+                 logRequests=True, allow_none=False, encoding=None,
+                 bind_and_activate=True, use_builtin_types=False):
+        SimpleXMLRPCServer.__init__(self, addr, requestHandler, logRequests,
+                                    allow_none, encoding, bind_and_activate,
+                                    use_builtin_types)
+        XMLRPCDocGenerator.__init__(self)
+
+class DocCGIXMLRPCRequestHandler(   CGIXMLRPCRequestHandler,
+                                    XMLRPCDocGenerator):
+    """Handler for XML-RPC data and documentation requests passed through
+    CGI"""
+
+    def handle_get(self):
+        """Handles the HTTP GET request.
+
+        Interpret all HTTP GET requests as requests for server
+        documentation.
+        """
+
+        response = self.generate_html_documentation().encode('utf-8')
+
+        print('Content-Type: text/html')
+        print('Content-Length: %d' % len(response))
+        print()
+        sys.stdout.flush()
+        sys.stdout.buffer.write(response)
+        sys.stdout.buffer.flush()
+
+    def __init__(self):
+        CGIXMLRPCRequestHandler.__init__(self)
+        XMLRPCDocGenerator.__init__(self)
+
+
+if __name__ == '__main__':
+    import datetime
+
+    class ExampleService:
+        def getData(self):
+            return '42'
+
+        class currentTime:
+            @staticmethod
+            def getCurrentTime():
+                return datetime.datetime.now()
+
+    with SimpleXMLRPCServer(("localhost", 8000)) as server:
+        server.register_function(pow)
+        server.register_function(lambda x,y: x+y, 'add')
+        server.register_instance(ExampleService(), allow_dotted_names=True)
+        server.register_multicall_functions()
+        print('Serving XML-RPC on localhost port 8000')
+        print('It is advisable to run this example server within a secure, closed network.')
+        try:
+            server.serve_forever()
+        except KeyboardInterrupt:
+            print("\nKeyboard interrupt received, exiting.")
+            sys.exit(0)
+                                          import contextlib
+import os
+import pathlib
+import shutil
+import stat
+import sys
+import zipfile
+
+__all__ = ['ZipAppError', 'create_archive', 'get_interpreter']
+
+
+# The __main__.py used if the users specifies "-m module:fn".
+# Note that this will always be written as UTF-8 (module and
+# function names can be non-ASCII in Python 3).
+# We add a coding cookie even though UTF-8 is the default in Python 3
+# because the resulting archive may be intended to be run under Python 2.
+MAIN_TEMPLATE = """\
+# -*- coding: utf-8 -*-
+import {module}
+{module}.{fn}()
+"""
+
+
+# The Windows launcher defaults to UTF-8 when parsing shebang lines if the
+# file has no BOM. So use UTF-8 on Windows.
+# On Unix, use the filesystem encoding.
+if sys.platform.startswith('win'):
+    shebang_encoding = 'utf-8'
+else:
+    shebang_encoding = sys.getfilesystemencoding()
+
+
+class ZipAppError(ValueError):
+    pass
+
+
+@contextlib.contextmanager
+def _maybe_open(archive, mode):
+    if isinstance(archive, (str, os.PathLike)):
+        with open(archive, mode) as f:
+            yield f
+    else:
+        yield archive
+
+
+def _write_file_prefix(f, interpreter):
+    """Write a shebang line."""
+    if interpreter:
+        shebang = b'#!' + interpreter.encode(shebang_encoding) + b'\n'
+        f.write(shebang)
+
+
+def _copy_archive(archive, new_archive, interpreter=None):
+    """Copy an application archive, modifying the shebang line."""
+    with _maybe_open(archive, 'rb') as src:
+        # Skip the shebang line from the source.
+        # Read 2 bytes of the source and check if they are #!.
+        first_2 = src.read(2)
+        if first_2 == b'#!':
+            # Discard the initial 2 bytes and the rest of the shebang line.
+            first_2 = b''
+            src.readline()
+
+        with _maybe_open(new_archive, 'wb') as dst:
+            _write_file_prefix(dst, interpreter)
+            # If there was no shebang, "first_2" contains the first 2 bytes
+            # of the source file, so write them before copying the rest
+            # of the file.
+            dst.write(first_2)
+            shutil.copyfileobj(src, dst)
+
+    if interpreter and isinstance(new_archive, str):
+        os.chmod(new_archive, os.stat(new_archive).st_mode | stat.S_IEXEC)
+
+
+def create_archive(source, target=None, interpreter=None, main=None,
+                   filter=None, compressed=False):
+    """Create an application archive from SOURCE.
+
+    The SOURCE can be the name of a directory, or a filename or a file-like
+    object referring to an existing archive.
+
+    The content of SOURCE is packed into an application archive in TARGET,
+    which can be a filename or a file-like object.  If SOURCE is a directory,
+    TARGET can be omitted and will default to the name of SOURCE with .pyz
+    appended.
+
+    The created application archive will have a shebang line specifying
+    that it should run with INTERPRETER (there will be no shebang line if
+    INTERPRETER is None), and a __main__.py which runs MAIN (if MAIN is
+    not specified, an existing __main__.py will be used).  It is an error
+    to specify MAIN for anything other than a directory source with no
+    __main__.py, and it is an error to omit MAIN if the directory has no
+    __main__.py.
+    """
+    # Are we copying an existing archive?
+    source_is_file = False
+    if hasattr(source, 'read') and hasattr(source, 'readline'):
+        source_is_file = True
+    else:
+        source = pathlib.Path(source)
+        if source.is_file():
+            source_is_file = True
+
+    if source_is_file:
+        _copy_archive(source, target, interpreter)
+        return
+
+    # We are creating a new archive from a directory.
+    if not source.exists():
+        raise ZipAppError("Source does not exist")
+    has_main = (source / '__main__.py').is_file()
+    if main and has_main:
+        raise ZipAppError(
+            "Cannot specify entry point if the source has __main__.py")
+    if not (main or has_main):
+        raise ZipAppError("Archive has no entry point")
+
+    main_py = None
+    if main:
+        # Check that main has the right format.
+        mod, sep, fn = main.partition(':')
+        mod_ok = all(part.isidentifier() for part in mod.split('.'))
+        fn_ok = all(part.isidentifier() for part in fn.split('.'))
+        if not (sep == ':' and mod_ok and fn_ok):
+            raise ZipAppError("Invalid entry point: " + main)
+        main_py = MAIN_TEMPLATE.format(module=mod, fn=fn)
+
+    if target is None:
+        target = source.with_suffix('.pyz')
+    elif not hasattr(target, 'write'):
+        target = pathlib.Path(target)
+
+    # Create the list of files to add to the archive now, in case
+    # the target is being created in the source directory - we
+    # don't want the target being added to itself
+    files_to_add = sorted(source.rglob('*'))
+
+    # The target cannot be in the list of files to add. If it were, we'd
+    # end up overwriting the source file and writing the archive into
+    # itself, which is an error. We therefore check for that case and
+    # provide a helpful message for the user.
+
+    # Note that we only do a simple path equality check. This won't
+    # catch every case, but it will catch the common case where the
+    # source is the CWD and the target is a file in the CWD. More
+    # thorough checks don't provide enough value to justify the extra
+    # cost.
+
+    # If target is a file-like object, it will simply fail to compare
+    # equal to any of the entries in files_to_add, so there's no need
+    # to add a special check for that.
+    if target in files_to_add:
+        raise ZipAppError(
+            f"The target archive {target} overwrites one of the source files.")
+
+    with _maybe_open(target, 'wb') as fd:
+        _write_file_prefix(fd, interpreter)
+        compression = (zipfile.ZIP_DEFLATED if compressed else
+                       zipfile.ZIP_STORED)
+        with zipfile.ZipFile(fd, 'w', compression=compression) as z:
+            for child in files_to_add:
+                arcname = child.relative_to(source)
+                if filter is None or filter(arcname):
+                    z.write(child, arcname.as_posix())
+            if main_py:
+                z.writestr('__main__.py', main_py.encode('utf-8'))
+
+    if interpreter and not hasattr(target, 'write'):
+        target.chmod(target.stat().st_mode | stat.S_IEXEC)
+
+
+def get_interpreter(archive):
+    with _maybe_open(archive, 'rb') as f:
+        if f.read(2) == b'#!':
+            return f.readline().strip().decode(shebang_encoding)
+
+
+def main(args=None):
+    """Run the zipapp command line interface.
+
+    The ARGS parameter lets you specify the argument list directly.
+    Omitting ARGS (or setting it to None) works as for argparse, using
+    sys.argv[1:] as the argument list.
+    """
+    import argparse
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--output', '-o', default=None,
+            help="The name of the output archive. "
+                 "Required if SOURCE is an archive.")
+    parser.add_argument('--python', '-p', default=None,
+            help="The name of the Python interpreter to use "
+                 "(default: no shebang line).")
+    parser.add_argument('--main', '-m', default=None,
+            help="The main function of the application "
+                 "(default: use an existing __main__.py).")
+    parser.add_argument('--compress', '-c', action='store_true',
+            help="Compress files with the deflate method. "
+                 "Files are stored uncompressed by default.")
+    parser.add_argument('--info', default=False, action='store_true',
+            help="Display the interpreter from the archive.")
+    parser.add_argument('source',
+            help="Source directory (or existing archive).")
+
+    args = parser.parse_args(args)
+
+    # Handle `python -m zipapp archive.pyz --info`.
+    if args.info:
+        if not os.path.isfile(args.source):
+            raise SystemExit("Can only get info for an archive file")
+        interpreter = get_interpreter(args.source)
+        print("Interpreter: {}".format(interpreter or "<none>"))
+        sys.exit(0)
+
+    if os.path.isfile(args.source):
+        if args.output is None or (os.path.exists(args.output) and
+                                   os.path.samefile(args.source, args.output)):
+            raise SystemExit("In-place editing of archives is not supported")
+        if args.main:
+            raise SystemExit("Cannot change the main function when copying")
+
+    create_archive(args.source, args.output,
+                   interpreter=args.python, main=args.main,
+                   compressed=args.compress)
+
+
+if __name__ == '__main__':
+    main()
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      +   .   ú   ..  ,   __init__.py -   __main__.py .   __pycache__ 1  ¬_path                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               """
+Read and write ZIP files.
+
+XXX references to utf-8 need further investigation.
+"""
+import binascii
+import importlib.util
+import io
+import os
+import shutil
+import stat
+import struct
+import sys
+import threading
+import time
+
+try:
+    import zlib # We may need its compression method
+    crc32 = zlib.crc32
+except ImportError:
+    zlib = None
+    crc32 = binascii.crc32
+
+try:
+    import bz2 # We may need its compression method
+except ImportError:
+    bz2 = None
+
+try:
+    import lzma # We may need its compression method
+except ImportError:
+    lzma = None
+
+__all__ = ["BadZipFile", "BadZipfile", "error",
+           "ZIP_STORED", "ZIP_DEFLATED", "ZIP_BZIP2", "ZIP_LZMA",
+           "is_zipfile", "ZipInfo", "ZipFile", "PyZipFile", "LargeZipFile",
+           "Path"]
+
+class BadZipFile(Exception):
+    pass
+
+
+class LargeZipFile(Exception):
+    """
+    Raised when writing a zipfile, the zipfile requires ZIP64 extensions
+    and those extensions are disabled.
+    """
+
+error = BadZipfile = BadZipFile      # Pre-3.2 compatibility names
+
+
+ZIP64_LIMIT = (1 << 31) - 1
+ZIP_FILECOUNT_LIMIT = (1 << 16) - 1
+ZIP_MAX_COMMENT = (1 << 16) - 1
+
+# constants for Zip file compression methods
+ZIP_STORED = 0
+ZIP_DEFLATED = 8
+ZIP_BZIP2 = 12
+ZIP_LZMA = 14
+# Other ZIP compression methods not supported
+
+DEFAULT_VERSION = 20
+ZIP64_VERSION = 45
+BZIP2_VERSION = 46
+LZMA_VERSION = 63
+# we recognize (but not necessarily support) all features up to that version
+MAX_EXTRACT_VERSION = 63
+
+# Below are some formats and associated data for reading/writing headers using
+# the struct module.  The names and structures of headers/records are those used
+# in the PKWARE description of the ZIP file format:
+#     http://www.pkware.com/documents/casestudies/APPNOTE.TXT
+# (URL valid as of January 2008)
+
+# The "end of central directory" structure, magic number, size, and indices
+# (section V.I in the format document)
+structEndArchive = b"<4s4H2LH"
+stringEndArchive = b"PK\005\006"
+sizeEndCentDir = struct.calcsize(structEndArchive)
+
+_ECD_SIGNATURE = 0
+_ECD_DISK_NUMBER = 1
+_ECD_DISK_START = 2
+_ECD_ENTRIES_THIS_DISK = 3
+_ECD_ENTRIES_TOTAL = 4
+_ECD_SIZE = 5
+_ECD_OFFSET = 6
+_ECD_COMMENT_SIZE = 7
+# These last two indices are not part of the structure as defined in the
+# spec, but they are used internally by this module as a convenience
+_ECD_COMMENT = 8
+_ECD_LOCATION = 9
+
+# The "central directory" structure, magic number, size, and indices
+# of entries in the structure (section V.F in the format document)
+structCentralDir = "<4s4B4HL2L5H2L"
+stringCentralDir = b"PK\001\002"
+sizeCentralDir = struct.calcsize(structCentralDir)
+
+# indexes of entries in the central directory structure
+_CD_SIGNATURE = 0
+_CD_CREATE_VERSION = 1
+_CD_CREATE_SYSTEM = 2
+_CD_EXTRACT_VERSION = 3
+_CD_EXTRACT_SYSTEM = 4
+_CD_FLAG_BITS = 5
+_CD_COMPRESS_TYPE = 6
+_CD_TIME = 7
+_CD_DATE = 8
+_CD_CRC = 9
+_CD_COMPRESSED_SIZE = 10
+_CD_UNCOMPRESSED_SIZE = 11
+_CD_FILENAME_LENGTH = 12
+_CD_EXTRA_FIELD_LENGTH = 13
+_CD_COMMENT_LENGTH = 14
+_CD_DISK_NUMBER_START = 15
+_CD_INTERNAL_FILE_ATTRIBUTES = 16
+_CD_EXTERNAL_FILE_ATTRIBUTES = 17
+_CD_LOCAL_HEADER_OFFSET = 18
+
+# General purpose bit flags
+# Zip Appnote: 4.4.4 general purpose bit flag: (2 bytes)
+_MASK_ENCRYPTED = 1 << 0
+# Bits 1 and 2 have different meanings depending on the compression used.
+_MASK_COMPRESS_OPTION_1 = 1 << 1
+# _MASK_COMPRESS_OPTION_2 = 1 << 2
+# _MASK_USE_DATA_DESCRIPTOR: If set, crc-32, compressed size and uncompressed
+# size are zero in the local header and the real values are written in the data
+# descriptor immediately following the compressed data.
+_MASK_USE_DATA_DESCRIPTOR = 1 << 3
+# Bit 4: Reserved for use with compression method 8, for enhanced deflating.
+# _MASK_RESERVED_BIT_4 = 1 << 4
+_MASK_COMPRESSED_PATCH = 1 << 5
+_MASK_STRONG_ENCRYPTION = 1 << 6
+# _MASK_UNUSED_BIT_7 = 1 << 7
+# _MASK_UNUSED_BIT_8 = 1 << 8
+# _MASK_UNUSED_BIT_9 = 1 << 9
+# _MASK_UNUSED_BIT_10 = 1 << 10
+_MASK_UTF_FILENAME = 1 << 11
+# Bit 12: Reserved by PKWARE for enhanced compression.
+# _MASK_RESERVED_BIT_12 = 1 << 12
+# _MASK_ENCRYPTED_CENTRAL_DIR = 1 << 13
+# Bit 14, 15: Reserved by PKWARE
+# _MASK_RESERVED_BIT_14 = 1 << 14
+# _MASK_RESERVED_BIT_15 = 1 << 15
+
+# The "local file header" structure, magic number, size, and indices
+# (section V.A in the format document)
+structFileHeader = "<4s2B4HL2L2H"
+stringFileHeader = b"PK\003\004"
+sizeFileHeader = struct.calcsize(structFileHeader)
+
+_FH_SIGNATURE = 0
+_FH_EXTRACT_VERSION = 1
+_FH_EXTRACT_SYSTEM = 2
+_FH_GENERAL_PURPOSE_FLAG_BITS = 3
+_FH_COMPRESSION_METHOD = 4
+_FH_LAST_MOD_TIME = 5
+_FH_LAST_MOD_DATE = 6
+_FH_CRC = 7
+_FH_COMPRESSED_SIZE = 8
+_FH_UNCOMPRESSED_SIZE = 9
+_FH_FILENAME_LENGTH = 10
+_FH_EXTRA_FIELD_LENGTH = 11
+
+# The "Zip64 end of central directory locator" structure, magic number, and size
+structEndArchive64Locator = "<4sLQL"
+stringEndArchive64Locator = b"PK\x06\x07"
+sizeEndCentDir64Locator = struct.calcsize(structEndArchive64Locator)
+
+# The "Zip64 end of central directory" record, magic number, size, and indices
+# (section V.G in the format document)
+structEndArchive64 = "<4sQ2H2L4Q"
+stringEndArchive64 = b"PK\x06\x06"
+sizeEndCentDir64 = struct.calcsize(structEndArchive64)
+
+_CD64_SIGNATURE = 0
+_CD64_DIRECTORY_RECSIZE = 1
+_CD64_CREATE_VERSION = 2
+_CD64_EXTRACT_VERSION = 3
+_CD64_DISK_NUMBER = 4
+_CD64_DISK_NUMBER_START = 5
+_CD64_NUMBER_ENTRIES_THIS_DISK = 6
+_CD64_NUMBER_ENTRIES_TOTAL = 7
+_CD64_DIRECTORY_SIZE = 8
+_CD64_OFFSET_START_CENTDIR = 9
+
+_DD_SIGNATURE = 0x08074b50
+
+
+class _Extra(bytes):
+    FIELD_STRUCT = struct.Struct('<HH')
+
+    def __new__(cls, val, id=None):
+        return super().__new__(cls, val)
+
+    def __init__(self, val, id=None):
+        self.id = id
+
+    @classmethod
+    def read_one(cls, raw):
+        try:
+            xid, xlen = cls.FIELD_STRUCT.unpack(raw[:4])
+        except struct.error:
+            xid = None
+            xlen = 0
+        return cls(raw[:4+xlen], xid), raw[4+xlen:]
+
+    @classmethod
+    def split(cls, data):
+        # use memoryview for zero-copy slices
+        rest = memoryview(data)
+        while rest:
+            extra, rest = _Extra.read_one(rest)
+            yield extra
+
+    @classmethod
+    def strip(cls, data, xids):
+        """Remove Extra fields with specified IDs."""
+        return b''.join(
+            ex
+            for ex in cls.split(data)
+            if ex.id not in xids
+        )
+
+
+def _check_zipfile(fp):
+    try:
+        if _EndRecData(fp):
+            return True         # file has correct magic number
+    except OSError:
+        pass
+    return False
+
+def is_zipfile(filename):
+    """Quickly see if a file is a ZIP file by checking the magic number.
+
+    The filename argument may be a file or file-like object too.
+    """
+    result = False
+    try:
+        if hasattr(filename, "read"):
+            result = _check_zipfile(fp=filename)
+        else:
+            with open(filename, "rb") as fp:
+                result = _check_zipfile(fp)
+    except OSError:
+        pass
+    return result
+
+def _EndRecData64(fpin, offset, endrec):
+    """
+    Read the ZIP64 end-of-archive records and use that to update endrec
+    """
+    try:
+        fpin.seek(offset - sizeEndCentDir64Locator, 2)
+    except OSError:
+        # If the seek fails, the file is not large enough to contain a ZIP64
+        # end-of-archive record, so just return the end record we were given.
+        return endrec
+
+    data = fpin.read(sizeEndCentDir64Locator)
+    if len(data) != sizeEndCentDir64Locator:
+        return endrec
+    sig, diskno, reloff, disks = struct.unpack(structEndArchive64Locator, data)
+    if sig != stringEndArchive64Locator:
+        return endrec
+
+    if diskno != 0 or disks > 1:
+        raise BadZipFile("zipfiles that span multiple disks are not supported")
+
+    # Assume no 'zip64 extensible data'
+    fpin.seek(offset - sizeEndCentDir64Locator - sizeEndCentDir64, 2)
+    data = fpin.read(sizeEndCentDir64)
+    if len(data) != sizeEndCentDir64:
+        return endrec
+    sig, sz, create_version, read_version, disk_num, disk_dir, \
+        dircount, dircount2, dirsize, diroffset = \
+        struct.unpack(structEndArchive64, data)
+    if sig != stringEndArchive64:
+        return endrec
+
+    # Update the original endrec using data from the ZIP64 record
+    endrec[_ECD_SIGNATURE] = sig
+    endrec[_ECD_DISK_NUMBER] = disk_num
+    endrec[_ECD_DISK_START] = disk_dir
+    endrec[_ECD_ENTRIES_THIS_DISK] = dircount
+    endrec[_ECD_ENTRIES_TOTAL] = dircount2
+    endrec[_ECD_SIZE] = dirsize
+    endrec[_ECD_OFFSET] = diroffset
+    return endrec
+
+
+def _EndRecData(fpin):
+    """Return data from the "End of Central Directory" record, or None.
+
+    The data is a list of the nine items in the ZIP "End of central dir"
+    record followed by a tenth item, the file seek offset of this record."""
+
+    # Determine file size
+    fpin.seek(0, 2)
+    filesize = fpin.tell()
+
+    # Check to see if this is ZIP file with no archive comment (the
+    # "end of central directory" structure should be the last item in the
+    # file if this is the case).
+    try:
+        fpin.seek(-sizeEndCentDir, 2)
+    except OSError:
+        return None
+    data = fpin.read(sizeEndCentDir)
+    if (len(data) == sizeEndCentDir and
+        data[0:4] == stringEndArchive and
+        data[-2:] == b"\000\000"):
+        # the signature is correct and there's no comment, unpack structure
+        endrec = struct.unpack(structEndArchive, data)
+        endrec=list(endrec)
+
+        # Append a blank comment and record start offset
+        endrec.append(b"")
+        endrec.append(filesize - sizeEndCentDir)
+
+        # Try to read the "Zip64 end of central directory" structure
+        return _EndRecData64(fpin, -sizeEndCentDir, endrec)
+
+    # Either this is not a ZIP file, or it is a ZIP file with an archive
+    # comment.  Search the end of the file for the "end of central directory"
+    # record signature. The comment is the last item in the ZIP file and may be
+    # up to 64K long.  It is assumed that the "end of central directory" magic
+    # number does not appear in the comment.
+    maxCommentStart = max(filesize - ZIP_MAX_COMMENT - sizeEndCentDir, 0)
+    fpin.seek(maxCommentStart, 0)
+    data = fpin.read(ZIP_MAX_COMMENT + sizeEndCentDir)
+    start = data.rfind(stringEndArchive)
+    if start >= 0:
+        # found the magic number; attempt to unpack and interpret
+        recData = data[start:start+sizeEndCentDir]
+        if len(recData) != sizeEndCentDir:
+            # Zip file is corrupted.
+            return None
+        endrec = list(struct.unpack(structEndArchive, recData))
+        commentSize = endrec[_ECD_COMMENT_SIZE] #as claimed by the zip file
+        comment = data[start+sizeEndCentDir:start+sizeEndCentDir+commentSize]
+        endrec.append(comment)
+        endrec.append(maxCommentStart + start)
+
+        # Try to read the "Zip64 end of central directory" structure
+        return _EndRecData64(fpin, maxCommentStart + start - filesize,
+                             endrec)
+
+    # Unable to find a valid end of central directory structure
+    return None
+
+def _sanitize_filename(filename):
+    """Terminate the file name at the first null byte and
+    ensure paths always use forward slashes as the directory separator."""
+
+    # Terminate the file name at the first null byte.  Null bytes in file
+    # names are used as tricks by viruses in archives.
+    null_byte = filename.find(chr(0))
+    if null_byte >= 0:
+        filename = filename[0:null_byte]
+    # This is used to ensure paths in generated ZIP files always use
+    # forward slashes as the directory separator, as required by the
+    # ZIP format specification.
+    if os.sep != "/" and os.sep in filename:
+        filename = filename.replace(os.sep, "/")
+    if os.altsep and os.altsep != "/" and os.altsep in filename:
+        filename = filename.replace(os.altsep, "/")
+    return filename
+
+
+class ZipInfo:
+    """Class with attributes describing each file in the ZIP archive."""
+
+    __slots__ = (
+        'orig_filename',
+        'filename',
+        'date_time',
+        'compress_type',
+        'compress_level',
+        'comment',
+        'extra',
+        'create_system',
+        'create_version',
+        'extract_version',
+        'reserved',
+        'flag_bits',
+        'volume',
+        'internal_attr',
+        'external_attr',
+        'header_offset',
+        'CRC',
+        'compress_size',
+        'file_size',
+        '_raw_time',
+        '_end_offset',
+    )
+
+    def __init__(self, filename="NoName", date_time=(1980,1,1,0,0,0)):
+        self.orig_filename = filename   # Original file name in archive
+
+        # Terminate the file name at the first null byte and
+        # ensure paths always use forward slashes as the directory separator.
+        filename = _sanitize_filename(filename)
+
+        self.filename = filename        # Normalized file name
+        self.date_time = date_time      # year, month, day, hour, min, sec
+
+        if date_time[0] < 1980:
+            raise ValueError('ZIP does not support timestamps before 1980')
+
+        # Standard values:
+        self.compress_type = ZIP_STORED # Type of compression for the file
+        self.compress_level = None      # Level for the compressor
+        self.comment = b""              # Comment for each file
+        self.extra = b""                # ZIP extra data
+        if sys.platform == 'win32':
+            self.create_system = 0          # System which created ZIP archive
+        else:
+            # Assume everything else is unix-y
+            self.create_system = 3          # System which created ZIP archive
+        self.create_version = DEFAULT_VERSION  # Version which created ZIP archive
+        self.extract_version = DEFAULT_VERSION # Version needed to extract archive
+        self.reserved = 0               # Must be zero
+        self.flag_bits = 0              # ZIP flag bits
+        self.volume = 0                 # Volume number of file header
+        self.internal_attr = 0          # Internal attributes
+        self.external_attr = 0          # External file attributes
+        self.compress_size = 0          # Size of the compressed file
+        self.file_size = 0              # Size of the uncompressed file
+        self._end_offset = None         # Start of the next local header or central directory
+        # Other attributes are set by class ZipFile:
+        # header_offset         Byte offset to the file header
+        # CRC                   CRC-32 of the uncompressed file
+
+    # Maintain backward compatibility with the old protected attribute name.
+    @property
+    def _compresslevel(self):
+        return self.compress_level
+
+    @_compresslevel.setter
+    def _compresslevel(self, value):
+        self.compress_level = value
+
+    def __repr__(self):
+        result = ['<%s filename=%r' % (self.__class__.__name__, self.filename)]
+        if self.compress_type != ZIP_STORED:
+            result.append(' compress_type=%s' %
+                          compressor_names.get(self.compress_type,
+                                               self.compress_type))
+        hi = self.external_attr >> 16
+        lo = self.external_attr & 0xFFFF
+        if hi:
+            result.append(' filemode=%r' % stat.filemode(hi))
+        if lo:
+            result.append(' external_attr=%#x' % lo)
+        isdir = self.is_dir()
+        if not isdir or self.file_size:
+            result.append(' file_size=%r' % self.file_size)
+        if ((not isdir or self.compress_size) and
+            (self.compress_type != ZIP_STORED or
+             self.file_size != self.compress_size)):
+            result.append(' compress_size=%r' % self.compress_size)
+        result.append('>')
+        return ''.join(result)
+
+    def FileHeader(self, zip64=None):
+        """Return the per-file header as a bytes object.
+
+        When the optional zip64 arg is None rather than a bool, we will
+        decide based upon the file_size and compress_size, if known,
+        False otherwise.
+        """
+        dt = self.date_time
+        dosdate = (dt[0] - 1980) << 9 | dt[1] << 5 | dt[2]
+        dostime = dt[3] << 11 | dt[4] << 5 | (dt[5] // 2)
+        if self.flag_bits & _MASK_USE_DATA_DESCRIPTOR:
+            # Set these to zero because we write them after the file data
+            CRC = compress_size = file_size = 0
+        else:
+            CRC = self.CRC
+            compress_size = self.compress_size
+            file_size = self.file_size
+
+        extra = self.extra
+
+        min_version = 0
+        if zip64 is None:
+            # We always explicitly pass zip64 within this module.... This
+            # remains for anyone using ZipInfo.FileHeader as a public API.
+            zip64 = file_size > ZIP64_LIMIT or compress_size > ZIP64_LIMIT
+        if zip64:
+            fmt = '<HHQQ'
+            extra = extra + struct.pack(fmt,
+                                        1, struct.calcsize(fmt)-4, file_size, compress_size)
+            file_size = 0xffffffff
+            compress_size = 0xffffffff
+            min_version = ZIP64_VERSION
+
+        if self.compress_type == ZIP_BZIP2:
+            min_version = max(BZIP2_VERSION, min_version)
+        elif self.compress_type == ZIP_LZMA:
+            min_version = max(LZMA_VERSION, min_version)
+
+        self.extract_version = max(min_version, self.extract_version)
+        self.create_version = max(min_version, self.create_version)
+        filename, flag_bits = self._encodeFilenameFlags()
+        header = struct.pack(structFileHeader, stringFileHeader,
+                             self.extract_version, self.reserved, flag_bits,
+                             self.compress_type, dostime, dosdate, CRC,
+                             compress_size, file_size,
+                             len(filename), len(extra))
+        return header + filename + extra
+
+    def _encodeFilenameFlags(self):
+        try:
+            return self.filename.encode('ascii'), self.flag_bits
+        except UnicodeEncodeError:
+            return self.filename.encode('utf-8'), self.flag_bits | _MASK_UTF_FILENAME
+
+    def _decodeExtra(self, filename_crc):
+        # Try to decode the extra field.
+        extra = self.extra
+        unpack = struct.unpack
+        while len(extra) >= 4:
+            tp, ln = unpack('<HH', extra[:4])
+            if ln+4 > len(extra):
+                raise BadZipFile("Corrupt extra field %04x (size=%d)" % (tp, ln))
+            if tp == 0x0001:
+                data = extra[4:ln+4]
+                # ZIP64 extension (large files and/or large archives)
+                try:
+                    if self.file_size in (0xFFFF_FFFF_FFFF_FFFF, 0xFFFF_FFFF):
+                        field = "File size"
+                        self.file_size, = unpack('<Q', data[:8])
+                        data = data[8:]
+                    if self.compress_size == 0xFFFF_FFFF:
+                        field = "Compress size"
+                        self.compress_size, = unpack('<Q', data[:8])
+                        data = data[8:]
+                    if self.header_offset == 0xFFFF_FFFF:
+                        field = "Header offset"
+                        self.header_offset, = unpack('<Q', data[:8])
+                except struct.error:
+                    raise BadZipFile(f"Corrupt zip64 extra field. "
+                                     f"{field} not found.") from None
+            elif tp == 0x7075:
+                data = extra[4:ln+4]
+                # Unicode Path Extra Field
+                try:
+                    up_version, up_name_crc = unpack('<BL', data[:5])
+                    if up_version == 1 and up_name_crc == filename_crc:
+                        up_unicode_name = data[5:].decode('utf-8')
+                        if up_unicode_name:
+                            self.filename = _sanitize_filename(up_unicode_name)
+                        else:
+                            import warnings
+                            warnings.warn("Empty unicode path extra field (0x7075)", stacklevel=2)
+                except struct.error as e:
+                    raise BadZipFile("Corrupt unicode path extra field (0x7075)") from e
+                except UnicodeDecodeError as e:
+                    raise BadZipFile('Corrupt unicode path extra field (0x7075): invalid utf-8 bytes') from e
+
+            extra = extra[ln+4:]
+
+    @classmethod
+    def from_file(cls, filename, arcname=None, *, strict_timestamps=True):
+        """Construct an appropriate ZipInfo for a file on the filesystem.
+
+        filename should be the path to a file or directory on the filesystem.
+
+        arcname is the name which it will have within the archive (by default,
+        this will be the same as filename, but without a drive letter and with
+        leading path separators removed).
+        """
+        if isinstance(filename, os.PathLike):
+            filename = os.fspath(filename)
+        st = os.stat(filename)
+        isdir = stat.S_ISDIR(st.st_mode)
+        mtime = time.localtime(st.st_mtime)
+        date_time = mtime[0:6]
+        if not strict_timestamps and date_time[0] < 1980:
+            date_time = (1980, 1, 1, 0, 0, 0)
+        elif not strict_timestamps and date_time[0] > 2107:
+            date_time = (2107, 12, 31, 23, 59, 59)
+        # Create ZipInfo instance to store file information
+        if arcname is None:
+            arcname = filename
+        arcname = os.path.normpath(os.path.splitdrive(arcname)[1])
+        while arcname[0] in (os.sep, os.altsep):
+            arcname = arcname[1:]
+        if isdir:
+            arcname += '/'
+        zinfo = cls(arcname, date_time)
+        zinfo.external_attr = (st.st_mode & 0xFFFF) << 16  # Unix attributes
+        if isdir:
+            zinfo.file_size = 0
+            zinfo.external_attr |= 0x10  # MS-DOS directory flag
+        else:
+            zinfo.file_size = st.st_size
+
+        return zinfo
+
+    def is_dir(self):
+        """Return True if this archive member is a directory."""
+        if self.filename.endswith('/'):
+            return True
+        # The ZIP format specification requires to use forward slashes
+        # as the directory separator, but in practice some ZIP files
+        # created on Windows can use backward slashes.  For compatibility
+        # with the extraction code which already handles this:
+        if os.path.altsep:
+            return self.filename.endswith((os.path.sep, os.path.altsep))
+        return False
+
+
+# ZIP encryption uses the CRC32 one-byte primitive for scrambling some
+# internal keys. We noticed that a direct implementation is faster than
+# relying on binascii.crc32().
+
+_crctable = None
+def _gen_crc(crc):
+    for j in range(8):
+        if crc & 1:
+            crc = (crc >> 1) ^ 0xEDB88320
+        else:
+            crc >>= 1
+    return crc
+
+# ZIP supports a password-based form of encryption. Even though known
+# plaintext attacks have been found against it, it is still useful
+# to be able to get data out of such a file.
+#
+# Usage:
+#     zd = _ZipDecrypter(mypwd)
+#     plain_bytes = zd(cypher_bytes)
+
+def _ZipDecrypter(pwd):
+    key0 = 305419896
+    key1 = 591751049
+    key2 = 878082192
+
+    global _crctable
+    if _crctable is None:
+        _crctable = list(map(_gen_crc, range(256)))
+    crctable = _crctable
+
+    def crc32(ch, crc):
+        """Compute the CRC32 primitive on one byte."""
+        return (crc >> 8) ^ crctable[(crc ^ ch) & 0xFF]
+
+    def update_keys(c):
+        nonlocal key0, key1, key2
+        key0 = crc32(c, key0)
+        key1 = (key1 + (key0 & 0xFF)) & 0xFFFFFFFF
+        key1 = (key1 * 134775813 + 1) & 0xFFFFFFFF
+        key2 = crc32(key1 >> 24, key2)
+
+    for p in pwd:
+        update_keys(p)
+
+    def decrypter(data):
+        """Decrypt a bytes object."""
+        result = bytearray()
+        append = result.append
+        for c in data:
+            k = key2 | 2
+            c ^= ((k * (k^1)) >> 8) & 0xFF
+            update_keys(c)
+            append(c)
+        return bytes(result)
+
+    return decrypter
+
+
+class LZMACompressor:
+
+    def __init__(self):
+        self._comp = None
+
+    def _init(self):
+        props = lzma._encode_filter_properties({'id': lzma.FILTER_LZMA1})
+        self._comp = lzma.LZMACompressor(lzma.FORMAT_RAW, filters=[
+            lzma._decode_filter_properties(lzma.FILTER_LZMA1, props)
+        ])
+        return struct.pack('<BBH', 9, 4, len(props)) + props
+
+    def compress(self, data):
+        if self._comp is None:
+            return self._init() + self._comp.compress(data)
+        return self._comp.compress(data)
+
+    def flush(self):
+        if self._comp is None:
+            return self._init() + self._comp.flush()
+        return self._comp.flush()
+
+
+class LZMADecompressor:
+
+    def __init__(self):
+        self._decomp = None
+        self._unconsumed = b''
+        self.eof = False
+
+    def decompress(self, data):
+        if self._decomp is None:
+            self._unconsumed += data
+            if len(self._unconsumed) <= 4:
+                return b''
+            psize, = struct.unpack('<H', self._unconsumed[2:4])
+            if len(self._unconsumed) <= 4 + psize:
+                return b''
+
+            self._decomp = lzma.LZMADecompressor(lzma.FORMAT_RAW, filters=[
+                lzma._decode_filter_properties(lzma.FILTER_LZMA1,
+                                               self._unconsumed[4:4 + psize])
+            ])
+            data = self._unconsumed[4 + psize:]
+            del self._unconsumed
+
+        result = self._decomp.decompress(data)
+        self.eof = self._decomp.eof
+        return result
+
+
+compressor_names = {
+    0: 'store',
+    1: 'shrink',
+    2: 'reduce',
+    3: 'reduce',
+    4: 'reduce',
+    5: 'reduce',
+    6: 'implode',
+    7: 'tokenize',
+    8: 'deflate',
+    9: 'deflate64',
+    10: 'implode',
+    12: 'bzip2',
+    14: 'lzma',
+    18: 'terse',
+    19: 'lz77',
+    97: 'wavpack',
+    98: 'ppmd',
+}
+
+def _check_compression(compression):
+    if compression == ZIP_STORED:
+        pass
+    elif compression == ZIP_DEFLATED:
+        if not zlib:
+            raise RuntimeError(
+                "Compression requires the (missing) zlib module")
+    elif compression == ZIP_BZIP2:
+        if not bz2:
+            raise RuntimeError(
+                "Compression requires the (missing) bz2 module")
+    elif compression == ZIP_LZMA:
+        if not lzma:
+            raise RuntimeError(
+                "Compression requires the (missing) lzma module")
+    else:
+        raise NotImplementedError("That compression method is not supported")
+
+
+def _get_compressor(compress_type, compresslevel=None):
+    if compress_type == ZIP_DEFLATED:
+        if compresslevel is not None:
+            return zlib.compressobj(compresslevel, zlib.DEFLATED, -15)
+        return zlib.compressobj(zlib.Z_DEFAULT_COMPRESSION, zlib.DEFLATED, -15)
+    elif compress_type == ZIP_BZIP2:
+        if compresslevel is not None:
+            return bz2.BZ2Compressor(compresslevel)
+        return bz2.BZ2Compressor()
+    # compresslevel is ignored for ZIP_LZMA
+    elif compress_type == ZIP_LZMA:
+        return LZMACompressor()
+    else:
+        return None
+
+
+def _get_decompressor(compress_type):
+    _check_compression(compress_type)
+    if compress_type == ZIP_STORED:
+        return None
+    elif compress_type == ZIP_DEFLATED:
+        return zlib.decompressobj(-15)
+    elif compress_type == ZIP_BZIP2:
+        return bz2.BZ2Decompressor()
+    elif compress_type == ZIP_LZMA:
+        return LZMADecompressor()
+    else:
+        descr = compressor_names.get(compress_type)
+        if descr:
+            raise NotImplementedError("compression type %d (%s)" % (compress_type, descr))
+        else:
+            raise NotImplementedError("compression type %d" % (compress_type,))
+
+
+class _SharedFile:
+    def __init__(self, file, pos, close, lock, writing):
+        self._file = file
+        self._pos = pos
+        self._close = close
+        self._lock = lock
+        self._writing = writing
+        self.seekable = file.seekable
+
+    def tell(self):
+        return self._pos
+
+    def seek(self, offset, whence=0):
+        with self._lock:
+            if self._writing():
+                raise ValueError("Can't reposition in the ZIP file while "
+                        "there is an open writing handle on it. "
+                        "Close the writing handle before trying to read.")
+            if whence == os.SEEK_CUR:
+                self._file.seek(self._pos + offset)
+            else:
+                self._file.seek(offset, whence)
+            self._pos = self._file.tell()
+            return self._pos
+
+    def read(self, n=-1):
+        with self._lock:
+            if self._writing():
+                raise ValueError("Can't read from the ZIP file while there "
+                        "is an open writing handle on it. "
+                        "Close the writing handle before trying to read.")
+            self._file.seek(self._pos)
+            data = self._file.read(n)
+            self._pos = self._file.tell()
+            return data
+
+    def close(self):
+        if self._file is not None:
+            fileobj = self._file
+            self._file = None
+            self._close(fileobj)
+
+# Provide the tell method for unseekable stream
+class _Tellable:
+    def __init__(self, fp):
+        self.fp = fp
+        self.offset = 0
+
+    def write(self, data):
+        n = self.fp.write(data)
+        self.offset += n
+        return n
+
+    def tell(self):
+        return self.offset
+
+    def flush(self):
+        self.fp.flush()
+
+    def close(self):
+        self.fp.close()
+
+
+class ZipExtFile(io.BufferedIOBase):
+    """File-like object for reading an archive member.
+       Is returned by ZipFile.open().
+    """
+
+    # Max size supported by decompressor.
+    MAX_N = 1 << 31 - 1
+
+    # Read from compressed files in 4k blocks.
+    MIN_READ_SIZE = 4096
+
+    # Chunk size to read during seek
+    MAX_SEEK_READ = 1 << 24
+
+    def __init__(self, fileobj, mode, zipinfo, pwd=None,
+                 close_fileobj=False):
+        self._fileobj = fileobj
+        self._pwd = pwd
+        self._close_fileobj = close_fileobj
+
+        self._compress_type = zipinfo.compress_type
+        self._compress_left = zipinfo.compress_size
+        self._left = zipinfo.file_size
+
+        self._decompressor = _get_decompressor(self._compress_type)
+
+        self._eof = False
+        self._readbuffer = b''
+        self._offset = 0
+
+        self.newlines = None
+
+        self.mode = mode
+        self.name = zipinfo.filename
+
+        if hasattr(zipinfo, 'CRC'):
+            self._expected_crc = zipinfo.CRC
+            self._running_crc = crc32(b'')
+        else:
+            self._expected_crc = None
+
+        self._seekable = False
+        try:
+            if fileobj.seekable():
+                self._orig_compress_start = fileobj.tell()
+                self._orig_compress_size = zipinfo.compress_size
+                self._orig_file_size = zipinfo.file_size
+                self._orig_start_crc = self._running_crc
+                self._orig_crc = self._expected_crc
+                self._seekable = True
+        except AttributeError:
+            pass
+
+        self._decrypter = None
+        if pwd:
+            if zipinfo.flag_bits & _MASK_USE_DATA_DESCRIPTOR:
+                # compare against the file type from extended local headers
+                check_byte = (zipinfo._raw_time >> 8) & 0xff
+            else:
+                # compare against the CRC otherwise
+                check_byte = (zipinfo.CRC >> 24) & 0xff
+            h = self._init_decrypter()
+            if h != check_byte:
+                raise RuntimeError("Bad password for file %r" % zipinfo.orig_filename)
+
+
+    def _init_decrypter(self):
+        self._decrypter = _ZipDecrypter(self._pwd)
+        # The first 12 bytes in the cypher stream is an encryption header
+        #  used to strengthen the algorithm. The first 11 bytes are
+        #  completely random, while the 12th contains the MSB of the CRC,
+        #  or the MSB of the file time depending on the header type
+        #  and is used to check the correctness of the password.
+        header = self._fileobj.read(12)
+        self._compress_left -= 12
+        return self._decrypter(header)[11]
+
+    def __repr__(self):
+        result = ['<%s.%s' % (self.__class__.__module__,
+                              self.__class__.__qualname__)]
+        if not self.closed:
+            result.append(' name=%r' % (self.name,))
+            if self._compress_type != ZIP_STORED:
+                result.append(' compress_type=%s' %
+                              compressor_names.get(self._compress_type,
+                                                   self._compress_type))
+        else:
+            result.append(' [closed]')
+        result.append('>')
+        return ''.join(result)
+
+    def readline(self, limit=-1):
+        """Read and return a line from the stream.
+
+        If limit is specified, at most limit bytes will be read.
+        """
+
+  
