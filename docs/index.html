@@ -101,8 +101,8 @@
 
     </script>
   </head>
-  <body style="height: 100%; background: grey; overflow:hidden">
-
+  <body style="height: 100%; background: black; overflow:hidden; color:white">
+   <div class="navbar"><div class="nav"><a>SAT - client-side file analysis</a></div><div class="nav navright"><a href="https://github.com/vulns-ch/security_analyst_toolkit">github</a></div></div>   
     <div class="top-section">
         <div class="left-section">
           <div class="dashboard-header">
@@ -110,10 +110,11 @@
                 <input type="text" class="search-box" id="searchBox" placeholder="Search applications...">
             </div>
 
-            <div class="category" data-category="utilities">
+            <div class="category" data-category="pdf">
                 <div class="category-title">PDF</div>
                 <div class="app-list">
-                    <div class="app-item" data-app="image-resizer">
+
+                    <div class="app-item" data-app="pdf_analysis">
                         <div class="app-info">
                             <div class="app-title">pdf content analysis</div>
                             <div class="app-script">scripts/pdf_analyze_all.sh</div>
@@ -121,6 +122,16 @@
                         </div>
                         <button class="run-btn">Run</button>
                     </div>
+                    <div class="app-item" data-app="pdf_preview">
+                        <div class="app-info">
+                            <div class="app-title">pdf image preview</div>
+                            <div class="app-script">scripts/pdf_preview.sh</div>
+                            <div class="app-description">generate save png previews</div>
+                        </div>
+                        <button class="run-btn">Run</button>
+                    </div>
+
+
                 </div>
             </div>
         </div>

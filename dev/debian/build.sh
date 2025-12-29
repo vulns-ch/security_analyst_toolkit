@@ -9,7 +9,7 @@ mkdir ext2
 mkdir ext2_scripts
 mkdir split
 docker cp sat_debian:/ ext2/
-/sbin/mkfs.ext2 -b 4096 -d ext2/ debian.ext2 300M
+/sbin/mkfs.ext2 -b 4096 -d ext2/ debian.ext2 500M
 split debian.ext2 split/debian.c -a 6 -b 128k -x --additional-suffix=.txt
 stat -c%s debian.ext2 > split/debian.meta
 index_list="split/index.list";
