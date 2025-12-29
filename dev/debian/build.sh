@@ -8,8 +8,17 @@ rm -rf split
 mkdir ext2
 mkdir ext2_scripts
 mkdir split
-docker cp sat_debian:/ ext2/
-/sbin/mkfs.ext2 -b 4096 -d ext2/ debian.ext2 500M
+fallocate -l 400M debian.ext2
+/sbin/mkfs.ext2 -E revision=0 debian.ext2
+sudo mount -o loop -t ext2 debian.ext2 ./ext2
+
+
+sudo docker cp sat_debian:/ ext2/
+sudo umount ./ext2
+du -sh ext2
+
+#/sbin/mkfs.ext2 -E revision=0 -d ext2/ debian.ext2 2000M
+#/sbin/mkfs.ext2 -b 4096 -d ext2/ debian.ext2 2000M
 split debian.ext2 split/debian.c -a 6 -b 128k -x --additional-suffix=.txt
 stat -c%s debian.ext2 > split/debian.meta
 index_list="split/index.list";
